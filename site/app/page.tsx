@@ -9,7 +9,6 @@ import { ThemeIcon } from "@/app/components/theme-icon";
 import { GitHubIcon } from "@/app/components/github-icon";
 import { GitHubStars } from "@/app/components/github-stars";
 import { useSearch } from "@/app/components/search-context";
-import BgLogo from "@/app/bg-logo";
 
 export default function Home() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -116,9 +115,6 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-8 mb-16 max-w-6xl mx-auto relative">
-          <div className="pointer-events-none absolute top-[-300px] -z-2 right-0">
-            <BgLogo />
-          </div>
           <ShowcaseGrid />
         </div>
       </main>
