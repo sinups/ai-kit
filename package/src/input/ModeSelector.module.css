@@ -1,0 +1,92 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6px);
+  height: rem(28px);
+  padding: 0 rem(8px);
+  border-radius: rem(6px);
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  color: alpha(var(--ae-fg), 0.4);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  &[data-static] {
+    pointer-events: none;
+  }
+}
+
+.triggerIcon {
+  width: rem(14px);
+  height: rem(14px);
+  flex-shrink: 0;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.chevron {
+  color: alpha(var(--ae-fg), 0.4);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: rem(8px);
+  width: 100%;
+  padding: rem(6px) rem(8px);
+  border-radius: rem(6px);
+  text-align: left;
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  color: var(--ae-fg);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  &[data-active] {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+}
+
+.optionIcon {
+  width: rem(14px);
+  height: rem(14px);
+  margin-top: rem(2px);
+  flex-shrink: 0;
+}
+
+.optionText {
+  flex: 1;
+  min-width: 0;
+}
+
+.optionLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.optionDescription {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: alpha(var(--ae-fg), 0.4);
+}
+
+.check {
+  margin-top: rem(2px);
+  flex-shrink: 0;
+  color: alpha(var(--ae-fg), 0.6);
+}

@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(28px);
+  height: rem(28px);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: var(--ae-muted);
+  }
+}
+
+.icon {
+  color: var(--ae-icon-idle);
+}

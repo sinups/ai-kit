@@ -1,0 +1,47 @@
+{
+  "name": "@sinups/ai-kit",
+  "version": "0.1.0",
+  "description": "Agent chat UI components for Mantine: message list, streaming markdown, tool cards, composer",
+  "homepage": "https://github.com/sinups/ai-kit#readme",
+  "packageManager": "yarn@4.0.1",
+  "license": "MIT",
+  "author": "Sinups",
+  "keywords": [
+    "mantine",
+    "extension",
+    "ai",
+    "agent",
+    "chat",
+    "tool-calls",
+    "streaming"
+  ],
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./styles.layer.css": "./dist/styles.layer.css"
+  },
+  "repository": "https://github.com/sinups/ai-kit.git",
+  "peerDependencies": {
+    "@mantine/core": ">=7.0.0",
+    "@mantine/hooks": ">=7.0.0",
+    "react": "^18.x || ^19.x",
+    "react-dom": "^18.x || ^19.x"
+  },
+  "bugs": "https://github.com/sinups/ai-kit/issues",
+  "dependencies": {
+    "@tabler/icons-react": "^3.40.0",
+    "markdown-to-jsx": "^7.7.13"
+  }
+}

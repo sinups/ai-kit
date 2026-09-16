@@ -1,0 +1,7 @@
+.text {
+  margin: 0;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  color: var(--ae-fg-muted);
+  white-space: pre-wrap;
+}

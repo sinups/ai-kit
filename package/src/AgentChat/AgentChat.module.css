@@ -1,0 +1,44 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.emptyState {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: rem(16px);
+}
+
+.emptyStateInner {
+  width: 100%;
+  max-width: var(--ae-max-width);
+}
+
+.emptySuggestions {
+  width: 100%;
+  justify-content: center;
+}
+
+.emptySuggestionsTop {
+  margin-bottom: rem(12px);
+}
+
+.emptySuggestionsBottom {
+  margin-top: rem(12px);
+}
+
+.emptySuggestionItem {
+  height: rem(32px);
+  border-radius: rem(6px);
+  padding-inline: rem(12px);
+}
+
+.centeredInputBar {
+  padding-inline: 0;
+  padding-bottom: 0;
+}

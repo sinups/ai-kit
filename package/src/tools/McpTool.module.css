@@ -1,0 +1,13 @@
+.root {
+  width: 100%;
+}
+
+.interrupted {
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  color: var(--ae-tool-color-muted);
+}
+
+.output {
+  font-size: var(--ae-font-size-xs);
+}

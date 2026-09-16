@@ -1,0 +1,157 @@
+.root {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.content {
+  margin-inline: auto;
+  padding: rem(24px) rem(16px);
+  max-width: var(--ae-max-width);
+}
+
+.turns {
+  display: flex;
+  flex-direction: column;
+  gap: rem(8px);
+}
+
+.turn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: rem(8px);
+}
+
+.group {
+  @mixin hover {
+    & .toolbar {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.assistantStack {
+  display: flex;
+  flex-direction: column;
+  gap: rem(12px);
+}
+
+.assistantParts {
+  &[data-stacked] {
+    display: flex;
+    flex-direction: column;
+    gap: rem(12px);
+  }
+}
+
+.assistantText {
+  font-size: var(--ae-font-size-sm);
+  line-height: 1.625;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: rem(4px);
+  padding-top: rem(4px);
+  font-size: var(--ae-font-size-xs);
+  color: alpha(var(--ae-fg-muted), 0.7);
+  opacity: 0;
+  transition: opacity 100ms ease;
+  pointer-events: none;
+
+  &[data-size='sm'] {
+    height: rem(28px);
+  }
+
+  &[data-size='lg'] {
+    height: rem(48px);
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  &[data-align='end'] {
+    justify-content: flex-end;
+  }
+
+  &[data-align='start'] {
+    justify-content: flex-start;
+  }
+
+  &[data-visible] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(24px);
+  height: rem(24px);
+  border-radius: rem(6px);
+  opacity: 0.5;
+  background-color: transparent;
+  transition:
+    background-color 150ms ease-out,
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+
+  @mixin hover {
+    opacity: 1;
+    background-color: alpha(var(--ae-fg), 0.1);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.copyIcons {
+  position: relative;
+  display: block;
+  width: rem(14px);
+  height: rem(14px);
+
+  &[data-copied] .copyIcon {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  &[data-copied] .checkIcon {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.copyIcon,
+.checkIcon {
+  position: absolute;
+  inset: 0;
+  width: rem(14px);
+  height: rem(14px);
+  color: var(--ae-fg-muted);
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out;
+}
+
+.copyIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkIcon {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.breathingSpace {
+  min-height: max(rem(140px), 24vh);
+  margin-inline: auto;
+  max-width: var(--ae-max-width);
+  width: 100%;
+}

@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.card {
+  border: rem(1px) solid var(--ae-error-border);
+  background-color: var(--ae-error-bg);
+  padding: rem(10px) rem(16px);
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  color: var(--ae-fg);
+  border-radius: rem(8px);
+}
+
+.title {
+  font-weight: 500;
+  color: var(--ae-fg);
+}
+
+.message {
+  margin-top: rem(2px);
+  color: var(--ae-fg-muted);
+}

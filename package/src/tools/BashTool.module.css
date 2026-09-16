@@ -1,0 +1,80 @@
+.card {
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+  background-color: var(--ae-tool-bg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: rem(28px);
+  padding-left: rem(10px);
+  padding-right: rem(8px);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: rem(6px);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.shimmer {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  margin: 0;
+  font-size: var(--ae-font-size-xs);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spinner {
+  color: var(--ae-fg-muted);
+  flex-shrink: 0;
+}
+
+.body {
+  border-top: rem(1px) solid var(--ae-border);
+  padding: rem(6px) rem(10px);
+  font-family: var(--ae-font-mono);
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  overflow: hidden;
+  background-color: var(--ae-bg);
+}
+
+.commandLine {
+  word-break: break-all;
+}
+
+.prompt {
+  color: var(--ae-terminal-prompt);
+  user-select: none;
+}
+
+.command {
+  color: var(--ae-fg);
+}
+
+.output {
+  margin-top: rem(4px);
+  color: var(--ae-fg-muted);
+  white-space: pre-line;
+  max-height: rem(80px);
+  overflow: hidden;
+}

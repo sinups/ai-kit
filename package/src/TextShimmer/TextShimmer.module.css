@@ -1,0 +1,17 @@
+.root {
+  display: inline-block;
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    var(--ae-fg-subtle) 0%,
+    var(--ae-fg-subtle) 40%,
+    var(--ae-fg-muted) 50%,
+    var(--ae-fg-subtle) 60%,
+    var(--ae-fg-subtle) 100%
+  );
+  background-repeat: no-repeat;
+  animation: var(--ae-anim-shimmer) var(--ae-shimmer-duration, 2s) linear infinite;
+}

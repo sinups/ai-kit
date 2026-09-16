@@ -1,0 +1,13 @@
+.target {
+  display: inline-flex;
+}
+
+.dropdown {
+  min-width: rem(180px);
+  padding: rem(4px);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: rem(10px);
+  background-color: var(--ae-bg);
+  color: var(--ae-fg);
+  outline: none;
+}

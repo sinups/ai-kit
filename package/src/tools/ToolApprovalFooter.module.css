@@ -1,0 +1,91 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: rem(4px) rem(8px) rem(4px) rem(12px);
+  border-top: rem(1px) solid var(--ae-border);
+  background-color: var(--ae-tool-bg);
+}
+
+.status {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-tool-color-muted);
+}
+
+.dots {
+  display: inline-flex;
+}
+
+.dot {
+  color: var(--ae-tool-color-muted);
+  animation: var(--ae-anim-loading-dots) 1.4s infinite;
+
+  &:nth-child(1) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.4s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.6s;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: rem(4px);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: rem(20px);
+  padding: 0 rem(6px);
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.reject {
+  color: var(--ae-fg-muted);
+
+  @mixin hover {
+    color: var(--ae-tool-color);
+    background-color: alpha(var(--ae-bg-secondary), 0.5);
+  }
+
+  &:disabled {
+    background-color: transparent;
+    color: var(--ae-fg-muted);
+  }
+}
+
+.approve {
+  font-weight: 500;
+  background-color: var(--ae-primary);
+  color: var(--ae-send-button-color);
+
+  @mixin hover {
+    background-color: alpha(var(--ae-primary), 0.9);
+  }
+
+  &:disabled {
+    background-color: var(--ae-primary);
+  }
+}

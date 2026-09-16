@@ -1,0 +1,221 @@
+.root {
+  overflow: hidden;
+  overflow-wrap: break-word;
+  font-size: var(--ae-font-size-sm);
+  color: var(--ae-fg);
+
+  & > :first-child {
+    margin-top: 0;
+  }
+
+  & > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+.h1,
+.h2 {
+  font-size: var(--ae-font-size-md);
+  font-weight: 600;
+  line-height: 1.5;
+  margin: rem(12px) 0 rem(6px);
+}
+
+.h3 {
+  font-size: var(--ae-font-size-sm);
+  font-weight: 600;
+  line-height: 1.5;
+  margin: rem(8px) 0 rem(4px);
+}
+
+.h4 {
+  font-size: var(--ae-font-size-sm);
+  font-weight: 500;
+  line-height: 1.5;
+  margin: rem(8px) 0 rem(4px);
+}
+
+.p {
+  font-size: var(--ae-font-size-sm);
+  line-height: 1.625;
+  margin: 0 0 rem(8px);
+  color: alpha(var(--ae-fg), 0.8);
+}
+
+.ul,
+.ol {
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  margin: 0 0 rem(8px);
+  color: alpha(var(--ae-fg), 0.8);
+  list-style-position: outside;
+
+  & > .li + .li {
+    margin-top: rem(2px);
+  }
+}
+
+.ul {
+  list-style-type: disc;
+  padding-inline-start: rem(16px);
+}
+
+.ol {
+  list-style-type: decimal;
+  padding-inline-start: rem(20px);
+}
+
+.li {
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  padding-inline-start: rem(2px);
+  color: alpha(var(--ae-fg), 0.8);
+
+  & > .p {
+    display: inline;
+    margin-bottom: 0;
+  }
+
+  & > .ul,
+  & > .ol {
+    margin-bottom: 0;
+  }
+}
+
+.strong {
+  font-weight: 500;
+  color: var(--ae-fg);
+}
+
+.link {
+  color: var(--ae-primary);
+  text-decoration: none;
+  text-underline-offset: rem(2px);
+
+  @mixin hover {
+    text-decoration: underline;
+  }
+}
+
+.blockquote {
+  margin: 0 0 rem(8px);
+  padding-inline-start: rem(12px);
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  font-style: italic;
+  border-inline-start: rem(2px) solid var(--ae-border);
+  color: alpha(var(--ae-fg), 0.7);
+}
+
+.hr {
+  margin: rem(16px) 0;
+  border: 0;
+  border-top: rem(1px) solid var(--ae-border);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  margin: rem(12px) 0;
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+}
+
+.table {
+  width: 100%;
+  font-size: var(--ae-font-size-sm);
+  border-collapse: collapse;
+
+  & > thead {
+    background-color: var(--ae-tool-bg);
+  }
+}
+
+.th {
+  text-align: left;
+  font-weight: 500;
+  padding: rem(8px) rem(12px);
+  background-color: var(--ae-tool-bg);
+}
+
+.td {
+  padding: rem(8px) rem(12px);
+  border-top: rem(1px) solid var(--ae-border);
+  color: alpha(var(--ae-fg), 0.8);
+}
+
+.inlineCode {
+  font-family: var(--ae-font-mono);
+  font-size: 0.9em;
+  background-color: alpha(var(--ae-fg), 0.06);
+  border-radius: var(--mantine-radius-sm);
+  padding: rem(1px) rem(4px);
+}
+
+.codeBlock {
+  margin: rem(8px) 0;
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+  background: transparent;
+  overflow: hidden;
+}
+
+.codeBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: rem(28px);
+  padding: 0 rem(8px) 0 rem(10px);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+  background-color: var(--ae-tool-bg);
+  border-bottom: rem(1px) solid var(--ae-tool-border);
+}
+
+.codeBlockLang {
+  font-size: var(--ae-font-size-xs);
+  color: var(--ae-fg-muted);
+  line-height: var(--ae-line-height-xs);
+}
+
+.codeBlockCopy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(20px);
+  height: rem(20px);
+  border-radius: rem(6px);
+  color: var(--ae-fg-muted);
+  opacity: 0.7;
+  transition:
+    opacity 150ms ease-out,
+    background-color 150ms ease-out;
+
+  @mixin hover {
+    opacity: 1;
+    background-color: alpha(var(--ae-fg), 0.1);
+  }
+
+  &[data-copied] {
+    opacity: 1;
+  }
+}
+
+.codeBlockBody {
+  margin: 0;
+  padding: rem(8px) rem(10px);
+  font-family: var(--ae-font-mono);
+  font-size: var(--ae-font-size-xs);
+  line-height: 1.5;
+  overflow-x: auto;
+  background: transparent;
+  color: var(--ae-code-color);
+
+  & > code {
+    font-family: inherit;
+    font-size: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+}

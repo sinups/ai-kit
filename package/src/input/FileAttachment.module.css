@@ -1,0 +1,131 @@
+.root {
+  --attachment-radius: calc(var(--ae-input-radius) - var(--ae-context-padding));
+  --attachment-radius-inner: calc(var(--attachment-radius) - rem(2px));
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: rem(8px);
+  min-width: rem(120px);
+  max-width: rem(200px);
+  padding: rem(4px) rem(8px) rem(4px) rem(4px);
+  border-radius: var(--attachment-radius);
+  background-color: alpha(var(--ae-muted), 0.5);
+
+  &[data-image-only] {
+    justify-content: center;
+    width: rem(40px);
+    height: rem(40px);
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    gap: 0;
+  }
+
+  @mixin hover {
+    .remove {
+      opacity: 1;
+    }
+  }
+}
+
+.thumb {
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--attachment-radius-inner);
+
+  &[data-preview] {
+    cursor: pointer;
+  }
+}
+
+.thumbSquare {
+  width: rem(32px);
+  height: rem(32px);
+}
+
+.thumbStretch {
+  width: rem(32px);
+  align-self: stretch;
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imgSquare {
+  aspect-ratio: 1 / 1;
+}
+
+.iconBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(32px);
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: var(--attachment-radius-inner);
+  background-color: var(--ae-muted);
+}
+
+.fileIcon {
+  color: var(--ae-fg-muted);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  font-weight: 500;
+  color: var(--ae-fg);
+}
+
+.size {
+  font-size: var(--ae-font-size-2xs);
+  line-height: 1.5;
+  color: var(--ae-fg-muted);
+}
+
+.remove {
+  position: absolute;
+  top: rem(-6px);
+  right: rem(-6px);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(16px);
+  height: rem(16px);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: 50%;
+  background-color: var(--ae-bg);
+  color: var(--ae-fg-muted);
+  opacity: 0;
+  transition:
+    opacity 150ms ease-out,
+    transform 150ms ease-out,
+    color 150ms ease-out;
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @mixin hover {
+    color: var(--ae-fg);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}

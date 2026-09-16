@@ -1,0 +1,14 @@
+.root {
+  overflow: hidden;
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+  background-color: var(--ae-tool-bg);
+}
+
+.summary {
+  padding: rem(8px) rem(12px);
+  background-color: var(--ae-bg);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-tool-color-muted);
+}

@@ -1,0 +1,41 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: rem(28px);
+  padding: 0 rem(12px);
+  border-bottom: rem(1px) solid var(--ae-border);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-tool-color-muted);
+}
+
+.caption {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6px);
+}
+
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(4px);
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(20px);
+  height: rem(20px);
+  border-radius: var(--mantine-radius-sm);
+  color: inherit;
+
+  @mixin hover {
+    background-color: var(--ae-bg-secondary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}

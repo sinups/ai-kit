@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(28px);
+  height: rem(28px);
+  border-radius: 50%;
+  background-color: var(--ae-muted);
+  cursor: default;
+
+  &[data-state='typing'] {
+    background-color: var(--ae-send-button-bg);
+    cursor: pointer;
+  }
+
+  &[data-state='streaming'] {
+    background-color: var(--ae-fg);
+    cursor: pointer;
+  }
+}
+
+.icon {
+  color: var(--ae-icon-idle);
+
+  .root[data-state='typing'] & {
+    color: var(--ae-send-button-color);
+  }
+
+  .root[data-state='streaming'] & {
+    color: var(--ae-bg);
+  }
+}

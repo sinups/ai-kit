@@ -1,0 +1,87 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(4px);
+  height: rem(28px);
+  padding: 0 rem(8px);
+  border-radius: rem(6px);
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  color: alpha(var(--ae-fg), 0.4);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+}
+
+.triggerName {
+  font-weight: 500;
+}
+
+.triggerVersion {
+  font-weight: 400;
+  color: alpha(var(--ae-fg), 0.25);
+}
+
+.chevron {
+  color: alpha(var(--ae-fg), 0.4);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: rem(8px);
+  width: 100%;
+  padding: rem(6px) rem(8px);
+  border-radius: rem(6px);
+  text-align: left;
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  color: var(--ae-fg);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  &[data-active] {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+}
+
+.optionLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionVersion {
+  margin-left: rem(4px);
+  color: alpha(var(--ae-fg), 0.4);
+}
+
+.check {
+  flex-shrink: 0;
+  color: alpha(var(--ae-fg), 0.6);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: rem(28px);
+  padding: 0 rem(8px);
+  font-size: var(--ae-font-size-xs);
+  line-height: rem(16px);
+  color: alpha(var(--ae-fg), 0.3);
+}
+
+.badgeVersion {
+  margin-left: rem(2px);
+  font-weight: 400;
+  color: alpha(var(--ae-fg), 0.2);
+}

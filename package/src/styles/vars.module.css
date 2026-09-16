@@ -1,0 +1,132 @@
+:global(:root) {
+  --ae-radius: var(--mantine-radius-lg);
+  --ae-message-radius: var(--ae-radius);
+  --ae-message-radius-inner-offset: rem(4px);
+  --ae-message-radius-inner: calc(var(--ae-message-radius) - var(--ae-message-radius-inner-offset));
+  --ae-input-radius: var(--ae-radius);
+  --ae-tool-radius: rem(10px);
+  --ae-max-width: rem(420px);
+  --ae-context-padding: rem(10px);
+  --ae-user-message-x: rem(14px);
+  --ae-user-message-y: rem(10px);
+
+  --ae-font-size-2xs: rem(10px);
+  --ae-font-size-xxs: rem(11px);
+  --ae-font-size-xs: var(--mantine-font-size-xs);
+  --ae-font-size-sm: var(--mantine-font-size-sm);
+  --ae-font-size-md: var(--mantine-font-size-md);
+  --ae-font-mono: var(--mantine-font-family-monospace);
+  --ae-line-height-xs: rem(16px);
+  --ae-line-height-sm: rem(20px);
+
+  /* Keyframes are declared as :global below; these names let CSS modules reference them without re-hashing */
+  --ae-anim-shimmer: ae-shimmer;
+  --ae-anim-blink: ae-blink;
+  --ae-anim-loading-dots: ae-loading-dots;
+  --ae-anim-spin: ae-spin;
+
+  --ae-hover: var(--mantine-color-default-hover);
+  --ae-primary: var(--mantine-primary-color-filled);
+  --ae-primary-hover: var(--mantine-primary-color-filled-hover);
+  --ae-primary-contrast: var(--mantine-primary-color-contrast);
+  --ae-send-button-bg: var(--ae-primary);
+  --ae-send-button-color: var(--ae-primary-contrast);
+  --ae-error-border: alpha(var(--mantine-color-red-6), 0.3);
+  --ae-error-bg: alpha(var(--mantine-color-red-6), 0.1);
+
+  /* Neutral palette mirrors the reference theme (agent-ui.css) so that both color modes match it exactly */
+  @mixin light-root {
+    --ae-bg: #fff;
+    --ae-bg-secondary: #f0f0f0;
+    --ae-bg-tertiary: #f8f8f8;
+    --ae-muted: #f5f5f5;
+    --ae-fg: #1a1a1a;
+    --ae-fg-muted: #737373;
+    --ae-fg-subtle: #a3a3a3;
+    --ae-border: #e4e4e7;
+    --ae-user-message-bg: #f5f5f5;
+    --ae-user-message-text: #1a1a1a;
+    --ae-input-bg: #fff;
+    --ae-input-border: #e4e4e7;
+    --ae-input-color: #1a1a1a;
+    --ae-input-placeholder: #a3a3a3;
+    --ae-tool-bg: #f5f5f5;
+    --ae-tool-border: #e4e4e7;
+    --ae-tool-color: #1a1a1a;
+    --ae-tool-color-muted: #737373;
+    --ae-code-bg: #1e1e1e;
+    --ae-code-color: var(--mantine-color-text);
+    --ae-icon-idle: #a3a3a3;
+    --ae-terminal-prompt: #d97706;
+    --ae-diff-added-bg: rgb(34, 197, 94, 0.1);
+    --ae-diff-added-border: rgb(34, 197, 94, 0.5);
+    --ae-diff-added-text: #15803d;
+    --ae-diff-removed-bg: rgb(239, 68, 68, 0.1);
+    --ae-diff-removed-border: rgb(239, 68, 68, 0.5);
+    --ae-diff-removed-text: #dc2626;
+  }
+
+  @mixin dark-root {
+    --ae-bg: #0a0a0a;
+    --ae-bg-secondary: #242424;
+    --ae-bg-tertiary: #141414;
+    --ae-muted: #262626;
+    --ae-fg: #fafafa;
+    --ae-fg-muted: #8c8c8c;
+    --ae-fg-subtle: #71717a;
+    --ae-border: #2a2a2a;
+    --ae-user-message-bg: #1a1a1a;
+    --ae-user-message-text: #fafafa;
+    --ae-input-bg: #0a0a0a;
+    --ae-input-border: #2a2a2a;
+    --ae-input-color: #fafafa;
+    --ae-input-placeholder: #71717a;
+    --ae-tool-bg: #141414;
+    --ae-tool-border: #2a2a2a;
+    --ae-tool-color: #fafafa;
+    --ae-tool-color-muted: #8c8c8c;
+    --ae-code-bg: #0a0a0a;
+    --ae-code-color: #d4d4d4;
+    --ae-icon-idle: #71717a;
+    --ae-terminal-prompt: #fbbf24;
+    --ae-diff-added-bg: rgb(34, 197, 94, 0.15);
+    --ae-diff-added-border: rgb(34, 197, 94, 0.4);
+    --ae-diff-added-text: #4ade80;
+    --ae-diff-removed-bg: rgb(239, 68, 68, 0.15);
+    --ae-diff-removed-border: rgb(239, 68, 68, 0.4);
+    --ae-diff-removed-text: #f87171;
+  }
+}
+
+@keyframes :global(ae-shimmer) {
+  from {
+    background-position: 100% center;
+  }
+
+  to {
+    background-position: 0% center;
+  }
+}
+
+@keyframes :global(ae-blink) {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes :global(ae-loading-dots) {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes :global(ae-spin) {
+  to {
+    transform: rotate(360deg);
+  }
+}

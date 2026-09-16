@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.625rem;
+  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(
+    --font-geist-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace
+  );
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+
+  /* Documentation site */
+  --doc-background: 0 0% 95.7%;
+  --doc-surface: 0 0% 100%;
+  --doc-text: 240 10% 3.9%;
+  --doc-text-muted: 0 0% 45.1%;
+  --doc-border: 240 5.9% 90%;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Documentation site */
+  --doc-background: 0 0% 6.3%;
+  --doc-surface: 0 0% 4%;
+  --doc-text: 240 4.8% 95.9%;
+  --doc-text-muted: 0 0% 52.9%;
+  --doc-border: 240 3.7% 15.9%;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(
+    --font-geist-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace
+  );
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Bridge: Tailwind utilities used by the docs shell map onto the package tokens (--ae-*) */
+  --color-an-background: var(--ae-bg);
+  --color-an-background-secondary: var(--ae-bg-secondary);
+  --color-an-background-tertiary: var(--ae-bg-tertiary);
+  --color-an-foreground: var(--ae-fg);
+  --color-an-foreground-muted: var(--ae-fg-muted);
+  --color-an-foreground-subtle: var(--ae-fg-subtle);
+  --color-an-border-color: var(--ae-border);
+  --color-an-primary-color: var(--ae-primary);
+  --color-an-user-message-bg: var(--ae-user-message-bg);
+  --color-an-user-message-text: var(--ae-user-message-text);
+  --color-an-input-background: var(--ae-input-bg);
+  --color-an-input-border-color: var(--ae-input-border);
+  --color-an-input-color: var(--ae-input-color);
+  --color-an-send-button-bg: var(--ae-send-button-bg);
+  --color-an-send-button-color: var(--ae-send-button-color);
+  --color-an-tool-background: var(--ae-tool-bg);
+  --color-an-tool-border-color: var(--ae-tool-border);
+  --color-an-tool-color: var(--ae-tool-color);
+  --color-an-tool-color-muted: var(--ae-tool-color-muted);
+  --color-an-code-background: var(--ae-code-bg);
+  --color-an-code-color: var(--ae-code-color);
+  --color-an-diff-added-text: var(--ae-diff-added-text);
+  --color-an-diff-removed-text: var(--ae-diff-removed-text);
+  --radius-an-message: var(--ae-message-radius);
+  --radius-an-message-inner: var(--ae-message-radius-inner);
+  --radius-an-input-border-radius: var(--ae-input-radius);
+  --radius-an-tool-border-radius: var(--ae-tool-radius);
+  --spacing-an-context-padding: var(--ae-context-padding);
+  --max-width-an: var(--ae-max-width);
+
+  /* Documentation site */
+  --color-doc-border: hsl(var(--doc-border));
+  --color-doc-text-muted: hsl(var(--doc-text-muted));
+  --color-doc-text: hsl(var(--doc-text));
+  --color-doc-surface: hsl(var(--doc-surface));
+  --color-doc-background: hsl(var(--doc-background));
+}
+
+.code-doc {
+  @apply font-mono text-sm bg-doc-surface text-doc-text border border-doc-border rounded-[4px] px-1 py-0.5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Shiki output inside docs code blocks */
+.an-markdown pre code {
+  counter-reset: none !important;
+}
+
+.an-markdown pre code > span::before {
+  content: none !important;
+  display: none !important;
+}
+
+.an-markdown pre code > span {
+  padding-left: 0 !important;
+}

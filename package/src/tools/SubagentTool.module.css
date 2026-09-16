@@ -1,0 +1,40 @@
+.root {
+  width: 100%;
+}
+
+.body {
+  position: relative;
+}
+
+.mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: rem(32px);
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--ae-bg), transparent);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  &[data-multi] {
+    gap: rem(8px);
+  }
+
+  &[data-stream] {
+    overflow-y: auto;
+    max-height: rem(120px);
+  }
+}
+
+.elapsed {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  color: alpha(var(--ae-fg-muted), 0.6);
+}

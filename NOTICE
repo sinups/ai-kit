@@ -1,0 +1,16 @@
+AI UI Kit (@sinups/ai-kit)
+Copyright (c) 2026 Sinups
+
+This project is a fork of Agent Elements (https://github.com/21st-dev/agent-elements)
+Copyright (c) 2026 21st.dev, licensed under the MIT License.
+
+The component design, behavior, examples, skills and the documentation site
+(site/) are derived from that project. The Tailwind CSS and shadcn/ui
+implementation was replaced with Mantine primitives and theme tokens, the
+shadcn registry distribution was replaced with a single npm package, and the
+parts tied to the 21st.dev Agent SDK (relay, sandbox and deploy flows) were
+removed.
+
+The build and release tooling (rollup, jest and release scripts) is derived
+from the Mantine extension template (https://github.com/mantinedev/extension-template)
+Copyright (c) 2023 Vitaly Rtishchev, licensed under the MIT License.

@@ -1,0 +1,38 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: rem(8px);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(4px);
+  height: rem(28px);
+  padding: 0 rem(8px);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: rem(6px);
+  background-color: transparent;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  color: var(--ae-fg-muted);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-bg-secondary), 0.4);
+    color: var(--ae-fg);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
