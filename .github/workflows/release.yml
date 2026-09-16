@@ -75,7 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> "$HOME/.npmrc"
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> "${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
           version=$(node -p "require('./package.json').version")
           if npm view "@sinups/ai-kit@${version}" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
             echo "@sinups/ai-kit@${version} is already on GitHub Packages, skipping"
