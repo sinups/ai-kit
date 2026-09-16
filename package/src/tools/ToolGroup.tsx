@@ -1,10 +1,10 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
-import { formatElapsedTime } from '../utils/format-elapsed';
-import { getPartInput, getPartOutput, getToolStatus } from '../utils/format-tool';
+import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
 import { toolRegistry } from './tool-registry';
+import { useElapsed } from './use-elapsed';
 import classes from './ToolGroup.module.css';
 
 export interface ToolGroupProps {
@@ -110,11 +110,6 @@ function formatStreamCounts(fileCount: number, searchCount: number): string {
   return parts.join(', ');
 }
 
-function getStartedAt(part: ToolPart): number | undefined {
-  const meta = part.callProviderMetadata as { custom?: { startedAt?: number } } | undefined;
-  return meta?.custom?.startedAt ?? (part.startedAt as number | undefined);
-}
-
 /** Expandable group of nested tool calls (Task/Agent) with streaming reveal animation */
 export const ToolGroup = memo(function ToolGroup({
   part,
@@ -131,16 +126,14 @@ export const ToolGroup = memo(function ToolGroup({
 }: ToolGroupProps) {
   const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
-  const output = getPartOutput(part);
   const description: string = input.description || '';
-  const [elapsedMs, setElapsedMs] = useState(0);
   const [expanded, setExpanded] = useState(defaultOpen ?? false);
   const [visibleCount, setVisibleCount] = useState(0);
-  const startedAt = getStartedAt(part);
+  const visibleCountRef = useRef(0);
   const hasNestedTools = nestedTools.length > 0;
   const streamKey = part.toolCallId ?? (part.id as string) ?? '';
-  const outputDuration: number | undefined =
-    output?.totalDurationMs || output?.duration || output?.duration_ms;
+  const streamKeyRef = useRef(streamKey);
+  const elapsedTimeDisplay = useElapsed(part, isPending);
   const maskThreshold = 4;
   const streamHeight = Math.max(1, maxVisibleTools) * 28;
   const visibleToolCount = isPending ? Math.max(visibleCount, 0) : nestedTools.length;
@@ -153,16 +146,6 @@ export const ToolGroup = memo(function ToolGroup({
   }, [isPending, nestedTools, visibleCount]);
   const streamCounts = formatStreamCounts(fileCount, searchCount);
   const listRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (isPending && startedAt) {
-      setElapsedMs(Date.now() - startedAt);
-      const interval = setInterval(() => {
-        setElapsedMs(Date.now() - startedAt);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isPending, startedAt]);
 
   useEffect(() => {
     const wasPending = wasPendingRef.current;
@@ -192,16 +175,27 @@ export const ToolGroup = memo(function ToolGroup({
   }, [defaultOpen, isPending]);
 
   useEffect(() => {
-    if (!isPending || nestedTools.length === 0) {
-      setVisibleCount(nestedTools.length);
+    const total = nestedTools.length;
+    const updateVisibleCount = (value: number) => {
+      visibleCountRef.current = value;
+      setVisibleCount(value);
+    };
+    const keyChanged = streamKeyRef.current !== streamKey;
+    streamKeyRef.current = streamKey;
+
+    if (!isPending || total === 0) {
+      updateVisibleCount(total);
       return;
     }
-    let index = 1;
-    setVisibleCount(Math.min(index, nestedTools.length));
+    let index = keyChanged ? 1 : Math.min(Math.max(visibleCountRef.current, 1), total);
+    updateVisibleCount(index);
+    if (index >= total) {
+      return;
+    }
     const interval = setInterval(() => {
       index += 1;
-      setVisibleCount(Math.min(index, nestedTools.length));
-      if (index >= nestedTools.length) {
+      updateVisibleCount(Math.min(index, total));
+      if (index >= total) {
         clearInterval(interval);
       }
     }, 450);
@@ -230,9 +224,6 @@ export const ToolGroup = memo(function ToolGroup({
     }
     return description.length > 60 ? `${description.slice(0, 57)}...` : description;
   })();
-  const elapsedTimeDisplay = formatElapsedTime(
-    !isPending && outputDuration ? outputDuration : elapsedMs
-  );
 
   if (isInterrupted && !part.output) {
     return (

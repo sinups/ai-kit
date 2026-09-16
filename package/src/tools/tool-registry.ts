@@ -13,6 +13,7 @@ import {
   IconSparkles,
   IconTerminal2,
 } from '@tabler/icons-react';
+import { countDiffStats, diffLines } from '../utils/line-diff';
 
 export type ToolVariant = 'simple' | 'collapsible';
 
@@ -55,27 +56,6 @@ function getDisplayPath(filePath: string): string {
     }
   }
   return filePath;
-}
-
-function calculateDiffStats(oldString: string, newString: string) {
-  const oldLines = oldString.split('\n');
-  const newLines = newString.split('\n');
-  const maxLines = Math.max(oldLines.length, newLines.length);
-  let addedLines = 0;
-  let removedLines = 0;
-  for (let i = 0; i < maxLines; i++) {
-    if (oldLines[i] !== undefined && newLines[i] !== undefined) {
-      if (oldLines[i] !== newLines[i]) {
-        removedLines++;
-        addedLines++;
-      }
-    } else if (oldLines[i] !== undefined) {
-      removedLines++;
-    } else if (newLines[i] !== undefined) {
-      addedLines++;
-    }
-  }
-  return { addedLines, removedLines };
 }
 
 function normalizeCommand(command: string): string {
@@ -161,8 +141,8 @@ export const toolRegistry: Record<string, ToolMeta> = {
         return '';
       }
       if (oldString !== newString) {
-        const { addedLines, removedLines } = calculateDiffStats(oldString, newString);
-        return `+${addedLines} -${removedLines}`;
+        const { added, removed } = countDiffStats(diffLines(oldString, newString));
+        return `+${added} -${removed}`;
       }
       return '';
     },
@@ -192,7 +172,7 @@ export const toolRegistry: Record<string, ToolMeta> = {
     subtitle: (part) => {
       const url = part.input?.url || '';
       try {
-        return new URL(url).hostname.replace('www.', '');
+        return new URL(url).hostname.replace(/^www\./, '');
       } catch {
         return url.slice(0, 30);
       }
@@ -270,7 +250,7 @@ export const toolRegistry: Record<string, ToolMeta> = {
     subtitle: (part) => {
       const output = part.output;
       if (typeof output === 'string' && output.trim()) {
-        return output.trim();
+        return truncate(output.trim(), 50);
       }
       const command = part.input?.command || '';
       return command ? normalizeCommand(command) : '';

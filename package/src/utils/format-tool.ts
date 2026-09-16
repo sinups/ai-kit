@@ -1,90 +1,48 @@
 import type { ToolPart } from '../types';
 
-type CachedToolState = {
-  state: string | undefined;
-  inputJson: string;
-  outputJson: string;
-};
+function arePartsEqual(prev: ToolPart, next: ToolPart): boolean {
+  if (prev === next) {
+    return true;
+  }
+  return (
+    prev.type === next.type &&
+    prev.toolCallId === next.toolCallId &&
+    prev.state === next.state &&
+    prev.input === next.input &&
+    prev.output === next.output &&
+    prev.errorText === next.errorText
+  );
+}
 
 /**
- * Tool state cache for detecting AI SDK in-place mutations.
- * AI SDK mutates objects in-place during streaming, so state is cached externally
- * and compared against cached values.
+ * Props comparator for tool cards wrapped in `React.memo()`.
+ * AI SDK v5 `useChat` emits new part objects on every update, so parts are compared
+ * by identity of their state, input, output and error text; other props are compared shallowly.
  */
-const toolStateCache = new Map<string, CachedToolState>();
-
-function getToolStateSnapshot(part: ToolPart): CachedToolState {
-  return {
-    state: part.state,
-    inputJson: JSON.stringify(part.input || {}),
-    outputJson: JSON.stringify(part.output || {}),
-  };
-}
-
-function hasToolStateChanged(toolCallId: string, part: ToolPart): boolean {
-  const cached = toolStateCache.get(toolCallId);
-  const current = getToolStateSnapshot(part);
-
-  if (!cached) {
-    toolStateCache.set(toolCallId, current);
-    return true;
-  }
-
-  const changed =
-    cached.state !== current.state ||
-    cached.inputJson !== current.inputJson ||
-    cached.outputJson !== current.outputJson;
-
-  if (changed) {
-    toolStateCache.set(toolCallId, current);
-  }
-
-  return changed;
-}
-
-function arePartsEqual(prev: ToolPart, next: ToolPart): boolean {
-  if (prev.toolCallId !== next.toolCallId) {
-    return false;
-  }
-  if (prev.type !== next.type) {
-    return false;
-  }
-
-  const toolCallId = next.toolCallId;
-  if (!toolCallId) {
-    return prev.state === next.state;
-  }
-
-  return !hasToolStateChanged(toolCallId, next);
-}
-
-function isToolCompleted(part: ToolPart): boolean {
-  if (part.output !== undefined && part.output !== null) {
-    return true;
-  }
-  if (part.state === 'error') {
-    return true;
-  }
-  if (part.state === 'result') {
-    return true;
-  }
-  return false;
-}
-
-/** Deep compare function for tool part props. Used with `React.memo()`. */
-export function areToolPropsEqual(
-  prevProps: { part: ToolPart; chatStatus?: string },
-  nextProps: { part: ToolPart; chatStatus?: string }
+export function areToolPropsEqual<P extends { part: ToolPart; chatStatus?: string }>(
+  prevProps: P,
+  nextProps: P
 ): boolean {
-  const partsEqual = arePartsEqual(prevProps.part, nextProps.part);
-  if (!partsEqual) {
+  if (!arePartsEqual(prevProps.part, nextProps.part)) {
     return false;
-  }
-  if (isToolCompleted(nextProps.part)) {
-    return true;
   }
   if (prevProps.chatStatus !== nextProps.chatStatus) {
     return false;
+  }
+  const prev = prevProps as Record<string, unknown>;
+  const next = nextProps as Record<string, unknown>;
+  const prevKeys = Object.keys(prev);
+  const nextKeys = Object.keys(next);
+  if (prevKeys.length !== nextKeys.length) {
+    return false;
+  }
+  for (const key of prevKeys) {
+    if (key === 'part' || key === 'chatStatus') {
+      continue;
+    }
+    if (!Object.hasOwn(next, key) || !Object.is(prev[key], next[key])) {
+      return false;
+    }
   }
   return true;
 }
@@ -112,7 +70,7 @@ export function getToolStatus(part: ToolPart, chatStatus?: string): ToolStatus {
 
 /** Maps AI SDK v5 part state to the legacy three-state model used by tool cards */
 export function getLegacyToolState(part: ToolPart): 'partial-call' | 'call' | 'result' {
-  if (part.state === 'output-available') {
+  if (part.state === 'output-available' || part.state === 'output-error') {
     return 'result';
   }
   if (part.state === 'input-streaming') {

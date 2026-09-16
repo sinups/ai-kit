@@ -18,6 +18,7 @@ import type {
 } from '../types';
 import { cx } from '../utils/cx';
 import { normalizeAssistantToolParts } from '../utils/tool-part-normalizer';
+import { isErrorPart, isTextPart, isV5ToolPart } from '../utils/parts';
 import { UserMessage } from '../UserMessage/UserMessage';
 import { Markdown } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
@@ -31,7 +32,10 @@ export type MessageListProps = {
   status: ChatStatus;
   className?: string;
   showCopyToolbar?: boolean;
+  /** Hides every `tool-Question` part. Prefer `suppressQuestionToolCallId`. */
   suppressQuestionTool?: boolean;
+  /** Hides only the `tool-Question` part with this `toolCallId` (e.g. the one shown in the input bar) */
+  suppressQuestionToolCallId?: string;
   /**
    * Where to position the scroll container on initial mount.
    * - "bottom" (default): classic chat behavior, pinned to the latest message.
@@ -113,28 +117,6 @@ function getLastUserMessageId(messages: ChatMessage[]) {
     }
   }
   return null;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isTextPart(part: unknown): part is { type: 'text'; text: string } {
-  return isRecord(part) && part.type === 'text' && typeof part.text === 'string';
-}
-
-function isErrorPart(part: unknown): part is { type: 'error'; title?: string; message: string } {
-  return isRecord(part) && part.type === 'error' && typeof part.message === 'string';
-}
-
-function isV5ToolPart(part: unknown): part is ToolPart {
-  if (!isRecord(part)) {
-    return false;
-  }
-  const partType = part.type;
-  return (
-    partType === 'dynamic-tool' || (typeof partType === 'string' && partType.startsWith('tool-'))
-  );
 }
 
 function getTextFromParts(parts: unknown[], joiner: string): string {
@@ -247,6 +229,7 @@ export const MessageList = memo(function MessageList({
   className,
   showCopyToolbar = true,
   suppressQuestionTool = false,
+  suppressQuestionToolCallId,
   initialScrollBehavior = 'bottom',
   enableImagePreview = true,
   slots,
@@ -300,14 +283,6 @@ export const MessageList = memo(function MessageList({
       observer.observe(el);
       chatContainerObserverRef.current = observer;
     }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (chatContainerObserverRef.current) {
-        chatContainerObserverRef.current.disconnect();
-      }
-    };
   }, []);
 
   const scrollToBottomInstant = useCallback(() => {
@@ -427,13 +402,8 @@ export const MessageList = memo(function MessageList({
     if (!last) {
       return false;
     }
-    const lastTurn = turns[turns.length - 1];
-    const hasAssistant = Boolean(lastTurn && lastTurn.assistantMsgs.length > 0);
-    if (last.role === 'user' && !hasAssistant) {
-      return true;
-    }
-    return isStreaming && !getLastAssistantHasContent(normalizedMessages);
-  }, [isStreaming, normalizedMessages, turns]);
+    return isStreaming && (last.role === 'user' || !getLastAssistantHasContent(normalizedMessages));
+  }, [isStreaming, normalizedMessages]);
   const isNewAssistantMessage =
     lastMessageRole === 'assistant' &&
     Boolean(lastMessageId) &&
@@ -539,6 +509,7 @@ export const MessageList = memo(function MessageList({
                                 isLast={isLastMsg}
                                 isStreaming={isStreaming}
                                 suppressQuestionTool={suppressQuestionTool}
+                                suppressQuestionToolCallId={suppressQuestionToolCallId}
                                 ToolRendererComponent={CustomToolRenderer}
                                 toolRenderers={toolRenderers}
                               />
@@ -585,6 +556,7 @@ function AssistantParts({
   isLast,
   isStreaming,
   suppressQuestionTool,
+  suppressQuestionToolCallId,
   ToolRendererComponent,
   toolRenderers,
 }: {
@@ -592,6 +564,7 @@ function AssistantParts({
   isLast: boolean;
   isStreaming: boolean;
   suppressQuestionTool: boolean;
+  suppressQuestionToolCallId?: string;
   ToolRendererComponent: React.ComponentType<ToolRendererSlotProps>;
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
 }) {
@@ -660,7 +633,12 @@ function AssistantParts({
       }
 
       if (isV5ToolPart(part)) {
-        if (suppressQuestionTool && part.type === 'tool-Question') {
+        if (
+          part.type === 'tool-Question' &&
+          (suppressQuestionTool ||
+            (suppressQuestionToolCallId !== undefined &&
+              part.toolCallId === suppressQuestionToolCallId))
+        ) {
           return;
         }
         if (part.toolCallId && nestedToolIds.has(part.toolCallId)) {
@@ -692,6 +670,7 @@ function AssistantParts({
     isLast,
     isStreaming,
     suppressQuestionTool,
+    suppressQuestionToolCallId,
     ToolRendererComponent,
     toolRenderers,
   ]);

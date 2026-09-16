@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import type { ChatMessage, ChatSlots } from '../types';
-import { AgentChat } from './AgentChat';
+import { AgentChat, findPendingQuestion } from './AgentChat';
 
 const StubInputBar: ChatSlots['InputBar'] = ({ onSend, status }) => (
   <div>
@@ -64,5 +64,111 @@ describe('AgentChat', () => {
     const stub = screen.getByText('status:ready');
     expect(stub.closest('[data-empty-centered]')).not.toBeNull();
     expect(screen.queryByRole('toolbar')).toBeNull();
+  });
+
+  describe('question tool', () => {
+    const questions = [
+      { kind: 'single', title: 'Pick a color', options: [{ id: 'red', label: 'Red' }] },
+      { kind: 'single', title: 'Pick a size', options: [{ id: 'xl', label: 'XL' }] },
+    ];
+
+    const questionMessage = (id: string, part: Record<string, unknown> = {}): ChatMessage => ({
+      id,
+      role: 'assistant',
+      parts: [
+        {
+          type: 'tool-Question',
+          toolCallId: `call-${id}`,
+          state: 'input-available',
+          input: { questions },
+          ...part,
+        },
+      ],
+    });
+
+    it('treats an unanswered question after the last user message as pending', () => {
+      const pending = findPendingQuestion([...messages, questionMessage('q1')], undefined);
+      expect(pending?.toolCallId).toBe('call-q1');
+      expect(pending?.questions).toHaveLength(2);
+    });
+
+    it('ignores questions that precede the last user message', () => {
+      const history: ChatMessage[] = [
+        questionMessage('q1'),
+        { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'Never mind' }] },
+      ];
+      expect(findPendingQuestion(history, undefined)).toBeNull();
+    });
+
+    it('closes the question on output-error, output-available or any output', () => {
+      expect(
+        findPendingQuestion([questionMessage('q1', { state: 'output-error' })], undefined)
+      ).toBeNull();
+      expect(
+        findPendingQuestion([questionMessage('q1', { state: 'output-available' })], undefined)
+      ).toBeNull();
+      expect(
+        findPendingQuestion([questionMessage('q1', { output: 'done' })], undefined)
+      ).toBeNull();
+    });
+
+    type StubQuestionBar = {
+      onSubmit: (
+        answer: { kind: 'single'; selectedIds: string[] },
+        meta: { questionIndex: number }
+      ) => void;
+      onSkip?: (meta: { questionIndex: number }) => void;
+    };
+
+    const QuestionStubInputBar: ChatSlots['InputBar'] = ({ questionBar }) => {
+      const bar = questionBar as StubQuestionBar | undefined;
+      if (!bar) {
+        return <span>no question</span>;
+      }
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={() =>
+              bar.onSubmit({ kind: 'single', selectedIds: ['xl'] }, { questionIndex: 2 })
+            }
+          >
+            answer second
+          </button>
+          <button type="button" onClick={() => bar.onSkip?.({ questionIndex: 1 })}>
+            skip
+          </button>
+        </div>
+      );
+    };
+
+    it('passes the answered question by questionIndex and forwards skip', async () => {
+      const onAnswer = jest.fn();
+      render(
+        <AgentChat
+          messages={[...messages, questionMessage('q1')]}
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: QuestionStubInputBar }}
+          questionTool={{ onAnswer }}
+        />
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'answer second' }));
+      expect(onAnswer).toHaveBeenLastCalledWith({
+        toolCallId: 'call-q1',
+        question: questions[1],
+        answer: { kind: 'single', selectedIds: ['xl'] },
+      });
+
+      await userEvent.click(screen.getByRole('button', { name: 'skip' }));
+      expect(onAnswer).toHaveBeenLastCalledWith({
+        toolCallId: 'call-q1',
+        question: questions[0],
+        answer: { kind: 'skip' },
+      });
+      expect(onAnswer).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -1,7 +1,8 @@
 import React, { memo, useState } from 'react';
 import { Box, UnstyledButton } from '@mantine/core';
-import type { ChatMessage, MessagePart } from '../types';
+import type { ChatMessage } from '../types';
 import { cx } from '../utils/cx';
+import { isRecord, isTextPart } from '../utils/parts';
 import { FileAttachment } from '../input/FileAttachment';
 import { ImageLightbox } from '../ImageLightbox/ImageLightbox';
 import classes from './UserMessage.module.css';
@@ -15,14 +16,6 @@ export type UserMessageProps = {
    */
   enableImagePreview?: boolean;
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isTextPart(part: MessagePart): part is { type: 'text'; text: string } {
-  return part.type === 'text' && typeof (part as { text?: unknown }).text === 'string';
-}
 
 function getMimeType(part: Record<string, unknown>): string | undefined {
   const mime = part.mediaType ?? part.mimeType;
@@ -114,7 +107,7 @@ export const UserMessage = memo(function UserMessage({
       files.push(file);
     }
   }
-  if (isRecord(message) && Array.isArray(message.experimental_attachments)) {
+  if (Array.isArray(message.experimental_attachments)) {
     for (const att of message.experimental_attachments as Array<{
       contentType?: string;
       url?: string;

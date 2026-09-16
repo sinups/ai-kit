@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box } from '@mantine/core';
 import { cx } from '../utils/cx';
 import { QuestionHeader } from './QuestionHeader';
-import { QuestionAnswer, QuestionConfig, QuestionPrompt } from './QuestionPrompt';
+import { QuestionAnswer, QuestionConfig, QuestionOption, QuestionPrompt } from './QuestionPrompt';
 import classes from './QuestionTool.module.css';
 
 export type QuestionToolPart = {
@@ -34,14 +34,16 @@ export interface QuestionToolProps {
   style?: React.CSSProperties;
 }
 
-function formatAnswer(answer: QuestionAnswer) {
+function formatAnswer(answer: QuestionAnswer, options: QuestionOption[]) {
   if (answer.kind === 'skip') {
     return 'Skipped';
   }
   if (answer.kind === 'text') {
     return answer.text || 'Answered';
   }
-  const ids = answer.selectedIds?.length ? answer.selectedIds.join(', ') : '';
+  const ids = answer.selectedIds?.length
+    ? answer.selectedIds.map((id) => options.find((o) => o.id === id)?.label ?? id).join(', ')
+    : '';
   if (answer.text) {
     return ids ? `${ids} (${answer.text})` : answer.text;
   }
@@ -49,71 +51,58 @@ function formatAnswer(answer: QuestionAnswer) {
 }
 
 /** Tool card for the "ask user" tool: a header with question navigation and the active QuestionPrompt, collapsing into a summary once answered */
-export function QuestionTool({ part, className, style }: QuestionToolProps) {
+export function QuestionTool(props: QuestionToolProps) {
+  return <QuestionToolCard key={props.part.toolCallId} {...props} />;
+}
+
+function QuestionToolCard({ part, className, style }: QuestionToolProps) {
   const [localIndex, setLocalIndex] = useState(part.input?.questionIndex ?? 1);
   const questions: QuestionConfig[] = part.input?.questions ?? [];
   const totalQuestions = part.input?.totalQuestions ?? questions.length;
   const isControlled = typeof part.input?.questionIndex === 'number';
-  let questionIndex: number;
-  if (isControlled) {
-    questionIndex = part.input?.questionIndex ?? 1;
-  } else if (questions.length > 0) {
-    questionIndex = localIndex;
-  } else {
-    questionIndex = part.input?.questionIndex ?? 1;
-  }
+  const questionIndex = isControlled ? (part.input?.questionIndex ?? 1) : localIndex;
   const clampedIndex = Math.max(1, Math.min(questionIndex, totalQuestions));
   const question = questions[clampedIndex - 1];
   const [localAnswers, setLocalAnswers] = useState<Record<number, QuestionAnswer>>({});
 
-  useEffect(() => {
-    if (typeof part.input?.questionIndex === 'number') {
-      setLocalIndex(part.input.questionIndex);
-    }
-  }, [part.input?.questionIndex]);
-
-  useEffect(() => {
-    setLocalAnswers({});
-    setLocalIndex(part.input?.questionIndex ?? 1);
-  }, [part.toolCallId]);
-
   const outputAnswer = part.output?.answer;
   const answeredCount = Object.keys(localAnswers).length;
-  const isComplete =
-    totalQuestions === 1
-      ? !!outputAnswer || answeredCount >= 1
-      : totalQuestions > 0 && answeredCount >= totalQuestions;
+  const isComplete = !!outputAnswer || (totalQuestions > 0 && answeredCount >= totalQuestions);
   const showNavigation = totalQuestions > 1 && !isComplete;
   const canGoPrev = clampedIndex > 1;
   const canGoNext = clampedIndex < totalQuestions;
 
   const summaryAnswers = useMemo(() => {
-    if (!isComplete || totalQuestions <= 1) {
+    if (!isComplete || totalQuestions <= 1 || answeredCount === 0) {
       return [];
     }
     return Array.from({ length: totalQuestions }, (_, idx) => ({
       index: idx + 1,
       answer: localAnswers[idx + 1],
     }));
-  }, [isComplete, localAnswers, totalQuestions]);
+  }, [isComplete, localAnswers, totalQuestions, answeredCount]);
 
   const summaryText = useMemo(() => {
+    const allOptions = questions.flatMap((q) => q.options ?? []);
     if (!isComplete) {
       return '';
     }
     if (summaryAnswers.length > 0) {
       return summaryAnswers
-        .map((item) => `${item.index}: ${item.answer ? formatAnswer(item.answer) : 'Pending'}`)
+        .map(
+          (item) =>
+            `${item.index}: ${item.answer ? formatAnswer(item.answer, questions[item.index - 1]?.options ?? []) : 'Pending'}`
+        )
         .join(' • ');
     }
     if (outputAnswer) {
-      return formatAnswer(outputAnswer);
+      return formatAnswer(outputAnswer, allOptions);
     }
     if (localAnswers[clampedIndex]) {
-      return formatAnswer(localAnswers[clampedIndex]);
+      return formatAnswer(localAnswers[clampedIndex], allOptions);
     }
     return 'Pending';
-  }, [isComplete, summaryAnswers, outputAnswer, localAnswers, clampedIndex]);
+  }, [isComplete, summaryAnswers, outputAnswer, localAnswers, clampedIndex, questions]);
 
   if (!question) {
     return null;

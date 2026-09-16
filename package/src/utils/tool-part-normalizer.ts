@@ -1,8 +1,6 @@
-type AnyRecord = Record<string, any>;
+import { isRecord } from './parts';
 
-function isRecord(value: unknown): value is AnyRecord {
-  return typeof value === 'object' && value !== null;
-}
+type AnyRecord = Record<string, any>;
 
 function parseStructuredJson(value: unknown): unknown {
   if (typeof value !== 'string') {

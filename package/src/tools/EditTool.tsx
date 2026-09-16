@@ -7,10 +7,10 @@ import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
 import { cx } from '../utils/cx';
-import { getLegacyToolState, getPartInput, getPartOutput } from '../utils/format-tool';
-import { mapToolInvocationToStep, mapToolStateToStepState } from '../utils/tool-adapters';
+import { getPartInput, getPartOutput } from '../utils/format-tool';
 import { DiffView } from './DiffView';
 import { ToolApprovalFooter, type ToolApproval } from './ToolApprovalFooter';
+import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './EditTool.module.css';
 
 export interface EditToolDiffCardProps {
@@ -168,23 +168,20 @@ export const EditTool = memo(function EditTool({
   const output = getPartOutput(part);
   const approval = input.approval as ToolApproval | undefined;
   const toolName = part.type?.replace('tool-', '') || 'Edit';
-  const legacyState = getLegacyToolState(part);
-  const step = mapToolInvocationToStep(part.toolCallId ?? (part.id as string) ?? 'edit', {
-    toolName,
-    args: input,
-    state: legacyState,
-    result: output,
-  });
-  const stepState = mapToolStateToStepState(legacyState);
-  const noop = () => {};
+  const { step, stepState } = useToolStep(part, toolName, 'edit');
+  const isStreaming = part.state === 'input-streaming';
+  const cardStep = useMemo(
+    () => (isStreaming ? { ...step, diffLines: undefined } : step),
+    [isStreaming, step]
+  );
 
   return (
     <EditToolDiffCard
-      step={step}
+      step={cardStep}
       state={stepState}
-      onComplete={noop}
-      input={input}
-      output={output && typeof output === 'object' ? output : undefined}
+      onComplete={noopComplete}
+      input={isStreaming ? undefined : input}
+      output={!isStreaming && output && typeof output === 'object' ? output : undefined}
       isCollapsible={isCollapsible}
       approval={approval}
       className={className}

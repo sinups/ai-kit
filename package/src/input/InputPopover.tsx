@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cloneElement, isValidElement } from 'react';
 import { Box, FloatingPosition, Popover } from '@mantine/core';
 import { useUncontrolled } from '@mantine/hooks';
 import { cx } from '../utils/cx';
@@ -27,6 +27,8 @@ export interface InputPopoverProps {
   className?: string;
   style?: React.CSSProperties;
 }
+
+type TriggerProps = { onClick?: (event: React.MouseEvent<HTMLElement>) => void };
 
 function toPosition(side: PopoverSide, align: PopoverAlign): FloatingPosition {
   return align === 'center' ? side : (`${side}-${align}` as FloatingPosition);
@@ -65,9 +67,18 @@ export function InputPopover({
       styles={{ dropdown: style }}
     >
       <Popover.Target>
-        <Box component="span" className={classes.target} onClick={() => setOpened(!opened)}>
-          {trigger}
-        </Box>
+        {isValidElement<TriggerProps>(trigger) ? (
+          cloneElement(trigger, {
+            onClick: (event: React.MouseEvent<HTMLElement>) => {
+              trigger.props.onClick?.(event);
+              setOpened(!opened);
+            },
+          })
+        ) : (
+          <Box component="span" className={classes.target} onClick={() => setOpened(!opened)}>
+            {trigger}
+          </Box>
+        )}
       </Popover.Target>
       <Popover.Dropdown>{children}</Popover.Dropdown>
     </Popover>

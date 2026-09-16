@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, Textarea, TextInput, UnstyledButton } from '@mantine/core';
 import { cx } from '../utils/cx';
 import classes from './QuestionPrompt.module.css';
@@ -36,6 +36,26 @@ function optionBadge(idx: number) {
   return String.fromCharCode(65 + idx);
 }
 
+type PromptState = { selectedIds: string[]; customText: string; textValue: string };
+
+function getInitialState(
+  initialAnswer: QuestionAnswer | undefined,
+  question: QuestionConfig | undefined
+): PromptState {
+  if (!initialAnswer || initialAnswer.kind === 'skip') {
+    return { selectedIds: [], customText: '', textValue: '' };
+  }
+  if (question?.kind === 'text') {
+    return { selectedIds: [], customText: '', textValue: initialAnswer.text ?? '' };
+  }
+  const selected = new Set(initialAnswer.selectedIds ?? []);
+  const customText = initialAnswer.text ?? '';
+  if (question?.allowCustom && customText.trim().length > 0) {
+    selected.add(QUESTION_CUSTOM_ID);
+  }
+  return { selectedIds: Array.from(selected), customText, textValue: '' };
+}
+
 export interface QuestionPromptProps {
   questions: QuestionConfig[];
   /** 1-based index of the active question, `1` by default */
@@ -43,7 +63,10 @@ export interface QuestionPromptProps {
   totalQuestions?: number;
   onPreviousQuestion?: () => void;
   onNextQuestion?: () => void;
-  /** Answer used to pre-fill the form when revisiting a question */
+  /**
+   * Answer used to pre-fill the form when revisiting a question.
+   * Read only on mount: hosts remount the prompt (via `key`) when the active question changes.
+   */
   initialAnswer?: QuestionAnswer;
   /** Label for the primary action on the LAST question, `'Send'` by default */
   submitLabel?: string;
@@ -57,6 +80,10 @@ export interface QuestionPromptProps {
   /** Whether the skip button is shown, `true` by default */
   allowSkip?: boolean;
   onSubmit: (answer: QuestionAnswer) => void;
+  /**
+   * Called when the skip button is pressed. When provided, `onSubmit` is NOT called for the skip.
+   * When omitted, skipping is reported as `onSubmit({ kind: 'skip' })`.
+   */
   onSkip?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -79,53 +106,21 @@ export function QuestionPrompt({
   className,
   style,
 }: QuestionPromptProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [customText, setCustomText] = useState('');
-  const [textValue, setTextValue] = useState('');
   const resolvedTotal = totalQuestions ?? questions.length;
   const clampedIndex = Math.max(1, Math.min(questionIndex, resolvedTotal));
   const activeQuestion = questions[clampedIndex - 1];
+  const [initialState] = useState(() => getInitialState(initialAnswer, activeQuestion));
+  const [selectedIds, setSelectedIds] = useState(initialState.selectedIds);
+  const [customText, setCustomText] = useState(initialState.customText);
+  const [textValue, setTextValue] = useState(initialState.textValue);
   const customEnabled = activeQuestion?.allowCustom ?? false;
   const showNav = resolvedTotal > 1 && (!!onPreviousQuestion || !!onNextQuestion);
   const canGoPrev = clampedIndex > 1;
   const canGoNext = clampedIndex < resolvedTotal;
   const isLastQuestion = clampedIndex >= resolvedTotal;
   const primaryLabel = isLastQuestion ? submitLabel : nextLabel;
-  const initialSelectedKey = initialAnswer?.selectedIds?.join('|');
 
-  useEffect(() => {
-    if (!initialAnswer || initialAnswer.kind === 'skip') {
-      setSelectedIds([]);
-      setCustomText('');
-      setTextValue('');
-      return;
-    }
-
-    if (activeQuestion?.kind === 'text') {
-      setSelectedIds([]);
-      setCustomText('');
-      setTextValue(initialAnswer.text ?? '');
-      return;
-    }
-
-    const nextSelected = new Set(initialAnswer.selectedIds ?? []);
-    const nextCustomText = initialAnswer.text ?? '';
-    if (customEnabled && nextCustomText.trim().length > 0) {
-      nextSelected.add(QUESTION_CUSTOM_ID);
-    }
-    setSelectedIds(Array.from(nextSelected));
-    setCustomText(nextCustomText);
-    setTextValue('');
-  }, [
-    activeQuestion?.kind,
-    clampedIndex,
-    customEnabled,
-    initialAnswer?.kind,
-    initialAnswer?.text,
-    initialSelectedKey,
-  ]);
-
-  const canSubmit = useMemo(() => {
+  const computeCanSubmit = () => {
     if (activeQuestion?.kind === 'text') {
       return textValue.trim().length > 0;
     }
@@ -140,21 +135,12 @@ export function QuestionPrompt({
 
     const min = activeQuestion?.minSelections ?? 1;
     const max = activeQuestion?.maxSelections;
-    if (total < min) {
-      return false;
-    }
     if (typeof max === 'number' && total > max) {
       return false;
     }
-    return total > 0;
-  }, [
-    activeQuestion?.kind,
-    activeQuestion?.minSelections,
-    activeQuestion?.maxSelections,
-    selectedIds,
-    customText,
-    textValue,
-  ]);
+    return total >= min;
+  };
+  const canSubmit = computeCanSubmit();
 
   const toggleMulti = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -204,7 +190,10 @@ export function QuestionPrompt({
   };
 
   const handleSkip = () => {
-    onSkip?.();
+    if (onSkip) {
+      onSkip();
+      return;
+    }
     onSubmit({ kind: 'skip' });
   };
 
@@ -216,7 +205,7 @@ export function QuestionPrompt({
 
   return (
     <Box className={cx(classes.root, className)} style={style}>
-      <div className={classes.header} data-total-questions={resolvedTotal}>
+      <div className={classes.header}>
         <div className={classes.title}>
           <span className={classes.indexBadge}>{clampedIndex}</span>
           <span>{activeQuestion.title}</span>
@@ -242,6 +231,7 @@ export function QuestionPrompt({
                 }}
                 className={classes.option}
                 data-checked={checked || undefined}
+                aria-pressed={checked}
               >
                 <span className={classes.badge} data-checked={checked || undefined}>
                   {optionBadge(idx)}

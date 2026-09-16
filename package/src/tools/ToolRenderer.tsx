@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { QuestionTool, type QuestionToolPart } from '../question/QuestionTool';
 import type { CustomToolRendererProps, ToolPart } from '../types';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
@@ -38,13 +38,18 @@ function deriveToolStatus(part: ToolPart, chatStatus?: string): CustomToolRender
   return isPending ? 'pending' : 'success';
 }
 
-/** Dispatches a tool part to the matching card by `part.type` */
+/** Dispatches a tool part to the matching card by `part.type` (`dynamic-tool` parts by `tool-${toolName}`) */
 export const ToolRenderer = memo(function ToolRenderer({
-  part,
+  part: rawPart,
   nestedTools,
   chatStatus,
   toolRenderers,
 }: ToolRendererProps) {
+  const isDynamic = rawPart.type === 'dynamic-tool' && typeof rawPart.toolName === 'string';
+  const part = useMemo<ToolPart>(
+    () => (isDynamic ? { ...rawPart, type: `tool-${rawPart.toolName}` } : rawPart),
+    [isDynamic, rawPart]
+  );
   const partType = part.type;
 
   switch (partType) {

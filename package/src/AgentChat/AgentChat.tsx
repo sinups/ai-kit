@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box } from '@mantine/core';
 import type { AgentChatProps, ChatMessage } from '../types';
 import type { QuestionAnswer, QuestionConfig } from '../question/QuestionPrompt';
@@ -32,14 +32,16 @@ export function AgentChat({
   className,
   style,
 }: AgentChatProps) {
-  const rootRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState('');
 
   const ResolvedInputBar = (slots?.InputBar ?? InputBar) as InputBarComponent;
   const isEmpty = !error && messages.length === 0;
   const isCenteredEmptyState = isEmpty && emptyStatePosition === 'center';
 
-  const pendingQuestion = findPendingQuestion(messages, questionTool);
+  const pendingQuestion = useMemo(
+    () => findPendingQuestion(messages, questionTool),
+    [messages, questionTool]
+  );
   const suggestionConfig = resolveSuggestions(suggestions);
   const showInputSuggestions =
     emptySuggestionsPlacement === 'input' || emptySuggestionsPlacement === 'both';
@@ -97,14 +99,20 @@ export function AgentChat({
               submitLabel: pendingQuestion.submitLabel,
               skipLabel: pendingQuestion.skipLabel,
               allowSkip: pendingQuestion.allowSkip,
-              onSubmit: (answer: QuestionAnswer) => {
+              onSubmit: (answer: QuestionAnswer, { questionIndex }: { questionIndex: number }) => {
                 questionTool?.onAnswer?.({
                   toolCallId: pendingQuestion.toolCallId,
                   question:
-                    pendingQuestion.questions[
-                      pendingQuestion.questionIndex ? pendingQuestion.questionIndex - 1 : 0
-                    ] ?? pendingQuestion.question,
+                    pendingQuestion.questions[questionIndex - 1] ?? pendingQuestion.question,
                   answer,
+                });
+              },
+              onSkip: ({ questionIndex }: { questionIndex: number }) => {
+                questionTool?.onAnswer?.({
+                  toolCallId: pendingQuestion.toolCallId,
+                  question:
+                    pendingQuestion.questions[questionIndex - 1] ?? pendingQuestion.question,
+                  answer: { kind: 'skip' },
                 });
               },
             }
@@ -113,26 +121,29 @@ export function AgentChat({
     />
   );
 
-  const listMessages: ChatMessage[] = error
-    ? [
-        ...messages,
-        {
-          id: 'agent-chat-error',
-          role: 'assistant',
-          parts: [
+  const listMessages = useMemo<ChatMessage[]>(
+    () =>
+      error
+        ? [
+            ...messages,
             {
-              type: 'error',
-              title: 'Request failed',
-              message: error.message,
+              id: 'agent-chat-error',
+              role: 'assistant',
+              parts: [
+                {
+                  type: 'error',
+                  title: 'Request failed',
+                  message: error.message,
+                },
+              ],
             },
-          ],
-        },
-      ]
-    : messages;
+          ]
+        : messages,
+    [messages, error]
+  );
 
   return (
     <Box
-      ref={rootRef}
       className={cx(classes.root, classNames?.root, className)}
       style={style}
       data-empty-centered={isCenteredEmptyState || undefined}
@@ -155,7 +166,8 @@ export function AgentChat({
           showCopyToolbar={showCopyToolbar}
           initialScrollBehavior={initialScrollBehavior}
           enableImagePreview={enableImagePreview}
-          suppressQuestionTool={Boolean(pendingQuestion)}
+          suppressQuestionTool={Boolean(pendingQuestion) && !pendingQuestion?.toolCallId}
+          suppressQuestionToolCallId={pendingQuestion?.toolCallId}
         />
       )}
       {!isCenteredEmptyState ? inputBarNode : null}
@@ -192,12 +204,20 @@ type QuestionToolInput = {
   allowSkip?: boolean;
 };
 
-function findPendingQuestion(
+/**
+ * Finds the unanswered `tool-Question` part to dock in the input bar.
+ * Only messages after the last user message are considered: anything before it
+ * has already been answered or superseded by the user.
+ */
+export function findPendingQuestion(
   messages: AgentChatProps['messages'],
   questionTool: AgentChatProps['questionTool']
 ) {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     const message = messages[i];
+    if (message?.role === 'user') {
+      return null;
+    }
     if (message?.role !== 'assistant') {
       continue;
     }
@@ -206,8 +226,9 @@ function findPendingQuestion(
       const part = parts[p] as {
         type?: string;
         toolCallId?: string;
+        state?: string;
         input?: QuestionToolInput;
-        output?: { answer?: QuestionAnswer };
+        output?: unknown;
       };
       if (part?.type !== 'tool-Question') {
         continue;
@@ -218,7 +239,11 @@ function findPendingQuestion(
       if (!firstQuestion) {
         continue;
       }
-      if (part.output?.answer) {
+      if (
+        part.state === 'output-available' ||
+        part.state === 'output-error' ||
+        part.output != null
+      ) {
         return null;
       }
       return {

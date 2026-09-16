@@ -12,17 +12,7 @@ import { SendButton } from './SendButton';
 import { SuggestionItem, Suggestions } from './Suggestions';
 import classes from './InputBar.module.css';
 
-type InputConfig = {
-  inputBarPlaceholder: string;
-  attachmentButtonPosition: 'left' | 'right';
-  attachmentPreviewStyle: 'thumbnail' | 'chip' | 'hidden';
-};
-
-const DEFAULT_INPUT_CONFIG: InputConfig = {
-  inputBarPlaceholder: 'Send a message...',
-  attachmentButtonPosition: 'left',
-  attachmentPreviewStyle: 'thumbnail',
-};
+const DEFAULT_PLACEHOLDER = 'Send a message...';
 
 export interface InputBarProps {
   onSend: (message: { role: 'user'; content: string }) => void;
@@ -73,19 +63,30 @@ export interface InputBarProps {
     };
   };
 
-  /** Inline question panel docked above the field */
+  /**
+   * Inline question panel docked above the field.
+   * Changing `id` starts a new question set: the active index and stored answers are reset.
+   */
   questionBar?: {
     id: string;
     questions: QuestionConfig[];
+    /** Controlled 1-based active question, used together with `onPreviousQuestion`/`onNextQuestion` */
     questionIndex?: number;
     totalQuestions?: number;
+    /** When this or `onNextQuestion` is set, navigation is external and the host drives `questionIndex` */
     onPreviousQuestion?: () => void;
     onNextQuestion?: () => void;
     submitLabel?: string;
     skipLabel?: string;
     allowSkip?: boolean;
-    onSubmit: (answer: QuestionAnswer) => void;
-    onSkip?: () => void;
+    /**
+     * Called for EVERY answered question with its 1-based `questionIndex`.
+     * With internal navigation the bar then advances to the next question; the panel closes
+     * only after the last question is answered.
+     */
+    onSubmit: (answer: QuestionAnswer, meta: { questionIndex: number }) => void;
+    /** Called once when Skip is pressed (`onSubmit` is not called for it); Skip closes the panel */
+    onSkip?: (meta: { questionIndex: number }) => void;
   };
 
   /** Content rendered on the left of the toolbar, next to the attachment button */
@@ -123,8 +124,25 @@ export const InputBar = memo(function InputBar({
 }: InputBarProps) {
   const [internalInput, setInternalInput] = useState('');
   const [isInfoBarOpen, setIsInfoBarOpen] = useState(true);
+  const [isInfoBarCollapsed, setIsInfoBarCollapsed] = useState(false);
+  const infoBarKey = `${infoBar?.title ?? ''}\u0000${infoBar?.description ?? ''}`;
+  const [prevInfoBarKey, setPrevInfoBarKey] = useState(infoBarKey);
+  if (prevInfoBarKey !== infoBarKey) {
+    setPrevInfoBarKey(infoBarKey);
+    setIsInfoBarOpen(true);
+    setIsInfoBarCollapsed(false);
+  }
+
   const [dismissedQuestionId, setDismissedQuestionId] = useState<string | null>(null);
   const [questionBarIndex, setQuestionBarIndex] = useState(1);
+  const [questionBarAnswers, setQuestionBarAnswers] = useState<Record<number, QuestionAnswer>>({});
+  const questionBarId = questionBar?.id;
+  const [prevQuestionBarId, setPrevQuestionBarId] = useState(questionBarId);
+  if (prevQuestionBarId !== questionBarId) {
+    setPrevQuestionBarId(questionBarId);
+    setQuestionBarIndex(1);
+    setQuestionBarAnswers({});
+  }
   const isControlled = controlledValue !== undefined;
   const input = isControlled ? controlledValue : internalInput;
   const setInput = useCallback(
@@ -138,7 +156,6 @@ export const InputBar = memo(function InputBar({
     [isControlled, controlledOnChange]
   );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const config = DEFAULT_INPUT_CONFIG;
 
   const isStreaming = status === 'streaming' || status === 'submitted';
   const isTyping = typingAnimation?.isActive ?? false;
@@ -150,10 +167,7 @@ export const InputBar = memo(function InputBar({
     typingAnimation?.onComplete ?? (() => {})
   );
 
-  const effectivePlaceholder = placeholder ?? config.inputBarPlaceholder;
-
-  const showAttach = Boolean(onAttach);
-  const attachRight = config.attachmentButtonPosition === 'right';
+  const effectivePlaceholder = placeholder ?? DEFAULT_PLACEHOLDER;
 
   useEffect(() => {
     if (!autoFocus) {
@@ -180,11 +194,20 @@ export const InputBar = memo(function InputBar({
   const shouldShowInfoBar = Boolean(infoBar && (infoBar.title || infoBar.description));
   const infoBarData = infoBar ?? {};
 
+  const hasInfoBarBackground = shouldShowInfoBar && (isInfoBarOpen || !isInfoBarCollapsed);
+
+  const handleInfoBarTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && !isInfoBarOpen) {
+      setIsInfoBarCollapsed(true);
+    }
+  };
+
   const infoBarNode = shouldShowInfoBar ? (
     <div
       className={classes.infoBar}
       data-open={isInfoBarOpen || undefined}
       data-position={infoBarPosition}
+      onTransitionEnd={handleInfoBarTransitionEnd}
     >
       <div className={classes.infoBarText}>
         {infoBarData.title && <span className={classes.infoBarTitle}>{infoBarData.title}</span>}
@@ -271,15 +294,23 @@ export const InputBar = memo(function InputBar({
           questions={questionSet}
           questionIndex={clampedQuestionIndex}
           totalQuestions={totalQuestions}
+          initialAnswer={questionBarAnswers[clampedQuestionIndex]}
           submitLabel={questionBarData.submitLabel}
           skipLabel={questionBarData.skipLabel}
           allowSkip={questionBarData.allowSkip}
           onSubmit={(answer) => {
-            questionBarData.onSubmit(answer);
-            setDismissedQuestionId(questionBarData.id);
+            const answeredIndex = clampedQuestionIndex;
+            setQuestionBarAnswers((prev) => ({ ...prev, [answeredIndex]: answer }));
+            questionBarData.onSubmit(answer, { questionIndex: answeredIndex });
+            if (answeredIndex >= totalQuestions) {
+              setDismissedQuestionId(questionBarData.id);
+            } else if (!hasExternalQuestionNavigation) {
+              setQuestionBarIndex(answeredIndex + 1);
+            }
           }}
           onSkip={() => {
-            questionBarData.onSkip?.();
+            questionBarData.onSkip?.({ questionIndex: clampedQuestionIndex });
+            setDismissedQuestionId(questionBarData.id);
           }}
         />
       </div>
@@ -287,6 +318,9 @@ export const InputBar = memo(function InputBar({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (e.nativeEvent.isComposing || e.keyCode === 229) {
+        return;
+      }
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSubmit();
@@ -297,10 +331,11 @@ export const InputBar = memo(function InputBar({
 
   const hasInput = input.trim().length > 0;
   const hasContextItems = attachedImages.length > 0 || attachedFiles.length > 0;
-  const showContextItems = hasContextItems && config.attachmentPreviewStyle !== 'hidden';
-  const imageDisplayMode = config.attachmentPreviewStyle === 'thumbnail' ? 'image-only' : 'chip';
 
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    if (!e.currentTarget.contains(e.target as Node)) {
+      return;
+    }
     if (e.target === e.currentTarget || !(e.target as HTMLElement).closest('button, textarea')) {
       textareaRef.current?.focus();
     }
@@ -341,7 +376,7 @@ export const InputBar = memo(function InputBar({
   return (
     <Box className={cx(classes.root, className)} style={style}>
       <div className={classes.inner}>
-        <div className={classes.stack} data-info-bar={shouldShowInfoBar || undefined}>
+        <div className={classes.stack} data-info-bar={hasInfoBarBackground || undefined}>
           {infoBarPosition === 'top' && infoBarNode}
           {questionBarNode}
           <div
@@ -350,9 +385,9 @@ export const InputBar = memo(function InputBar({
             data-drag-over={isDragOver || undefined}
             onClick={handleContainerClick}
           >
-            <div className={classes.contextGrid} data-open={showContextItems || undefined}>
+            <div className={classes.contextGrid} data-open={hasContextItems || undefined}>
               <div className={classes.contextClip}>
-                {showContextItems && (
+                {hasContextItems && (
                   <div className={classes.contextItems}>
                     {attachedImages.map((img) => (
                       <FileAttachment
@@ -362,7 +397,7 @@ export const InputBar = memo(function InputBar({
                         size={img.size}
                         isImage
                         url={img.url}
-                        display={imageDisplayMode}
+                        display="image-only"
                         enableImagePreview={enableImagePreview}
                         onRemove={onRemoveImage ? () => onRemoveImage(img.id) : undefined}
                       />
@@ -422,12 +457,11 @@ export const InputBar = memo(function InputBar({
 
             <div className={classes.toolbar}>
               <div className={cx(classes.toolbarGroup, classes.toolbarLeft)}>
-                {!attachRight && showAttach && onAttach && <AttachmentButton onClick={onAttach} />}
+                {onAttach && <AttachmentButton onClick={onAttach} />}
                 {leftActions}
               </div>
               <div className={classes.toolbarGroup}>
                 {rightActions}
-                {attachRight && showAttach && onAttach && <AttachmentButton onClick={onAttach} />}
                 <UnstyledButton
                   className={classes.sendWrap}
                   aria-label={isStreaming ? 'Stop' : 'Send'}

@@ -1,5 +1,7 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react';
 import { render, screen, userEvent } from '@mantine-tests/core';
+import type { QuestionConfig } from '../question/QuestionPrompt';
 import { InputBar } from './InputBar';
 
 describe('InputBar', () => {
@@ -59,5 +61,109 @@ describe('InputBar', () => {
 
     rerender(<InputBar status="ready" onSend={() => {}} onStop={() => {}} onAttach={() => {}} />);
     expect(screen.getByLabelText('Attach')).toBeInTheDocument();
+  });
+
+  it('does not send while an IME composition is active', () => {
+    const onSend = jest.fn();
+    render(
+      <InputBar
+        status="ready"
+        onSend={onSend}
+        onStop={() => {}}
+        value="konnichiwa"
+        onChange={() => {}}
+      />
+    );
+
+    const textarea = screen.getByPlaceholderText('Send a message...');
+    fireEvent.keyDown(textarea, { key: 'Enter', keyCode: 229, isComposing: true });
+
+    expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('clears a controlled value through onChange after sending', async () => {
+    const onChange = jest.fn();
+    const onSend = jest.fn();
+    render(
+      <InputBar
+        status="ready"
+        onSend={onSend}
+        onStop={() => {}}
+        value="hello"
+        onChange={onChange}
+      />
+    );
+
+    await userEvent.type(screen.getByPlaceholderText('Send a message...'), '{Enter}');
+
+    expect(onSend).toHaveBeenCalledWith({ role: 'user', content: 'hello' });
+    expect(onChange).toHaveBeenLastCalledWith('');
+  });
+
+  describe('questionBar', () => {
+    const questions: QuestionConfig[] = [
+      { kind: 'single', title: 'First question', options: [{ id: 'a', label: 'Alpha' }] },
+      { kind: 'single', title: 'Second question', options: [{ id: 'b', label: 'Beta' }] },
+    ];
+
+    it('answers every question in order and closes after the last one', async () => {
+      const onSubmit = jest.fn();
+      render(
+        <InputBar
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          questionBar={{ id: 'q1', questions, onSubmit, submitLabel: 'Submit' }}
+        />
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+      expect(onSubmit).toHaveBeenLastCalledWith(
+        { kind: 'single', selectedIds: ['a'], text: undefined },
+        { questionIndex: 1 }
+      );
+      expect(screen.getByText('Second question')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: /Beta/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+      expect(onSubmit).toHaveBeenLastCalledWith(
+        { kind: 'single', selectedIds: ['b'], text: undefined },
+        { questionIndex: 2 }
+      );
+      expect(screen.queryByText('Second question')).toBeNull();
+    });
+
+    it('reports skip once through onSkip', async () => {
+      const onSubmit = jest.fn();
+      const onSkip = jest.fn();
+      render(
+        <InputBar
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          questionBar={{ id: 'q1', questions, onSubmit, onSkip }}
+        />
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+
+      expect(onSkip).toHaveBeenCalledTimes(1);
+      expect(onSkip).toHaveBeenCalledWith({ questionIndex: 1 });
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('starts a new question set from the first question', async () => {
+      const props = { status: 'ready' as const, onSend: () => {}, onStop: () => {} };
+      const { rerender } = render(
+        <InputBar {...props} questionBar={{ id: 'q1', questions, onSubmit: () => {} }} />
+      );
+      await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('Second question')).toBeInTheDocument();
+
+      rerender(<InputBar {...props} questionBar={{ id: 'q2', questions, onSubmit: () => {} }} />);
+      expect(screen.getByText('First question')).toBeInTheDocument();
+    });
   });
 });

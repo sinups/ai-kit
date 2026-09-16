@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { compiler, MarkdownToJSX, RuleType } from 'markdown-to-jsx';
 import { Box, CopyButton, UnstyledButton } from '@mantine/core';
 import { IconCheck, IconCopy } from '@tabler/icons-react';
@@ -166,12 +166,15 @@ const OPTIONS_WITH_COPY = createOptions(true);
 const OPTIONS_WITHOUT_COPY = createOptions(false);
 
 /** Renders assistant markdown with chat-tuned typography and copyable code blocks */
-export function Markdown({ content, className, controls }: MarkdownProps) {
-  const safeContent = normalizeGfmAlerts(
-    normalizeCodeFenceLanguages(fixNumberedListBreaks(content))
-  );
-  const options = controls?.code === false ? OPTIONS_WITHOUT_COPY : OPTIONS_WITH_COPY;
-  return <Box className={cx(classes.root, className)}>{compiler(safeContent, options)}</Box>;
-}
+export const Markdown = memo(function Markdown({ content, className, controls }: MarkdownProps) {
+  const showCopy = controls?.code !== false;
+  const rendered = useMemo(() => {
+    const safeContent = normalizeGfmAlerts(
+      normalizeCodeFenceLanguages(fixNumberedListBreaks(content))
+    );
+    return compiler(safeContent, showCopy ? OPTIONS_WITH_COPY : OPTIONS_WITHOUT_COPY);
+  }, [content, showCopy]);
+  return <Box className={cx(classes.root, className)}>{rendered}</Box>;
+});
 
 Markdown.displayName = 'Markdown';
