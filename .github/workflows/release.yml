@@ -63,11 +63,22 @@ jobs:
         working-directory: package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --provenance
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "@sinups/ai-kit@${version}" version >/dev/null 2>&1; then
+            echo "@sinups/ai-kit@${version} is already on npm, skipping"
+          else
+            npm publish --access public --provenance
+          fi
       - name: Publish to GitHub Packages
         working-directory: package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> "$HOME/.npmrc"
-          npm publish --access public --registry=https://npm.pkg.github.com --no-provenance
+          version=$(node -p "require('./package.json').version")
+          if npm view "@sinups/ai-kit@${version}" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+            echo "@sinups/ai-kit@${version} is already on GitHub Packages, skipping"
+          else
+            npm publish --access public --registry=https://npm.pkg.github.com --no-provenance
+          fi
