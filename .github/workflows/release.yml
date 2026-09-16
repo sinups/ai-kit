@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish, for example v0.1.0
+        required: true
 
 permissions:
   contents: write
@@ -17,6 +21,7 @@ concurrency:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs['package--release_created'] }}
@@ -31,21 +36,23 @@ jobs:
 
   publish:
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment:
       name: npm
       url: https://www.npmjs.com/package/@sinups/ai-kit
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
           cache-dependency-path: '**/yarn.lock'
           registry-url: https://registry.npmjs.org
-      - name: Update npm for trusted publishing
-        run: npm install -g npm@latest
+      - name: Use npm 11
+        run: npm install -g npm@11
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build package
