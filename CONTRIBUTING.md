@@ -32,7 +32,9 @@ docs(site): describe --ae-* theming tokens
 
 Do not bump versions by hand. `release-please` opens and maintains a release pull request from the commit
 titles on `main`; merging it publishes the package. Use `feat` for minor bumps, `fix` for patches and `!`
-for breaking changes.
+for breaking changes. The changelog and GitHub release notes are generated from these titles: `feat`, `fix`,
+`perf`, `revert`, `docs` and `deps` are listed, `chore`, `ci`, `build`, `test`, `style` and `refactor` are hidden,
+so pick the type by what a user of the package should read about.
 
 ## PR body
 
