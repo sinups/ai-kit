@@ -86,6 +86,13 @@ See [NOTICE](./NOTICE).
 
 MIT
 
+## Releasing
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Conventional Commit
+titles on `main` are collected into a release pull request that bumps `package/package.json` and updates
+`CHANGELOG.md`. Merging that pull request creates a tag and a GitHub release, and the `Release` workflow
+publishes the package to npm (with provenance) and mirrors it to GitHub Packages.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for branch, commit and pull request rules.

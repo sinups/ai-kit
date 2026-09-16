@@ -28,6 +28,12 @@ fix(input): keep textarea from growing past five rows
 docs(site): describe --ae-* theming tokens
 ```
 
+## Releases
+
+Do not bump versions by hand. `release-please` opens and maintains a release pull request from the commit
+titles on `main`; merging it publishes the package. Use `feat` for minor bumps, `fix` for patches and `!`
+for breaking changes.
+
 ## PR body
 
 Use the template. Describe what changed and why, list visible changes, link the issue if there is one.
