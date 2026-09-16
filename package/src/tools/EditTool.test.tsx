@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { EditTool } from './EditTool';
+import { DiffView } from './DiffView';
 
 describe('tools/EditTool', () => {
   it('renders the file name and diff lines', () => {
@@ -67,5 +68,12 @@ describe('tools/EditTool', () => {
       />
     );
     expect(screen.getByRole('button', { name: 'Show more' })).toBeInTheDocument();
+  });
+});
+
+describe('DiffView on very large inputs', () => {
+  it('renders without exceeding the call stack', () => {
+    const newText = Array.from({ length: 120000 }, (_, i) => `line ${i}`).join('\n');
+    expect(() => render(<DiffView oldText="" newText={newText} />)).not.toThrow();
   });
 });

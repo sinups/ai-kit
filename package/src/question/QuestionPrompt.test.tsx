@@ -84,8 +84,29 @@ describe('QuestionPrompt', () => {
     expect(onSubmit).toHaveBeenCalledWith({ kind: 'text', text: 'nope' });
 
     await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
-    expect(onSkip).toHaveBeenCalled();
-    expect(onSubmit).toHaveBeenLastCalledWith({ kind: 'skip' });
+    expect(onSkip).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports skip through onSubmit when no onSkip handler is given', async () => {
+    const onSubmit = jest.fn();
+    render(
+      <QuestionPrompt questions={[{ kind: 'text', title: 'Anything else?' }]} onSubmit={onSubmit} />
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+    expect(onSubmit).toHaveBeenCalledWith({ kind: 'skip' });
+  });
+
+  it('allows submitting a multi question with minSelections 0', () => {
+    render(
+      <QuestionPrompt
+        questions={[{ ...MULTI, minSelections: 0 }]}
+        onSubmit={() => {}}
+        submitLabel="Send"
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Send' })).not.toBeDisabled();
   });
 
   it('shows Next instead of Send when more questions follow', () => {

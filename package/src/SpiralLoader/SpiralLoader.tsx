@@ -24,14 +24,20 @@ export function SpiralLoader({ size = 16, className, style, ...others }: SpiralL
   const [phase, setPhase] = useState<'fast' | 'slow'>('fast');
   const repeatCountRef = useRef(0);
 
-  const handleIteration = useCallback(() => {
-    repeatCountRef.current += 1;
-    const limit = phase === 'fast' ? FAST_REPEATS : SLOW_REPEATS;
-    if (repeatCountRef.current >= limit) {
-      repeatCountRef.current = 0;
-      setPhase((prev) => (prev === 'fast' ? 'slow' : 'fast'));
-    }
-  }, [phase]);
+  const handleIteration = useCallback(
+    (event: React.AnimationEvent<SVGGElement>) => {
+      if (event.target !== event.currentTarget) {
+        return;
+      }
+      repeatCountRef.current += 1;
+      const limit = phase === 'fast' ? FAST_REPEATS : SLOW_REPEATS;
+      if (repeatCountRef.current >= limit) {
+        repeatCountRef.current = 0;
+        setPhase((prev) => (prev === 'fast' ? 'slow' : 'fast'));
+      }
+    },
+    [phase]
+  );
 
   return (
     <Box

@@ -58,10 +58,11 @@ export const ModeSelector = memo(function ModeSelector({
 
   const trigger = (
     <UnstyledButton
+      component={hasMultiple ? 'button' : 'span'}
       className={cx(classes.trigger, className)}
       style={style}
       data-static={!hasMultiple || undefined}
-      aria-label="Select mode"
+      aria-label={hasMultiple ? 'Select mode' : undefined}
     >
       {ActiveIcon && <ActiveIcon className={classes.triggerIcon} />}
       <span className={classes.label}>{activeMode?.label}</span>

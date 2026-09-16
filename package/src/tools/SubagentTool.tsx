@@ -1,12 +1,12 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo } from 'react';
 import { Box } from '@mantine/core';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import { cx } from '../utils/cx';
-import { formatElapsedTime } from '../utils/format-elapsed';
-import { getPartInput, getPartOutput, getToolStatus } from '../utils/format-tool';
+import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
 import { toolRegistry } from './tool-registry';
+import { useElapsed } from './use-elapsed';
 import classes from './SubagentTool.module.css';
 
 export interface SubagentToolProps {
@@ -24,11 +24,6 @@ export interface SubagentToolProps {
 
 const MAX_VISIBLE_TOOLS = 5;
 
-function getStartedAt(part: ToolPart): number | undefined {
-  const meta = part.callProviderMetadata as { custom?: { startedAt?: number } } | undefined;
-  return meta?.custom?.startedAt ?? (part.startedAt as number | undefined);
-}
-
 /** "Running Subagent" row that expands into the list of nested tool calls */
 export const SubagentTool = memo(function SubagentTool({
   part,
@@ -39,23 +34,9 @@ export const SubagentTool = memo(function SubagentTool({
 }: SubagentToolProps) {
   const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
-  const output = getPartOutput(part);
   const description: string = input.description || '';
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const startedAt = getStartedAt(part);
   const hasNestedTools = nestedTools.length > 0;
-  const outputDuration: number | undefined =
-    output?.totalDurationMs || output?.duration || output?.duration_ms;
-
-  useEffect(() => {
-    if (isPending && startedAt) {
-      setElapsedMs(Date.now() - startedAt);
-      const interval = setInterval(() => {
-        setElapsedMs(Date.now() - startedAt);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isPending, startedAt]);
+  const elapsedTimeDisplay = useElapsed(part, isPending);
 
   const subtitle = (() => {
     if (isPending && hasNestedTools) {
@@ -72,9 +53,6 @@ export const SubagentTool = memo(function SubagentTool({
     }
     return description.length > 60 ? `${description.slice(0, 57)}...` : description;
   })();
-  const elapsedTimeDisplay = formatElapsedTime(
-    !isPending && outputDuration ? outputDuration : elapsedMs
-  );
 
   if (isInterrupted && !part.output) {
     return (

@@ -132,10 +132,23 @@ function formatMcpArgs(input: unknown): string {
   return parts.join('  ');
 }
 
-/** Unwraps MCP content blocks (`[{ type: 'text', text }]`) and parses JSON payloads when possible */
+/** Parses a JSON object or array, any other text (including JSON scalars) is returned as is */
+function parseJsonContainer(text: string): unknown {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed !== null && typeof parsed === 'object' ? parsed : text;
+  } catch {
+    return text;
+  }
+}
+
+/** Unwraps MCP results (`CallToolResult`, `[{ type: 'text', text }]`) and parses JSON payloads when possible */
 export function unwrapMcpOutput(output: any): any {
   if (!output) {
     return output;
+  }
+  if (typeof output === 'object' && !Array.isArray(output) && Array.isArray(output.content)) {
+    return unwrapMcpOutput(output.content);
   }
   if (Array.isArray(output)) {
     const textParts: string[] = [];
@@ -145,30 +158,26 @@ export function unwrapMcpOutput(output: any): any {
       }
     }
     if (textParts.length > 0) {
-      const combined = textParts.join('');
-      try {
-        return JSON.parse(combined);
-      } catch {
-        return combined;
-      }
+      return parseJsonContainer(textParts.join(''));
     }
     return output;
   }
   if (output?.type === 'text' && typeof output?.text === 'string') {
-    try {
-      return JSON.parse(output.text);
-    } catch {
-      return output.text;
-    }
+    return parseJsonContainer(output.text);
   }
   if (typeof output === 'string') {
-    try {
-      return JSON.parse(output);
-    } catch {
-      return output;
-    }
+    return parseJsonContainer(output);
   }
   return output;
+}
+
+/** Backtick fence longer than any backtick run inside the text, at least three characters */
+function codeFence(text: string): string {
+  let longest = 0;
+  for (const match of text.matchAll(/`+/g)) {
+    longest = Math.max(longest, match[0].length);
+  }
+  return '`'.repeat(Math.max(3, longest + 1));
 }
 
 function formatOutputForDisplay(output: unknown): string {
@@ -224,7 +233,8 @@ export const McpTool = memo(function McpTool({
       return null;
     }
     const language = trimmed.startsWith('{') || trimmed.startsWith('[') ? 'json' : 'text';
-    return `\`\`\`${language}\n${displayOutput}\n\`\`\``;
+    const fence = codeFence(displayOutput);
+    return `${fence}${language}\n${displayOutput}\n${fence}`;
   }, [displayOutput]);
 
   const hasExpandableContent = !!codeBlock && !isPending;

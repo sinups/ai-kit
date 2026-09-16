@@ -17,7 +17,7 @@ export function routeToolCall(
     return React.createElement(ThinkingCollapsed, { key: step.id, step, state, onComplete });
   }
 
-  if (step.diffLines || step.filePath || step.toolName === 'Write' || step.toolName === 'Edit') {
+  if (step.diffLines || step.toolName === 'Write' || step.toolName === 'Edit') {
     return React.createElement(EditToolDiffCard, { key: step.id, step, state, onComplete });
   }
 

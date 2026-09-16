@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+const TICK_MS = 16;
+
 /** Simulates a user typing `text` into the composer over `duration` ms */
 export function useInputTyping(
   text: string,
@@ -24,17 +26,26 @@ export function useInputTyping(
     const typingDuration = duration * 0.7;
     const charInterval = text.length > 0 ? typingDuration / text.length : typingDuration;
     const sendDelay = duration * 0.15;
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const completeAt = typingStart + typingDuration + sendDelay;
+    const startedAt = Date.now();
 
-    timers.push(setTimeout(() => setShowImage(true), imageDelay));
-    for (let i = 0; i < text.length; i++) {
-      timers.push(setTimeout(() => setVisibleChars(i + 1), typingStart + charInterval * i));
-    }
-    timers.push(
-      setTimeout(() => onCompleteRef.current(), typingStart + typingDuration + sendDelay)
-    );
+    const tick = () => {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed >= imageDelay) {
+        setShowImage(true);
+      }
+      if (elapsed >= typingStart && text.length > 0) {
+        const typed = Math.floor((elapsed - typingStart) / charInterval) + 1;
+        setVisibleChars(Math.min(typed, text.length));
+      }
+      if (elapsed >= completeAt) {
+        clearInterval(interval);
+        onCompleteRef.current();
+      }
+    };
 
-    return () => timers.forEach(clearTimeout);
+    const interval = setInterval(tick, TICK_MS);
+    return () => clearInterval(interval);
   }, [isActive, text, duration]);
 
   return { displayedText: text.slice(0, visibleChars), showImage };

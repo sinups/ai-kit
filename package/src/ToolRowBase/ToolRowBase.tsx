@@ -46,13 +46,8 @@ export function ToolRowBase({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isControlled = expanded !== undefined;
   const isOpen = isControlled ? expanded : internalOpen;
-  const isComplete = !isAnimating;
-  const canToggle = expandable && (isComplete || isOpen || isAnimating);
 
   const handleToggle = () => {
-    if (!canToggle) {
-      return;
-    }
     if (isControlled) {
       onToggleExpand?.();
     } else {
@@ -62,7 +57,7 @@ export function ToolRowBase({
   };
 
   const row = (
-    <div className={classes.row} data-toggle={canToggle || undefined}>
+    <div className={classes.row} data-toggle={expandable || undefined}>
       <div className={classes.content}>
         {icon && <span className={classes.icon}>{icon}</span>}
         <span className={classes.label}>
@@ -77,7 +72,7 @@ export function ToolRowBase({
         {detail && <span className={classes.detail}>{detail}</span>}
         {trailingContent}
       </div>
-      {canToggle && (
+      {expandable && (
         <span className={classes.chevron} data-open={isOpen || undefined}>
           <IconChevronRight size={12} />
         </span>
@@ -95,12 +90,7 @@ export function ToolRowBase({
 
   return (
     <Box className={cx(classes.root, className)} data-expandable {...others}>
-      <UnstyledButton
-        className={classes.trigger}
-        onClick={handleToggle}
-        disabled={!canToggle}
-        aria-expanded={isOpen}
-      >
+      <UnstyledButton className={classes.trigger} onClick={handleToggle} aria-expanded={isOpen}>
         {row}
       </UnstyledButton>
       <Collapse expanded={isOpen} transitionDuration={150} transitionTimingFunction="ease-out">

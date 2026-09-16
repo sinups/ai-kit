@@ -72,7 +72,7 @@ function detectChanges(oldTodos: TodoItem[], newTodos: TodoItem[]): DetectedChan
   return { type: 'multiple', items: changes };
 }
 
-function TodoStatusIcon({ status }: { status: TodoItem['status']; isPending?: boolean }) {
+function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
   switch (status) {
     case 'completed':
       return (
@@ -102,7 +102,7 @@ const TodoListItem = memo(function TodoListItem({
   return (
     <div className={classes.item}>
       <span className={classes.iconWrap}>
-        <TodoStatusIcon status={todo.status} isPending={isPending} />
+        <TodoStatusIcon status={todo.status} />
       </span>
       <span
         className={classes.text}
@@ -114,6 +114,15 @@ const TodoListItem = memo(function TodoListItem({
     </div>
   );
 });
+
+function firstNonEmptyList(...candidates: unknown[]): TodoItem[] {
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      return candidate as TodoItem[];
+    }
+  }
+  return [];
+}
 
 /** Renders a `tool-TodoWrite` part as a checklist */
 export const TodoTool = memo(function TodoTool({
@@ -128,10 +137,14 @@ export const TodoTool = memo(function TodoTool({
 
   const isStreaming = part.state === 'input-streaming';
   const oldTodos: TodoItem[] = output?.oldTodos || [];
-  const newTodos: TodoItem[] = input.todos || output?.newTodos || [];
+  const newTodos: TodoItem[] = firstNonEmptyList(input.todos, output?.newTodos);
 
   const isCreation = oldTodos.length === 0;
   const changes = useMemo(() => detectChanges(oldTodos, newTodos), [oldTodos, newTodos]);
+
+  if (!isStreaming && part.state === 'output-available' && newTodos.length === 0) {
+    return null;
+  }
 
   if (isStreaming || newTodos.length === 0) {
     return (

@@ -4,8 +4,7 @@ import { useToolComplete } from '../hooks/use-tool-complete';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
-import { getLegacyToolState, getPartInput, getPartOutput } from '../utils/format-tool';
-import { mapToolInvocationToStep, mapToolStateToStepState } from '../utils/tool-adapters';
+import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './ThinkingTool.module.css';
 
 export interface ThinkingCollapsedProps {
@@ -92,6 +91,9 @@ export const ThinkingTool = memo(function ThinkingTool({
   className,
   style,
 }: ThinkingToolProps) {
+  const hasExternalStep = Boolean(externalStep && externalState && externalOnComplete);
+  const fromPart = useToolStep(hasExternalStep ? undefined : part, 'Thinking', 'thinking');
+
   let step: ToolCallStep;
   let stepState: StepState;
   let onComplete: () => void;
@@ -100,16 +102,10 @@ export const ThinkingTool = memo(function ThinkingTool({
     step = externalStep;
     stepState = externalState;
     onComplete = externalOnComplete;
-  } else if (part) {
-    const legacyState = getLegacyToolState(part);
-    step = mapToolInvocationToStep(part.toolCallId ?? (part.id as string) ?? 'thinking', {
-      toolName: 'Thinking',
-      args: getPartInput(part),
-      state: legacyState,
-      result: getPartOutput(part),
-    });
-    stepState = mapToolStateToStepState(legacyState);
-    onComplete = () => {};
+  } else if (fromPart) {
+    step = fromPart.step;
+    stepState = fromPart.stepState;
+    onComplete = noopComplete;
   } else {
     return null;
   }

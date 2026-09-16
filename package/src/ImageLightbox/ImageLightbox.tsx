@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Portal, UnstyledButton } from '@mantine/core';
+import { Box, FocusTrap, Portal, UnstyledButton } from '@mantine/core';
 import { IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-react';
 import { cx } from '../utils/cx';
 import classes from './ImageLightbox.module.css';
@@ -37,6 +37,14 @@ export function ImageLightbox({
 }: ImageLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const hasMultipleImages = images.length > 1;
+  const lastIndex = Math.max(images.length - 1, 0);
+  const activeIndex = Math.min(currentIndex, lastIndex);
+
+  useEffect(() => {
+    if (currentIndex > lastIndex) {
+      setCurrentIndex(lastIndex);
+    }
+  }, [currentIndex, lastIndex]);
 
   useEffect(() => {
     if (open) {
@@ -94,92 +102,99 @@ export function ImageLightbox({
       return undefined;
     }
     const previousOverflow = document.body.style.overflow;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = previousOverflow;
+      if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus();
+      }
     };
   }, [open]);
 
   if (typeof document === 'undefined' || !open) {
     return null;
   }
-  const currentImage = images[currentIndex] ?? images[0];
+  const currentImage = images[activeIndex] ?? images[0];
   if (!currentImage?.url) {
     return null;
   }
 
   return (
     <Portal target={document.body}>
-      <Box
-        role="dialog"
-        aria-modal="true"
-        className={cx(classes.overlay, className)}
-        style={style}
-        onClick={onClose}
-      >
-        <UnstyledButton
+      <FocusTrap active>
+        <Box
+          role="dialog"
+          aria-modal="true"
+          className={cx(classes.overlay, className)}
+          style={style}
           onClick={onClose}
-          aria-label="Close fullscreen (Esc)"
-          className={cx(classes.control, classes.close)}
         >
-          <IconX size={20} />
-        </UnstyledButton>
-
-        {hasMultipleImages && (
           <UnstyledButton
-            onClick={goToPrevious}
-            aria-label="Previous image (←)"
-            className={cx(classes.control, classes.nav, classes.prev)}
+            onClick={onClose}
+            aria-label="Close fullscreen (Esc)"
+            className={cx(classes.control, classes.close)}
           >
-            <IconChevronLeft size={24} />
+            <IconX size={20} />
           </UnstyledButton>
-        )}
 
-        <div
-          role="presentation"
-          className={classes.imageWrap}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <img
-            src={currentImage.url}
-            alt={currentImage.filename ?? 'Image preview'}
-            className={classes.image}
-            draggable={false}
-          />
-        </div>
+          {hasMultipleImages && (
+            <UnstyledButton
+              onClick={goToPrevious}
+              aria-label="Previous image (←)"
+              className={cx(classes.control, classes.nav, classes.prev)}
+            >
+              <IconChevronLeft size={24} />
+            </UnstyledButton>
+          )}
 
-        {hasMultipleImages && (
-          <UnstyledButton
-            onClick={goToNext}
-            aria-label="Next image (→)"
-            className={cx(classes.control, classes.nav, classes.next)}
+          <div
+            role="presentation"
+            className={classes.imageWrap}
+            onClick={(event) => event.stopPropagation()}
           >
-            <IconChevronRight size={24} />
-          </UnstyledButton>
-        )}
-
-        {hasMultipleImages && (
-          <div className={classes.footer}>
-            <div className={classes.dots}>
-              {images.map((image, idx) => (
-                <UnstyledButton
-                  key={image.id}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setCurrentIndex(idx);
-                  }}
-                  aria-label={`Go to image ${idx + 1}`}
-                  className={classes.dot}
-                  data-active={idx === currentIndex || undefined}
-                />
-              ))}
-            </div>
-            <span className={classes.counter}>
-              {currentIndex + 1} / {images.length}
-            </span>
+            <img
+              src={currentImage.url}
+              alt={currentImage.filename ?? 'Image preview'}
+              className={classes.image}
+              draggable={false}
+            />
           </div>
-        )}
-      </Box>
+
+          {hasMultipleImages && (
+            <UnstyledButton
+              onClick={goToNext}
+              aria-label="Next image (→)"
+              className={cx(classes.control, classes.nav, classes.next)}
+            >
+              <IconChevronRight size={24} />
+            </UnstyledButton>
+          )}
+
+          {hasMultipleImages && (
+            <div className={classes.footer}>
+              <div className={classes.dots}>
+                {images.map((image, idx) => (
+                  <UnstyledButton
+                    key={image.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setCurrentIndex(idx);
+                    }}
+                    aria-label={`Go to image ${idx + 1}`}
+                    className={classes.dot}
+                    data-active={idx === activeIndex || undefined}
+                  />
+                ))}
+              </div>
+              <span className={classes.counter}>
+                {activeIndex + 1} / {images.length}
+              </span>
+            </div>
+          )}
+        </Box>
+      </FocusTrap>
     </Portal>
   );
 }

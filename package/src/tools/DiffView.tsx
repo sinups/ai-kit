@@ -157,7 +157,7 @@ export function DiffView({ oldText, newText, className, style }: DiffViewProps) 
     () => buildRows(diffLines(stripTrailingNewline(oldText), stripTrailingNewline(newText))),
     [oldText, newText]
   );
-  const digits = String(Math.max(1, ...rows.map((row) => row.number))).length;
+  const digits = String(rows.reduce((max, row) => (row.number > max ? row.number : max), 1)).length;
 
   return (
     <div

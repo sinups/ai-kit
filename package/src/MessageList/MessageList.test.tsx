@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@mantine-tests/core';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, ToolRendererSlotProps } from '../types';
 import { MessageList } from './MessageList';
 
 const messages: ChatMessage[] = [
@@ -47,5 +47,35 @@ describe('MessageList', () => {
     const legacy = [{ id: 'u1', role: 'user', parts: [], content: 'Legacy text' }] as ChatMessage[];
     render(<MessageList messages={legacy} status="ready" />);
     expect(screen.getByText('Legacy text')).toBeInTheDocument();
+  });
+
+  it('does not show the processing row when the chat is ready', () => {
+    render(<MessageList messages={[messages[0]]} status="ready" />);
+    expect(screen.queryByText('Processing...')).toBeNull();
+  });
+
+  it('suppressQuestionToolCallId hides only the matching question part', () => {
+    const StubToolRenderer = ({ part }: ToolRendererSlotProps) => <div>tool:{part.toolCallId}</div>;
+    const withQuestions: ChatMessage[] = [
+      messages[0],
+      {
+        id: 'a-q',
+        role: 'assistant',
+        parts: [
+          { type: 'tool-Question', toolCallId: 'q-old', state: 'output-available' },
+          { type: 'tool-Question', toolCallId: 'q-pending', state: 'input-available' },
+        ],
+      },
+    ];
+    render(
+      <MessageList
+        messages={withQuestions}
+        status="ready"
+        slots={{ ToolRenderer: StubToolRenderer }}
+        suppressQuestionToolCallId="q-pending"
+      />
+    );
+    expect(screen.getByText('tool:q-old')).toBeInTheDocument();
+    expect(screen.queryByText('tool:q-pending')).toBeNull();
   });
 });

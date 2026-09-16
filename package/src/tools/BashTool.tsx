@@ -6,9 +6,9 @@ import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
 import { cx } from '../utils/cx';
-import { getLegacyToolState, getPartInput, getPartOutput } from '../utils/format-tool';
-import { mapToolInvocationToStep, mapToolStateToStepState } from '../utils/tool-adapters';
+import { getPartInput } from '../utils/format-tool';
 import { ToolApprovalFooter, type ToolApproval } from './ToolApprovalFooter';
+import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './BashTool.module.css';
 
 function extractCommandSummary(cmd: string): string {
@@ -88,21 +88,13 @@ export interface BashToolProps {
 export const BashTool = memo(function BashTool({ part, className, style }: BashToolProps) {
   const input = getPartInput(part);
   const approval = input.approval as ToolApproval | undefined;
-  const legacyState = getLegacyToolState(part);
-  const step = mapToolInvocationToStep(part.toolCallId ?? (part.id as string) ?? 'bash', {
-    toolName: 'Bash',
-    args: input,
-    state: legacyState,
-    result: getPartOutput(part),
-  });
-  const stepState = mapToolStateToStepState(legacyState);
-  const noop = () => {};
+  const { step, stepState } = useToolStep(part, 'Bash', 'bash');
 
   return (
     <BashToolTerminalCard
       step={step}
       state={stepState}
-      onComplete={noop}
+      onComplete={noopComplete}
       approval={approval}
       className={className}
       style={style}

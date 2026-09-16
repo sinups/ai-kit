@@ -1,15 +1,16 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { IconFileText } from '@tabler/icons-react';
 import { useToolComplete } from '../hooks/use-tool-complete';
 import type { SourceType } from '../icons/source-icons';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
-import { getLegacyToolState, getPartInput, getPartOutput } from '../utils/format-tool';
-import { mapToolInvocationToStep, mapToolStateToStepState } from '../utils/tool-adapters';
+import { getPartOutput } from '../utils/format-tool';
+import { toolRegistry } from './tool-registry';
+import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './SearchTool.module.css';
 
-export type SearchResult = { source: SourceType; title: string; date: string };
+export type SearchResult = { source: SourceType; title: string; date?: string };
 
 export interface SearchGroupRichProps {
   /** Search steps rendered as one row, the first `searchQuery` is shown in the header */
@@ -22,6 +23,8 @@ export interface SearchGroupRichProps {
   results?: SearchResult[];
   /** Initial expanded state of the results panel */
   defaultOpen?: boolean;
+  /** Row label once the search has finished, `Found N results` by default */
+  completeLabel?: string;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -48,6 +51,7 @@ export function SearchGroupRich({
   onStepComplete,
   results = [],
   defaultOpen,
+  completeLabel,
   className,
   style,
 }: SearchGroupRichProps) {
@@ -68,7 +72,7 @@ export function SearchGroupRich({
       ))}
       <ToolRowBase
         shimmerLabel="Searching..."
-        completeLabel={`Found ${totalResults} results`}
+        completeLabel={completeLabel ?? `Found ${totalResults} results`}
         isAnimating={anyAnimating}
         expandable={hasExpandableContent}
         defaultOpen={defaultOpen}
@@ -122,12 +126,16 @@ function normalizeResults(value: unknown): SearchResult[] | undefined {
         return null;
       }
       const { source, title, date } = item as { source?: unknown; title?: unknown; date?: unknown };
-      if (typeof source !== 'string' || typeof title !== 'string' || typeof date !== 'string') {
+      if (typeof source !== 'string' || typeof title !== 'string') {
         return null;
       }
-      return { source: source as SourceType, title, date };
+      const result: SearchResult = { source: source as SourceType, title };
+      if (typeof date === 'string') {
+        result.date = date;
+      }
+      return result;
     })
-    .filter((item): item is SearchResult => Boolean(item));
+    .filter((item): item is SearchResult => item !== null);
   return parsed.length > 0 ? parsed : undefined;
 }
 
@@ -139,24 +147,24 @@ export const SearchTool = memo(function SearchTool({
   className,
   style,
 }: SearchToolProps) {
-  const legacyState = getLegacyToolState(part);
   const output = getPartOutput(part);
-  const step = mapToolInvocationToStep(part.toolCallId ?? (part.id as string) ?? 'search', {
-    toolName: part.type?.replace('tool-', '') || 'WebSearch',
-    args: getPartInput(part),
-    state: legacyState,
-    result: output,
-  });
-  const stepState = mapToolStateToStepState(legacyState);
-  const stepStates = { [step.id]: stepState };
-  const noop = () => {};
+  const { step, stepState } = useToolStep(
+    part,
+    part.type?.replace('tool-', '') || 'WebSearch',
+    'search'
+  );
+  const toolSteps = useMemo(() => [step], [step]);
+  const stepStates = useMemo(() => ({ [step.id]: stepState }), [step.id, stepState]);
+  const registryMeta =
+    part.type === 'tool-Grep' || part.type === 'tool-Glob' ? toolRegistry[part.type] : undefined;
 
   return (
     <SearchGroupRich
-      toolSteps={[step]}
+      toolSteps={toolSteps}
       stepStates={stepStates}
-      onStepComplete={noop}
+      onStepComplete={noopComplete}
       results={results ?? normalizeResults(output?.results)}
+      completeLabel={registryMeta?.title(part)}
       defaultOpen={defaultOpen}
       className={className}
       style={style}
