@@ -1,0 +1,30 @@
+{
+  "name": "ai-kit-example-mcp-chat",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 4200",
+    "build": "next build",
+    "start": "next start -p 4200",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.274",
+    "@anthropic-ai/sdk": "^0.126.0",
+    "@mantine/core": "^9.6.1",
+    "@mantine/hooks": "^9.6.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@sinups/ai-kit": "^0.2.0",
+    "@tabler/icons-react": "^3.40.0",
+    "next": "16.2.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "6.0.2"
+  }
+}
