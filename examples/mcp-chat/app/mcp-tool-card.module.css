@@ -1,0 +1,4 @@
+.card pre {
+  max-height: 18rem;
+  overflow: auto;
+}

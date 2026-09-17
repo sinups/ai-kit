@@ -39,6 +39,16 @@ answer streams in once the call is allowed.
 The sample folder is `data/` — three short anonymised files. The MCP server is scoped to it, so the
 agent cannot read anything else on the machine.
 
+### Opening it from another device
+
+`yarn dev` listens on localhost only. To try the chat from a phone or another machine on the same
+network, start it with `yarn dev:lan` and open `http://<your-ip>:4200`.
+
+That binds the dev server to every interface, so **anyone on that network can use the chat** — they
+talk to your MCP server with your credentials and your model quota. The credentials themselves stay
+on the server: `.env.local` is read in the route handlers and no token is ever sent to the browser.
+Use `dev:lan` on a network you trust, and stop it when you are done.
+
 ## Point it at another MCP server
 
 Both transports are supported, picked with `MCP_TRANSPORT` in `.env.local`.
