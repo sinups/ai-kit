@@ -22,7 +22,8 @@ export type ApprovalRequest = {
 
 export type StatusResponse = {
   server: string;
-  command: string;
+  transport: 'stdio' | 'http';
+  target: string;
   model: string;
-  sampleDir: string;
+  sampleDir?: string;
 };

@@ -41,24 +41,47 @@ agent cannot read anything else on the machine.
 
 ## Point it at another MCP server
 
-Any stdio MCP server works. Set the command in `.env.local`:
+Both transports are supported, picked with `MCP_TRANSPORT` in `.env.local`.
+
+**Another stdio server** — set the command:
 
 ```bash
+MCP_TRANSPORT=stdio
 MCP_SERVER_NAME=git
 MCP_COMMAND=uvx
 MCP_ARGS=mcp-server-git,--repository,/path/to/repo
 ```
 
 `MCP_ARGS` is a comma-separated argument list, where `{dataDir}` stands for the absolute path of the
-sample folder. The tool cards need no configuration: their titles come from the tool name in the part
-type, so a new server shows up correctly on its own.
+sample folder.
 
-Servers that need a token are configured the same way, through `.env.local`, which stays out of git.
+**An HTTP server** — set the endpoint, and credentials if it needs them:
+
+```bash
+MCP_TRANSPORT=http
+MCP_SERVER_NAME=layers
+MCP_URL=http://localhost:8091/mcp
+MCP_TOKEN=<token>
+MCP_HEADERS=X-Layers-Profile:core
+```
+
+`MCP_TOKEN` is sent as `Authorization: Bearer <token>`; `MCP_HEADERS` is a comma-separated list of
+`Name:value` pairs for anything else the server expects. Both belong in `.env.local`, which stays out
+of git — `.env.example` holds placeholders only, and no credential is ever logged or shown in the UI
+(the server bar shows the URL, never the headers).
+
+For the Layers MCP server that means starting it on `http://localhost:8091/mcp` first (its own
+repository documents how) and pointing the example at it with the block above. Restart `next dev`
+after editing `.env.local`.
+
+The tool cards need no configuration either way: their titles come from the tool name in the part
+type, so a new server shows up correctly on its own.
 
 ## How it works
 
 | File | Role |
 | --- | --- |
+| `lib/config.ts` | Reads the environment and builds the MCP server config for either transport |
 | `lib/agent.ts` | Runs `query()` from the agent SDK and turns its messages into a small NDJSON event stream |
 | `lib/approvals.ts` | Parks the SDK's `canUseTool` callback until the browser answers |
 | `app/api/chat/route.ts` | Streams the events of one turn |

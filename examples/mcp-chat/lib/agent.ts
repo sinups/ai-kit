@@ -1,12 +1,14 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { askUser } from './approvals';
-import { config, sampleDir } from './config';
+import { config, mcpServer, sampleDir } from './config';
 import type { AgentEvent } from './events';
 
 const SYSTEM_PROMPT = [
   'You are a demo assistant for a UI kit example.',
-  `Every file question is answered with the tools of the "${config.serverName}" MCP server,`,
-  `which is scoped to the folder ${sampleDir}. Never guess file contents.`,
+  `Answer every question with the tools of the "${config.serverName}" MCP server instead of guessing.`,
+  config.transport === 'stdio'
+    ? `The server is scoped to the folder ${sampleDir}.`
+    : 'The server is reached over HTTP and holds the data you are asked about.',
   'Answer in markdown, keep answers under six lines and use lists for collections.',
 ].join(' ');
 
@@ -49,9 +51,7 @@ export function runAgent(
           includePartialMessages: true,
           permissionMode: 'default',
           resume: sessionId,
-          mcpServers: {
-            [config.serverName]: { command: config.command, args: config.args },
-          },
+          mcpServers: { [config.serverName]: mcpServer },
           canUseTool: async (name, input, options) => {
             emit({
               kind: 'approval',

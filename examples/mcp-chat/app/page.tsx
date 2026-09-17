@@ -24,7 +24,7 @@ function ServerBar({ status, tools }: { status: StatusResponse | null; tools: nu
           Chat over MCP
         </Text>
         {status && (
-          <Tooltip label={status.command}>
+          <Tooltip label={status.target}>
             <Badge variant="light">{status.server}</Badge>
           </Tooltip>
         )}
