@@ -3307,13 +3307,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sinups/ai-kit@workspace:package"
   dependencies:
-    "@tabler/icons-react": "npm:^3.40.0"
     markdown-to-jsx: "npm:^7.7.13"
   peerDependencies:
-    "@mantine/core": ">=7.0.0"
-    "@mantine/hooks": ">=7.0.0"
-    react: ^18.x || ^19.x
-    react-dom: ^18.x || ^19.x
+    "@mantine/core": ^9.4.0
+    "@mantine/hooks": ^9.4.0
+    "@tabler/icons-react": ^3.0.0
+    react: ^19.2.0
+    react-dom: ^19.2.0
   languageName: unknown
   linkType: soft
 
