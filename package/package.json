@@ -1,6 +1,6 @@
 {
   "name": "@sinups/ai-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Mantine UI kit for agent products: chat, tool calls, diff review, sessions, MCP, agents, skills, permissions, wizards and settings",
   "homepage": "https://github.com/sinups/ai-kit#readme",
   "packageManager": "yarn@4.0.1",
