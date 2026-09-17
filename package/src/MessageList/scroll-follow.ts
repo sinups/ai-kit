@@ -10,23 +10,62 @@ export function isNearBottom(metrics: ScrollMetrics, threshold = STICK_THRESHOLD
   return metrics.scrollHeight - metrics.scrollTop - metrics.clientHeight < threshold;
 }
 
+/** Viewport position plus whether the list is currently pinned to the bottom */
+export type FollowState = ScrollMetrics & { following: boolean };
+
+export function createFollowState(metrics: ScrollMetrics, following: boolean): FollowState {
+  return { ...metrics, following };
+}
+
+export function readMetrics(element: ScrollMetrics): ScrollMetrics {
+  return {
+    scrollTop: element.scrollTop,
+    scrollHeight: element.scrollHeight,
+    clientHeight: element.clientHeight,
+  };
+}
+
+function atBottom(metrics: ScrollMetrics, threshold: number): boolean {
+  return metrics.scrollHeight - metrics.clientHeight - metrics.scrollTop <= threshold;
+}
+
 /**
- * Whether the list keeps following the bottom after a scroll event. Being near the bottom always
- * sticks, because content that shrinks makes the browser clamp `scrollTop` without the user scrolling.
+ * Following after a scroll event. The state is positional: it compares the new position against the
+ * previous maximum, so growth that arrives with the same `scrollTop` keeps the list pinned while a
+ * shrink, which the browser resolves by clamping `scrollTop`, never attaches it.
  */
-export function getStickToBottom(
-  wasSticky: boolean,
-  previousScrollTop: number,
+export function followAfterScroll(
+  state: FollowState,
   metrics: ScrollMetrics,
   threshold = STICK_THRESHOLD
-): boolean {
-  if (isNearBottom(metrics, threshold)) {
-    return true;
+): FollowState {
+  if (metrics.scrollHeight < state.scrollHeight) {
+    return { ...metrics, following: state.following };
   }
-  if (metrics.scrollTop < previousScrollTop) {
-    return false;
+  if (metrics.scrollHeight > state.scrollHeight) {
+    const wasAtBottom = atBottom(state, threshold);
+    const movedUp = metrics.scrollTop < state.scrollTop;
+    return { ...metrics, following: wasAtBottom && !movedUp };
   }
-  return wasSticky && metrics.scrollTop === previousScrollTop;
+  if (atBottom(metrics, threshold)) {
+    return { ...metrics, following: true };
+  }
+  if (metrics.scrollTop < state.scrollTop) {
+    return { ...metrics, following: false };
+  }
+  return { ...metrics, following: state.following };
+}
+
+/**
+ * Following after the content box resized. `pin` is only ever true for growth: a tool card that
+ * collapses shortens the content, and scrolling to the new bottom there reads as a jump.
+ */
+export function followAfterResize(
+  state: FollowState,
+  metrics: ScrollMetrics
+): { state: FollowState; pin: boolean } {
+  const pin = state.following && metrics.scrollHeight > state.scrollHeight;
+  return { state: { ...metrics, following: state.following }, pin };
 }
 
 export type TurnBounds = {

@@ -14,6 +14,7 @@
 
 .group {
   animation: ae-spiral-slide var(--ae-spiral-duration, 0.5s) linear infinite;
+  animation-delay: var(--ae-spiral-delay, 0s);
 }
 
 .path {
@@ -24,6 +25,19 @@
   stroke-linejoin: round;
   stroke-dasharray: 21 79;
   animation: ae-spiral-trim var(--ae-spiral-duration, 0.5s) linear infinite;
+  animation-delay: var(--ae-spiral-delay, 0s);
+}
+
+.root[data-static] .group,
+.root[data-static] .path {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group,
+  .path {
+    animation: none;
+  }
 }
 
 @keyframes ae-spiral-slide {

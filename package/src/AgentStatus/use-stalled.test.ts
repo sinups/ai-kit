@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { getAnimationClockSubscriberCount } from '../hooks/use-animation-clock';
 import { useStalled } from './use-stalled';
 
 describe('AgentStatus/useStalled', () => {
@@ -32,11 +33,11 @@ describe('AgentStatus/useStalled', () => {
     expect(result.current.isStalled).toBe(false);
   });
 
-  it('clears the interval on unmount', () => {
-    const clearSpy = jest.spyOn(window, 'clearInterval');
+  it('leaves the shared clock on unmount', () => {
+    const before = getAnimationClockSubscriberCount();
     const { unmount } = renderHook(() => useStalled({ startedAt: Date.now() }));
+    expect(getAnimationClockSubscriberCount()).toBe(before + 1);
     unmount();
-    expect(clearSpy).toHaveBeenCalled();
-    clearSpy.mockRestore();
+    expect(getAnimationClockSubscriberCount()).toBe(before);
   });
 });

@@ -2,6 +2,10 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+
+  /* Scroll anchoring fights the follow-the-bottom logic: the browser restores the old offset
+     while a streaming answer grows, which reads as the list jumping back. */
+  overflow-anchor: none;
 }
 
 .content {

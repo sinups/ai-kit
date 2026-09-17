@@ -6,6 +6,7 @@ import type { InputBarProps } from './input/InputBar';
 import type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
 import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
+import type { MarkdownTailGranularity } from './Markdown/Markdown';
 
 /** Chat status, structurally compatible with `ChatStatus` from the Vercel AI SDK */
 export type ChatStatus = 'submitted' | 'streaming' | 'ready' | 'error';
@@ -331,6 +332,13 @@ export type AgentChatProps = {
   wrapLines?: boolean;
   /** Shows answer tables with too many columns for the width as one card per row, `false` by default */
   responsiveTables?: boolean;
+  /**
+   * Commits the streaming answer at most once per animation frame, `true` by default.
+   * A finished stream, a hidden tab and `prefers-reduced-motion` commit right away.
+   */
+  frameBatched?: boolean;
+  /** Reveals the growing tail of the streaming answer by character (`'char'`, the default) or by finished line (`'line'`) */
+  tailGranularity?: MarkdownTailGranularity;
   emptySuggestionsPlacement?: 'input' | 'empty' | 'both';
   /**
    * @deprecated Suggestions are always rendered above the composer; `bottom` is treated as `top`.

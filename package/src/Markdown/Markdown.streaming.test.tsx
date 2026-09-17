@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@mantine-tests/core';
-import { render as renderWithoutRemount } from '@testing-library/react';
+import { act, render as renderWithoutRemount } from '@testing-library/react';
 import { MantineProvider } from '@mantine/core';
 import { clearHighlightCache, type SyntaxHighlighter } from '../utils/highlighter';
 import { Markdown } from './Markdown';
@@ -91,5 +91,51 @@ describe('Markdown/Markdown streaming', () => {
     });
     expect(screen.getAllByText('text')).toHaveLength(1);
     expect(screen.getByText('plain')).not.toHaveAttribute('style');
+  });
+
+  it('holds back the unfinished last line with line granularity', () => {
+    const { container, rerender } = render(
+      <Markdown streaming tailGranularity="line" content={'Intro\n\nFirst line\nhalf wo'} />
+    );
+    expect(container).toHaveTextContent('First line');
+    expect(container).not.toHaveTextContent('half wo');
+
+    rerender(
+      <>
+        <Markdown streaming tailGranularity="line" content={'Intro\n\nFirst line\nhalf word\n'} />
+      </>
+    );
+    expect(container).toHaveTextContent('half word');
+  });
+
+  it('shows every character as it arrives by default', () => {
+    const { container } = render(<Markdown streaming content={'Intro\n\nFirst line\nhalf wo'} />);
+    expect(container).toHaveTextContent('half wo');
+  });
+
+  it('commits a burst of deltas as one frame when frame batching is on', () => {
+    jest.useFakeTimers();
+    const { container, rerender } = renderWithoutRemount(
+      <MantineProvider>
+        <Markdown streaming frameBatched content="Answer" />
+      </MantineProvider>
+    );
+    expect(container).toHaveTextContent('Answer');
+
+    for (const content of ['Answer gro', 'Answer grow', 'Answer grows']) {
+      rerender(
+        <MantineProvider>
+          <Markdown streaming frameBatched content={content} />
+        </MantineProvider>
+      );
+    }
+    expect(container).toHaveTextContent('Answer');
+    expect(container).not.toHaveTextContent('grows');
+
+    act(() => {
+      jest.advanceTimersByTime(16);
+    });
+    expect(container).toHaveTextContent('Answer grows');
+    jest.useRealTimers();
   });
 });
