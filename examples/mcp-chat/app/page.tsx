@@ -8,10 +8,15 @@ import type { StatusResponse } from '@/lib/events';
 import { useAgentChat } from '@/lib/use-agent-chat';
 import { ApprovalContext, McpToolCard } from './mcp-tool-card';
 
-const SUGGESTIONS = [
+const FILE_SUGGESTIONS = [
   { id: 'list', label: 'What files are in the data folder?' },
   { id: 'notes', label: 'Summarise release-notes.md' },
   { id: 'search', label: 'Which file mentions onboarding?' },
+];
+
+const SERVER_SUGGESTIONS = [
+  { id: 'tools', label: 'What can you do with this server?' },
+  { id: 'overview', label: 'Give me an overview of what is in there.' },
 ];
 
 function ServerBar({ status, tools }: { status: StatusResponse | null; tools: number }) {
@@ -80,6 +85,12 @@ export default function Page() {
     [toolTypes]
   );
 
+  const onFiles = serverStatus?.transport !== 'http';
+  const suggestions = onFiles ? FILE_SUGGESTIONS : SERVER_SUGGESTIONS;
+  const emptyTitle = onFiles
+    ? 'Ask about the data folder'
+    : `Ask the ${serverStatus?.server ?? 'MCP'} server`;
+
   return (
     <ApprovalContext value={{ approvals, decide }}>
       <Box h="100dvh" display="flex" style={{ flexDirection: 'column' }}>
@@ -92,13 +103,13 @@ export default function Page() {
             onSend={send}
             onStop={stop}
             toolRenderers={toolRenderers}
-            suggestions={SUGGESTIONS}
+            suggestions={suggestions}
             contentWidth={760}
             emptyStatePosition="center"
             emptySuggestionsPlacement="empty"
             emptyState={{
               layout: 'center',
-              title: 'Ask about the data folder',
+              title: emptyTitle,
               description: 'Answers come from an MCP server, every call needs your approval.',
             }}
           />

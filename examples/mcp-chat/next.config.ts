@@ -1,9 +1,14 @@
 import type { NextConfig } from 'next';
 
+const devOrigins = (process.env.DEV_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ['@anthropic-ai/claude-agent-sdk'],
-  allowedDevOrigins: ['192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12'],
+  allowedDevOrigins: devOrigins,
 };
 
 export default nextConfig;

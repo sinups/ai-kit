@@ -41,13 +41,24 @@ agent cannot read anything else on the machine.
 
 ### Opening it from another device
 
-`yarn dev` listens on localhost only. To try the chat from a phone or another machine on the same
-network, start it with `yarn dev:lan` and open `http://<your-ip>:4200`.
+`yarn dev` listens on localhost only. Reaching the chat from a phone or another machine takes two
+settings, not one:
 
-That binds the dev server to every interface, so **anyone on that network can use the chat** — they
-talk to your MCP server with your credentials and your model quota. The credentials themselves stay
-on the server: `.env.local` is read in the route handlers and no token is ever sent to the browser.
-Use `dev:lan` on a network you trust, and stop it when you are done.
+```bash
+DEV_ORIGINS=192.168.0.7    # in .env.local: this machine's address on the network
+yarn dev:lan               # then open http://192.168.0.7:4200
+```
+
+`dev:lan` binds the dev server to every interface. `DEV_ORIGINS` feeds `allowedDevOrigins` in
+`next.config.ts`, which is what lets the dev server answer requests whose origin is not localhost —
+without it the page loads and every call to `/api/*` is refused, so the chat looks alive and answers
+nothing. It takes hostnames or addresses separated by commas; network ranges such as
+`192.168.0.0/16` are not accepted.
+
+Both together mean **anyone on that network can use the chat** — they talk to your MCP server with
+your credentials and your model quota. The credentials themselves stay on the server: `.env.local` is
+read in the route handlers and no token is ever sent to the browser. Use `dev:lan` on a network you
+trust, and stop it when you are done.
 
 ## Point it at another MCP server
 
