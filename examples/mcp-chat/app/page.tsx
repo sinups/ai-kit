@@ -57,7 +57,7 @@ export default function Page() {
     };
   }, []);
 
-  const toolRenderers = useMemo(() => {
+  const toolTypes = useMemo(() => {
     const types = new Set<string>();
     for (const message of messages) {
       for (const part of message.parts) {
@@ -66,10 +66,19 @@ export default function Page() {
         }
       }
     }
-    return Object.fromEntries(
-      [...types].map((type) => [type, McpToolCard as React.ComponentType<CustomToolRendererProps>])
-    );
+    return [...types].sort().join('|');
   }, [messages]);
+
+  const toolRenderers = useMemo(
+    () =>
+      Object.fromEntries(
+        (toolTypes ? toolTypes.split('|') : []).map((type) => [
+          type,
+          McpToolCard as React.ComponentType<CustomToolRendererProps>,
+        ])
+      ),
+    [toolTypes]
+  );
 
   return (
     <ApprovalContext value={{ approvals, decide }}>
