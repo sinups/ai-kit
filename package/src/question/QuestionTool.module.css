@@ -12,3 +12,11 @@
   line-height: var(--ae-line-height-xs);
   color: var(--ae-tool-color-muted);
 }
+
+.steps {
+  background-color: var(--ae-bg);
+}
+
+.review {
+  background-color: var(--ae-bg);
+}

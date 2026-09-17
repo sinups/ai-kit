@@ -1,0 +1,7 @@
+.dot {
+  min-width: 0;
+}
+
+.swatch {
+  flex-shrink: 0;
+}

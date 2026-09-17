@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@mantine-tests/core';
+import { render, screen, userEvent } from '@mantine-tests/core';
 import type { ChatMessage } from '../types';
 import { UserMessage } from './UserMessage';
 
@@ -45,5 +45,47 @@ describe('UserMessage', () => {
   it('renders nothing for an empty message', () => {
     const { container } = render(<UserMessage message={{ id: 'u3', role: 'user', parts: [] }} />);
     expect(container.querySelector('p')).toBeNull();
+  });
+  it('renders a known slash command as a chip and leaves other slashes as text', () => {
+    const commands = [{ name: 'review', description: 'Review code' }];
+    const { unmount } = render(
+      <UserMessage
+        message={{ id: 'u4', role: 'user', parts: [{ type: 'text', text: '/review src/auth' }] }}
+        commands={commands}
+      />
+    );
+    expect(screen.getByText('review')).toBeInTheDocument();
+    expect(screen.getByText('src/auth')).toBeInTheDocument();
+    unmount();
+
+    render(
+      <UserMessage
+        message={{ id: 'u5', role: 'user', parts: [{ type: 'text', text: '/usr/bin is empty' }] }}
+        commands={commands}
+      />
+    );
+    expect(screen.getByText('/usr/bin is empty')).toBeInTheDocument();
+  });
+
+  it('collapses a long message to head and tail and expands it', async () => {
+    const text = Array.from({ length: 60 }, (_, i) => `line ${i + 1}`).join('\n');
+    const { container } = render(
+      <UserMessage
+        message={{ id: 'u6', role: 'user', parts: [{ type: 'text', text }] }}
+        longTextThreshold
+      />
+    );
+    expect(container.textContent).not.toContain('line 30');
+    expect(container.textContent).toContain('line 60');
+    const button = screen.getByRole('button', { name: 'Show full message (45 more lines)' });
+    await userEvent.click(button);
+    expect(container.textContent).toContain('line 30');
+    expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument();
+  });
+
+  it('shows the full text by default', () => {
+    const text = 'x'.repeat(5000);
+    render(<UserMessage message={{ id: 'u7', role: 'user', parts: [{ type: 'text', text }] }} />);
+    expect(screen.getByText(text)).toBeInTheDocument();
   });
 });

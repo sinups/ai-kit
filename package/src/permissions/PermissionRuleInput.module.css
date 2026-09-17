@@ -1,0 +1,17 @@
+.input {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.options {
+  overflow-y: auto;
+}
+
+.warning {
+  display: flex;
+  margin-top: rem(2px);
+  color: light-dark(var(--mantine-color-orange-8), var(--mantine-color-yellow-4));
+}
+
+.warningIcon {
+  flex-shrink: 0;
+}

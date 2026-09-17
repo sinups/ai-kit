@@ -62,7 +62,7 @@ export function Usage() {
       />
       <ToolRenderer
         part={{
-          type: 'tool-mcp__github__list_issues',
+          type: 'tool-mcp__git__list_issues',
           toolCallId: 'gh1',
           state: 'output-available',
           input: { repo: 'mantinedev/mantine' },

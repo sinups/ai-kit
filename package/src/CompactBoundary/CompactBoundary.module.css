@@ -1,0 +1,28 @@
+.root {
+  min-width: 0;
+}
+
+.label {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ae-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle {
+  max-width: 100%;
+  color: inherit;
+
+  @mixin hover {
+    color: var(--ae-fg);
+  }
+}
+
+.chevron {
+  flex-shrink: 0;
+  transition: transform 150ms ease-out;
+
+  &[data-open] {
+    transform: rotate(90deg);
+  }
+}

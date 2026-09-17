@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: rem(28px);
+  height: var(--ae-row-height);
   padding-left: rem(12px);
   padding-right: rem(10px);
 }
@@ -126,9 +126,9 @@
 .readMore {
   display: inline-flex;
   align-items: center;
-  height: rem(20px);
+  height: var(--ae-control-height-xs);
   padding: 0 rem(6px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   font-size: var(--ae-font-size-xs);
   line-height: var(--ae-line-height-xs);
   color: var(--ae-fg-muted);
@@ -145,9 +145,9 @@
 .approve {
   display: inline-flex;
   align-items: center;
-  height: rem(20px);
+  height: var(--ae-control-height-xs);
   padding: 0 rem(6px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   font-size: var(--ae-font-size-xs);
   font-weight: 500;
   line-height: var(--ae-line-height-xs);

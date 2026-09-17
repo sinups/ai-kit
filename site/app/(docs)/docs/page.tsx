@@ -2,14 +2,15 @@ import Link from "next/link";
 import { DocCodeBlock } from "@/app/components/doc-code-block";
 import { DocNavButton } from "@/app/components/doc-nav-button";
 import { DocPageShell } from "@/app/components/doc-page-shell";
+import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 import { getDocNav } from "@/app/utils/doc-nav";
 import { buildPageMetadata } from "@/app/utils/page-metadata";
+import { INTRODUCTION_DESCRIPTION } from "@/app/lib/doc-pages";
 import { UPSTREAM_URL } from "@/app/lib/site";
 
 export const metadata = buildPageMetadata({
   title: "Introduction",
-  description:
-    "AI UI Kit is an open-source collection of chat and agent UI components built on Mantine. Messages, tool cards, streaming states, and input controls, installed as one npm package.",
+  description: INTRODUCTION_DESCRIPTION,
   path: "/docs",
   keywords: [
     "AI UI Kit introduction",
@@ -25,10 +26,24 @@ export const metadata = buildPageMetadata({
 
 const RECIPE_CHAT_WITH_TOOLS = `"use client";
 
-import { AgentChat, BashTool, EditTool } from "@sinups/ai-kit";
+import { Button, Group, Paper, Text } from "@mantine/core";
+import { AgentChat, type CustomToolRendererProps } from "@sinups/ai-kit";
 import type { ChatMessage } from "@sinups/ai-kit";
 
 const messages: ChatMessage[] = [/* streamed from your backend */];
+
+// Built-in cards (tool-Bash, tool-Edit, tool-Grep, tool-mcp__<server>__<tool>, ...) render automatically.
+// toolRenderers adds or replaces cards by the full part type.
+function DeployCard({ input, status, onAction }: CustomToolRendererProps) {
+  return (
+    <Paper withBorder p="xs">
+      <Group justify="space-between">
+        <Text size="sm">Deploy {String(input.service)} · {status}</Text>
+        <Button size="xs" onClick={() => onAction?.("approve")}>Approve</Button>
+      </Group>
+    </Paper>
+  );
+}
 
 export default function Chat() {
   return (
@@ -37,10 +52,7 @@ export default function Chat() {
       status="ready"
       onSend={() => {}}
       onStop={() => {}}
-      toolRenderers={{
-        Bash: BashTool,
-        Edit: EditTool,
-      }}
+      toolRenderers={{ "tool-Deploy": DeployCard }}
     />
   );
 }`;
@@ -56,8 +68,8 @@ const modes = [
 ];
 
 const models = [
-  { id: "sonnet", name: "Sonnet", version: "4.6" },
-  { id: "opus", name: "Opus", version: "4.7" },
+  { id: "llama-3.3-70b", name: "Llama 3.3", version: "70B" },
+  { id: "qwen-2.5-coder-32b", name: "Qwen 2.5 Coder", version: "32B" },
 ];
 
 export default function Composer() {
@@ -69,63 +81,18 @@ export default function Composer() {
       leftActions={
         <>
           <ModeSelector modes={modes} defaultValue="agent" />
-          <ModelPicker models={models} defaultValue="sonnet" />
+          <ModelPicker models={models} defaultValue="llama-3.3-70b" />
         </>
       }
     />
   );
 }`;
 
-const COMPONENT_GROUPS: Array<{
-  title: string;
-  items: Array<{ label: string; href: string }>;
-}> = [
-  {
-    title: "Chat surface",
-    items: [
-      { label: "AgentChat", href: "/docs/agent-chat" },
-      { label: "MessageList", href: "/docs/message-list" },
-      { label: "UserMessage", href: "/docs/user-message" },
-      { label: "ErrorMessage", href: "/docs/error-message" },
-      { label: "Markdown", href: "/docs/markdown" },
-    ],
-  },
-  {
-    title: "Input",
-    items: [
-      { label: "InputBar", href: "/docs/input-bar" },
-      { label: "Suggestions", href: "/docs/suggestions" },
-      { label: "ModelPicker", href: "/docs/model-picker" },
-      { label: "ModeSelector", href: "/docs/mode-selector" },
-      { label: "SendButton", href: "/docs/send-button" },
-      { label: "AttachmentButton", href: "/docs/attachment-button" },
-      { label: "FileAttachment", href: "/docs/file-attachment" },
-    ],
-  },
-  {
-    title: "Tool cards",
-    items: [
-      { label: "BashTool", href: "/docs/bash-tool" },
-      { label: "EditTool", href: "/docs/edit-tool" },
-      { label: "SearchTool", href: "/docs/search-tool" },
-      { label: "TodoTool", href: "/docs/todo-tool" },
-      { label: "PlanTool", href: "/docs/plan-tool" },
-      { label: "ToolGroup", href: "/docs/tool-group" },
-      { label: "SubagentTool", href: "/docs/subagent-tool" },
-      { label: "McpTool", href: "/docs/mcp-tool" },
-      { label: "QuestionTool", href: "/docs/question-tool" },
-      { label: "GenericTool", href: "/docs/generic-tool" },
-    ],
-  },
-  {
-    title: "Streaming states",
-    items: [
-      { label: "ThinkingTool", href: "/docs/thinking-tool" },
-      { label: "TextShimmer", href: "/docs/text-shimmer" },
-      { label: "SpiralLoader", href: "/docs/spiral-loader" },
-    ],
-  },
-];
+const COMPONENT_GROUPS = SIDEBAR_SECTIONS.filter((section) => section.components).map(
+  (section) => ({ title: section.title, items: section.items }),
+);
+
+const COMPONENT_COUNT = COMPONENT_GROUPS.reduce((count, group) => count + group.items.length, 0);
 
 export default function IntroductionPage() {
   const { previousHref, nextHref } = getDocNav("/docs");
@@ -154,9 +121,7 @@ export default function IntroductionPage() {
           />
         </div>
         <p className="text-base text-muted-foreground">
-          AI UI Kit is an open-source collection of chat and
-          agent UI components (messages, tool cards, streaming states, and
-          input controls), built on top of{" "}
+          AI UI Kit is an open-source UI kit for agent products, built on top of{" "}
           <a
             href="https://mantine.dev"
             className="text-an-primary-color hover:underline underline-offset-2"
@@ -165,8 +130,12 @@ export default function IntroductionPage() {
           >
             Mantine
           </a>
-          . Install one package and use the components like any other
-          Mantine extension: they follow your theme, color scheme and fonts.
+          . It covers the chat (messages, tool cards, streaming states, the
+          composer) and the screens around it: settings, MCP servers, agents,
+          skills, permissions, hooks, memory, sessions, background tasks, diff
+          review, a theme provider and an embeddable launcher. Install one
+          package and use the components like any other Mantine extension:
+          they follow your theme, color scheme and fonts.
         </p>
         <p className="text-base text-muted-foreground">
           The goal is not to be a framework. It gives you the pieces a
@@ -193,9 +162,9 @@ export default function IntroductionPage() {
           At a glance
         </div>
         <p className="text-base text-muted-foreground">
-          25 components grouped by role. Use them individually, or drop in{" "}
-          <code className="code-doc">AgentChat</code> to get the full set
-          wired together.
+          {COMPONENT_COUNT} documented components grouped by module. Use them
+          individually, or drop in <code className="code-doc">AgentChat</code>{" "}
+          to get the chat pieces wired together.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {COMPONENT_GROUPS.map((group) => (
@@ -238,7 +207,7 @@ export default function IntroductionPage() {
           for prerequisites, styles and your first component. In short:
         </p>
         <DocCodeBlock
-          code="npm install @sinups/ai-kit @mantine/core @mantine/hooks"
+          code="npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react"
           language="bash"
         />
       </div>
@@ -253,9 +222,11 @@ export default function IntroductionPage() {
             Chat with tool renderers
           </div>
           <p className="text-base text-muted-foreground">
-            Plug Bash and Edit tool cards into{" "}
-            <code className="code-doc">AgentChat</code> to render real tool
-            invocations from your backend.
+            <code className="code-doc">AgentChat</code> renders built-in cards
+            for Bash, Edit, Search, Todo, Plan, subagent and MCP tool parts on
+            its own. Add your own card with{" "}
+            <code className="code-doc">toolRenderers</code>, keyed by the full
+            part type such as <code className="code-doc">tool-Deploy</code>.
           </p>
           <DocCodeBlock code={RECIPE_CHAT_WITH_TOOLS} language="tsx" />
         </div>
@@ -269,7 +240,7 @@ export default function IntroductionPage() {
             in <code className="code-doc">leftActions</code> /{" "}
             <code className="code-doc">rightActions</code>. Drop in{" "}
             <code className="code-doc">ModeSelector</code> and{" "}
-            <code className="code-doc">ModelPicker</code> for a ChatGPT-style
+            <code className="code-doc">ModelPicker</code> for a familiar
             composer.
           </p>
           <DocCodeBlock code={RECIPE_COMPOSER} language="tsx" />
@@ -312,7 +283,7 @@ export default function IntroductionPage() {
               Skills
             </div>
             <p className="text-sm text-muted-foreground">
-              Project-aware context so Claude Code and Cursor compose the
+              Project-aware context so AI coding assistants compose the
               components correctly.
             </p>
           </Link>

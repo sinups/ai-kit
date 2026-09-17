@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: rem(28px);
+  height: var(--ae-row-height);
   padding: 0 rem(12px);
   border-bottom: rem(1px) solid var(--ae-border);
   font-size: var(--ae-font-size-xs);
@@ -28,7 +28,7 @@
   justify-content: center;
   width: rem(20px);
   height: rem(20px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   color: inherit;
 
   @mixin hover {

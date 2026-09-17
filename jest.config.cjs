@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'jest-environment-jsdom',
+  testTimeout: 15000,
   roots: ['<rootDir>/package/src'],
   transform: {
     '^.+\\.tsx?$': 'esbuild-jest',

@@ -1,0 +1,9 @@
+.title {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.messages {
+  overflow: visible;
+}

@@ -52,3 +52,22 @@
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
+
+.text[data-collapsed-tail] {
+  margin-top: rem(4px);
+  padding-top: rem(4px);
+  border-top: rem(1px) dashed var(--ae-border);
+}
+
+.expandButton {
+  display: block;
+  margin-top: rem(4px);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+  transition: color 150ms ease;
+
+  @mixin hover {
+    color: var(--ae-fg);
+  }
+}

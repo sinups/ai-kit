@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: rem(28px);
+  height: var(--ae-row-height);
   padding-left: rem(10px);
   padding-right: rem(8px);
 }
@@ -77,4 +77,8 @@
   white-space: pre-line;
   max-height: rem(80px);
   overflow: hidden;
+}
+
+.rich {
+  margin-top: rem(4px);
 }

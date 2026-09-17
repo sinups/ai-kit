@@ -6,7 +6,7 @@ const BASE_KEYWORDS = [
   "Mantine",
   "agent UI",
   "React agent UI",
-  "Claude Code UI",
+  "Agent CLI UI",
   "Vercel AI SDK",
   "AI SDK UI",
 ];

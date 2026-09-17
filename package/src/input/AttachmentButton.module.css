@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: rem(28px);
-  height: rem(28px);
+  width: var(--ae-control-height-md);
+  height: var(--ae-control-height-md);
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 150ms ease;

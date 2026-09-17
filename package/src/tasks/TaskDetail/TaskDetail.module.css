@@ -1,0 +1,17 @@
+.root {
+  min-width: 0;
+}
+
+.title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.root .steerInput {
+  --input-padding-y: calc((var(--ae-control-height-md) - var(--ae-line-height-sm)) / 2 - rem(1px));
+  --input-line-height: var(--ae-line-height-sm);
+}

@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import type { DiffLine } from '../types/timeline';
 import { cx } from '../utils/cx';
+import { overlaySegments } from '../utils/highlight-overlay';
+import { getTokenStyle, useHighlightedLines, type SyntaxHighlighter } from '../utils/highlighter';
 import { diffLines } from '../utils/line-diff';
 import classes from './DiffView.module.css';
 
@@ -9,6 +11,14 @@ export interface DiffViewProps {
   oldText: string;
   /** Content after the change */
   newText: string;
+  /** Highlights the changed words inside replaced lines, `false` by default */
+  wordHighlight?: boolean;
+  /** Wraps long lines instead of scrolling horizontally, `false` by default */
+  wrapLines?: boolean;
+  /** Colors the code with this highlighter, plain text when omitted */
+  highlighter?: SyntaxHighlighter;
+  /** Language passed to `highlighter`, for example `ts` */
+  language?: string;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -85,7 +95,7 @@ function plain(text: string): Segment[] {
 }
 
 /** Builds rows with line numbers and inline highlight for replaced fragments */
-function buildRows(lines: DiffLine[]): Row[] {
+function buildRows(lines: DiffLine[], wordHighlight: boolean): Row[] {
   const rows: Row[] = [];
   let oldNo = 1;
   let newNo = 1;
@@ -113,7 +123,7 @@ function buildRows(lines: DiffLine[]): Row[] {
 
     const removed = lines.slice(i, removeEnd);
     const added = lines.slice(removeEnd, addEnd);
-    const pairCount = Math.min(removed.length, added.length);
+    const pairCount = wordHighlight ? Math.min(removed.length, added.length) : 0;
 
     removed.forEach((removedLine, index) => {
       let segments = plain(removedLine.content);
@@ -152,16 +162,30 @@ function buildRows(lines: DiffLine[]): Row[] {
 }
 
 /** Unified line diff with line numbers, gutter markers and inline change highlight, replaces `@pierre/diffs` */
-export function DiffView({ oldText, newText, className, style }: DiffViewProps) {
+export function DiffView({
+  oldText,
+  newText,
+  wordHighlight = false,
+  wrapLines = false,
+  highlighter,
+  language,
+  className,
+  style,
+}: DiffViewProps) {
+  const oldCode = stripTrailingNewline(oldText);
+  const newCode = stripTrailingNewline(newText);
   const rows = useMemo(
-    () => buildRows(diffLines(stripTrailingNewline(oldText), stripTrailingNewline(newText))),
-    [oldText, newText]
+    () => buildRows(diffLines(oldCode, newCode), wordHighlight),
+    [oldCode, newCode, wordHighlight]
   );
+  const { lines: oldLines } = useHighlightedLines(oldCode, language, highlighter);
+  const { lines: newLines } = useHighlightedLines(newCode, language, highlighter);
   const digits = String(rows.reduce((max, row) => (row.number > max ? row.number : max), 1)).length;
 
   return (
     <div
       className={cx(classes.root, className)}
+      data-wrap={wrapLines || undefined}
       style={{ '--ae-diff-digits': digits, ...style } as React.CSSProperties}
     >
       {rows.map((row, index) => (
@@ -169,15 +193,37 @@ export function DiffView({ oldText, newText, className, style }: DiffViewProps) 
           <span className={classes.gutter} />
           <span className={classes.number}>{row.number}</span>
           <span className={classes.content}>
-            {row.segments.map((segment, segmentIndex) =>
-              segment.changed ? (
-                <mark key={segmentIndex} className={classes.highlight}>
-                  {segment.text}
-                </mark>
-              ) : (
-                <React.Fragment key={segmentIndex}>{segment.text}</React.Fragment>
-              )
-            )}
+            {(row.type === 'remove' ? oldLines : newLines)
+              ? overlaySegments(
+                  (row.type === 'remove' ? oldLines : newLines)?.[row.number - 1],
+                  row.segments.map((segment) => ({ text: segment.text, mark: segment.changed }))
+                ).map((piece, pieceIndex) =>
+                  piece.mark ? (
+                    <mark
+                      key={pieceIndex}
+                      className={classes.highlight}
+                      style={piece.token ? getTokenStyle(piece.token) : undefined}
+                    >
+                      {piece.text}
+                    </mark>
+                  ) : (
+                    <span
+                      key={pieceIndex}
+                      style={piece.token ? getTokenStyle(piece.token) : undefined}
+                    >
+                      {piece.text}
+                    </span>
+                  )
+                )
+              : row.segments.map((segment, segmentIndex) =>
+                  segment.changed ? (
+                    <mark key={segmentIndex} className={classes.highlight}>
+                      {segment.text}
+                    </mark>
+                  ) : (
+                    <React.Fragment key={segmentIndex}>{segment.text}</React.Fragment>
+                  )
+                )}
           </span>
         </div>
       ))}

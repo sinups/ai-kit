@@ -1,31 +1,17 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useRef } from 'react';
 import { compiler, MarkdownToJSX, RuleType } from 'markdown-to-jsx';
-import { Box, CopyButton, UnstyledButton } from '@mantine/core';
-import { IconCheck, IconCopy } from '@tabler/icons-react';
+import { Box, Table as MantineTable, Stack } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
+import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { cx } from '../utils/cx';
+import type { SyntaxHighlighter } from '../utils/highlighter';
+import { closeUnfinishedMarkdown, hasOpenFence, splitMarkdownStream } from './markdown-stream';
+import { shouldStackTable } from './table-layout';
 import classes from './Markdown.module.css';
 
 function fixNumberedListBreaks(text: string): string {
   return text.replace(/^(\d+)\.\s*\n+\s*\n*/gm, '$1. ');
 }
-
-const CODE_FENCE_LANGS = new Set([
-  'bash',
-  'diff',
-  'html',
-  'js',
-  'json',
-  'jsx',
-  'md',
-  'markdown',
-  'sh',
-  'shell',
-  'text',
-  'ts',
-  'tsx',
-  'yml',
-  'yaml',
-]);
 
 const GFM_ALERT_RE = /^(\s*>\s*)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/gim;
 
@@ -42,66 +28,45 @@ function normalizeGfmAlerts(content: string): string {
 }
 
 function normalizeCodeFenceLanguages(text: string): string {
-  return text.replace(/```([^\n]*)/g, (_match, langRaw) => {
+  return text.replace(/^( {0,3})(`{3,}|~{3,})([^\n`]*)$/gm, (_match, indent, fence, langRaw) => {
     const lang = String(langRaw || '')
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .split(/\s+/)[0];
     if (!lang) {
-      return '```';
+      return `${indent}${fence}`;
     }
-    const normalized = lang.split(/\s+/)[0];
-    return CODE_FENCE_LANGS.has(normalized) ? `\`\`\`${normalized}` : '```text';
+    return /^[a-z0-9][a-z0-9_+#.-]{0,31}$/.test(lang)
+      ? `${indent}${fence}${lang}`
+      : `${indent}${fence}text`;
   });
 }
 
 export type MarkdownProps = {
+  /** Markdown source */
   content: string;
+  /** Class name added to the root element */
   className?: string;
   textContrast?: 'normal' | 'high';
   /** Controls rendered in code blocks, `{ code: true }` by default */
   controls?: { code?: boolean };
+  /** Wraps long lines in fenced code blocks instead of scrolling them horizontally */
+  codeWrap?: boolean;
+  /** Syntax highlighter for fenced code blocks */
+  highlighter?: SyntaxHighlighter;
+  /** Content is still arriving: finished blocks are parsed once and only the growing tail is re-parsed */
+  streaming?: boolean;
+  /** Shows tables with too many columns for the available width as one card per row, off by default */
+  responsiveTables?: boolean;
 };
-
-function FencedCode({
-  lang,
-  text,
-  showCopy = true,
-}: {
-  lang?: string;
-  text: string;
-  showCopy?: boolean;
-}) {
-  return (
-    <div className={classes.codeBlock}>
-      <div className={classes.codeBlockHeader}>
-        <span className={classes.codeBlockLang}>{lang || 'text'}</span>
-        {showCopy && (
-          <CopyButton value={text} timeout={2000}>
-            {({ copied, copy }) => (
-              <UnstyledButton
-                className={classes.codeBlockCopy}
-                onClick={copy}
-                aria-label={copied ? 'Copied' : 'Copy code'}
-                data-copied={copied || undefined}
-              >
-                {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
-              </UnstyledButton>
-            )}
-          </CopyButton>
-        )}
-      </div>
-      <pre className={classes.codeBlockBody}>
-        <code className={lang ? `lang-${lang}` : undefined}>{text}</code>
-      </pre>
-    </div>
-  );
-}
 
 function Anchor({
   href,
   children,
   ...props
-}: React.AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode }) {
+}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  children?: React.ReactNode;
+}) {
   if (!href) {
     return <span>{children}</span>;
   }
@@ -129,6 +94,46 @@ function Table({ children, className, ...props }: React.TableHTMLAttributes<HTML
   );
 }
 
+function ResponsiveTable({
+  header,
+  rows,
+  children,
+}: {
+  header: React.ReactNode[];
+  rows: React.ReactNode[][];
+  children: React.ReactNode;
+}) {
+  const { ref, width } = useElementSize<HTMLDivElement>();
+  const stacked = shouldStackTable(header.length, width);
+  return (
+    <div
+      ref={ref}
+      className={classes.tableContainer}
+      data-measuring={width === 0 || undefined}
+      data-stacked={stacked || undefined}
+    >
+      {stacked ? (
+        <Stack gap={10} className={classes.stackedTable}>
+          {rows.map((row, rowIndex) => (
+            <MantineTable key={rowIndex} variant="vertical" withTableBorder layout="fixed" fz="sm">
+              <MantineTable.Tbody>
+                {header.map((cell, columnIndex) => (
+                  <MantineTable.Tr key={columnIndex}>
+                    <MantineTable.Th w="40%">{cell}</MantineTable.Th>
+                    <MantineTable.Td>{row[columnIndex]}</MantineTable.Td>
+                  </MantineTable.Tr>
+                ))}
+              </MantineTable.Tbody>
+            </MantineTable>
+          ))}
+        </Stack>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
 const OVERRIDES: MarkdownToJSX.Overrides = {
   h1: { props: { className: classes.h1 } },
   h2: { props: { className: classes.h2 } },
@@ -148,33 +153,128 @@ const OVERRIDES: MarkdownToJSX.Overrides = {
   code: { props: { className: classes.inlineCode } },
 };
 
-function createOptions(showCopy: boolean): MarkdownToJSX.Options {
+interface RenderOptions {
+  showCopy: boolean;
+  codeWrap: boolean;
+  highlighter?: SyntaxHighlighter;
+  streaming: boolean;
+  responsiveTables: boolean;
+}
+
+function createOptions({
+  showCopy,
+  codeWrap,
+  highlighter,
+  streaming,
+  responsiveTables,
+}: RenderOptions): MarkdownToJSX.Options {
   return {
     disableParsingRawHTML: true,
     forceBlock: true,
     overrides: OVERRIDES,
-    renderRule: (next, node, _renderChildren, state) => {
+    renderRule: (next, node, renderChildren, state) => {
       if (node.type === RuleType.codeBlock) {
-        return <FencedCode key={state.key} lang={node.lang} text={node.text} showCopy={showCopy} />;
+        return (
+          <CodeBlock
+            key={state.key}
+            code={node.text.replace(/\n$/, '')}
+            language={node.lang}
+            highlighter={highlighter}
+            withCopy={showCopy}
+            wrap={codeWrap}
+            streaming={streaming}
+          />
+        );
+      }
+      if (responsiveTables && node.type === RuleType.table) {
+        return (
+          <ResponsiveTable
+            key={state.key}
+            header={node.header.map((cell) => renderChildren(cell, state))}
+            rows={node.cells.map((row) => row.map((cell) => renderChildren(cell, state)))}
+          >
+            {next()}
+          </ResponsiveTable>
+        );
       }
       return next();
     },
   };
 }
 
-const OPTIONS_WITH_COPY = createOptions(true);
-const OPTIONS_WITHOUT_COPY = createOptions(false);
+function normalizeMarkdown(content: string): string {
+  return normalizeGfmAlerts(normalizeCodeFenceLanguages(fixNumberedListBreaks(content)));
+}
 
-/** Renders assistant markdown with chat-tuned typography and copyable code blocks */
-export const Markdown = memo(function Markdown({ content, className, controls }: MarkdownProps) {
+const MarkdownChunk = memo(function MarkdownChunk({
+  content,
+  options,
+}: {
+  content: string;
+  options: MarkdownToJSX.Options;
+}) {
+  return <>{compiler(content, options)}</>;
+});
+
+/** Renders assistant markdown with chat-tuned typography, highlighted code blocks and responsive tables */
+export const Markdown = memo(function Markdown({
+  content,
+  className,
+  controls,
+  highlighter,
+  codeWrap = false,
+  streaming = false,
+  responsiveTables = false,
+}: MarkdownProps) {
   const showCopy = controls?.code !== false;
-  const rendered = useMemo(() => {
-    const safeContent = normalizeGfmAlerts(
-      normalizeCodeFenceLanguages(fixNumberedListBreaks(content))
+  const options = useMemo(
+    () =>
+      createOptions({
+        showCopy,
+        codeWrap,
+        highlighter,
+        responsiveTables,
+        streaming: false,
+      }),
+    [showCopy, codeWrap, highlighter, responsiveTables]
+  );
+  const tailOptions = useMemo(
+    () =>
+      createOptions({
+        showCopy,
+        codeWrap,
+        highlighter,
+        responsiveTables,
+        streaming: true,
+      }),
+    [showCopy, codeWrap, highlighter, responsiveTables]
+  );
+  const normalized = useMemo(() => normalizeMarkdown(content), [content]);
+  // Re-parsing a finished stream as one document would remount every code block and table.
+  const streamedRef = useRef(streaming);
+  streamedRef.current ||= streaming;
+
+  if (!streamedRef.current) {
+    return (
+      <Box className={cx(classes.root, className)}>
+        <MarkdownChunk content={normalized} options={options} />
+      </Box>
     );
-    return compiler(safeContent, showCopy ? OPTIONS_WITH_COPY : OPTIONS_WITHOUT_COPY);
-  }, [content, showCopy]);
-  return <Box className={cx(classes.root, className)}>{rendered}</Box>;
+  }
+
+  const { stable, tail } = splitMarkdownStream(normalized);
+  return (
+    <Box className={cx(classes.root, className)} data-streaming={streaming || undefined}>
+      {stable.map((block, index) => (
+        <MarkdownChunk key={index} content={block} options={options} />
+      ))}
+      <MarkdownChunk
+        key="tail"
+        content={streaming ? closeUnfinishedMarkdown(tail) : tail}
+        options={streaming && hasOpenFence(tail) ? tailOptions : options}
+      />
+    </Box>
+  );
 });
 
 Markdown.displayName = 'Markdown';

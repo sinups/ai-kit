@@ -1,0 +1,13 @@
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.action {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.payload {
+  max-height: rem(240px);
+  overflow: auto;
+}

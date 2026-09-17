@@ -1,8 +1,7 @@
-import {
-  COMPONENT_DOCS,
-  componentIdFromName,
-} from "@/app/data/component-docs";
-import { SITE_URL } from "@/app/lib/site";
+import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
+import { DOC_PAGE_DESCRIPTIONS, INTRODUCTION_DESCRIPTION, summarizeUsage } from "@/app/lib/doc-pages";
+import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
+import { PACKAGE_NAME, REPO_URL, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
 
 export const dynamic = "force-static";
 
@@ -11,33 +10,32 @@ export function GET() {
 
   lines.push("# AI UI Kit");
   lines.push("");
-  lines.push(
-    "> An open-source collection of chat and agent UI components built on Mantine: messages, tool cards, streaming states, and input controls. Install with `npm install @sinups/ai-kit @mantine/core @mantine/hooks`. A fork of Agent Elements by 21st.dev (MIT).",
-  );
+  lines.push(`> ${INTRODUCTION_DESCRIPTION}`);
   lines.push("");
-  lines.push("## Get started");
+  lines.push(`- Package: \`${PACKAGE_NAME}\` ${PACKAGE_VERSION}`);
+  lines.push(`- Install: \`${INSTALL_COMMAND}\``);
+  lines.push(`- Peer dependencies: ${PEER_DEPENDENCIES.map((peer) => `\`${peer.name}\` ${peer.range}`).join(", ")}`);
+  lines.push("- Styles: import `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css` once at the app root.");
+  lines.push(`- Full docs in one file: ${SITE_URL}/llms-full.txt`);
   lines.push("");
-  lines.push(`- [Introduction](${SITE_URL}/docs): what AI UI Kit is, component inventory, composition recipes.`);
-  lines.push(`- [Installation](${SITE_URL}/docs/installation): prerequisites, stylesheet and provider setup, usage.`);
-  lines.push(`- [MCP](${SITE_URL}/docs/mcp): read the docs from your AI assistant.`);
-  lines.push(`- [Skills](${SITE_URL}/docs/skills): project-aware context so Claude Code and Cursor compose the components correctly.`);
-  lines.push(`- [Use cases](${SITE_URL}/docs/use-cases): realistic agent scenarios (coding agents, support chat, etc.).`);
-  lines.push("");
-  lines.push("## Components");
-  lines.push("");
-  for (const doc of COMPONENT_DOCS) {
-    const id = componentIdFromName(doc.name);
-    lines.push(`- [${doc.name}](${SITE_URL}/docs/${id})`);
+
+  for (const section of SIDEBAR_SECTIONS) {
+    lines.push(`## ${section.title}`);
+    lines.push("");
+    for (const item of section.items) {
+      const description = section.components
+        ? summarizeUsage(item.label)
+        : (DOC_PAGE_DESCRIPTIONS[item.href] ?? "");
+      lines.push(`- [${item.label}](${SITE_URL}${item.href})${description ? `: ${description}` : ""}`);
+    }
+    lines.push("");
   }
+
+  lines.push("## Source");
   lines.push("");
-  lines.push("## Package");
-  lines.push("");
-  lines.push("- npm: https://www.npmjs.com/package/@sinups/ai-kit");
-  lines.push("- Source: https://github.com/sinups/ai-kit");
-  lines.push("");
-  lines.push("## Full docs");
-  lines.push("");
-  lines.push(`- [llms-full.txt](${SITE_URL}/llms-full.txt): every docs page in a single file.`);
+  lines.push(`- npm: https://www.npmjs.com/package/${PACKAGE_NAME}`);
+  lines.push(`- Repository: ${REPO_URL}`);
+  lines.push(`- A fork of ${UPSTREAM_NAME} by 21st.dev (MIT).`);
   lines.push("");
 
   return new Response(lines.join("\n"), {

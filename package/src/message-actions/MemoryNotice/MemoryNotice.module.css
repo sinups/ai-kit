@@ -1,0 +1,33 @@
+.toggle {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--ae-tool-radius);
+  color: var(--ae-fg-muted);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.title {
+  flex-shrink: 0;
+  max-width: 60%;
+}
+
+.preview {
+  min-width: 0;
+}
+
+.chevron {
+  flex-shrink: 0;
+  transition: transform 150ms ease-out;
+
+  &[data-open] {
+    transform: rotate(90deg);
+  }
+}
+
+.content {
+  padding-inline-start: rem(20px);
+  font-size: var(--ae-font-size-sm);
+}

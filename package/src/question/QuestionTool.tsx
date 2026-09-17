@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Box } from '@mantine/core';
+import { Box, Button, Group, Stack, Text } from '@mantine/core';
+import { IconCheck } from '@tabler/icons-react';
 import { cx } from '../utils/cx';
+import { formatQuestionAnswer } from './question-answer';
 import { QuestionHeader } from './QuestionHeader';
-import { QuestionAnswer, QuestionConfig, QuestionOption, QuestionPrompt } from './QuestionPrompt';
+import { QuestionAnswer, QuestionConfig, QuestionPrompt } from './QuestionPrompt';
 import classes from './QuestionTool.module.css';
 
 export type QuestionToolPart = {
@@ -21,6 +23,20 @@ export type QuestionToolPart = {
     skipLabel?: string;
     allowSkip?: boolean;
     onSubmitAnswer?: (answer: QuestionAnswer) => void;
+    /** Shows a "Review your answers" step after the last question; answers are final only after it is confirmed */
+    review?: boolean;
+    /** Called with all answers, keyed by 1-based question index, when the review step is confirmed */
+    onSubmitAnswers?: (answers: Record<number, QuestionAnswer>) => void;
+    /** Review step title, `Check your answers` by default */
+    reviewTitle?: string;
+    /** Review step confirm button, `Send answers` by default */
+    reviewSubmitLabel?: string;
+    /** Review step edit button, `Change` by default; hidden while `questionIndex` is controlled */
+    reviewEditLabel?: string;
+    /** Shows numbered question navigation that marks answered questions, on by default only with `review` */
+    showProgress?: boolean;
+    /** Accessible label of the question navigation, `Questions` by default */
+    stepsLabel?: string;
   };
   output?: {
     answer?: QuestionAnswer;
@@ -32,22 +48,6 @@ export interface QuestionToolProps {
   chatStatus?: string;
   className?: string;
   style?: React.CSSProperties;
-}
-
-function formatAnswer(answer: QuestionAnswer, options: QuestionOption[]) {
-  if (answer.kind === 'skip') {
-    return 'Skipped';
-  }
-  if (answer.kind === 'text') {
-    return answer.text || 'Answered';
-  }
-  const ids = answer.selectedIds?.length
-    ? answer.selectedIds.map((id) => options.find((o) => o.id === id)?.label ?? id).join(', ')
-    : '';
-  if (answer.text) {
-    return ids ? `${ids} (${answer.text})` : answer.text;
-  }
-  return ids || 'Answered';
 }
 
 /** Tool card for the "ask user" tool: a header with question navigation and the active QuestionPrompt, collapsing into a summary once answered */
@@ -64,10 +64,15 @@ function QuestionToolCard({ part, className, style }: QuestionToolProps) {
   const clampedIndex = Math.max(1, Math.min(questionIndex, totalQuestions));
   const question = questions[clampedIndex - 1];
   const [localAnswers, setLocalAnswers] = useState<Record<number, QuestionAnswer>>({});
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const withReview = !!part.input?.review;
+  const showProgress = part.input?.showProgress ?? withReview;
 
   const outputAnswer = part.output?.answer;
   const answeredCount = Object.keys(localAnswers).length;
-  const isComplete = !!outputAnswer || (totalQuestions > 0 && answeredCount >= totalQuestions);
+  const allAnswered = totalQuestions > 0 && answeredCount >= totalQuestions;
+  const isComplete = !!outputAnswer || (withReview ? reviewConfirmed : allAnswered);
   const showNavigation = totalQuestions > 1 && !isComplete;
   const canGoPrev = clampedIndex > 1;
   const canGoNext = clampedIndex < totalQuestions;
@@ -91,15 +96,15 @@ function QuestionToolCard({ part, className, style }: QuestionToolProps) {
       return summaryAnswers
         .map(
           (item) =>
-            `${item.index}: ${item.answer ? formatAnswer(item.answer, questions[item.index - 1]?.options ?? []) : 'Pending'}`
+            `${item.index}: ${item.answer ? formatQuestionAnswer(item.answer, questions[item.index - 1]?.options ?? []) : 'Pending'}`
         )
         .join(' • ');
     }
     if (outputAnswer) {
-      return formatAnswer(outputAnswer, allOptions);
+      return formatQuestionAnswer(outputAnswer, allOptions);
     }
     if (localAnswers[clampedIndex]) {
-      return formatAnswer(localAnswers[clampedIndex], allOptions);
+      return formatQuestionAnswer(localAnswers[clampedIndex], allOptions);
     }
     return 'Pending';
   }, [isComplete, summaryAnswers, outputAnswer, localAnswers, clampedIndex, questions]);
@@ -115,6 +120,13 @@ function QuestionToolCard({ part, className, style }: QuestionToolProps) {
     part.input?.onPreviousQuestion?.();
     if (!isControlled) {
       setLocalIndex((prev) => Math.max(1, prev - 1));
+    }
+  };
+
+  const goTo = (index: number) => {
+    setReviewing(false);
+    if (!isControlled) {
+      setLocalIndex(index);
     }
   };
 
@@ -138,8 +150,87 @@ function QuestionToolCard({ part, className, style }: QuestionToolProps) {
         onNext={goNext}
       />
 
+      {!isComplete && showProgress && totalQuestions > 1 && (
+        <Group
+          gap={4}
+          px={12}
+          pt={6}
+          wrap="wrap"
+          role="navigation"
+          aria-label={part.input?.stepsLabel ?? 'Questions'}
+          className={classes.steps}
+        >
+          {Array.from({ length: totalQuestions }, (_, idx) => {
+            const index = idx + 1;
+            const answered = !!localAnswers[index];
+            const current = !reviewing && index === clampedIndex;
+            return (
+              <Button
+                key={index}
+                size="compact-xs"
+                radius="xl"
+                variant={current ? 'light' : 'subtle'}
+                color={answered ? undefined : 'gray'}
+                leftSection={answered ? <IconCheck size={12} /> : undefined}
+                aria-current={current ? 'step' : undefined}
+                aria-label={`Question ${index}${answered ? ', answered' : ''}`}
+                data-answered={answered || undefined}
+                disabled={isControlled || (!answered && !current)}
+                onClick={() => goTo(index)}
+              >
+                {index}
+              </Button>
+            );
+          })}
+        </Group>
+      )}
+
       {isComplete ? (
         <div className={classes.summary}>{summaryText}</div>
+      ) : reviewing ? (
+        <Stack gap={10} p={12} className={classes.review}>
+          <Text size="sm" fw={500}>
+            {part.input?.reviewTitle ?? 'Check your answers'}
+          </Text>
+          {questions.slice(0, totalQuestions).map((item, idx) => {
+            const answer = localAnswers[idx + 1];
+            return (
+              <Group key={idx} gap={10} wrap="nowrap" align="flex-start" justify="space-between">
+                <Stack gap={0} miw={0}>
+                  <Text size="xs" c="dimmed">
+                    {idx + 1}. {item.title}
+                  </Text>
+                  <Text size="sm">
+                    {answer ? formatQuestionAnswer(answer, item.options ?? []) : 'Pending'}
+                  </Text>
+                </Stack>
+                {!isControlled && (
+                  <Button
+                    size="compact-xs"
+                    variant="subtle"
+                    color="gray"
+                    onClick={() => goTo(idx + 1)}
+                  >
+                    {part.input?.reviewEditLabel ?? 'Change'}
+                  </Button>
+                )}
+              </Group>
+            );
+          })}
+          <Group justify="flex-end">
+            <Button
+              size="compact-sm"
+              disabled={!allAnswered}
+              onClick={() => {
+                setReviewConfirmed(true);
+                setReviewing(false);
+                part.input?.onSubmitAnswers?.(localAnswers);
+              }}
+            >
+              {part.input?.reviewSubmitLabel ?? 'Send answers'}
+            </Button>
+          </Group>
+        </Stack>
       ) : (
         <QuestionPrompt
           key={`${clampedIndex}-${question.title}`}
@@ -147,15 +238,24 @@ function QuestionToolCard({ part, className, style }: QuestionToolProps) {
           questionIndex={clampedIndex}
           totalQuestions={totalQuestions}
           initialAnswer={localAnswers[clampedIndex]}
-          submitLabel={part.input?.submitLabel}
           nextLabel={part.input?.nextLabel}
           skipLabel={part.input?.skipLabel}
           allowSkip={part.input?.allowSkip}
+          submitLabel={withReview ? (part.input?.nextLabel ?? 'Next') : part.input?.submitLabel}
           onSubmit={(nextAnswer) => {
-            setLocalAnswers((prev) => ({ ...prev, [clampedIndex]: nextAnswer }));
+            const nextAnswers = { ...localAnswers, [clampedIndex]: nextAnswer };
+            setLocalAnswers(nextAnswers);
             part.input?.onSubmitAnswer?.(nextAnswer);
-            if (clampedIndex < totalQuestions) {
+            const firstUnanswered = Array.from(
+              { length: totalQuestions },
+              (_, idx) => idx + 1
+            ).find((index) => !nextAnswers[index]);
+            if (withReview && firstUnanswered === undefined) {
+              setReviewing(true);
+            } else if (clampedIndex < totalQuestions) {
               goNext();
+            } else if (withReview && firstUnanswered !== undefined) {
+              goTo(firstUnanswered);
             }
           }}
         />

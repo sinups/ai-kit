@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { QuestionTool, type QuestionToolPart } from '../question/QuestionTool';
-import type { CustomToolRendererProps, ToolPart } from '../types';
+import type { CustomToolRendererProps, ToolActionHandler, ToolPart } from '../types';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { BashTool } from './BashTool';
 import { EditTool } from './EditTool';
@@ -20,8 +20,12 @@ export interface ToolRendererProps {
   nestedTools?: ToolPart[];
   /** Chat status from `useChat()`, used to tell a pending tool from an interrupted one */
   chatStatus?: string;
-  /** Custom renderers for `mcp__user-tools__<name>` tools, keyed by tool name */
+  /** Custom renderers keyed by part type (`tool-Bash`, `tool-mcp__git__search`), which take precedence over the built-in card, or by `<name>` for `mcp__user-tools__<name>` */
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  /** Receives actions reported by custom renderers through `onAction` */
+  onToolAction?: ToolActionHandler;
+  /** Wraps long lines in diffs instead of scrolling them sideways */
+  wrapLines?: boolean;
 }
 
 function deriveToolStatus(part: ToolPart, chatStatus?: string): CustomToolRendererProps['status'] {
@@ -44,6 +48,8 @@ export const ToolRenderer = memo(function ToolRenderer({
   nestedTools,
   chatStatus,
   toolRenderers,
+  onToolAction,
+  wrapLines,
 }: ToolRendererProps) {
   const isDynamic = rawPart.type === 'dynamic-tool' && typeof rawPart.toolName === 'string';
   const part = useMemo<ToolPart>(
@@ -51,13 +57,42 @@ export const ToolRenderer = memo(function ToolRenderer({
     [isDynamic, rawPart]
   );
   const partType = part.type;
+  const toolName = partType.startsWith('tool-') ? partType.slice(5) : partType;
+  const mcpInfo = parseMcpToolType(partType);
+  const customKey = !toolRenderers
+    ? null
+    : Object.hasOwn(toolRenderers, partType)
+      ? partType
+      : mcpInfo?.serverName === 'user-tools' && Object.hasOwn(toolRenderers, mcpInfo.toolName)
+        ? mcpInfo.toolName
+        : null;
+
+  if (toolRenderers && customKey !== null) {
+    const CustomRenderer = toolRenderers[customKey];
+    const toolCallId = part.toolCallId;
+    return (
+      <CustomRenderer
+        name={customKey === partType ? toolName : customKey}
+        input={getPartInput(part)}
+        output={mcpInfo ? (part.output ? unwrapMcpOutput(part.output) : undefined) : part.output}
+        status={deriveToolStatus(part, chatStatus)}
+        toolCallId={toolCallId}
+        part={part}
+        onAction={
+          onToolAction
+            ? (action, payload) => onToolAction(toolCallId ?? '', action, payload)
+            : undefined
+        }
+      />
+    );
+  }
 
   switch (partType) {
     case 'tool-Bash':
       return <BashTool part={part} />;
     case 'tool-Edit':
     case 'tool-Write':
-      return <EditTool part={part} />;
+      return <EditTool part={part} wrapLines={wrapLines} />;
     case 'tool-WebSearch':
     case 'tool-Grep':
     case 'tool-Glob':
@@ -89,21 +124,7 @@ export const ToolRenderer = memo(function ToolRenderer({
       break;
   }
 
-  const mcpInfo = parseMcpToolType(partType);
   if (mcpInfo) {
-    if (toolRenderers && mcpInfo.serverName === 'user-tools') {
-      const CustomRenderer = toolRenderers[mcpInfo.toolName];
-      if (CustomRenderer) {
-        return (
-          <CustomRenderer
-            name={mcpInfo.toolName}
-            input={getPartInput(part)}
-            output={part.output ? unwrapMcpOutput(part.output) : undefined}
-            status={deriveToolStatus(part, chatStatus)}
-          />
-        );
-      }
-    }
     return <McpTool part={part} mcpInfo={mcpInfo} chatStatus={chatStatus} />;
   }
 
@@ -120,7 +141,6 @@ export const ToolRenderer = memo(function ToolRenderer({
     );
   }
 
-  const toolName = partType.startsWith('tool-') ? partType.slice(5) : partType;
   const { isPending, isError } = getToolStatus(part, chatStatus);
   return (
     <GenericTool

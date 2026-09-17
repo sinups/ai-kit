@@ -27,13 +27,13 @@ const getHighlighter = () => {
 };
 
 const vesperLightOverrides = `
-.an-docs-code .shiki span[style*="color:#24292e"] { color: #000000 !important; }
-.an-docs-code .shiki span[style*="color:#d73a49"] { color: #495057 !important; font-weight: 500; }
-.an-docs-code .shiki span[style*="color:#032f62"] { color: #146C43 !important; }
-.an-docs-code .shiki span[style*="color:#6f42c1"] { color: #C2410C !important; }
-.an-docs-code .shiki span[style*="color:#005cc5"] { color: #C2410C !important; }
-.an-docs-code .shiki span[style*="color:#e36209"] { color: #C2410C !important; }
-.an-docs-code .shiki span[style*="color:#6a737d"] { color: #6C757D !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#24292e"] { color: #000000 !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#d73a49"] { color: #495057 !important; font-weight: 500; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#032f62"] { color: #146C43 !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#6f42c1"] { color: #C2410C !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#005cc5"] { color: #C2410C !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#e36209"] { color: #C2410C !important; }
+html:not(.dark) .an-docs-code .shiki span[style*="color:#6a737d"] { color: #6C757D !important; }
 `;
 
 const AUTO_COLLAPSE_LINE_THRESHOLD = 20;
@@ -109,7 +109,7 @@ export function DocsCodeBlock({
 
   return (
     <>
-      {!isDark && <style>{vesperLightOverrides}</style>}
+      <style dangerouslySetInnerHTML={{ __html: vesperLightOverrides }} />
       <div className="relative">
         {/* Gradient border overlay for collapsible blocks - fades via opacity */}
         {isCollapsible && (

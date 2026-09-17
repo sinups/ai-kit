@@ -1,12 +1,32 @@
 import React, { useState } from 'react';
 import { Box, Textarea, TextInput, UnstyledButton } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
+import { Markdown } from '../Markdown/Markdown';
 import { cx } from '../utils/cx';
+import {
+  QUESTION_CUSTOM_ID,
+  buildQuestionAnswer,
+  canSubmitQuestion,
+  getInitialQuestionDraft,
+  getPreviewOption,
+  toPreviewMarkdown,
+} from './question-answer';
 import classes from './QuestionPrompt.module.css';
+
+export type QuestionOptionPreview = {
+  /** `markdown` renders the content as Markdown, `code` as a code block */
+  kind: 'markdown' | 'code';
+  content: string;
+  /** Code block language for `code` previews */
+  language?: string;
+};
 
 export type QuestionOption = {
   id: string;
   label: string;
   description?: string;
+  /** Shown beside the options when the prompt is wide and under the chosen option when narrow */
+  preview?: QuestionOptionPreview;
 };
 
 export type QuestionConfig = {
@@ -22,39 +42,25 @@ export type QuestionConfig = {
   maxSelections?: number;
   /** Placeholder for the `text` kind */
   placeholder?: string;
+  /** Adds an optional notes field whose value is sent as `QuestionAnswer.notes` */
+  allowNotes?: boolean;
+  /** Notes field placeholder, `Add a note (optional)` by default */
+  notesPlaceholder?: string;
 };
 
 export type QuestionAnswer = {
   kind: 'single' | 'multi' | 'text' | 'skip';
   selectedIds?: string[];
   text?: string;
+  /** Free-form note added to the answer when the question allows notes */
+  notes?: string;
 };
-
-const QUESTION_CUSTOM_ID = '__custom__';
 
 function optionBadge(idx: number) {
   return String.fromCharCode(65 + idx);
 }
 
-type PromptState = { selectedIds: string[]; customText: string; textValue: string };
-
-function getInitialState(
-  initialAnswer: QuestionAnswer | undefined,
-  question: QuestionConfig | undefined
-): PromptState {
-  if (!initialAnswer || initialAnswer.kind === 'skip') {
-    return { selectedIds: [], customText: '', textValue: '' };
-  }
-  if (question?.kind === 'text') {
-    return { selectedIds: [], customText: '', textValue: initialAnswer.text ?? '' };
-  }
-  const selected = new Set(initialAnswer.selectedIds ?? []);
-  const customText = initialAnswer.text ?? '';
-  if (question?.allowCustom && customText.trim().length > 0) {
-    selected.add(QUESTION_CUSTOM_ID);
-  }
-  return { selectedIds: Array.from(selected), customText, textValue: '' };
-}
+const WIDE_PREVIEW_WIDTH = 640;
 
 export interface QuestionPromptProps {
   questions: QuestionConfig[];
@@ -85,7 +91,9 @@ export interface QuestionPromptProps {
    * When omitted, skipping is reported as `onSubmit({ kind: 'skip' })`.
    */
   onSkip?: () => void;
+  /** Class name added to the root element */
   className?: string;
+  /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
@@ -109,10 +117,13 @@ export function QuestionPrompt({
   const resolvedTotal = totalQuestions ?? questions.length;
   const clampedIndex = Math.max(1, Math.min(questionIndex, resolvedTotal));
   const activeQuestion = questions[clampedIndex - 1];
-  const [initialState] = useState(() => getInitialState(initialAnswer, activeQuestion));
+  const [initialState] = useState(() => getInitialQuestionDraft(initialAnswer, activeQuestion));
   const [selectedIds, setSelectedIds] = useState(initialState.selectedIds);
   const [customText, setCustomText] = useState(initialState.customText);
   const [textValue, setTextValue] = useState(initialState.textValue);
+  const [notes, setNotes] = useState(initialState.notes);
+  const [activeOptionId, setActiveOptionId] = useState<string | null>(null);
+  const { ref, width } = useElementSize();
   const customEnabled = activeQuestion?.allowCustom ?? false;
   const showNav = resolvedTotal > 1 && (!!onPreviousQuestion || !!onNextQuestion);
   const canGoPrev = clampedIndex > 1;
@@ -120,27 +131,8 @@ export function QuestionPrompt({
   const isLastQuestion = clampedIndex >= resolvedTotal;
   const primaryLabel = isLastQuestion ? submitLabel : nextLabel;
 
-  const computeCanSubmit = () => {
-    if (activeQuestion?.kind === 'text') {
-      return textValue.trim().length > 0;
-    }
-
-    const selectedNonCustom = selectedIds.filter((id) => id !== QUESTION_CUSTOM_ID).length;
-    const hasCustomText = customText.trim().length > 0;
-    const total = selectedNonCustom + (hasCustomText ? 1 : 0);
-
-    if (activeQuestion?.kind === 'single') {
-      return total === 1;
-    }
-
-    const min = activeQuestion?.minSelections ?? 1;
-    const max = activeQuestion?.maxSelections;
-    if (typeof max === 'number' && total > max) {
-      return false;
-    }
-    return total >= min;
-  };
-  const canSubmit = computeCanSubmit();
+  const draft = { selectedIds, customText, textValue, notes };
+  const canSubmit = activeQuestion ? canSubmitQuestion(activeQuestion, draft) : false;
 
   const toggleMulti = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -175,18 +167,7 @@ export function QuestionPrompt({
     if (!canSubmit || !activeQuestion) {
       return;
     }
-    if (activeQuestion.kind === 'text') {
-      onSubmit({ kind: 'text', text: textValue.trim() });
-      return;
-    }
-
-    const selectedNonCustom = selectedIds.filter((id) => id !== QUESTION_CUSTOM_ID);
-    const answerText = customText.trim() || undefined;
-    onSubmit({
-      kind: activeQuestion.kind,
-      selectedIds: selectedNonCustom,
-      text: answerText || undefined,
-    });
+    onSubmit(buildQuestionAnswer(activeQuestion, draft));
   };
 
   const handleSkip = () => {
@@ -202,9 +183,24 @@ export function QuestionPrompt({
   }
 
   const options = activeQuestion.options ?? [];
+  const previewOption =
+    activeQuestion.kind !== 'text'
+      ? getPreviewOption(options, selectedIds, activeOptionId)
+      : undefined;
+  const isWide = width >= WIDE_PREVIEW_WIDTH;
+  const renderPreview = (className: string) =>
+    width > 0 && previewOption?.preview ? (
+      <div
+        className={className}
+        data-preview={previewOption.id}
+        data-kind={previewOption.preview.kind}
+      >
+        <Markdown content={toPreviewMarkdown(previewOption.preview)} />
+      </div>
+    ) : null;
 
   return (
-    <Box className={cx(classes.root, className)} style={style}>
+    <Box ref={ref} className={cx(classes.root, className)} style={style}>
       <div className={classes.header}>
         <div className={classes.title}>
           <span className={classes.indexBadge}>{clampedIndex}</span>
@@ -213,56 +209,69 @@ export function QuestionPrompt({
       </div>
 
       {activeQuestion.kind !== 'text' && options.length > 0 && (
-        <div className={classes.options}>
-          {options.map((option, idx) => {
-            const checked = selectedIds.includes(option.id);
-            return (
-              <UnstyledButton
-                key={option.id}
-                onClick={() => {
-                  if (activeQuestion.kind === 'single') {
-                    handleSingleSelect(option.id);
-                    if (customEnabled) {
-                      setCustomText('');
-                    }
-                  } else {
-                    toggleMulti(option.id);
-                  }
-                }}
-                className={classes.option}
-                data-checked={checked || undefined}
-                aria-pressed={checked}
-              >
-                <span className={classes.badge} data-checked={checked || undefined}>
-                  {optionBadge(idx)}
-                </span>
-                <span className={classes.optionLabel}>
-                  {option.label}
-                  {option.description && (
-                    <span className={classes.optionDescription}> {option.description}</span>
-                  )}
-                </span>
-              </UnstyledButton>
-            );
-          })}
+        <div
+          className={classes.choice}
+          data-wide-preview={(isWide && !!previewOption) || undefined}
+        >
+          <div className={classes.options}>
+            {options.map((option, idx) => {
+              const checked = selectedIds.includes(option.id);
+              return (
+                <React.Fragment key={option.id}>
+                  <UnstyledButton
+                    onMouseEnter={option.preview ? () => setActiveOptionId(option.id) : undefined}
+                    onFocus={option.preview ? () => setActiveOptionId(option.id) : undefined}
+                    onClick={() => {
+                      if (activeQuestion.kind === 'single') {
+                        handleSingleSelect(option.id);
+                        if (customEnabled) {
+                          setCustomText('');
+                        }
+                      } else {
+                        toggleMulti(option.id);
+                      }
+                    }}
+                    className={classes.option}
+                    data-checked={checked || undefined}
+                    aria-pressed={checked}
+                  >
+                    <span className={classes.badge} data-checked={checked || undefined}>
+                      {optionBadge(idx)}
+                    </span>
+                    <span className={classes.optionLabel}>
+                      {option.label}
+                      {option.description && (
+                        <span className={classes.optionDescription}> {option.description}</span>
+                      )}
+                    </span>
+                  </UnstyledButton>
+                  {!isWide &&
+                    previewOption?.id === option.id &&
+                    (checked || activeOptionId === option.id) &&
+                    renderPreview(classes.inlinePreview)}
+                </React.Fragment>
+              );
+            })}
 
-          {customEnabled && (
-            <div className={classes.custom}>
-              <span
-                className={classes.badge}
-                data-checked={selectedIds.includes(QUESTION_CUSTOM_ID) || undefined}
-              >
-                {optionBadge(options.length)}
-              </span>
-              <TextInput
-                variant="unstyled"
-                value={customText}
-                onChange={(event) => handleCustomTextChange(event.currentTarget.value)}
-                placeholder={activeQuestion.customPlaceholder ?? 'Type your answer'}
-                classNames={{ root: classes.customInputRoot, input: classes.customInput }}
-              />
-            </div>
-          )}
+            {customEnabled && (
+              <div className={classes.custom}>
+                <span
+                  className={classes.badge}
+                  data-checked={selectedIds.includes(QUESTION_CUSTOM_ID) || undefined}
+                >
+                  {optionBadge(options.length)}
+                </span>
+                <TextInput
+                  variant="unstyled"
+                  value={customText}
+                  onChange={(event) => handleCustomTextChange(event.currentTarget.value)}
+                  placeholder={activeQuestion.customPlaceholder ?? 'Type your answer'}
+                  classNames={{ root: classes.customInputRoot, input: classes.customInput }}
+                />
+              </div>
+            )}
+          </div>
+          {isWide && renderPreview(classes.sidePreview)}
         </div>
       )}
 
@@ -274,6 +283,20 @@ export function QuestionPrompt({
           placeholder={activeQuestion.placeholder ?? 'Type your answer'}
           rows={3}
           resize="vertical"
+          classNames={{ root: classes.textareaRoot, input: classes.textarea }}
+        />
+      )}
+
+      {activeQuestion.allowNotes && (
+        <Textarea
+          variant="unstyled"
+          value={notes}
+          onChange={(event) => setNotes(event.currentTarget.value)}
+          placeholder={activeQuestion.notesPlaceholder ?? 'Add a note (optional)'}
+          aria-label={activeQuestion.notesPlaceholder ?? 'Add a note (optional)'}
+          autosize
+          minRows={1}
+          maxRows={4}
           classNames={{ root: classes.textareaRoot, input: classes.textarea }}
         />
       )}

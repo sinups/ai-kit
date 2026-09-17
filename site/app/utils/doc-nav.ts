@@ -1,13 +1,7 @@
-import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
+import { PRIMARY_DOC_HREFS, SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 
 export function getDocNav(href: string) {
-  const primaryDocs = [
-    "/docs",
-    "/docs/installation",
-    "/docs/mcp",
-    "/docs/skills",
-    "/docs/use-cases",
-  ];
+  const primaryDocs = PRIMARY_DOC_HREFS;
   if (primaryDocs.includes(href)) {
     const currentIndex = primaryDocs.indexOf(href);
     return {

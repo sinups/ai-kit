@@ -1,0 +1,99 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  container-type: inline-size;
+}
+
+.fill {
+  flex: 1;
+  min-height: 0;
+}
+
+.panes {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.list {
+  display: flex;
+  flex: 0 0 var(--ae-master-detail-list-width);
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+
+  [data-layout='narrow'] > .panes > & {
+    flex: 1;
+  }
+}
+
+.detail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.splitterPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  & > .list {
+    flex: 1;
+  }
+}
+
+.empty {
+  height: 100%;
+  padding: var(--mantine-spacing-xl);
+}
+
+.list[hidden],
+.detail[hidden],
+.splitterPane[hidden],
+.divider[hidden],
+.back[hidden] {
+  display: none;
+}
+
+.root[data-layout='narrow'] > .fill > .handle {
+  display: none;
+}
+
+.root[data-measuring],
+.root:not([data-layout]) > .panes > .list[hidden],
+.root:not([data-layout]) > .panes > .detail[hidden] {
+  visibility: hidden;
+}
+
+@container (max-width: 719.98px) {
+  .root:not([data-layout]) > .panes > .list {
+    flex: 1;
+  }
+}
+
+@container (min-width: 720px) {
+  .root:not([data-layout]) > .panes > .list[hidden],
+  .root:not([data-layout]) > .panes > .detail[hidden] {
+    display: flex;
+    visibility: visible;
+  }
+
+  .root:not([data-layout]) > .panes > .divider[hidden] {
+    display: block;
+  }
+
+  .root:not([data-layout]) .back {
+    display: none;
+  }
+}

@@ -32,7 +32,7 @@ import {
 } from "@sinups/ai-kit";
 import type { ModeOption } from "@sinups/ai-kit";
 import {
-  CLAUDE_MODELS,
+  DEMO_MODELS,
   DEFAULT_MODEL_ID,
 } from "@/app/data/models";
 import {
@@ -464,7 +464,7 @@ export const COMPONENT_SHOWCASES: ComponentShowcase[] = [
     node: (
       <div
         className="w-full"
-        style={{ "--an-input-focus-outline": "#0ea5e9" } as CSSProperties}
+        style={{ "--ae-input-focus-outline": "var(--mantine-color-cyan-5)" } as CSSProperties}
       >
         <InputBar
           onSend={noop}
@@ -475,7 +475,7 @@ export const COMPONENT_SHOWCASES: ComponentShowcase[] = [
             <>
               <ModeSelector modes={demoModes} defaultValue="agent" />
               <ModelPicker
-                models={CLAUDE_MODELS}
+                models={DEMO_MODELS}
                 defaultValue={DEFAULT_MODEL_ID}
               />
             </>
@@ -495,7 +495,7 @@ export const COMPONENT_SHOWCASES: ComponentShowcase[] = [
   {
     name: "ModelPicker",
     node: (
-      <ModelPicker models={CLAUDE_MODELS} defaultValue={DEFAULT_MODEL_ID} />
+      <ModelPicker models={DEMO_MODELS} defaultValue={DEFAULT_MODEL_ID} />
     ),
   },
   {

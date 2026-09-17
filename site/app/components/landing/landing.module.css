@@ -1,0 +1,133 @@
+.grid {
+  --grid-line: rgb(0 0 0 / 0.055);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: 50% -1px;
+  mask-image: radial-gradient(ellipse 75% 60% at 50% 30%, #000 30%, transparent 100%);
+}
+
+:global(.dark) .grid {
+  --grid-line: rgb(255 255 255 / 0.045);
+}
+
+.glow {
+  position: absolute;
+  inset: auto 0 0;
+  height: 60%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 60% at 50% 60%, rgb(0 0 0 / 0.04), transparent 70%);
+}
+
+:global(.dark) .glow {
+  background: radial-gradient(ellipse 50% 60% at 50% 60%, rgb(255 255 255 / 0.05), transparent 70%);
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mark {
+  position: absolute;
+  --s: var(--ls);
+  left: calc(50% + var(--lx));
+  top: var(--ly);
+  width: var(--s);
+  height: var(--s);
+  margin-left: calc(var(--s) / -2);
+}
+
+.mark[data-wide] {
+  display: none;
+}
+
+.card {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 26%;
+  color: var(--tint);
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in oklab, var(--tint) 14%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--mantine-color-white), var(--mantine-color-gray-0));
+  border: 1px solid rgb(0 0 0 / 0.07);
+  box-shadow:
+    0 18px 40px -18px rgb(24 24 27 / 0.28),
+    0 2px 6px -2px rgb(24 24 27 / 0.08),
+    inset 0 1px 0 rgb(255 255 255 / 0.9);
+  animation: drift var(--dur) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+:global(.dark) .card {
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in oklab, var(--tint) 22%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--mantine-color-dark-6), var(--mantine-color-dark-8));
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow:
+    0 22px 48px -18px rgb(0 0 0 / 0.8),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.card svg {
+  width: 46%;
+  height: 46%;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: var(--dx) var(--dy);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .mark[data-row="side"] {
+    display: none;
+  }
+
+  .mark[data-row="top"] {
+    --s: 52px;
+    left: calc(50% + var(--mx));
+    top: 12px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .mark[data-wide] {
+    display: block;
+  }
+}
+
+.frame {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 32px 80px -32px rgb(24 24 27 / 0.28);
+}
+
+:global(.dark) .frame {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.02),
+    0 40px 90px -30px rgb(0 0 0 / 0.9);
+}
+
+.bentoPreview {
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}

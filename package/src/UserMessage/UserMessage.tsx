@@ -5,6 +5,10 @@ import { cx } from '../utils/cx';
 import { isRecord, isTextPart } from '../utils/parts';
 import { FileAttachment } from '../input/FileAttachment';
 import { ImageLightbox } from '../ImageLightbox/ImageLightbox';
+import { CommandChip } from '../message-actions/CommandChip/CommandChip';
+import { matchSlashCommand } from '../message-actions/slash-command';
+import type { SlashCommandInfo } from '../message-actions/types';
+import { collapseLongText, type LongTextThreshold } from './long-text';
 import classes from './UserMessage.module.css';
 
 export type UserMessageProps = {
@@ -15,7 +19,23 @@ export type UserMessageProps = {
    * lightbox preview. Set to false to render images as plain thumbnails.
    */
   enableImagePreview?: boolean;
+  /**
+   * Known slash commands. Text that starts with one of them, for example `/review src/auth`, is shown
+   * as a command chip with its arguments; unknown `/…` text such as a file path stays plain.
+   */
+  commands?: SlashCommandInfo[];
+  /** Shows the head and tail of a text longer than the threshold with a button that expands it; `true` uses `{ chars: 2000, lines: 30 }`, off by default */
+  longTextThreshold?: LongTextThreshold | boolean;
+  /** Label of the expand button, receives the number of hidden lines or characters */
+  showFullLabel?: (hidden: { lines: number; chars: number }) => string;
+  /** Label of the collapse button, `Show less` by default */
+  showLessLabel?: string;
 };
+
+const defaultShowFullLabel = ({ lines, chars }: { lines: number; chars: number }) =>
+  lines > 0
+    ? `Show full message (${lines} more ${lines === 1 ? 'line' : 'lines'})`
+    : `Show full message (${chars.toLocaleString('en-US')} more characters)`;
 
 function getMimeType(part: Record<string, unknown>): string | undefined {
   const mime = part.mediaType ?? part.mimeType;
@@ -90,7 +110,12 @@ export const UserMessage = memo(function UserMessage({
   message,
   className,
   enableImagePreview = true,
+  commands,
+  longTextThreshold = false,
+  showFullLabel = defaultShowFullLabel,
+  showLessLabel = 'Show less',
 }: UserMessageProps) {
+  const [expanded, setExpanded] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const textParts = message.parts?.filter(isTextPart) ?? [];
   const text = textParts.map((p) => p.text).join('');
@@ -117,6 +142,12 @@ export const UserMessage = memo(function UserMessage({
       }
     }
   }
+
+  const command = commands?.length ? matchSlashCommand(text, commands) : null;
+  const collapsed =
+    command || longTextThreshold === false
+      ? null
+      : collapseLongText(text, longTextThreshold === true ? undefined : longTextThreshold);
 
   if (!text && images.length === 0 && files.length === 0) {
     return null;
@@ -171,7 +202,35 @@ export const UserMessage = memo(function UserMessage({
       {text && (
         <div className={classes.bubbleWrapper}>
           <div className={classes.bubble}>
-            <p className={classes.text}>{text}</p>
+            {command ? (
+              <CommandChip
+                name={command.name}
+                args={command.args}
+                description={command.command.description}
+                icon={command.command.icon}
+                className={classes.text}
+              />
+            ) : collapsed ? (
+              <>
+                <p className={classes.text}>{expanded ? text : collapsed.head}</p>
+                {!expanded && (
+                  <p className={classes.text} data-collapsed-tail>
+                    {collapsed.tail}
+                  </p>
+                )}
+                <UnstyledButton
+                  className={classes.expandButton}
+                  aria-expanded={expanded}
+                  onClick={() => setExpanded((value) => !value)}
+                >
+                  {expanded
+                    ? showLessLabel
+                    : showFullLabel({ lines: collapsed.hiddenLines, chars: collapsed.hiddenChars })}
+                </UnstyledButton>
+              </>
+            ) : (
+              <p className={classes.text}>{text}</p>
+            )}
           </div>
         </div>
       )}

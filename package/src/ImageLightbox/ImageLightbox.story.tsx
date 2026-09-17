@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Group, Stack } from '@mantine/core';
 import { ImageLightbox, LightboxImage } from './ImageLightbox';
+import { AiKitHostScope } from '../theme/AiKitProvider';
 
 export default { title: 'ImageLightbox' };
 
@@ -19,22 +20,24 @@ export function Usage() {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   return (
-    <Stack p="xl" gap="md">
-      <Group>
-        {IMAGES.map((image, idx) => (
-          <Button
-            key={image.id}
-            variant="default"
-            size="xs"
-            onClick={() => {
-              setIndex(idx);
-              setOpen(true);
-            }}
-          >
-            Open {image.filename}
-          </Button>
-        ))}
-      </Group>
+    <Stack p={32} gap={16}>
+      <AiKitHostScope>
+        <Group>
+          {IMAGES.map((image, idx) => (
+            <Button
+              key={image.id}
+              variant="default"
+              size="xs"
+              onClick={() => {
+                setIndex(idx);
+                setOpen(true);
+              }}
+            >
+              Open {image.filename}
+            </Button>
+          ))}
+        </Group>
+      </AiKitHostScope>
       <ImageLightbox
         open={open}
         onClose={() => setOpen(false)}
@@ -48,10 +51,12 @@ export function Usage() {
 export function SingleImage() {
   const [open, setOpen] = useState(false);
   return (
-    <Stack p="xl" gap="md">
-      <Button variant="default" size="xs" onClick={() => setOpen(true)} w="fit-content">
-        Open preview
-      </Button>
+    <Stack p={32} gap={16}>
+      <AiKitHostScope>
+        <Button variant="default" size="xs" onClick={() => setOpen(true)} w="fit-content">
+          Open preview
+        </Button>
+      </AiKitHostScope>
       <ImageLightbox open={open} onClose={() => setOpen(false)} images={[IMAGES[0]]} />
     </Stack>
   );

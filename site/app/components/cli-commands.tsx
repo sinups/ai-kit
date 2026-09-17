@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckIcon, CopyIcon } from "@/app/components/docs-code-icons";
 import { cn } from "@/lib/utils";
 
-const PACKAGES = "@sinups/ai-kit @mantine/core @mantine/hooks";
+const PACKAGES = "@sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react";
 const STORAGE_KEY = "ai-kit:package-manager";
 
 type PackageManager = "pnpm" | "npm" | "yarn" | "bun";

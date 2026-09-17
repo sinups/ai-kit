@@ -28,17 +28,56 @@
   margin-bottom: rem(12px);
 }
 
-.emptySuggestionsBottom {
-  margin-top: rem(12px);
-}
-
 .emptySuggestionItem {
   height: rem(32px);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   padding-inline: rem(12px);
 }
 
 .centeredInputBar {
   padding-inline: 0;
   padding-bottom: 0;
+}
+
+.statusBar {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: calc(var(--ae-max-width) + rem(24px));
+  margin-inline: auto;
+  padding: 0 rem(12px) rem(6px);
+}
+
+.root[data-align-composer] {
+  --ae-column-max-width: var(--ae-max-width);
+}
+
+/* The feed column is centered inside the list minus its vertical scrollbar, so the composer
+   takes the same width and offset from the start edge instead of centering in the full width. */
+.alignedInputBar,
+.alignedStatusBar {
+  --ae-max-width: 100%;
+
+  width: min(var(--ae-column-max-width), calc(100% - var(--ae-scrollbar-width, 0px)));
+  max-width: none;
+  margin-inline: max(
+      0px,
+      calc((100% - var(--ae-scrollbar-width, 0px) - var(--ae-column-max-width)) / 2)
+    )
+    auto;
+  padding-inline: var(--ae-column-inset, rem(16px));
+}
+
+.emptyStateHeading {
+  margin-bottom: rem(20px);
+}
+
+.root[data-empty-width] .emptyStateInner {
+  --ae-max-width: 100%;
+
+  max-width: var(--ae-empty-state-width);
+}
+
+.emptyStateTitle {
+  margin: 0;
+  color: var(--ae-fg);
 }

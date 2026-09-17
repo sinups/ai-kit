@@ -9,10 +9,10 @@
   display: inline-flex;
   align-items: center;
   gap: rem(4px);
-  height: rem(28px);
+  height: var(--ae-control-height-md);
   padding: 0 rem(8px);
   border: rem(1px) solid var(--ae-border);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   background-color: transparent;
   font-size: var(--ae-font-size-sm);
   line-height: var(--ae-line-height-sm);

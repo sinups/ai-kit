@@ -175,3 +175,82 @@ export const errorConversation: ChatMessage[] = [
     ],
   },
 ];
+
+export const toolRunConversation: ChatMessage[] = [
+  {
+    id: 'run-u1',
+    role: 'user',
+    parts: [{ type: 'text', text: 'Where is the retry logic for uploads?' }],
+  },
+  {
+    id: 'run-a1',
+    role: 'assistant',
+    parts: [
+      {
+        type: 'tool-Grep',
+        toolCallId: 'run-grep-1',
+        state: 'output-available',
+        input: { pattern: 'retry', path: 'src/upload' },
+        output: { numFiles: 4 },
+      },
+      {
+        type: 'tool-Read',
+        toolCallId: 'run-read-1',
+        state: 'output-available',
+        input: { file_path: 'src/upload/client.ts' },
+        output: '',
+      },
+      {
+        type: 'tool-Read',
+        toolCallId: 'run-read-2',
+        state: 'output-available',
+        input: { file_path: 'src/upload/backoff.ts' },
+        output: '',
+      },
+      {
+        type: 'tool-Glob',
+        toolCallId: 'run-glob-1',
+        state: 'output-available',
+        input: { pattern: 'src/upload/**/*.test.ts' },
+        output: { numFiles: 2 },
+      },
+      {
+        type: 'tool-Read',
+        toolCallId: 'run-read-3',
+        state: 'output-available',
+        input: { file_path: 'src/upload/client.test.ts' },
+        output: '',
+      },
+      {
+        type: 'text',
+        text: 'Retries live in `src/upload/backoff.ts`: exponential backoff with up to 5 attempts.',
+      },
+    ],
+  },
+];
+
+export const compactedConversation: ChatMessage[] = [
+  {
+    id: 'cmp-s1',
+    role: 'system',
+    parts: [
+      {
+        type: 'compaction',
+        tokensBefore: 182_400,
+        tokensAfter: 12_300,
+        summary:
+          '- Migrated the upload client to the new API\n- Tests for backoff are green\n- Open question: keep the 5 attempt limit?',
+      },
+    ],
+  },
+  {
+    id: 'cmp-u1',
+    role: 'user',
+    parts: [{ type: 'text', text: 'Keep 5 attempts and ship it.' }],
+  },
+  {
+    id: 'cmp-a1',
+    role: 'assistant',
+    parts: [{ type: 'text', text: 'Done: the limit stays at 5 attempts.' }],
+  },
+];

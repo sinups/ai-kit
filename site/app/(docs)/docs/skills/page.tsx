@@ -6,10 +6,10 @@ import { getDocNav } from "@/app/utils/doc-nav";
 const INSTALL_COMMAND = "npx skills add sinups/ai-kit";
 
 const EXAMPLE_PROMPTS = [
-  "Add a streaming chat surface with AgentChat, wire it to my existing /api/chat route.",
-  "Show me the available tool renderers in AI UI Kit and pick the right ones for my agent.",
-  "Replace the default SendButton with one that matches my brand palette.",
-  "Build a composer with InputBar, ModeSelector, and ModelPicker, then connect it to useChat.",
+  "Add a full-page AgentChat with a welcome empty state and wire it to my existing useChat route.",
+  "Render our tool-Deploy parts with a custom card and handle approve in onToolAction.",
+  "Build a settings screen with SettingsLayout, McpSettingsPanel and UsagePanel.",
+  "Embed ChatLauncher on the dashboard and theme it with AiKitProvider.",
 ];
 
 export default function SkillsPage() {
@@ -37,7 +37,7 @@ export default function SkillsPage() {
           />
         </div>
         <p className="text-base text-muted-foreground">
-          Skills give AI assistants like Claude Code and Cursor project-aware
+          Skills give AI coding assistants project-aware
           context about AI UI Kit. When installed, your assistant knows
           how to find, install, compose, and customise components using the
           correct APIs, prop shapes, and styling patterns for your project.
@@ -79,7 +79,7 @@ export default function SkillsPage() {
 
         <div className="space-y-2">
           <div className="text-sm font-medium text-an-foreground">
-            Manual install for Claude Code
+            Manual install for Agent CLI
           </div>
           <p className="text-sm text-muted-foreground">
             Want to try the skill right now? Copy the{" "}
@@ -91,12 +91,12 @@ export default function SkillsPage() {
             >
               SKILL.md
             </a>{" "}
-            from the repo into your Claude Code skills folder:
+            from the repo into your Agent CLI skills folder:
           </p>
           <DocCodeBlock
-            code={`mkdir -p ~/.claude/skills/ai-kit
+            code={`mkdir -p ~/.agent/skills/ai-kit
 curl -L https://raw.githubusercontent.com/sinups/ai-kit/master/site/skills/ai-kit/SKILL.md \\
-  -o ~/.claude/skills/ai-kit/SKILL.md`}
+  -o ~/.agent/skills/ai-kit/SKILL.md`}
             language="bash"
           />
         </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
+import { setElementWidth } from '../primitives/_testing/element-width';
 import { QuestionConfig, QuestionPrompt } from './QuestionPrompt';
 
 const SINGLE: QuestionConfig = {
@@ -113,5 +114,57 @@ describe('QuestionPrompt', () => {
     render(<QuestionPrompt questions={[SINGLE, MULTI]} questionIndex={1} onSubmit={() => {}} />);
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Send' })).toBeNull();
+  });
+});
+
+const PREVIEW: QuestionConfig = {
+  kind: 'single',
+  title: 'Pick a layout',
+  options: [
+    { id: 'grid', label: 'Grid', preview: { kind: 'markdown', content: 'Grid preview' } },
+    { id: 'list', label: 'List', preview: { kind: 'markdown', content: 'List preview' } },
+  ],
+};
+
+describe('QuestionPrompt previews and notes', () => {
+  let restore: () => void = () => {};
+  afterEach(() => restore());
+
+  it('shows the preview beside the options when wide', async () => {
+    restore = setElementWidth(900);
+    const { container } = render(<QuestionPrompt questions={[PREVIEW]} onSubmit={() => {}} />);
+
+    expect(await screen.findByText('Grid preview')).toBeInTheDocument();
+    expect(container.querySelector('[data-wide-preview]')).not.toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /List/ }));
+    expect(screen.getByText('List preview')).toBeInTheDocument();
+    expect(screen.queryByText('Grid preview')).not.toBeInTheDocument();
+  });
+
+  it('shows the preview under the chosen option when narrow', async () => {
+    restore = setElementWidth(360);
+    const { container } = render(<QuestionPrompt questions={[PREVIEW]} onSubmit={() => {}} />);
+
+    expect(container.querySelector('[data-wide-preview]')).toBeNull();
+    expect(screen.queryByText('Grid preview')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /List/ }));
+    const preview = (await screen.findByText('List preview')).closest('[data-preview]');
+    expect(preview).toHaveAttribute('data-preview', 'list');
+    expect(screen.getByRole('button', { name: /List/ }).nextElementSibling).toBe(preview);
+  });
+
+  it('sends notes with the answer', async () => {
+    const onSubmit = jest.fn();
+    render(<QuestionPrompt questions={[{ ...SINGLE, allowNotes: true }]} onSubmit={onSubmit} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /SQLite/ }));
+    await userEvent.type(screen.getByLabelText('Add a note (optional)'), ' local only ');
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(onSubmit).toHaveBeenCalledWith({
+      kind: 'single',
+      selectedIds: ['sqlite'],
+      text: undefined,
+      notes: 'local only',
+    });
   });
 });

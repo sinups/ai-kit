@@ -84,7 +84,7 @@ export default function InstallationPage() {
           <DocNavButton
             title="Installation"
             description="Install AI UI Kit from npm."
-            installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks"
+            installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react"
             previousHref={previousHref}
             nextHref={nextHref}
           />
@@ -103,10 +103,13 @@ export default function InstallationPage() {
         </div>
         <ul className="list-disc pl-5 space-y-1 text-base text-muted-foreground">
           <li>Node 18+</li>
-          <li>React 18 or 19</li>
+          <li>React 19.2+</li>
           <li>
-            Mantine 7+ (<code className="code-doc">@mantine/core</code> and{" "}
+            Mantine 9.4+ (<code className="code-doc">@mantine/core</code> and{" "}
             <code className="code-doc">@mantine/hooks</code>)
+          </li>
+          <li>
+            <code className="code-doc">@tabler/icons-react</code> 3
           </li>
         </ul>
         <p className="text-base text-muted-foreground">
@@ -145,6 +148,19 @@ export default function InstallationPage() {
           All colors, radii and sizes derive from Mantine CSS variables.
           Override the <code className="code-doc">--ae-*</code> custom
           properties on any ancestor to restyle a chat instance.
+        </p>
+        <p className="text-base text-muted-foreground">
+          To give the stock Mantine components inside kit screens the kit
+          look, and to offer accent, radius and density settings, wrap those
+          screens in <code className="code-doc">AiKitProvider</code> inside
+          your <code className="code-doc">MantineProvider</code>. See{" "}
+          <Link
+            href="/docs/theming"
+            className="text-an-primary-color hover:underline underline-offset-2"
+          >
+            Theming
+          </Link>
+          .
         </p>
       </div>
 

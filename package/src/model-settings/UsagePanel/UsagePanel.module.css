@@ -1,0 +1,23 @@
+.dayLabel {
+  flex: 0 0 rem(52px);
+}
+
+.dayValue {
+  flex: 0 0 rem(56px);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.numeric {
+  text-align: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.modelCell {
+  min-width: 0;
+}
+
+.stat {
+  font-variant-numeric: tabular-nums;
+}

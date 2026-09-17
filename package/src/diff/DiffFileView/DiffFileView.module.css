@@ -1,0 +1,108 @@
+.root {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  min-width: 0;
+}
+
+.path {
+  font-family: var(--ae-font-mono);
+  font-size: var(--ae-font-size-xs);
+}
+
+.body {
+  min-width: 0;
+}
+
+.table {
+  font-family: var(--ae-font-mono);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--mantine-color-text);
+}
+
+.numberCol {
+  width: calc(var(--ae-diff-digits, 2) * 1ch + rem(16px));
+}
+
+.markerCol {
+  width: rem(16px);
+}
+
+.number {
+  padding: 0 rem(8px);
+  text-align: right;
+  vertical-align: top;
+  color: var(--mantine-color-dimmed);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.marker {
+  vertical-align: top;
+  text-align: center;
+  color: var(--mantine-color-dimmed);
+  user-select: none;
+}
+
+.code {
+  padding: 0 rem(10px) 0 rem(4px);
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.splitLeft {
+  border-right: rem(1px) solid var(--mantine-color-default-border);
+}
+
+.table tr[data-type='add'],
+.table td[data-type='add'] {
+  background-color: var(--ae-diff-added-bg);
+}
+
+.table tr[data-type='remove'],
+.table td[data-type='remove'] {
+  background-color: var(--ae-diff-removed-bg);
+}
+
+.table td[data-type='empty'] {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.table tr[data-type='add'] .number,
+.table tr[data-type='add'] .marker,
+.table td.number[data-type='add'] {
+  color: var(--ae-diff-added-text);
+}
+
+.table tr[data-type='remove'] .number,
+.table tr[data-type='remove'] .marker,
+.table td.number[data-type='remove'] {
+  color: var(--ae-diff-removed-text);
+}
+
+.word {
+  border-radius: var(--mantine-radius-xs);
+  color: inherit;
+  text-decoration: none;
+
+  &[data-type='added'] {
+    background-color: var(--ae-diff-added-highlight);
+  }
+
+  &[data-type='removed'] {
+    background-color: var(--ae-diff-removed-highlight);
+  }
+}
+
+.gap td {
+  padding: rem(2px) rem(4px);
+  background-color: var(--mantine-color-default-hover);
+}
+
+.measured[data-measuring] {
+  visibility: hidden;
+}

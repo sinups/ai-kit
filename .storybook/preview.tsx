@@ -4,6 +4,45 @@ import { createTheme, MantineProvider } from '@mantine/core';
 import type { Preview } from '@storybook/react';
 import React, { useEffect } from 'react';
 import { useGlobals } from '@storybook/preview-api';
+import {
+  AI_KIT_ACCENTS,
+  AI_KIT_DENSITIES,
+  AI_KIT_RADII,
+  type AiKitAccent,
+  type AiKitDensity,
+  type AiKitRadius,
+} from '../package/src/theme/ai-kit-settings';
+import { AiKitProvider } from '../package/src/theme/AiKitProvider';
+
+// Components that exist on main are captured by the visual baselines without the kit theme; `aiKit: 'auto'` keeps them that way.
+const HOST_THEMED_TITLES = [
+  'AgentChat',
+  'ErrorMessage',
+  'ImageLightbox',
+  'InputBar',
+  'Markdown',
+  'MessageList',
+  'QuestionTool',
+  'SpiralLoader',
+  'TextShimmer',
+  'ToolRowBase',
+  'UserMessage',
+];
+
+function usesKitTheme(context: any): boolean {
+  const mode = context.globals.aiKit;
+  if (mode === 'on' || mode === 'off') {
+    return mode === 'on';
+  }
+  if (typeof context.parameters.aiKit === 'boolean') {
+    return context.parameters.aiKit;
+  }
+  const title: string = context.title ?? '';
+  return !title.startsWith('tools/') && !HOST_THEMED_TITLES.includes(title);
+}
+
+const fromToolbar = (value: string | undefined) =>
+  value === undefined || value === 'unset' ? undefined : value;
 
 const mantineTheme = createTheme({
   fontFamily: 'Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -33,6 +72,55 @@ const preview: Preview = {
         ],
       },
     },
+    aiKit: {
+      name: 'Kit theme',
+      description: 'Wraps stories in AiKitProvider',
+      defaultValue: 'auto',
+      toolbar: {
+        icon: 'lightning',
+        items: [
+          { value: 'auto', title: 'Kit theme per story' },
+          { value: 'on', title: 'Kit theme on' },
+          { value: 'off', title: 'Kit theme off' },
+        ],
+      },
+    },
+    accent: {
+      name: 'Accent',
+      description: 'AiKitProvider accent',
+      defaultValue: 'unset',
+      toolbar: {
+        icon: 'paintbrush',
+        items: [
+          { value: 'unset', title: 'Default accent' },
+          ...AI_KIT_ACCENTS.map((accent) => ({ value: accent, title: accent })),
+        ],
+      },
+    },
+    radius: {
+      name: 'Radius',
+      description: 'AiKitProvider radius',
+      defaultValue: 'unset',
+      toolbar: {
+        icon: 'circlehollow',
+        items: [
+          { value: 'unset', title: 'Provider radius' },
+          ...AI_KIT_RADII.map((value) => ({ value, title: `Radius ${value}` })),
+        ],
+      },
+    },
+    density: {
+      name: 'Density',
+      description: 'AiKitProvider density',
+      defaultValue: 'unset',
+      toolbar: {
+        icon: 'component',
+        items: [
+          { value: 'unset', title: 'Provider density' },
+          ...AI_KIT_DENSITIES.map((value) => ({ value, title: `Density ${value}` })),
+        ],
+      },
+    },
   },
   decorators: [
     (renderStory: any, context: any) => {
@@ -59,7 +147,18 @@ const preview: Preview = {
 
       return (
         <MantineProvider theme={mantineTheme} forceColorScheme={scheme}>
-          {renderStory()}
+          {usesKitTheme(context) ? (
+            <AiKitProvider
+              accent={fromToolbar(context.globals.accent) as AiKitAccent | undefined}
+              radius={fromToolbar(context.globals.radius) as AiKitRadius | undefined}
+              density={fromToolbar(context.globals.density) as AiKitDensity | undefined}
+            >
+              <style>{'body{background-color:var(--ae-bg)}'}</style>
+              {renderStory()}
+            </AiKitProvider>
+          ) : (
+            renderStory()
+          )}
         </MantineProvider>
       );
     },

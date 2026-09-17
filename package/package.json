@@ -34,16 +34,19 @@
   },
   "repository": "https://github.com/sinups/ai-kit.git",
   "peerDependencies": {
-    "@mantine/core": ">=7.0.0",
-    "@mantine/hooks": ">=7.0.0",
-    "react": "^18.x || ^19.x",
-    "react-dom": "^18.x || ^19.x"
+    "@mantine/core": "^9.4.0",
+    "@mantine/hooks": "^9.4.0",
+    "@tabler/icons-react": "^3.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "bugs": "https://github.com/sinups/ai-kit/issues",
   "dependencies": {
-    "@tabler/icons-react": "^3.40.0",
     "markdown-to-jsx": "^7.7.13"
   },
+  "sideEffects": [
+    "*.css"
+  ],
   "publishConfig": {
     "access": "public",
     "provenance": true,

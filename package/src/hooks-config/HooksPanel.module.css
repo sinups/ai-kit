@@ -1,0 +1,33 @@
+.root {
+  min-width: 0;
+}
+
+.matcher {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.disabled {
+  opacity: 0.6;
+}
+
+.add,
+.badge,
+.eventAdd {
+  flex-shrink: 0;
+}
+
+.eventControl {
+  width: calc(100% + 2 * var(--mantine-spacing-md));
+  margin-inline: calc(-1 * var(--mantine-spacing-md));
+}
+
+.eventContent {
+  padding-inline: 0;
+}

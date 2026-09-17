@@ -1,0 +1,96 @@
+.root {
+  --ae-welcome-action-padding: rem(10px);
+
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+}
+
+.spacerTop {
+  flex: 2 1 0;
+}
+
+.spacerBottom {
+  --ae-welcome-lift-max: rem(160px);
+
+  flex: 1 1 0;
+  max-height: var(--ae-welcome-lift-max);
+
+  @container (max-width: 600px) {
+    --ae-welcome-lift-max: var(--ae-space-2xl);
+  }
+}
+
+.content {
+  width: 100%;
+  max-width: var(--ae-max-width);
+  margin-inline: auto;
+  padding: rem(24px) var(--ae-column-inset, rem(16px)) rem(16px);
+}
+
+.avatar {
+  box-shadow: var(--mantine-shadow-xs);
+  border: rem(1px) solid var(--ae-border);
+  background-color: var(--ae-bg);
+  color: var(--ae-fg);
+}
+
+.title {
+  margin: 0;
+  color: var(--ae-fg);
+}
+
+.actions {
+  margin-top: rem(12px);
+  margin-inline: calc(var(--ae-welcome-action-padding) * -1);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: rem(10px);
+  width: 100%;
+  height: rem(36px);
+  padding-inline: var(--ae-welcome-action-padding);
+  border-radius: rem(8px);
+  color: var(--ae-fg);
+  font-size: var(--ae-font-size-sm);
+  transition: background-color 120ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.05);
+  }
+
+  &:focus-visible {
+    outline: rem(2px) solid var(--mantine-primary-color-filled);
+    outline-offset: rem(-2px);
+  }
+}
+
+.actionIcon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--ae-fg-muted);
+
+  & > svg {
+    width: rem(18px);
+    height: rem(18px);
+  }
+}
+
+.actionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  flex-shrink: 0;
+  background-color: alpha(var(--ae-primary), 0.12);
+  color: light-dark(var(--mantine-primary-color-9), var(--mantine-primary-color-3));
+  font-weight: 500;
+}

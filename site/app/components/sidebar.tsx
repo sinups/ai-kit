@@ -77,9 +77,7 @@ export function Sidebar({
     const installSection = SIDEBAR_SECTIONS.find(
       (section) => section.title === "Getting Started",
     );
-    const componentsSection = SIDEBAR_SECTIONS.find(
-      (section) => section.title === "Components",
-    );
+    const componentSections = SIDEBAR_SECTIONS.filter((section) => section.components);
 
     const homeItems = homeSection?.items ?? [];
     const installItems = installSection?.items ?? [];
@@ -107,10 +105,13 @@ export function Sidebar({
 
         <hr className="my-3 border-t border-doc-border" />
 
-        {componentsSection && (
-          <div className="px-3">
+        {componentSections.map((section) => (
+          <div key={section.title} className="px-3 pb-3">
+            <div className="px-2 pb-1 pt-1 text-xs font-medium text-doc-text-muted/80">
+              {section.title}
+            </div>
             <div className="flex flex-col gap-0.5">
-              {componentsSection.items.map((item) => (
+              {section.items.map((item) => (
                 <NavItem
                   key={item.href}
                   href={item.href}
@@ -121,7 +122,7 @@ export function Sidebar({
               ))}
             </div>
           </div>
-        )}
+        ))}
       </>
     );
   };

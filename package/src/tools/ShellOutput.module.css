@@ -1,0 +1,68 @@
+.root {
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-default-hover);
+
+  [data-variant='compact'] & {
+    background-color: transparent;
+  }
+}
+
+.log {
+  margin: 0;
+  color: var(--mantine-color-text);
+  padding: rem(10px) rem(12px);
+  background-color: transparent;
+  font-family: var(--ae-font-mono);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  [data-variant='compact'] & {
+    padding: 0;
+    color: var(--ae-fg-muted);
+  }
+}
+
+.line {
+  min-height: var(--ae-line-height-xs);
+}
+
+.more {
+  padding: rem(4px) rem(12px) 0;
+  font-family: var(--ae-font-mono);
+
+  [data-variant='compact'] & {
+    padding: 0;
+  }
+}
+
+.meta {
+  min-width: 0;
+  font-family: var(--mantine-font-family);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  font-family: var(--ae-font-mono);
+}
+
+.toggle {
+  align-self: flex-start;
+}
+
+:global(.ae-kit) .panel:not([data-variant='compact'] *) {
+  background-color: var(--ae-bg-tertiary);
+}
+
+:global(.ae-kit) [data-variant='compact'] .log {
+  background-color: transparent;
+}

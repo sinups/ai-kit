@@ -3,15 +3,15 @@
 Source for the `sinups/ai-kit` skill referenced on the
 [Skills](https://sinups.github.io/ai-kit/docs/skills) page.
 
-A **skill** is a bundle of project-aware context an AI assistant (Claude Code,
-Cursor, etc.) loads when it detects a project that uses `@sinups/ai-kit`,
+A **skill** is a bundle of project-aware context an AI assistant (Agent CLI and
+other coding assistants) loads when it detects a project that uses `@sinups/ai-kit`,
 so it picks the right components, prop shapes, and composition patterns instead
-of hallucinating.
+of guessing them.
 
 ## Files
 
 - [`SKILL.md`](./SKILL.md): the skill content. YAML frontmatter at the top is
-  the canonical Claude Code / skills.sh format: `name` + `description` drive
+  the canonical Agent CLI / skills.sh format: `name` + `description` drive
   when the skill is triggered, the markdown body is loaded as context.
 
 ## Distribution
@@ -24,21 +24,23 @@ npx skills add sinups/ai-kit
 ```
 
 The CLI searches standard locations (`skills/`, root `SKILL.md`,
-`.claude/skills/`, etc.) recursively, so having this file committed is enough.
+`.agent/skills/`, etc.) recursively, so having this file committed is enough.
 
-## Manual install for Claude Code
+## Manual install for Agent CLI
 
 ```bash
-mkdir -p ~/.claude/skills/ai-kit
-curl -L https://raw.githubusercontent.com/sinups/ai-kit/master/site/skills/ai-kit/SKILL.md \
-  -o ~/.claude/skills/ai-kit/SKILL.md
+mkdir -p ~/.agent/skills/ai-kit
+curl -L https://raw.githubusercontent.com/sinups/ai-kit/main/site/skills/ai-kit/SKILL.md \
+  -o ~/.agent/skills/ai-kit/SKILL.md
 ```
 
 ## Maintenance
 
-Keep [`SKILL.md`](./SKILL.md) in sync with the component catalog in
-[`app/data/component-docs.ts`](../../app/data/component-docs.ts) and the
-package exports in [`package/src/index.ts`](../../../package/src/index.ts).
+Keep [`SKILL.md`](./SKILL.md) in sync with the package exports in
+[`package/src/index.ts`](../../../package/src/index.ts) and the prop types of the
+components it names. The skill points assistants at `llms-full.txt`, which the site
+generates from the component docs (`site/app/data/component-docs*.ts`), the sidebar and
+the package source, so the catalog there stays current on every site build.
 
 ## Credits
 
