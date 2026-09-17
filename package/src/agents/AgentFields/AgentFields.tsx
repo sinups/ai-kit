@@ -160,6 +160,8 @@ export const AgentIdentityFields = memo(function AgentIdentityFields({
   );
 });
 
+AgentIdentityFields.displayName = 'AgentIdentityFields';
+
 export interface AgentPromptFieldProps extends FieldsProps {
   /** Minimum number of rows of the editor, `8` by default */
   minRows?: number;
@@ -214,6 +216,8 @@ export const AgentPromptField = memo(function AgentPromptField({
     </Input.Wrapper>
   );
 });
+
+AgentPromptField.displayName = 'AgentPromptField';
 
 export function getModelSelectData(
   models: readonly ModelOption[],
@@ -275,6 +279,8 @@ export const AgentColorPicker = memo(function AgentColorPicker({
     </Input.Wrapper>
   );
 });
+
+AgentColorPicker.displayName = 'AgentColorPicker';
 
 export interface AgentModelFieldsProps extends FieldsProps {
   /** Models offered in addition to `inherit` */
@@ -342,3 +348,5 @@ export const AgentModelFields = memo(function AgentModelFields({
     </Stack>
   );
 });
+
+AgentModelFields.displayName = 'AgentModelFields';

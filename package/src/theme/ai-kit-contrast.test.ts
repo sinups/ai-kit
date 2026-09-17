@@ -104,7 +104,7 @@ describe.each(AI_KIT_ACCENTS)('accent %s', (accent) => {
   });
 });
 
-describe('danger fill', () => {
+describe('theme/ai-kit-contrast danger fill', () => {
   const theme = mergeMantineTheme(DEFAULT_THEME, createAiKitTheme());
   const fill = resolvePaletteVar(theme, readRootToken('danger-fill'));
   const resolved = aiKitVariantColorResolver({ color: 'red', variant: 'filled', theme });

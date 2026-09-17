@@ -149,7 +149,7 @@ export function Loading() {
   );
 }
 
-export const ErrorState = {
+export const Error = {
   name: 'Error',
   render: () => (
     <WidthFrame width={480}>
@@ -264,7 +264,7 @@ function FlowList({ args, ...props }: Partial<EntityListProps<Server>> & { args:
             { value: 'http', label: 'Remote' },
           ],
         }}
-        noResults="No servers match"
+        labels={{ noResults: 'No servers match' }}
         onRetry={args.onRetry}
         empty={{
           title: 'No servers',
@@ -368,7 +368,7 @@ export const EmptyFlow = {
   },
 };
 
-export const ErrorRetryFlow = {
+export const RetryFlow = {
   args: flowArgs(),
   render: (args: FlowArgs) => (
     <FlowList args={args} error="Could not load MCP servers: connection timed out." />

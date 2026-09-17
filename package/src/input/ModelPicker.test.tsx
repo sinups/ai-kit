@@ -7,7 +7,7 @@ const models = [
   { id: 'qwen-2.5-coder-32b', name: 'Qwen 2.5 Coder', version: '32B' },
 ];
 
-describe('ModelPicker', () => {
+describe('input/ModelPicker', () => {
   it('puts popup ARIA attributes on the trigger button and selects a model', async () => {
     const onChange = jest.fn();
     render(<ModelPicker models={models} defaultValue="deepseek-v3" onChange={onChange} />);

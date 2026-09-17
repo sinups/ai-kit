@@ -6,7 +6,7 @@ import { DIFF_FIXTURES, DIFF_SOURCES } from '../fixtures';
 import { DiffReview } from './DiffReview';
 import { DiffReviewModal } from './DiffReviewModal';
 
-describe('DiffReview', () => {
+describe('diff/DiffReview', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

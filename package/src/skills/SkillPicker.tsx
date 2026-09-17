@@ -50,7 +50,7 @@ export interface SkillPickerProps {
 
 const PICKER_SEARCH_KEYS: FuzzyKey<Skill>[] = ['name', 'tags'];
 
-const DEFAULT_LABELS: SkillPickerLabels = {
+export const DEFAULT_SKILL_PICKER_LABELS: SkillPickerLabels = {
   nothingFound: 'No skills found',
   disabled: 'Disabled',
 };
@@ -69,7 +69,7 @@ export const SkillPicker = memo(function SkillPicker({
   className,
   style,
 }: SkillPickerProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_SKILL_PICKER_LABELS, ...labels };
   const [search, setSearch] = useState('');
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -186,3 +186,5 @@ export const SkillPicker = memo(function SkillPicker({
     </Combobox>
   );
 });
+
+SkillPicker.displayName = 'SkillPicker';

@@ -64,7 +64,7 @@ export interface RewindDialogLabels extends RewindGroupLabels {
   summarizeError: string;
 }
 
-const DEFAULT_LABELS: RewindDialogLabels = {
+export const DEFAULT_REWIND_DIALOG_LABELS: RewindDialogLabels = {
   ...DEFAULT_REWIND_GROUP_LABELS,
   title: 'Rewind conversation',
   description: 'Pick the message to return to. It and everything after it will be removed.',
@@ -72,9 +72,9 @@ const DEFAULT_LABELS: RewindDialogLabels = {
   empty: 'No messages to rewind to',
   noResults: 'No matching messages',
   modeLabel: 'What to restore',
-  conversation: 'Restore conversation',
+  conversation: 'Messages only',
   conversationDescription: 'Remove the later messages, keep file changes as they are',
-  conversationAndCode: 'Restore conversation and code',
+  conversationAndCode: 'Messages and file changes',
   conversationAndCodeDescription: 'Also revert file changes the agent made after this point',
   confirm: 'Rewind',
   cancel: 'Cancel',
@@ -86,8 +86,8 @@ const DEFAULT_LABELS: RewindDialogLabels = {
     'Replace part of the conversation with a summary to free context without losing the thread.',
   summarizeContext: 'What should the summary keep?',
   summarizeContextPlaceholder: 'Decisions, open questions, file names…',
-  summarizeFrom: 'Summarize from here',
-  summarizeUpTo: 'Summarize up to here',
+  summarizeFrom: 'Summarize this and below',
+  summarizeUpTo: 'Summarize everything above',
   summarizeError: 'Could not summarize the conversation',
 };
 
@@ -123,7 +123,7 @@ export const RewindDialog = memo(function RewindDialog({
   modes = ['conversation', 'conversation-and-code'],
   labels: labelsProp,
 }: RewindDialogProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_REWIND_DIALOG_LABELS, ...labelsProp };
   const points = useMemo(() => buildRewindPoints(messages), [messages]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mode, setMode] = useState<RewindMode>(modes[0] ?? 'conversation');
@@ -216,7 +216,7 @@ export const RewindDialog = memo(function RewindDialog({
               : undefined
           }
           empty={{ title: labels.empty, icon: <IconMessage size={24} /> }}
-          noResults={labels.noResults}
+          labels={{ noResults: labels.noResults }}
           renderItem={(point, state) => (
             <EntityListItem
               selected={state.selected}

@@ -23,7 +23,7 @@ function Demo(props: Partial<ConfirmDialogProps>) {
             <Code>Bash(npm run test:*)</Code> will be removed from the project settings.
           </>
         }
-        confirmLabel="Delete"
+        labels={{ confirm: 'Delete' }}
         danger
         onConfirm={async () => {
           await wait(600);
@@ -45,7 +45,7 @@ export function Neutral() {
       danger={false}
       title="Move rule"
       message="The rule will be stored in your user settings."
-      confirmLabel="Move"
+      labels={{ confirm: 'Move' }}
     />
   );
 }
@@ -70,7 +70,7 @@ function FlowDialog(args: FlowArgs) {
       danger
       title="Delete rule"
       message="Bash(npm run test:*) will be removed from the project settings."
-      confirmLabel="Delete"
+      labels={{ confirm: 'Delete' }}
       onConfirm={args.onConfirm}
       onClose={args.onClose}
     />

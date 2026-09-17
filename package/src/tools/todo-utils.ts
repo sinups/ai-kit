@@ -15,7 +15,7 @@ export interface TodoToolLabels {
   showLess: string;
 }
 
-export const DEFAULT_TODO_LABELS: TodoToolLabels = {
+export const DEFAULT_TODO_TOOL_LABELS: TodoToolLabels = {
   blockedBy: 'Blocked by',
   hiddenInProgress: 'in progress',
   hiddenPending: 'pending',

@@ -255,7 +255,7 @@ export function CodeWrapNarrow() {
     <WidthFrame width={NARROW_WIDTH}>
       <Stack gap="lg">
         <Markdown content={LONG_CODE} />
-        <Markdown content={LONG_CODE} codeWrap />
+        <Markdown content={LONG_CODE} wrapLines />
       </Stack>
     </WidthFrame>
   );

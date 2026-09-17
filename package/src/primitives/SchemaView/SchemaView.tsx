@@ -40,18 +40,18 @@ export type SchemaViewLabels = {
   expand: string;
   /** Accessible label prefix of the collapse button, `Collapse` by default */
   collapse: string;
+  /** Shown when the schema has no properties, `No parameters` by default */
+  empty: string;
 };
 
 export interface SchemaViewProps {
   /** JSON Schema of an object, for example a tool `inputSchema` */
   schema: JsonSchema;
-  /** Shown when the schema has no properties, `No parameters` by default */
-  emptyLabel?: React.ReactNode;
   /** Nesting levels expanded initially, `1` by default (top-level objects open, deeper ones closed) */
   defaultExpandedDepth?: number;
   /** Component width in px from which parameters are shown as a table, `560` by default */
   breakpoint?: number;
-  /** Column headers and accessible labels */
+  /** Overrides of the default English labels */
   labels?: Partial<SchemaViewLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -59,7 +59,7 @@ export interface SchemaViewProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SchemaViewLabels = {
+export const DEFAULT_SCHEMA_VIEW_LABELS: SchemaViewLabels = {
   name: 'Name',
   type: 'Type',
   description: 'Description',
@@ -68,6 +68,7 @@ const DEFAULT_LABELS: SchemaViewLabels = {
   oneOf: 'One of',
   expand: 'Expand',
   collapse: 'Collapse',
+  empty: 'No parameters',
 };
 
 function formatRange(row: SchemaRow): string | null {
@@ -177,14 +178,13 @@ function DescriptionCell({ row, labels }: RowPartProps) {
 /** JSON Schema as a parameter reference: a table when wide, stacked rows when narrow, nested objects collapsible */
 export const SchemaView = memo(function SchemaView({
   schema,
-  emptyLabel = 'No parameters',
   defaultExpandedDepth = 1,
   breakpoint = 560,
   labels: labelsOverride,
   className,
   style,
 }: SchemaViewProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_SCHEMA_VIEW_LABELS, ...labelsOverride };
   const { ref, width } = useElementSize();
   const isWide = width >= breakpoint;
   const rows = useMemo(() => flattenSchema(schema), [schema]);
@@ -223,7 +223,7 @@ export const SchemaView = memo(function SchemaView({
 
   let content: React.ReactNode;
   if (rows.length === 0) {
-    content = <EmptyState size="sm" icon={<IconBraces />} title={emptyLabel} />;
+    content = <EmptyState size="sm" icon={<IconBraces />} title={labels.empty} />;
   } else if (isWide) {
     content = (
       <Table verticalSpacing="xs" className={classes.table}>
@@ -297,3 +297,5 @@ export const SchemaView = memo(function SchemaView({
     </Box>
   );
 });
+
+SchemaView.displayName = 'SchemaView';

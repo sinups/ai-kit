@@ -20,7 +20,7 @@ function Demo(props: Partial<SkillCatalogProps>) {
       onToggle={async (skill, enabled) => {
         await wait(700);
         if (skill.source === 'remote') {
-          throw new Error(`${skill.name} is managed by your organization`);
+          throw new globalThis.Error(`${skill.name} is managed by your organization`);
         }
         setSkills((items) =>
           items.map((item) => (item.id === skill.id ? { ...item, enabled } : item))
@@ -83,8 +83,7 @@ export function Loading() {
   );
 }
 
-export const ErrorState = {
-  name: 'Error',
+export const Error = {
   render: () => (
     <WidthFrame width={520}>
       <Demo error="Could not load skills: the plugin registry is unreachable." onRetry={() => {}} />
@@ -205,7 +204,7 @@ ToggleFlow.play = async ({
   await expect(releaseNotes).not.toBeDisabled();
 
   args.onToggle.mockRejectedValueOnce(
-    new Error('incident-runbook is managed by your organization')
+    new globalThis.Error('incident-runbook is managed by your organization')
   );
   const runbook = canvas.getByRole('switch', { name: 'Enabled: incident-runbook' });
   await userEvent.click(runbook);

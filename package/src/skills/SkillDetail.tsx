@@ -48,7 +48,7 @@ export interface SkillDetailProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SkillDetailLabels = {
+export const DEFAULT_SKILL_DETAIL_LABELS: SkillDetailLabels = {
   edit: 'Edit',
   enable: 'Enable',
   disable: 'Disable',
@@ -88,7 +88,7 @@ export const SkillDetail = memo(function SkillDetail({
   className,
   style,
 }: SkillDetailProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_SKILL_DETAIL_LABELS, ...labels };
   const toggles = usePendingActions(text.toggleError);
   const toggleError = toggles.getError(skill.id);
 
@@ -205,3 +205,5 @@ export const SkillDetail = memo(function SkillDetail({
     </Stack>
   );
 });
+
+SkillDetail.displayName = 'SkillDetail';

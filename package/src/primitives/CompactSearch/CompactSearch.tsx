@@ -2,6 +2,18 @@ import React, { memo } from 'react';
 import { ActionIcon, TextInput } from '@mantine/core';
 import { IconSearch, IconX } from '@tabler/icons-react';
 
+export interface CompactSearchLabels {
+  /** Placeholder and accessible name of the field and the search button, `Search` by default */
+  search: string;
+  /** Accessible name of the close button, `Close search` by default */
+  close: string;
+}
+
+export const DEFAULT_COMPACT_SEARCH_LABELS: CompactSearchLabels = {
+  search: 'Search',
+  close: 'Close search',
+};
+
 export interface CompactSearchProps {
   /** Whether the field is shown instead of the search button */
   opened: boolean;
@@ -13,10 +25,8 @@ export interface CompactSearchProps {
   value: string;
   /** Called when the query changes */
   onChange: (value: string) => void;
-  /** Placeholder and accessible name of the field and the search button */
-  label: string;
-  /** Accessible name of the close button */
-  closeLabel: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<CompactSearchLabels>;
 }
 
 /** Borderless toolbar search behind an icon button, closed with Escape or the close button */
@@ -26,12 +36,18 @@ export const CompactSearch = memo(function CompactSearch({
   onClose,
   value,
   onChange,
-  label,
-  closeLabel,
+  labels: labelsProp,
 }: CompactSearchProps) {
+  const labels = { ...DEFAULT_COMPACT_SEARCH_LABELS, ...labelsProp };
   if (!opened) {
     return (
-      <ActionIcon variant="subtle" color="gray" size="sm" aria-label={label} onClick={onOpen}>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        aria-label={labels.search}
+        onClick={onOpen}
+      >
         <IconSearch size={14} />
       </ActionIcon>
     );
@@ -52,11 +68,17 @@ export const CompactSearch = memo(function CompactSearch({
             onClose();
           }
         }}
-        placeholder={label}
-        aria-label={label}
+        placeholder={labels.search}
+        aria-label={labels.search}
         leftSection={<IconSearch size={14} />}
       />
-      <ActionIcon variant="subtle" color="gray" size="sm" aria-label={closeLabel} onClick={onClose}>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        aria-label={labels.close}
+        onClick={onClose}
+      >
         <IconX size={14} />
       </ActionIcon>
     </>

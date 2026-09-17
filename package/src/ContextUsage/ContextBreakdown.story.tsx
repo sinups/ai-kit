@@ -80,14 +80,14 @@ export function InContextUsagePopover() {
           total={200_000}
           breakdown={CONTEXT_GROUPS}
           suggestions={CONTEXT_SUGGESTIONS}
-          showLabel
+          withLabel
         />
         <ContextUsage
           used={176_000}
           total={200_000}
           breakdown={CONTEXT_GROUPS}
           suggestions={CONTEXT_SUGGESTIONS}
-          showLabel
+          withLabel
           onCompact={() => {}}
         />
       </Group>
@@ -152,7 +152,7 @@ export const InUsagePopoverFlow = {
         total={200_000}
         breakdown={CONTEXT_GROUPS}
         suggestions={CONTEXT_SUGGESTIONS}
-        showLabel
+        withLabel
       />
     </Group>
   ),

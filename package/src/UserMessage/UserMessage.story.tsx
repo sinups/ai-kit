@@ -59,7 +59,7 @@ export function LongTextFlow() {
     <div style={{ padding: 40, maxWidth: 420 }}>
       <UserMessage
         message={{ id: 'long', role: 'user', parts: [{ type: 'text', text: LONG_TEXT }] }}
-        longTextThreshold
+        longMessageThreshold
       />
     </div>
   );

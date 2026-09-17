@@ -14,7 +14,7 @@ import { StatusBadge } from '../../primitives/StatusBadge/StatusBadge';
 import { cx } from '../../utils/cx';
 import { TaskElapsed, TaskKindIcon } from '../TaskMeta';
 import {
-  DEFAULT_TASK_LABELS,
+  DEFAULT_BACKGROUND_TASK_LABELS,
   findTask,
   flattenTaskTree,
   getTaskStatusLabel,
@@ -60,7 +60,7 @@ export const AgentTree = memo(function AgentTree({
   className,
   style,
 }: AgentTreeProps) {
-  const labels = { ...DEFAULT_TASK_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp };
   const data = useMemo(() => toTreeData(tasks), [tasks]);
   const [collapsed, setCollapsed] = useState(() => new Set(defaultCollapsedIds));
 

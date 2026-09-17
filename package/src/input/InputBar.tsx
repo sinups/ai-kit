@@ -57,16 +57,19 @@ export interface InputBarLabels {
   pastedTextLines: string;
   /** Accessible label of the remove button of a collapsed paste */
   removePastedText: string;
+  /** Heading of the queued messages list */
+  queued: string;
   /** Accessible label of the remove button of a queued message */
   removeQueuedMessage: string;
   /** Labels of the prompt history search dialog */
   historySearch: Partial<PromptHistorySearchLabels>;
 }
 
-const DEFAULT_LABELS: InputBarLabels = {
+export const DEFAULT_INPUT_BAR_LABELS: InputBarLabels = {
   pastedText: DEFAULT_PASTE_LABEL,
   pastedTextLines: '{lines} lines',
   removePastedText: 'Remove pasted text',
+  queued: 'Queued',
   removeQueuedMessage: 'Remove queued message',
   historySearch: {},
 };
@@ -90,7 +93,7 @@ export interface InputBarProps {
   onPaste?: (e: React.ClipboardEvent) => void;
   /** Highlights the field border while files are dragged over it */
   isDragOver?: boolean;
-  /** When `true` (default) clicking a staged image attachment opens a fullscreen lightbox preview */
+  /** Opens a staged image attachment in a fullscreen lightbox on click, `true` by default */
   enableImagePreview?: boolean;
 
   /** Controlled input value */
@@ -158,8 +161,6 @@ export interface InputBarProps {
   onRemoveQueued?: (id: string) => void;
   /** When set, submitting while the response is streaming queues the message instead of ignoring it */
   onQueue?: (message: { role: 'user'; content: string }) => void;
-  /** Heading of the queued messages list, `Queued` by default */
-  queuedLabel?: string;
 
   /** Content rendered on the left of the toolbar, next to the attachment button */
   leftActions?: React.ReactNode;
@@ -174,7 +175,7 @@ export interface InputBarProps {
   historySearchHotkey?: string | null;
   /** Called by the history search hotkey instead of opening the built-in dialog */
   onHistorySearch?: () => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<InputBarLabels>;
 }
 
@@ -207,7 +208,6 @@ export const InputBar = memo(function InputBar({
   queuedMessages = [],
   onRemoveQueued,
   onQueue,
-  queuedLabel = 'Queued',
   leftActions,
   rightActions,
   pasteCollapseThreshold,
@@ -216,7 +216,7 @@ export const InputBar = memo(function InputBar({
   onHistorySearch,
   labels: labelsProp,
 }: InputBarProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_INPUT_BAR_LABELS, ...labelsProp };
   const [internalInput, setInternalInput] = useState('');
   const [isInfoBarOpen, setIsInfoBarOpen] = useState(true);
   const [isInfoBarCollapsed, setIsInfoBarCollapsed] = useState(false);
@@ -685,9 +685,9 @@ export const InputBar = memo(function InputBar({
 
   const queueNode =
     queuedMessages.length > 0 ? (
-      <Stack gap={2} px={12} pt={6} pb={8} aria-label={queuedLabel}>
+      <Stack gap={2} px={12} pt={6} pb={8} aria-label={labels.queued}>
         <Text size="xs" fw={500} className={classes.queueLabel}>
-          {queuedLabel}
+          {labels.queued}
         </Text>
         {queuedMessages.map((message) => (
           <Group key={message.id} gap={6} wrap="nowrap" miw={0}>
@@ -817,9 +817,11 @@ export const InputBar = memo(function InputBar({
                           <PastedTextAttachment
                             key={paste.id}
                             paste={paste}
-                            label={labels.pastedText}
-                            linesLabel={labels.pastedTextLines}
-                            removeLabel={labels.removePastedText}
+                            labels={{
+                              name: labels.pastedText,
+                              lines: labels.pastedTextLines,
+                              remove: labels.removePastedText,
+                            }}
                             onRemove={disabled ? undefined : () => removePaste(paste.id)}
                           />
                         ))}

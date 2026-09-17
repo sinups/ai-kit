@@ -21,7 +21,7 @@ function Probe() {
   );
 }
 
-describe('AiKitProvider', () => {
+describe('theme/AiKitProvider', () => {
   afterEach(() => window.localStorage.clear());
 
   it('themes stock components inside its subtree only', () => {
@@ -125,7 +125,7 @@ describe('AiKitProvider', () => {
   });
 });
 
-describe('mergeAiKitTheme', () => {
+describe('theme/mergeAiKitTheme', () => {
   it('themes components and portals under an ae-kit root without AiKitProvider', () => {
     renderWithProvider(
       <MantineProvider theme={mergeAiKitTheme()}>

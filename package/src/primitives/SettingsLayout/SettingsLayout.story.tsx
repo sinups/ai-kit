@@ -153,7 +153,7 @@ function Demo(props: Partial<SettingsLayoutProps>) {
       title="Settings"
       sections={SECTIONS}
       activeId={activeId}
-      onActiveChange={setActiveId}
+      onActiveIdChange={setActiveId}
       {...props}
     >
       <SectionContent id={activeId} />
@@ -164,7 +164,7 @@ function Demo(props: Partial<SettingsLayoutProps>) {
 export function Usage() {
   return (
     <Box h="100vh">
-      <Demo searchable />
+      <Demo withSearch />
     </Box>
   );
 }
@@ -173,7 +173,7 @@ export function Narrow() {
   return (
     <WidthFrame width={NARROW_WIDTH}>
       <Box h={560}>
-        <Demo searchable />
+        <Demo withSearch />
       </Box>
     </WidthFrame>
   );
@@ -183,7 +183,7 @@ export function Wide() {
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <Box h={560}>
-        <Demo searchable />
+        <Demo withSearch />
       </Box>
     </WidthFrame>
   );
@@ -237,7 +237,7 @@ export function FillContent() {
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <Box h={560}>
-        <Demo searchable sections={FILL_SECTIONS} />
+        <Demo withSearch sections={FILL_SECTIONS} />
       </Box>
     </WidthFrame>
   );
@@ -254,8 +254,8 @@ export function InModal() {
         onClose={() => setOpened(false)}
         sections={FILL_SECTIONS}
         activeId={activeId}
-        onActiveChange={setActiveId}
-        searchable
+        onActiveIdChange={setActiveId}
+        withSearch
       >
         <SectionContent id={activeId} />
       </SettingsModal>

@@ -36,7 +36,7 @@ export interface SpendThresholdNoticeProps {
   actions?: SpendThresholdNoticeAction[];
   /** Renders a close button when set */
   onDismiss?: () => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<SpendThresholdNoticeLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -44,7 +44,7 @@ export interface SpendThresholdNoticeProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SpendThresholdNoticeLabels = {
+export const DEFAULT_SPEND_THRESHOLD_NOTICE_LABELS: SpendThresholdNoticeLabels = {
   title: 'Session cost is now {amount}.',
   limit: 'Your limit is {limit}.',
   close: 'Dismiss',
@@ -63,7 +63,7 @@ export const SpendThresholdNotice = memo(function SpendThresholdNotice({
   className,
   style,
 }: SpendThresholdNoticeProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_SPEND_THRESHOLD_NOTICE_LABELS, ...labelsProp };
   const limitText =
     limit === undefined
       ? null
@@ -87,7 +87,7 @@ export const SpendThresholdNotice = memo(function SpendThresholdNotice({
       }
       actions={actions}
       onClose={onDismiss}
-      closeLabel={labels.close}
+      labels={{ close: labels.close }}
       className={className}
       style={style}
     />

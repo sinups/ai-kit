@@ -9,10 +9,10 @@ const NOW = new Date('2026-09-17T12:00:00Z').getTime();
 const fixtures = createTaskFixtures(NOW);
 const byId = (id: string) => fixtures.find((task) => task.id === id)!;
 
-describe('TaskDetail', () => {
+describe('tasks/TaskDetail', () => {
   it('renders the header with stats and the failure', async () => {
-    const onRetry = jest.fn();
-    render(<TaskDetail task={byId('migration')} onRetry={onRetry} onStop={jest.fn()} />);
+    const onRetryTask = jest.fn();
+    render(<TaskDetail task={byId('migration')} onRetryTask={onRetryTask} onStop={jest.fn()} />);
 
     expect(screen.getByText('Backfill invoice totals')).toBeInTheDocument();
     expect(screen.getByText('Failed')).toBeInTheDocument();
@@ -22,7 +22,7 @@ describe('TaskDetail', () => {
     expect(screen.queryByRole('button', { name: 'Stop' })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ id: 'migration' }));
+    expect(onRetryTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'migration' }));
   });
 
   it('shows tokens and tool uses and a pending stop', async () => {

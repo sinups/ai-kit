@@ -28,7 +28,7 @@ const STEPS: WizardStep<Values>[] = [
   { id: 'confirm', label: 'Confirm', render: ({ values }) => <div>Confirm {values.name}</div> },
 ];
 
-describe('Wizard', () => {
+describe('primitives/Wizard', () => {
   it('blocks moving forward until the step is valid', async () => {
     render(<Wizard steps={STEPS} initialValues={INITIAL} onComplete={jest.fn()} />);
 

@@ -18,7 +18,7 @@ function Controlled({ onChange }: { onChange: (value: string[]) => void }) {
   );
 }
 
-describe('SkillPicker', () => {
+describe('skills/SkillPicker', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

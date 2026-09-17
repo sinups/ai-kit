@@ -221,7 +221,7 @@ export const SaveErrorFlow = {
     prepareFlow();
     const canvas = within(canvasElement);
 
-    await userEvent.click(await fileOption(canvasElement, '.agent/agent-memory/code-reviewer'));
+    await userEvent.click(await fileOption(canvasElement, '.agent/memory/agents/code-reviewer'));
     await userEvent.click(await canvas.findByRole('button', { name: 'Edit' }));
     const editor = await canvas.findByRole('textbox', { name: 'Content' });
     await userEvent.clear(editor);

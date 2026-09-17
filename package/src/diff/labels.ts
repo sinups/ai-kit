@@ -1,9 +1,8 @@
+import { formatCount } from '../utils/format-count';
 import type { DiffLabels } from './types';
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-
 export const DEFAULT_DIFF_LABELS: DiffLabels = {
-  filesChanged: (files) => `${plural(files, 'file', 'files')} changed`,
+  filesChanged: (files) => `${formatCount(files, 'file', 'files')} changed`,
   searchFiles: 'Filter files',
   statusFilter: 'Change status',
   allStatuses: 'All changes',
@@ -19,11 +18,11 @@ export const DEFAULT_DIFF_LABELS: DiffLabels = {
   split: 'Split',
   copyPath: 'Copy path',
   pathCopied: 'Path copied',
-  showUnchanged: (lines) => `Show ${plural(lines, 'unchanged line', 'unchanged lines')}`,
+  showUnchanged: (lines) => `Show ${formatCount(lines, 'unchanged line', 'unchanged lines')}`,
   binaryFile: 'Binary file',
   binaryFileDescription: 'The contents of binary files are not shown',
   deletedFile: 'File deleted',
-  deletedFileDescription: (lines) => `${plural(lines, 'line', 'lines')} removed`,
+  deletedFileDescription: (lines) => `${formatCount(lines, 'line', 'lines')} removed`,
   showContent: 'Show content',
   emptyFile: 'Empty file',
   renamedWithoutChanges: 'File renamed without content changes',
@@ -43,7 +42,7 @@ export const DEFAULT_DIFF_LABELS: DiffLabels = {
   retry: 'Retry',
   statusUntracked: 'Untracked',
   untrackedFile: 'New untracked file',
-  untrackedFileDescription: (lines) => `${plural(lines, 'line', 'lines')}, not tracked yet`,
+  untrackedFileDescription: (lines) => `${formatCount(lines, 'line', 'lines')}, not tracked yet`,
   fileTooLarge: 'File too large to display',
   fileTooLargeDescription: (size, limit) => `${size} is over the ${limit} limit`,
   showAnyway: 'Show anyway',

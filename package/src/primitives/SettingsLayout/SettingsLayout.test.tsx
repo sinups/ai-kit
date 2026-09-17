@@ -15,7 +15,7 @@ const SECTIONS: SettingsNavItem[] = [
   { id: 'billing', label: 'Billing', disabled: true },
 ];
 
-describe('SettingsLayout', () => {
+describe('primitives/SettingsLayout fill mode', () => {
   describe('wide', () => {
     let restore: () => void;
     beforeEach(() => {
@@ -24,9 +24,9 @@ describe('SettingsLayout', () => {
     afterEach(() => restore());
 
     it('renders grouped navigation and reports the picked section', async () => {
-      const onActiveChange = jest.fn();
+      const onActiveIdChange = jest.fn();
       render(
-        <SettingsLayout sections={SECTIONS} activeId="general" onActiveChange={onActiveChange}>
+        <SettingsLayout sections={SECTIONS} activeId="general" onActiveIdChange={onActiveIdChange}>
           <div>General content</div>
         </SettingsLayout>
       );
@@ -41,16 +41,21 @@ describe('SettingsLayout', () => {
       expect(screen.getByText('General content')).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('button', { name: /MCP servers/ }));
-      expect(onActiveChange).toHaveBeenCalledWith('mcp');
+      expect(onActiveIdChange).toHaveBeenCalledWith('mcp');
       const billing = screen.getByRole('button', { name: 'Billing' });
       expect(billing).toHaveAttribute('aria-disabled', 'true');
       await userEvent.click(billing);
-      expect(onActiveChange).not.toHaveBeenCalledWith('billing');
+      expect(onActiveIdChange).not.toHaveBeenCalledWith('billing');
     });
 
     it('filters the navigation by label and description', async () => {
       render(
-        <SettingsLayout sections={SECTIONS} activeId="general" onActiveChange={() => {}} searchable>
+        <SettingsLayout
+          sections={SECTIONS}
+          activeId="general"
+          onActiveIdChange={() => {}}
+          withSearch
+        >
           content
         </SettingsLayout>
       );
@@ -76,7 +81,7 @@ describe('SettingsLayout', () => {
     }
     try {
       render(
-        <SettingsLayout sections={SECTIONS} activeId="general" onActiveChange={() => {}}>
+        <SettingsLayout sections={SECTIONS} activeId="general" onActiveIdChange={() => {}}>
           <Section />
         </SettingsLayout>
       );
@@ -90,9 +95,9 @@ describe('SettingsLayout', () => {
 
   it('shows a section picker above the content when narrow', async () => {
     Element.prototype.scrollIntoView = jest.fn();
-    const onActiveChange = jest.fn();
+    const onActiveIdChange = jest.fn();
     render(
-      <SettingsLayout sections={SECTIONS} activeId="general" onActiveChange={onActiveChange}>
+      <SettingsLayout sections={SECTIONS} activeId="general" onActiveIdChange={onActiveIdChange}>
         <div>General content</div>
       </SettingsLayout>
     );
@@ -104,11 +109,11 @@ describe('SettingsLayout', () => {
 
     await userEvent.click(picker);
     await userEvent.click(await screen.findByRole('option', { name: /Models/ }));
-    expect(onActiveChange).toHaveBeenCalledWith('models');
+    expect(onActiveIdChange).toHaveBeenCalledWith('models');
   });
 });
 
-describe('SettingsSection', () => {
+describe('primitives/SettingsSection', () => {
   it('renders the heading, actions and rows with dividers between them', () => {
     const { container } = render(
       <SettingsSection
@@ -135,7 +140,7 @@ describe('SettingsSection', () => {
   });
 });
 
-describe('SettingRow', () => {
+describe('primitives/SettingRow', () => {
   it('links the label to the control and shows the error', () => {
     render(
       <SettingRow
@@ -160,7 +165,7 @@ describe('SettingRow', () => {
   });
 });
 
-describe('SettingsLayout fill mode', () => {
+describe('primitives/SettingsLayout', () => {
   let restore: () => void;
   beforeEach(() => {
     restore = setElementWidth(1000);
@@ -169,7 +174,7 @@ describe('SettingsLayout fill mode', () => {
 
   it('renders the content without a scroll area when fillContent is set', async () => {
     const { container } = render(
-      <SettingsLayout sections={SECTIONS} activeId="mcp" onActiveChange={() => {}} fillContent>
+      <SettingsLayout sections={SECTIONS} activeId="mcp" onActiveIdChange={() => {}} fillContent>
         <div>Servers</div>
       </SettingsLayout>
     );
@@ -186,7 +191,7 @@ describe('SettingsLayout fill mode', () => {
       { id: 'mcp', label: 'MCP servers', fill: true },
     ];
     const { rerender } = render(
-      <SettingsLayout sections={sections} activeId="mcp" onActiveChange={() => {}}>
+      <SettingsLayout sections={sections} activeId="mcp" onActiveIdChange={() => {}}>
         <div>Servers</div>
       </SettingsLayout>
     );
@@ -194,7 +199,12 @@ describe('SettingsLayout fill mode', () => {
     expect(screen.getByText('Servers').parentElement).toHaveAttribute('data-fill');
 
     rerender(
-      <SettingsLayout sections={sections} activeId="general" onActiveChange={() => {}} fillContent>
+      <SettingsLayout
+        sections={sections}
+        activeId="general"
+        onActiveIdChange={() => {}}
+        fillContent
+      >
         <div>General content</div>
       </SettingsLayout>
     );
@@ -202,7 +212,7 @@ describe('SettingsLayout fill mode', () => {
   });
 });
 
-describe('SettingsModal', () => {
+describe('primitives/SettingsModal', () => {
   it('renders the layout inside a titled modal and closes', async () => {
     const onClose = jest.fn();
     render(
@@ -212,7 +222,7 @@ describe('SettingsModal', () => {
         title="Workspace settings"
         sections={SECTIONS}
         activeId="general"
-        onActiveChange={() => {}}
+        onActiveIdChange={() => {}}
       >
         <div>General content</div>
       </SettingsModal>

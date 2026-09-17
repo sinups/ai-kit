@@ -8,7 +8,7 @@ const SECTIONS: SettingsNavItem[] = [
   { id: 'about', label: 'About' },
 ];
 
-describe('filterSettingsNav', () => {
+describe('primitives/filterSettingsNav', () => {
   it('returns every section for an empty or blank query', () => {
     expect(filterSettingsNav(SECTIONS, '')).toBe(SECTIONS);
     expect(filterSettingsNav(SECTIONS, '   ')).toBe(SECTIONS);
@@ -25,7 +25,7 @@ describe('filterSettingsNav', () => {
   });
 });
 
-describe('groupSettingsNav', () => {
+describe('primitives/groupSettingsNav', () => {
   it('puts ungrouped items first and keeps group order of first appearance', () => {
     expect(
       groupSettingsNav(SECTIONS).map(({ group, items }) => [group, items.map((i) => i.id)])

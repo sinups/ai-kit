@@ -7,7 +7,7 @@ const styles = [
   { id: 'explanatory', name: 'Explanatory', description: 'Explains choices', example: 'Because…' },
 ];
 
-describe('OutputStylePicker', () => {
+describe('model-settings/OutputStylePicker', () => {
   it('selects a style card', async () => {
     const onChange = jest.fn();
     render(

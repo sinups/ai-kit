@@ -25,7 +25,7 @@ async function preview() {
   return (await screen.findByLabelText('Preview')).textContent ?? '';
 }
 
-describe('ExportDialog', () => {
+describe('sessions/ExportDialog', () => {
   it('previews markdown with default options and switches formats', async () => {
     render(<ExportDialog opened onClose={() => {}} messages={MESSAGES} title="Greeting" />);
 

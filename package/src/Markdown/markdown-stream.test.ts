@@ -1,6 +1,6 @@
 import { closeUnfinishedMarkdown, hasOpenFence, splitMarkdownStream } from './markdown-stream';
 
-describe('splitMarkdownStream', () => {
+describe('Markdown/splitMarkdownStream', () => {
   it('keeps everything in the tail until a blank line is followed by a new block', () => {
     expect(splitMarkdownStream('# Title')).toEqual({
       stable: [],
@@ -74,7 +74,7 @@ describe('splitMarkdownStream', () => {
   });
 });
 
-describe('hasOpenFence', () => {
+describe('Markdown/hasOpenFence', () => {
   it('reports a fence that is still waiting for its closing marker', () => {
     expect(hasOpenFence('```ts\nconst a')).toBe(true);
     expect(hasOpenFence('```ts\nconst a\n```')).toBe(false);
@@ -82,7 +82,7 @@ describe('hasOpenFence', () => {
   });
 });
 
-describe('closeUnfinishedMarkdown', () => {
+describe('Markdown/closeUnfinishedMarkdown', () => {
   it('closes an open fence with the matching marker', () => {
     expect(closeUnfinishedMarkdown('```ts\nconst a')).toBe('```ts\nconst a\n```');
     expect(closeUnfinishedMarkdown('~~~~\ncode\n')).toBe('~~~~\ncode\n~~~~');

@@ -18,7 +18,7 @@ import {
 } from '@mantine/core';
 import { IconAlertCircle, IconAlertTriangle, IconServer } from '@tabler/icons-react';
 import { InputBar } from '../input/InputBar';
-import { bashPart } from '../tools/_stories-shared';
+import { bashPart } from '../tools/_story-helpers';
 import { BashTool } from '../tools/BashTool';
 import {
   AI_KIT_ACCENTS,

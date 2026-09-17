@@ -13,7 +13,7 @@ const SCHEMA: ElicitationRequestedSchema = {
   required: ['name'],
 };
 
-describe('ElicitationForm', () => {
+describe('elicitation/ElicitationForm', () => {
   it('shows validation errors and does not accept an invalid form', async () => {
     const onAccept = jest.fn();
     render(<ElicitationForm message="Who are you?" requestedSchema={SCHEMA} onAccept={onAccept} />);

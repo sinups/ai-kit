@@ -24,7 +24,7 @@ const MESSAGES: ChatMessage[] = [
   { id: 'm3', role: 'user', parts: [{ type: 'text', text: 'Second question' }] },
 ];
 
-describe('SessionPreview', () => {
+describe('sessions/SessionPreview', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

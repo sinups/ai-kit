@@ -150,3 +150,5 @@ export const ToolRenderer = memo(function ToolRenderer({
     />
   );
 });
+
+ToolRenderer.displayName = 'ToolRenderer';

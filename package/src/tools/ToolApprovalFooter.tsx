@@ -44,7 +44,7 @@ export type ToolApprovalRuleSuggestion = {
   value: string;
   /** Called with the edited rule on every change */
   onChange?: (value: string) => void;
-  /** Label of the `always` menu item added when `approveOptions` has none, `Always allow` by default */
+  /** Label of the `always` menu item added when `approveOptions` has none, `labels.alwaysAllow` by default */
   label?: string;
 };
 
@@ -55,21 +55,86 @@ export type ToolApprovalRequester = {
   color?: MantineColor;
 };
 
-export type ToolApproval = {
-  /** Approve button label, `Next` by default */
-  approveLabel?: string;
-  /** Reject button label, `Skip` by default */
-  rejectLabel?: string;
+export interface ToolApprovalLabels {
+  /** Approve button, `Next` by default */
+  approve: string;
+  /** Reject button, `Skip` by default */
+  reject: string;
   /** Approve button text after approval, `Approved` by default */
-  approvedLabel?: string;
+  approved: string;
   /** Reject button text after rejection, `Skipped` by default */
-  skippedLabel?: string;
+  skipped: string;
   /** Status while an approved call starts, `Starting` by default */
-  startingLabel?: string;
+  starting: string;
   /** Status while an approved call waits for its turn, `Waiting` by default */
-  waitingLabel?: string;
+  waiting: string;
   /** Status after rejection, `Canceled` by default */
-  canceledLabel?: string;
+  canceled: string;
+  /** Feedback menu item, `Reject with feedback` by default */
+  feedback: string;
+  /** Feedback input placeholder, `Tell the agent what to do instead` by default */
+  feedbackPlaceholder: string;
+  /** Button that closes the feedback input, `Back` by default */
+  feedbackBack: string;
+  /** Button that sends the feedback, `Send` by default */
+  feedbackSend: string;
+  /** Accessible label of the menu toggle, `More approval options` by default */
+  moreOptions: string;
+  /** "Why?" button, `Why?` by default */
+  explain: string;
+  /** Risk badges, `Low risk`, `Medium risk` and `High risk` by default */
+  risk: Partial<Record<ToolApprovalRisk, string>>;
+  /** Button that expands the reasoning, `Show reasoning` by default */
+  showReasoning: string;
+  /** Button that collapses the reasoning, `Hide reasoning` by default */
+  hideReasoning: string;
+  /** Shown when `onExplain` rejects without a message, `Could not load the explanation` by default */
+  explainError: string;
+  /** Retry button of the explanation error, `Retry` by default */
+  retry: string;
+  /** Menu item added for `ruleSuggestion` when `approveOptions` has no `always` scope, `Always allow` by default */
+  alwaysAllow: string;
+  /** Accessible label of the rule input, `Permission rule` by default */
+  ruleInput: string;
+  /** Button that approves with the edited rule, `Confirm` by default */
+  ruleConfirm: string;
+  /** Button that closes the rule editor, `Back` by default */
+  ruleBack: string;
+  /** Prefix of `matchedRule`, `Asked because:` by default */
+  matchedRule: string;
+}
+
+export const DEFAULT_TOOL_APPROVAL_LABELS: ToolApprovalLabels = {
+  approve: 'Next',
+  reject: 'Skip',
+  approved: 'Approved',
+  skipped: 'Skipped',
+  starting: 'Starting',
+  waiting: 'Waiting',
+  canceled: 'Canceled',
+  feedback: 'Reject with feedback',
+  feedbackPlaceholder: 'Tell the agent what to do instead',
+  feedbackBack: 'Back',
+  feedbackSend: 'Send',
+  moreOptions: 'More approval options',
+  explain: 'Why?',
+  risk: { low: 'Low risk', medium: 'Medium risk', high: 'High risk' },
+  showReasoning: 'Show reasoning',
+  hideReasoning: 'Hide reasoning',
+  explainError: 'Could not load the explanation',
+  retry: 'Retry',
+  alwaysAllow: 'Always allow',
+  ruleInput: 'Permission rule',
+  ruleConfirm: 'Confirm',
+  ruleBack: 'Back',
+  matchedRule: 'Asked because:',
+};
+
+export type ToolApproval = {
+  /** @deprecated Use `labels.approve` */
+  approveLabel?: string;
+  /** @deprecated Use `labels.reject` */
+  rejectLabel?: string;
   /** Called once when the tool is approved; receives the scope picked from `approveOptions` */
   onApprove?: (scope?: string) => void;
   /** Called once when the reject button is clicked */
@@ -82,44 +147,16 @@ export type ToolApproval = {
   reason?: React.ReactNode;
   /** Adds a "Reject with feedback" menu item; called with the typed feedback on Enter */
   onRejectWithFeedback?: (feedback: string) => void;
-  /** Feedback menu item label, `Reject with feedback` by default */
-  feedbackLabel?: string;
-  /** Feedback input placeholder, `Tell the agent what to do instead` by default */
-  feedbackPlaceholder?: string;
-  /** Button that closes the feedback input, `Back` by default */
-  feedbackBackLabel?: string;
-  /** Button that sends the feedback, `Send` by default */
-  feedbackSendLabel?: string;
-  /** Accessible label of the menu toggle, `More approval options` by default */
-  moreOptionsLabel?: string;
   /** Loads a risk assessment shown under the footer by the "Why?" button; the result is cached */
   onExplain?: () => Promise<ToolApprovalExplanation>;
-  /** "Why?" button label, `Why?` by default */
-  explainLabel?: string;
-  /** Risk badge labels, `Low risk`, `Medium risk` and `High risk` by default */
-  riskLabels?: Partial<Record<ToolApprovalRisk, string>>;
-  /** Button that expands the reasoning, `Show reasoning` by default */
-  showReasoningLabel?: string;
-  /** Button that collapses the reasoning, `Hide reasoning` by default */
-  hideReasoningLabel?: string;
-  /** Shown when `onExplain` rejects without a message, `Could not load the explanation` by default */
-  explainErrorLabel?: string;
-  /** Retry button of the explanation error, `Retry` by default */
-  retryLabel?: string;
   /** Rule saved by the `always` scope; picking that scope opens an editor before approving */
   ruleSuggestion?: ToolApprovalRuleSuggestion;
-  /** Accessible label of the rule input, `Permission rule` by default */
-  ruleInputLabel?: string;
-  /** Button that approves with the edited rule, `Confirm` by default */
-  ruleConfirmLabel?: string;
-  /** Button that closes the rule editor, `Back` by default */
-  ruleBackLabel?: string;
-  /** Permission rule that caused the prompt, shown after `matchedRuleLabel` */
+  /** Permission rule that caused the prompt, shown after `labels.matchedRule` */
   matchedRule?: React.ReactNode;
-  /** Prefix of `matchedRule`, `Asked because:` by default */
-  matchedRuleLabel?: string;
   /** Worker agent that requested the tool call, shown as a badge */
   requestedBy?: ToolApprovalRequester;
+  /** Overrides of the default English labels */
+  labels?: Partial<ToolApprovalLabels>;
 };
 
 export interface ToolApprovalFooterProps extends ToolApproval {
@@ -147,12 +184,6 @@ const RISK_COLORS: Record<ToolApprovalRisk, MantineColor> = {
   high: 'red',
 };
 
-const DEFAULT_RISK_LABELS: Record<ToolApprovalRisk, string> = {
-  low: 'Low risk',
-  medium: 'Medium risk',
-  high: 'High risk',
-};
-
 const ALWAYS_SCOPE = 'always';
 
 type StatusLabels = { starting: string; waiting: string; canceled: string };
@@ -176,38 +207,24 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
   isComplete = false,
   approveLabel,
   rejectLabel,
-  approvedLabel = 'Approved',
-  skippedLabel = 'Skipped',
-  startingLabel = 'Starting',
-  waitingLabel = 'Waiting',
-  canceledLabel = 'Canceled',
   onApprove,
   onReject,
   approveOptions,
   reason,
   onRejectWithFeedback,
-  feedbackLabel = 'Reject with feedback',
-  feedbackPlaceholder = 'Tell the agent what to do instead',
-  feedbackBackLabel = 'Back',
-  feedbackSendLabel = 'Send',
-  moreOptionsLabel = 'More approval options',
   onExplain,
-  explainLabel = 'Why?',
-  riskLabels,
-  showReasoningLabel = 'Show reasoning',
-  hideReasoningLabel = 'Hide reasoning',
-  explainErrorLabel = 'Could not load the explanation',
-  retryLabel = 'Retry',
   ruleSuggestion,
-  ruleInputLabel = 'Permission rule',
-  ruleConfirmLabel = 'Confirm',
-  ruleBackLabel = 'Back',
   matchedRule,
-  matchedRuleLabel = 'Asked because:',
   requestedBy,
+  labels: labelsProp,
   className,
   style,
 }: ToolApprovalFooterProps) {
+  const labels = {
+    ...DEFAULT_TOOL_APPROVAL_LABELS,
+    ...labelsProp,
+    risk: { ...DEFAULT_TOOL_APPROVAL_LABELS.risk, ...labelsProp?.risk },
+  };
   const [decision, setDecision] = useState<Decision>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -217,23 +234,26 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
   const [ruleOpen, setRuleOpen] = useState(false);
   const [ruleDraft, setRuleDraft] = useState(ruleSuggestion?.value ?? '');
 
-  const approveText = decision === 'approved' ? approvedLabel : (approveLabel ?? 'Next');
-  const rejectText = decision === 'rejected' ? skippedLabel : (rejectLabel ?? 'Skip');
+  const approveText =
+    decision === 'approved'
+      ? labels.approved
+      : (labelsProp?.approve ?? approveLabel ?? labels.approve);
+  const rejectText =
+    decision === 'rejected' ? labels.skipped : (labelsProp?.reject ?? rejectLabel ?? labels.reject);
   const options: ToolApprovalOption[] =
     ruleSuggestion && !approveOptions?.some((option) => option.value === ALWAYS_SCOPE)
       ? [
           ...(approveOptions ?? []),
-          { value: ALWAYS_SCOPE, label: ruleSuggestion.label ?? 'Always allow' },
+          { value: ALWAYS_SCOPE, label: ruleSuggestion.label ?? labels.alwaysAllow },
         ]
       : (approveOptions ?? []);
   const hasMenu = Boolean(options.length || onRejectWithFeedback);
   const decided = Boolean(decision);
   const status = getStatus(decision, isPending, {
-    starting: startingLabel,
-    waiting: waitingLabel,
-    canceled: canceledLabel,
+    starting: labels.starting,
+    waiting: labels.waiting,
+    canceled: labels.canceled,
   });
-  const risks = { ...DEFAULT_RISK_LABELS, ...riskLabels };
   const ruleValidation = validateRule(ruleDraft);
 
   const handleApprove = (scope?: string) => {
@@ -286,7 +306,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
     } catch (error) {
       setExplain({
         kind: 'error',
-        message: getErrorMessage(error, explainErrorLabel),
+        message: getErrorMessage(error, labels.explainError),
       });
     }
     setExplainOpen(true);
@@ -327,8 +347,8 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
           autoFocus
           flex={1}
           miw={0}
-          aria-label={feedbackLabel}
-          placeholder={feedbackPlaceholder}
+          aria-label={labels.feedback}
+          placeholder={labels.feedbackPlaceholder}
           value={feedback}
           onChange={(event) => setFeedback(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -347,7 +367,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
             className={cx(classes.button, classes.reject)}
             onClick={() => setFeedbackOpen(false)}
           >
-            {feedbackBackLabel}
+            {labels.feedbackBack}
           </Button>
           <Button
             unstyled
@@ -355,7 +375,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
             onClick={submitFeedback}
             disabled={!feedback.trim()}
           >
-            {feedbackSendLabel}
+            {labels.feedbackSend}
           </Button>
         </Group>
       </Group>
@@ -369,7 +389,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
         <TextInput
           size="xs"
           autoFocus
-          aria-label={ruleInputLabel}
+          aria-label={labels.ruleInput}
           value={ruleDraft}
           error={ruleError}
           description={
@@ -398,7 +418,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
             className={cx(classes.button, classes.reject)}
             onClick={() => setRuleOpen(false)}
           >
-            {ruleBackLabel}
+            {labels.ruleBack}
           </Button>
           <Button
             unstyled
@@ -406,7 +426,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
             onClick={() => handleApprove(ALWAYS_SCOPE)}
             disabled={Boolean(ruleError)}
           >
-            {ruleConfirmLabel}
+            {labels.ruleConfirm}
           </Button>
         </Group>
       </Stack>
@@ -437,7 +457,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
         )}
         {matchedRule && (
           <Text span truncate="end" className={classes.status}>
-            {matchedRuleLabel} {matchedRule}
+            {labels.matchedRule} {matchedRule}
           </Text>
         )}
       </Stack>
@@ -485,7 +505,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
               aria-expanded={explainOpen}
             >
               {explain.kind === 'loading' && <Loader size={10} color="currentColor" mr={4} />}
-              {explainLabel}
+              {labels.explain}
             </Button>
           )}
           <Button
@@ -504,7 +524,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
                   <Button
                     unstyled
                     disabled={decided}
-                    aria-label={moreOptionsLabel}
+                    aria-label={labels.moreOptions}
                     className={cx(classes.button, classes.approve, classes.toggle)}
                   >
                     <IconChevronDown size={12} stroke={2} />
@@ -525,7 +545,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
                     <>
                       {options.length > 0 && <Menu.Divider />}
                       <Menu.Item onClick={() => setFeedbackOpen(true)}>
-                        <Text size="xs">{feedbackLabel}</Text>
+                        <Text size="xs">{labels.feedback}</Text>
                       </Menu.Item>
                     </>
                   )}
@@ -549,7 +569,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
                     onClick={loadExplanation}
                     className={cx(classes.button, classes.reject, classes.noShrink)}
                   >
-                    {retryLabel}
+                    {labels.retry}
                   </Button>
                 </Group>
               </Alert>
@@ -563,7 +583,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
                     color={RISK_COLORS[explanation.risk]}
                     className={classes.noShrink}
                   >
-                    {risks[explanation.risk]}
+                    {labels.risk[explanation.risk]}
                   </Badge>
                   <Text size="xs">{explanation.explanation}</Text>
                 </Group>
@@ -575,7 +595,7 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
                       onClick={() => setReasoningOpen((open) => !open)}
                       aria-expanded={reasoningOpen}
                     >
-                      {reasoningOpen ? hideReasoningLabel : showReasoningLabel}
+                      {reasoningOpen ? labels.hideReasoning : labels.showReasoning}
                     </Button>
                     <Collapse expanded={reasoningOpen}>
                       <Text size="xs" className={classes.reasoning}>
@@ -592,3 +612,5 @@ export const ToolApprovalFooter = memo(function ToolApprovalFooter({
     </Box>
   );
 });
+
+ToolApprovalFooter.displayName = 'ToolApprovalFooter';

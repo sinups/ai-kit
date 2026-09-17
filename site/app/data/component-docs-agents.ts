@@ -465,7 +465,7 @@ export function Example() {
     <SkillEditor
       skill={skill}
       availableTools={["Read", "Grep", "Bash"]}
-      takenNames={otherSkillNames}
+      existingNames={otherSkillNames}
       onSave={(draft) => api.updateSkill(skill.id, draft)}
       onCancel={closeEditor}
     />
@@ -476,19 +476,19 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Create or edit a skill: a slug name checked against `takenNames`, description, tags, allowed tools and Markdown instructions with Write and Preview tabs. A rejected `onSave` keeps the form open with the message; leaving with unsaved changes asks for confirmation. Omit `skill` to create one, pass `initialDraft` to start from a duplicate.",
+          "Create or edit a skill: a slug name checked against `existingNames`, description, tags, allowed tools and Markdown instructions with Write and Preview tabs. A rejected `onSave` keeps the form open with the message; leaving with unsaved changes asks for confirmation. Omit `skill` to create one, pass `initialDraft` to start from a duplicate.",
       },
       {
         type: "example",
         title: "Edit a skill",
         previewId: "SkillEditor/edit",
-        code: `<SkillEditor skill={codeReview} availableTools={tools} takenNames={names} onSave={save} onCancel={close} />`,
+        code: `<SkillEditor skill={codeReview} availableTools={tools} existingNames={names} onSave={save} onCancel={close} />`,
       },
       {
         type: "example",
         title: "New skill",
         previewId: "SkillEditor/create",
-        code: `<SkillEditor availableTools={tools} takenNames={names} onSave={create} onCancel={close} />`,
+        code: `<SkillEditor availableTools={tools} existingNames={names} onSave={create} onCancel={close} />`,
       },
     ],
   },

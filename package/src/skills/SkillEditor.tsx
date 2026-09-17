@@ -16,6 +16,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { Markdown } from '../Markdown/Markdown';
 import { ConfirmDialog } from '../primitives/ConfirmDialog/ConfirmDialog';
 import { cx } from '../utils/cx';
+import { getErrorMessage } from '../utils/error-message';
 import {
   DEFAULT_SKILL_VALIDATION_MESSAGES,
   SKILL_DESCRIPTION_MAX_LENGTH,
@@ -56,6 +57,7 @@ export interface SkillEditorLabels extends SkillValidationMessages {
   discardMessage: string;
   keepEditing: string;
   discard: string;
+  saveError: string;
 }
 
 export interface SkillEditorProps {
@@ -65,8 +67,8 @@ export interface SkillEditorProps {
   initialDraft?: Partial<SkillDraft>;
   /** Tool names offered in the allowed tools select */
   availableTools?: string[];
-  /** Names used by other skills, a draft cannot take them */
-  takenNames?: string[];
+  /** Names of other skills, used to check that the name is unique */
+  existingNames?: string[];
   /** Saves the draft, the form stays open and shows the rejection message when the promise rejects */
   onSave: (draft: SkillDraft) => Promise<void> | void;
   /** Leaves the editor, asks for confirmation first when there are unsaved changes */
@@ -107,13 +109,14 @@ export const DEFAULT_SKILL_EDITOR_LABELS: SkillEditorLabels = {
   discardMessage: 'Your edits to this skill will be lost.',
   keepEditing: 'Keep editing',
   discard: 'Discard',
+  saveError: 'Could not save the skill',
 };
 
 export const SkillEditor = memo(function SkillEditor({
   skill,
   initialDraft,
   availableTools = [],
-  takenNames = [],
+  existingNames = [],
   onSave,
   onCancel,
   onDirtyChange,
@@ -135,8 +138,8 @@ export const SkillEditor = memo(function SkillEditor({
   const [tab, setTab] = useState<string | null>('write');
 
   const otherNames = useMemo(
-    () => takenNames.filter((name) => name !== skill?.name),
-    [takenNames, skill?.name]
+    () => existingNames.filter((name) => name !== skill?.name),
+    [existingNames, skill?.name]
   );
   const dirty = isSkillDraftDirty(draft, baseline);
 
@@ -176,7 +179,7 @@ export const SkillEditor = memo(function SkillEditor({
       setDraft(normalized);
       setBaseline(normalized);
     } catch (reason) {
-      setSaveError(reason instanceof Error ? reason.message : String(reason));
+      setSaveError(getErrorMessage(reason, text.saveError));
     } finally {
       setSaving(false);
     }
@@ -322,8 +325,7 @@ export const SkillEditor = memo(function SkillEditor({
           opened={confirmOpen}
           title={text.discardTitle}
           message={text.discardMessage}
-          confirmLabel={text.discard}
-          cancelLabel={text.keepEditing}
+          labels={{ confirm: text.discard, cancel: text.keepEditing }}
           danger
           onConfirm={() => {
             setDraft(baseline);
@@ -336,3 +338,5 @@ export const SkillEditor = memo(function SkillEditor({
     </form>
   );
 });
+
+SkillEditor.displayName = 'SkillEditor';

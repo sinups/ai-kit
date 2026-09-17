@@ -1,6 +1,6 @@
 import { getHookActivityTitle } from './hook-activity';
 
-describe('hook-activity', () => {
+describe('HookActivity/hook-activity', () => {
   it('titles each status', () => {
     expect(getHookActivityTitle('PreToolUse', 'running', 0)).toBe('Running PreToolUse hooks…');
     expect(getHookActivityTitle('PreToolUse', 'done', 3)).toBe('Ran 3 PreToolUse hooks');

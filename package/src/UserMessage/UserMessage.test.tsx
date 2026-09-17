@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import type { ChatMessage } from '../types';
 import { UserMessage } from './UserMessage';
 
-describe('UserMessage', () => {
+describe('UserMessage/UserMessage', () => {
   it('renders text, image parts, file images and non-image files', () => {
     const message: ChatMessage = {
       id: 'u1',
@@ -72,7 +72,7 @@ describe('UserMessage', () => {
     const { container } = render(
       <UserMessage
         message={{ id: 'u6', role: 'user', parts: [{ type: 'text', text }] }}
-        longTextThreshold
+        longMessageThreshold
       />
     );
     expect(container.textContent).not.toContain('line 30');

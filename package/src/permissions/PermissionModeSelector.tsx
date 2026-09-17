@@ -11,6 +11,19 @@ import {
 } from './types';
 import classes from './PermissionModeSelector.module.css';
 
+export interface PermissionModeSelectorLabels {
+  /** Label, description and warning flag of each mode */
+  modes: Partial<Record<PermissionMode, Partial<PermissionModeMeta>>>;
+  /** Warning shown when a dangerous mode is selected */
+  dangerWarning: string;
+}
+
+export const DEFAULT_PERMISSION_MODE_SELECTOR_LABELS: PermissionModeSelectorLabels = {
+  modes: {},
+  dangerWarning:
+    'Tool calls run without approval, including commands that change files or reach the network. Use only in an isolated environment.',
+};
+
 export interface PermissionModeSelectorProps {
   /** Selected mode */
   value: PermissionMode;
@@ -18,16 +31,14 @@ export interface PermissionModeSelectorProps {
   onChange: (mode: PermissionMode) => void;
   /** Modes offered, all modes by default */
   modes?: PermissionMode[];
-  /** Overrides for the English label, description and warning flag of each mode */
-  modeLabels?: Partial<Record<PermissionMode, Partial<PermissionModeMeta>>>;
   /** Field label, `Permission mode` by default */
   label?: React.ReactNode;
-  /** Warning shown when a dangerous mode is selected */
-  dangerWarning?: React.ReactNode;
   /** `segmented` shows all modes at once, `select` a dropdown, `auto` picks by component width, `auto` by default */
   variant?: 'auto' | 'segmented' | 'select';
   /** Disables the control */
   disabled?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<PermissionModeSelectorLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -41,19 +52,19 @@ export const PermissionModeSelector = memo(function PermissionModeSelector({
   value,
   onChange,
   modes = PERMISSION_MODE_ORDER,
-  modeLabels,
   label = 'Permission mode',
-  dangerWarning = 'Tool calls run without approval, including commands that change files or reach the network. Use only in an isolated environment.',
   variant = 'auto',
   disabled = false,
+  labels: labelsProp,
   className,
   style,
 }: PermissionModeSelectorProps) {
+  const labels = { ...DEFAULT_PERMISSION_MODE_SELECTOR_LABELS, ...labelsProp };
   const { ref, width } = useElementSize();
   const labelId = useId();
   const metaOf = (mode: PermissionMode): PermissionModeMeta => ({
     ...PERMISSION_MODES[mode],
-    ...modeLabels?.[mode],
+    ...labels.modes[mode],
   });
   const selected = metaOf(value);
   const data = modes.map((mode) => ({ value: mode, label: metaOf(mode).label }));
@@ -101,7 +112,7 @@ export const PermissionModeSelector = memo(function PermissionModeSelector({
       </Text>
       {selected.dangerous && (
         <Alert color="red" variant="light" icon={<IconAlertTriangle size={16} />} p="xs">
-          <Text size="xs">{dangerWarning}</Text>
+          <Text size="xs">{labels.dangerWarning}</Text>
         </Alert>
       )}
     </Stack>

@@ -40,7 +40,7 @@ export interface ValidationErrorsListProps {
   withFileHeaders?: boolean;
   /** Shown when there are no errors, nothing is rendered by default */
   emptyLabel?: React.ReactNode;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<ValidationErrorsListLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -48,7 +48,7 @@ export interface ValidationErrorsListProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: ValidationErrorsListLabels = {
+export const DEFAULT_VALIDATION_ERRORS_LIST_LABELS: ValidationErrorsListLabels = {
   docs: 'Docs',
   openFile: 'Open file',
   showMore: 'Show {count} more',
@@ -196,7 +196,7 @@ export const ValidationErrorsList = memo(function ValidationErrorsList({
   className,
   style,
 }: ValidationErrorsListProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_VALIDATION_ERRORS_LIST_LABELS, ...labelsProp };
   const groups = useMemo(() => groupValidationErrors(errors), [errors]);
 
   if (groups.length === 0) {

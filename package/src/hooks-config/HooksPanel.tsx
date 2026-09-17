@@ -75,6 +75,8 @@ export interface HooksPanelLabels {
   events: HookEventTextOverrides;
   scopes: HookScopeTextOverrides;
   messages: Partial<HookMessages>;
+  /** Labels of the hook wizard */
+  wizard: Partial<HookWizardLabels>;
 }
 
 export interface HooksPanelProps {
@@ -96,17 +98,15 @@ export interface HooksPanelProps {
   knownTools?: string[];
   /** Events expanded initially, events with hooks by default */
   defaultExpanded?: HookEvent[];
-  /** Overrides for the English labels of the panel */
+  /** Overrides of the default English labels of the panel */
   labels?: Partial<HooksPanelLabels>;
-  /** Overrides for the English labels of the wizard */
-  wizardLabels?: Partial<HookWizardLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: HooksPanelLabels = {
+export const DEFAULT_HOOKS_PANEL_LABELS: HooksPanelLabels = {
   title: 'Hooks',
   description: 'Commands and prompts that run automatically on agent events.',
   addHook: 'Add hook',
@@ -129,6 +129,7 @@ const DEFAULT_LABELS: HooksPanelLabels = {
   events: {},
   scopes: {},
   messages: {},
+  wizard: {},
 };
 
 /** Hooks grouped by event with counters, per-hook enable switch, edit and delete, and a wizard to add hooks */
@@ -143,20 +144,19 @@ export const HooksPanel = memo(function HooksPanel({
   knownTools,
   defaultExpanded,
   labels: labelsProp,
-  wizardLabels,
   className,
   style,
 }: HooksPanelProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_HOOKS_PANEL_LABELS, ...labelsProp };
   const messages = { ...DEFAULT_HOOK_MESSAGES, ...labels.messages };
   const wizardText = useMemo(
     () => ({
       events: labels.events,
       scopes: labels.scopes,
       messages: labels.messages,
-      ...wizardLabels,
+      ...labels.wizard,
     }),
-    [labels.events, labels.scopes, labels.messages, wizardLabels]
+    [labels.events, labels.scopes, labels.messages, labels.wizard]
   );
   const [wizardOpened, setWizardOpened] = useState(false);
   const [draft, setDraft] = useState<Partial<HookConfig> | undefined>(undefined);
@@ -406,9 +406,7 @@ export const HooksPanel = memo(function HooksPanel({
         onClose={() => setDeleteOpened(false)}
         danger
         title={labels.deleteTitle}
-        confirmLabel={labels.delete}
-        cancelLabel={labels.cancel}
-        errorLabel={labels.error}
+        labels={{ confirm: labels.delete, cancel: labels.cancel, error: labels.error }}
         message={
           deleteTarget && (
             <>

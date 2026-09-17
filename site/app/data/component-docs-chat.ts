@@ -80,7 +80,7 @@ export function Example({ disableServers }: { disableServers: () => void }) {
   total={200_000}
   breakdown={groups}
   suggestions={suggestions}
-  showLabel
+  withLabel
 />`,
       },
     ],
@@ -233,7 +233,7 @@ export function Example({ total, onClose }: { total: number; onClose: () => void
         type: "usage",
         title: "Usage",
         content:
-          "A find bar for a conversation: query input, a `3/12` counter, previous and next buttons and close. Enter goes to the next match, Shift+Enter to the previous one, Escape closes. The counter appears once the query is not empty and shows `0/0` when nothing matches; the arrows are disabled without matches. The component is controlled and does not search by itself. In most apps you do not render it: set `searchable` on AgentChat or MessageList and Mod+F opens this bar, highlights matches in the transcript and scrolls to the active one. Render it yourself for a custom transcript, using the exported helpers: `findTextMatches` (case-insensitive matches in a string), `findDomMatches` (DOM ranges inside an element, skipping `[data-search-ignore]`) and `stepMatchIndex` (wrap-around navigation). The bar is a compact Paper that fits a 360px widget.",
+          "A find bar for a conversation: query input, a `3/12` counter, previous and next buttons and close. Enter goes to the next match, Shift+Enter to the previous one, Escape closes. The counter appears once the query is not empty and shows `0/0` when nothing matches; the arrows are disabled without matches. The component is controlled and does not search by itself. In most apps you do not render it: set `withSearch` on AgentChat or MessageList and Mod+F opens this bar, highlights matches in the transcript and scrolls to the active one. Render it yourself for a custom transcript, using the exported helpers: `findTextMatches` (case-insensitive matches in a string), `findDomMatches` (DOM ranges inside an element, skipping `[data-search-ignore]`) and `stepMatchIndex` (wrap-around navigation). The bar is a compact Paper that fits a 360px widget.",
       },
       {
         type: "example",
@@ -313,8 +313,7 @@ export function Example({ paste, remove }: { paste: PastedText; remove: () => vo
   return (
     <PastedTextAttachment
       paste={paste}
-      label="Paste #{id}"
-      linesLabel="{lines} lines"
+      labels={{ name: "Paste #{id}", lines: "{lines} lines" }}
       onRemove={remove}
     />
   );
@@ -650,7 +649,7 @@ export function Example({ code }: { code: string }) {
         type: "usage",
         title: "Usage",
         content:
-          "A code block with a header (the `title`, or the language), a copy button, optional line numbers and optional collapsing. Without `highlighter` the code is plain text; pass any function that returns token lines, or adapt a shiki instance you created with `createShikiHighlighter`, which uses a light and a dark theme so colors follow the color scheme. Results are cached, and async highlighters render plain text until tokens arrive. `collapsedLines` hides the rest behind `Show N more lines` only when at least 5 lines would be hidden; `streaming` pauses collapsing so new lines stay visible. Long lines scroll horizontally, or wrap with `wrap`, which reads better in narrow widgets. Markdown uses CodeBlock for fenced code, and AgentChat passes its `highlighter` prop down. Related helpers: `countCodeLines`, `getCollapsedLineCount`, `highlightCode`, `useHighlightedLines`, `clearHighlightCache`.",
+          "A code block with a header (the `title`, or the language), a copy button, optional line numbers and optional collapsing. Without `highlighter` the code is plain text; pass any function that returns token lines, or adapt a shiki instance you created with `createShikiHighlighter`, which uses a light and a dark theme so colors follow the color scheme. Results are cached, and async highlighters render plain text until tokens arrive. `collapsedLines` hides the rest behind `Show N more lines` only when at least 5 lines would be hidden; `streaming` pauses collapsing so new lines stay visible. Long lines scroll horizontally, or wrap with `wrapLines`, which reads better in narrow widgets. Markdown uses CodeBlock for fenced code, and AgentChat passes its `highlighter` prop down. Related helpers: `countCodeLines`, `getCollapsedLineCount`, `highlightCode`, `useHighlightedLines`, `clearHighlightCache`.",
       },
       {
         type: "example",
@@ -664,7 +663,7 @@ export function Example({ code }: { code: string }) {
         title: "Narrow: scroll or wrap",
         previewId: "CodeBlock/narrow",
         code: `<CodeBlock code={code} language="ts" />
-<CodeBlock code={code} language="ts" wrap />`,
+<CodeBlock code={code} language="ts" wrapLines />`,
       },
     ],
   },

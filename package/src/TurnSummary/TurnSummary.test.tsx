@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { TurnSummary } from './TurnSummary';
 
-describe('TurnSummary', () => {
+describe('TurnSummary/TurnSummary', () => {
   it('renders the summary line with overridable labels', () => {
     const { rerender } = render(
       <TurnSummary durationMs={123_000} tokens={40_000} tokenBudget={100_000} backgroundTasks={2} />

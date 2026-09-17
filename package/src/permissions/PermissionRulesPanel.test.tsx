@@ -9,7 +9,7 @@ import {
 import { setElementWidth } from '../primitives/_testing/element-width';
 import { PermissionRulesPanel } from './PermissionRulesPanel';
 
-describe('PermissionRulesPanel', () => {
+describe('permissions/PermissionRulesPanel', () => {
   it('lists rules of the active behavior grouped by scope', async () => {
     render(<PermissionRulesPanel rules={PERMISSION_RULES_FIXTURE} onSaveRule={jest.fn()} />);
 
@@ -47,21 +47,18 @@ describe('PermissionRulesPanel', () => {
 
   it('shows pending on the row and an alert when an async action fails', async () => {
     let reject: (error: Error) => void = () => {};
-    const onChangeScope = jest.fn(() => new Promise<void>((_, fail) => (reject = fail)));
+    const onMoveRule = jest.fn(() => new Promise<void>((_, fail) => (reject = fail)));
     render(
       <PermissionRulesPanel
         rules={PERMISSION_RULES_FIXTURE.filter((rule) => rule.id === 'deny-rm')}
         defaultTab="deny"
-        onChangeScope={onChangeScope}
+        onMoveRule={onMoveRule}
       />
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Actions' }));
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Move to Project' }));
-    expect(onChangeScope).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'deny-rm' }),
-      'project'
-    );
+    expect(onMoveRule).toHaveBeenCalledWith(expect.objectContaining({ id: 'deny-rm' }), 'project');
     expect(screen.getByLabelText('Saving')).toBeInTheDocument();
 
     await act(async () => reject(new Error('settings.json is read-only')));

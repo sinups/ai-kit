@@ -92,7 +92,7 @@ export interface SkillCatalogProps {
   /** `list` renders rows, `grid` renders cards whose column count follows the component width, `list` by default */
   variant?: 'list' | 'grid';
   /** Groups rows by source in the `list` variant, `true` by default */
-  grouped?: boolean;
+  groupBySource?: boolean;
   /** Search query, uncontrolled when omitted */
   query?: string;
   /** Called when the search query changes */
@@ -109,7 +109,7 @@ export interface SkillCatalogProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SkillCatalogLabels = {
+export const DEFAULT_SKILL_CATALOG_LABELS: SkillCatalogLabels = {
   search: 'Search skills',
   source: 'Source',
   allSources: 'All sources',
@@ -149,7 +149,7 @@ export const SkillCatalog = memo(function SkillCatalog({
   isEditable,
   onCreate,
   variant = 'list',
-  grouped = true,
+  groupBySource = true,
   query: queryProp,
   onQueryChange,
   source: sourceProp,
@@ -158,7 +158,7 @@ export const SkillCatalog = memo(function SkillCatalog({
   className,
   style,
 }: SkillCatalogProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_SKILL_CATALOG_LABELS, ...labels };
   const [queryState, setQueryState] = useState('');
   const [sourceState, setSourceState] = useState<SkillSourceFilter>('all');
   const toggles = usePendingActions(text.toggleError);
@@ -295,10 +295,9 @@ export const SkillCatalog = memo(function SkillCatalog({
         loading={loading}
         error={error}
         onRetry={onRetry}
-        retryLabel={text.retry}
+        labels={{ retry: text.retry, noResults: text.noResults }}
         empty={skills.length === 0 ? empty : undefined}
-        noResults={text.noResults}
-        groupBy={grouped && !query.trim() ? (skill) => text.sources[skill.source] : undefined}
+        groupBy={groupBySource && !query.trim() ? (skill) => text.sources[skill.source] : undefined}
         groupOrder={SKILL_SOURCES.map((value) => text.sources[value])}
         ariaLabel={text.search}
         renderItem={(skill, { selected }) => (
@@ -309,7 +308,7 @@ export const SkillCatalog = memo(function SkillCatalog({
             badges={renderTags(skill)}
             meta={renderSwitch(skill)}
             actions={actionsFor(skill)}
-            actionsLabel={`${text.actions}: ${skill.name}`}
+            labels={{ actions: `${text.actions}: ${skill.name}` }}
             selected={selected}
           />
         )}
@@ -455,3 +454,5 @@ export const SkillCatalog = memo(function SkillCatalog({
     </Stack>
   );
 });
+
+SkillCatalog.displayName = 'SkillCatalog';

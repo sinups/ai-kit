@@ -16,6 +16,8 @@ export interface CommandPaletteLabels {
   search: string;
   /** Accessible label of the results list */
   results: string;
+  /** Text shown when nothing matches, `No commands found` by default */
+  empty: string;
 }
 
 export interface CommandPaletteProps {
@@ -31,8 +33,6 @@ export interface CommandPaletteProps {
   placeholder?: string;
   /** Ids of recently used commands, listed first while the query is empty */
   recentIds?: string[];
-  /** Text shown when nothing matches, `No commands found` by default */
-  emptyLabel?: React.ReactNode;
   /** Hotkey that toggles the palette, for example `mod+K`; registered whenever set: it calls `onOpen` while closed and `onClose` while open, so without `onOpen` it can only close the palette */
   hotkey?: string;
   /** Called when the hotkey is pressed while the palette is closed; set `opened` to `true` here */
@@ -43,10 +43,11 @@ export interface CommandPaletteProps {
   labels?: Partial<CommandPaletteLabels>;
 }
 
-const DEFAULT_LABELS: CommandPaletteLabels = {
+export const DEFAULT_COMMAND_PALETTE_LABELS: CommandPaletteLabels = {
   recent: 'Recent',
   search: 'Search commands',
   results: 'Commands',
+  empty: 'No commands found',
 };
 
 function HighlightedLabel({ text, indices }: { text: string; indices: number[] }) {
@@ -72,13 +73,12 @@ export const CommandPalette = memo(function CommandPalette({
   onSelect,
   placeholder = 'Search commands...',
   recentIds,
-  emptyLabel = 'No commands found',
   hotkey,
   onOpen,
   maxHeight = 400,
   labels,
 }: CommandPaletteProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_COMMAND_PALETTE_LABELS, ...labels };
   const baseId = useId();
   const listId = `${baseId}-list`;
   const fullScreen = useMediaQuery('(max-width: 36em)') ?? false;
@@ -212,7 +212,7 @@ export const CommandPalette = memo(function CommandPalette({
       >
         {entries.length === 0 ? (
           <Text size="sm" c="dimmed" ta="center" py="xl" px="md">
-            {emptyLabel}
+            {text.empty}
           </Text>
         ) : (
           <Stack id={listId} role="listbox" aria-label={text.results} gap={2} p={rem(6)}>
@@ -284,3 +284,5 @@ export const CommandPalette = memo(function CommandPalette({
     </Modal>
   );
 });
+
+CommandPalette.displayName = 'CommandPalette';

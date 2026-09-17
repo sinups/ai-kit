@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import { AddPermissionRuleWizard } from './AddPermissionRuleWizard';
 
-describe('AddPermissionRuleWizard', () => {
+describe('permissions/AddPermissionRuleWizard', () => {
   it('creates a rule through behavior, rule, scope and review', async () => {
     const onSubmit = jest.fn();
     const onClose = jest.fn();

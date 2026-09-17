@@ -1,0 +1,138 @@
+[
+  {
+    "name": "AgentChat",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/AgentChat.css"
+    ],
+    "jsGzip": 66751,
+    "cssGzip": 10444,
+    "totalGzip": 77195
+  },
+  {
+    "name": "MessageList",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/MessageList.css"
+    ],
+    "jsGzip": 54597,
+    "cssGzip": 8496,
+    "totalGzip": 63093
+  },
+  {
+    "name": "InputBar",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/InputBar.css"
+    ],
+    "jsGzip": 25857,
+    "cssGzip": 5675,
+    "totalGzip": 31532
+  },
+  {
+    "name": "Markdown",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/Markdown.css"
+    ],
+    "jsGzip": 11267,
+    "cssGzip": 2509,
+    "totalGzip": 13776
+  },
+  {
+    "name": "BashTool",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/BashTool.css"
+    ],
+    "jsGzip": 10079,
+    "cssGzip": 2685,
+    "totalGzip": 12764
+  },
+  {
+    "name": "DiffReview",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/DiffReview.css"
+    ],
+    "jsGzip": 18866,
+    "cssGzip": 2751,
+    "totalGzip": 21617
+  },
+  {
+    "name": "McpSettingsPanel",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/McpSettingsPanel.css"
+    ],
+    "jsGzip": 22425,
+    "cssGzip": 2560,
+    "totalGzip": 24985
+  },
+  {
+    "name": "SettingsLayout",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/SettingsLayout.css"
+    ],
+    "jsGzip": 2555,
+    "cssGzip": 1954,
+    "totalGzip": 4509
+  },
+  {
+    "name": "CommandPalette",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/CommandPalette.css"
+    ],
+    "jsGzip": 4299,
+    "cssGzip": 1538,
+    "totalGzip": 5837
+  },
+  {
+    "name": "Wizard",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/Wizard.css"
+    ],
+    "jsGzip": 4018,
+    "cssGzip": 1636,
+    "totalGzip": 5654
+  },
+  {
+    "name": "ChatLauncher",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/ChatLauncher.css"
+    ],
+    "jsGzip": 3504,
+    "cssGzip": 2181,
+    "totalGzip": 5685
+  },
+  {
+    "name": "AiKitProvider",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/AiKitProvider.css"
+    ],
+    "jsGzip": 5708,
+    "cssGzip": 3015,
+    "totalGzip": 8723
+  },
+  {
+    "name": "mountChatLauncher",
+    "stylesheets": [],
+    "jsGzip": 777,
+    "cssGzip": 0,
+    "totalGzip": 777
+  },
+  {
+    "name": "import *",
+    "stylesheets": [
+      "styles.css"
+    ],
+    "jsGzip": 181259,
+    "cssGzip": 17665,
+    "totalGzip": 198924
+  }
+]

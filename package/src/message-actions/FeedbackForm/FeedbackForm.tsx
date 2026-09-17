@@ -22,7 +22,7 @@ export const DEFAULT_FEEDBACK_REASONS: FeedbackReason[] = [
   { value: 'other', label: 'Other' },
 ];
 
-const DEFAULT_LABELS: FeedbackFormLabels = {
+export const DEFAULT_FEEDBACK_FORM_LABELS: FeedbackFormLabels = {
   title: 'What went wrong?',
   commentLabel: 'Details',
   commentPlaceholder: 'Tell us more (optional)',
@@ -62,7 +62,7 @@ export const FeedbackForm = memo(function FeedbackForm({
   className,
   style,
 }: FeedbackFormProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_FEEDBACK_FORM_LABELS, ...labelsProp };
   const [selected, setSelected] = useState<string[]>([]);
   const [comment, setComment] = useState('');
   const [sent, setSent] = useState(false);

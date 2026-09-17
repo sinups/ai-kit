@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import { ConfirmDialog } from './ConfirmDialog';
 
-describe('ConfirmDialog', () => {
+describe('primitives/ConfirmDialog', () => {
   it('confirms, shows pending and closes after the promise resolves', async () => {
     let resolve: () => void = () => {};
     const onConfirm = jest.fn(() => new Promise<void>((done) => (resolve = done)));
@@ -14,7 +14,7 @@ describe('ConfirmDialog', () => {
         danger
         title="Delete rule"
         message="Bash(npm run test:*) will be removed."
-        confirmLabel="Delete"
+        labels={{ confirm: 'Delete' }}
         onConfirm={onConfirm}
         onClose={onClose}
       />

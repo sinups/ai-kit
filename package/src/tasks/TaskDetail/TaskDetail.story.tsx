@@ -17,7 +17,7 @@ function Demo({ id }: { id: string }) {
   }
   return (
     <Paper withBorder radius="md">
-      <TaskDetail task={task} onStop={stop} onRetry={retry} onSteer={steer} />
+      <TaskDetail task={task} onStop={stop} onRetryTask={retry} onSteer={steer} />
     </Paper>
   );
 }

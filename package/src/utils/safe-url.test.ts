@@ -1,6 +1,6 @@
 import { isSafeHttpUrl } from './safe-url';
 
-describe('isSafeHttpUrl', () => {
+describe('utils/isSafeHttpUrl', () => {
   it('accepts absolute http and https urls only', () => {
     expect(isSafeHttpUrl('https://example.com/docs')).toBe(true);
     expect(isSafeHttpUrl('http://localhost:3000')).toBe(true);

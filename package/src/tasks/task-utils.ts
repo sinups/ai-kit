@@ -10,7 +10,7 @@ import type {
   BackgroundTaskSummary,
 } from './types';
 
-export const DEFAULT_TASK_LABELS: BackgroundTaskLabels = {
+export const DEFAULT_BACKGROUND_TASK_LABELS: BackgroundTaskLabels = {
   title: 'Background tasks',
   groupRunning: 'Running',
   groupQueued: 'Queued',

@@ -7,29 +7,40 @@ import classes from './MasterDetail.module.css';
 
 const DEFAULT_BREAKPOINT = 720;
 
+export interface MasterDetailLabels {
+  /** Back button shown above the detail when narrow, `Back` by default */
+  back: string;
+  /** Title of the default empty detail, `Select an item` by default */
+  emptyTitle: string;
+  /** Description of the default empty detail, `Its details will appear here` by default */
+  emptyDescription: string;
+}
+
+export const DEFAULT_MASTER_DETAIL_LABELS: MasterDetailLabels = {
+  back: 'Back',
+  emptyTitle: 'Select an item',
+  emptyDescription: 'Its details will appear here',
+};
+
 export interface MasterDetailProps {
   /** List pane content */
   list: React.ReactNode;
   /** Detail of the selected item, `null` when nothing is selected */
   detail: React.ReactNode | null;
   /** When narrow, shows the detail instead of the list, `true` whenever `detail` is set by default */
-  detailOpen?: boolean;
+  detailOpened?: boolean;
   /** Called by the back button shown above the detail when narrow, the button is rendered only when set */
   onBack?: () => void;
-  /** Back button label, `Back` by default */
-  backLabel?: string;
   /** List pane width in px when wide, `320` by default */
   listWidth?: number;
   /** Component width in px from which list and detail sit side by side, `720` by default */
   breakpoint?: number;
   /** Lets the user drag the border between the panes when wide */
   resizable?: boolean;
-  /** Shown in the detail pane when wide and `detail` is `null`, an empty state with `emptyTitle` and `emptyDescription` by default */
+  /** Shown in the detail pane when wide and `detail` is `null`, an empty state with `labels.emptyTitle` and `labels.emptyDescription` by default */
   emptyDetail?: React.ReactNode;
-  /** Title of the default empty detail, `Select an item` by default */
-  emptyTitle?: React.ReactNode;
-  /** Description of the default empty detail, `Its details will appear here` by default */
-  emptyDescription?: React.ReactNode;
+  /** Overrides of the default English labels */
+  labels?: Partial<MasterDetailLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -40,23 +51,22 @@ export interface MasterDetailProps {
 export const MasterDetail = memo(function MasterDetail({
   list,
   detail,
-  detailOpen,
+  detailOpened,
   onBack,
-  backLabel = 'Back',
   listWidth = 320,
   breakpoint = DEFAULT_BREAKPOINT,
   resizable = false,
   emptyDetail,
-  emptyTitle = 'Select an item',
-  emptyDescription = 'Its details will appear here',
+  labels: labelsProp,
   className,
   style,
 }: MasterDetailProps) {
+  const labels = { ...DEFAULT_MASTER_DETAIL_LABELS, ...labelsProp };
   const { ref, width } = useElementSize();
   const measured = width > 0;
   const isWide = width >= breakpoint;
   const hasDetail = detail !== null && detail !== undefined;
-  const showDetail = hasDetail && (detailOpen ?? true);
+  const showDetail = hasDetail && (detailOpened ?? true);
 
   const listPane = (
     <ScrollArea className={classes.pane} type="auto" data-pane="list">
@@ -72,8 +82,8 @@ export const MasterDetail = memo(function MasterDetail({
             <EmptyState
               className={classes.empty}
               icon={<IconLayoutSidebarRight />}
-              title={emptyTitle}
-              description={emptyDescription}
+              title={labels.emptyTitle}
+              description={labels.emptyDescription}
             />
           ))}
     </ScrollArea>
@@ -97,7 +107,7 @@ export const MasterDetail = memo(function MasterDetail({
               leftSection={<IconArrowLeft size={16} />}
               onClick={onBack}
             >
-              {backLabel}
+              {labels.back}
             </Button>
           </Group>
         </Box>
@@ -154,3 +164,5 @@ export const MasterDetail = memo(function MasterDetail({
     </Box>
   );
 });
+
+MasterDetail.displayName = 'MasterDetail';

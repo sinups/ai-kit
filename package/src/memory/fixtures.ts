@@ -49,7 +49,7 @@ The site is exported as static HTML. Previews live in \`app/components/previews\
     id: 'agent-reviewer',
     scope: 'agent',
     agentName: 'code-reviewer',
-    path: '.agent/agent-memory/code-reviewer/MEMORY.md',
+    path: '.agent/memory/agents/code-reviewer.md',
     updatedAt: '2026-09-16T18:40:00Z',
     content: `# Review notes
 
@@ -60,7 +60,7 @@ The site is exported as static HTML. Previews live in \`app/components/previews\
     id: 'agent-empty',
     scope: 'agent',
     agentName: 'test-runner',
-    path: '.agent/agent-memory/test-runner/MEMORY.md',
+    path: '.agent/memory/agents/test-runner.md',
     content: '',
   },
 ];

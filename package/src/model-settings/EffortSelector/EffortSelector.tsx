@@ -22,7 +22,7 @@ export interface EffortSelectorLabels {
   thinkingDescription: string;
 }
 
-const DEFAULT_LABELS: EffortSelectorLabels = {
+export const DEFAULT_EFFORT_SELECTOR_LABELS: EffortSelectorLabels = {
   label: 'Reasoning effort',
   thinking: 'Extended thinking',
   thinkingDescription: 'Show the reasoning before the answer',
@@ -67,7 +67,7 @@ export const EffortSelector = memo(function EffortSelector({
   className,
   style,
 }: EffortSelectorProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_EFFORT_SELECTOR_LABELS, ...labelsProp };
   const { ref, width } = useElementSize();
   const labelId = useId();
   const active = findEffortLevel(levels, value);

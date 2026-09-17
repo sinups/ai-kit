@@ -2,7 +2,7 @@ import React from 'react';
 import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { ToolGroup } from './ToolGroup';
-import { NESTED_TOOLS } from './_stories-shared';
+import { NESTED_TOOLS } from './_story-helpers';
 
 export default { title: 'tools/ToolGroup' };
 

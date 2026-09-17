@@ -30,9 +30,11 @@ export interface MessageActionsLabels {
   good: string;
   bad: string;
   error: string;
+  /** Labels of the feedback form */
+  feedbackForm: Partial<FeedbackFormLabels>;
 }
 
-const DEFAULT_LABELS: MessageActionsLabels = {
+export const DEFAULT_MESSAGE_ACTIONS_LABELS: MessageActionsLabels = {
   toolbar: 'Message actions',
   copy: 'Copy',
   copied: 'Copied',
@@ -43,6 +45,7 @@ const DEFAULT_LABELS: MessageActionsLabels = {
   good: 'Good response',
   bad: 'Bad response',
   error: 'Action failed',
+  feedbackForm: {},
 };
 
 export interface MessageActionsProps {
@@ -66,8 +69,6 @@ export interface MessageActionsProps {
   feedback?: MessageFeedbackValue | null;
   /** Reasons offered after a thumbs down */
   feedbackReasons?: FeedbackReason[];
-  /** Labels of the feedback form */
-  feedbackLabels?: Partial<FeedbackFormLabels>;
   /** Disables every action except copy, for example while the agent is responding */
   disabled?: boolean;
   /** `hover` reveals the actions on hover and focus of the toolbar or of an ancestor with `data-message-actions-host`, touch devices always see them; `always` keeps them visible, `hover` by default */
@@ -132,7 +133,6 @@ export const MessageActions = memo(function MessageActions({
   onFeedback,
   feedback,
   feedbackReasons,
-  feedbackLabels,
   disabled = false,
   visibility = 'hover',
   align = 'start',
@@ -140,7 +140,7 @@ export const MessageActions = memo(function MessageActions({
   className,
   style,
 }: MessageActionsProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_MESSAGE_ACTIONS_LABELS, ...labelsProp };
   const { pendingKey, run } = useAsyncAction(labels.error);
   const [internalFeedback, setInternalFeedback] = useState<MessageFeedbackValue | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -232,7 +232,7 @@ export const MessageActions = memo(function MessageActions({
           <FeedbackForm
             value={internalFeedback ?? 'up'}
             reasons={feedbackReasons}
-            labels={feedbackLabels}
+            labels={labels.feedbackForm}
             onSubmit={async (details) => {
               await onFeedback('down', details);
               downSentRef.current = true;

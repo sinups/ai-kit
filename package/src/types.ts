@@ -265,7 +265,7 @@ export type AgentChatProps = {
   /** Show copy toolbar on text turns, `true` by default */
   showCopyToolbar?: boolean;
 
-  /** Collapse runs of consecutive read and search tool calls into one summary row, off by default */
+  /** Collapse runs of consecutive read and search tool calls into one summary row, `false` by default */
   collapseToolRuns?: boolean | CollapseToolRunsOptions;
 
   /** Message actions under messages: edit, retry, rewind, branch and feedback; plain copy toolbar when omitted */
@@ -279,7 +279,7 @@ export type AgentChatProps = {
 
   /**
    * Extra props for the composer: `completions`, `leftActions`, `rightActions`, `placeholder`,
-   * `onQueue`, `queuedMessages`, `onRemoveQueued`, `queuedLabel` and the rest of `InputBarProps`.
+   * `onQueue`, `queuedMessages`, `onRemoveQueued`, `labels` and the rest of `InputBarProps`.
    * `AgentChat` owns `onSend`, `status`, `onStop`, the draft value and the question bar;
    * `attachments` and `suggestions` take precedence over the same fields here.
    */
@@ -291,8 +291,8 @@ export type AgentChatProps = {
   /** Content above the composer aligned with the message column, for example `AgentStatus` */
   statusBar?: React.ReactNode;
 
-  /** Adds the conversation search, opened with Mod+F anywhere inside the chat, including the composer */
-  searchable?: boolean;
+  /** Adds the conversation search, opened with Mod+F anywhere inside the chat, including the composer, `false` by default */
+  withSearch?: boolean;
 
   /** Pins the prompt of the answer being read to the top while scrolling a long answer */
   stickyPrompt?: boolean;
@@ -300,7 +300,7 @@ export type AgentChatProps = {
   /** Syntax highlighter for code blocks in answers; plain code blocks when omitted */
   highlighter?: SyntaxHighlighter;
 
-  /** Collapses long user messages to head and tail; `true` uses `{ chars: 2000, lines: 30 }`, off by default */
+  /** Collapses long user messages to head and tail; `true` uses `{ chars: 2000, lines: 30 }`, `false` by default */
   longMessageThreshold?: LongTextThreshold | boolean;
 
   /** Max width of the message column and composer: a number in px or any CSS width, `420px` by default. Pass `'100%'` or `960` for a full-page chat */
@@ -309,7 +309,7 @@ export type AgentChatProps = {
   /** Where to position the scroll container on initial mount, `'bottom'` by default */
   initialScrollBehavior?: 'bottom' | 'top';
 
-  /** When `true` (default) clicking an attached image opens a fullscreen lightbox preview */
+  /** Opens an attached image in a fullscreen lightbox on click, `true` by default */
   enableImagePreview?: boolean;
 
   suggestions?: InputSuggestions;
@@ -321,13 +321,13 @@ export type AgentChatProps = {
   emptyStateWidth?: number | string;
   /** Shows composer suggestions only while the chat has no messages */
   hideSuggestionsWhenNotEmpty?: boolean;
-  /** Lines the composer and status bar up with the text edge of the message column, off by default */
+  /** Lines the composer and status bar up with the text edge of the message column, `false` by default */
   alignComposer?: boolean;
-  /** Fades the top edge of the message list once it is scrolled, off by default */
+  /** Fades the top edge of the message list once it is scrolled, `false` by default */
   topFade?: boolean;
-  /** Wraps long lines in code blocks and diffs instead of scrolling them sideways, for narrow layouts; off by default */
+  /** Wraps long lines in code blocks and diffs instead of scrolling them sideways, for narrow layouts, `false` by default */
   wrapLines?: boolean;
-  /** Shows answer tables with too many columns for the width as one card per row, off by default */
+  /** Shows answer tables with too many columns for the width as one card per row, `false` by default */
   responsiveTables?: boolean;
   emptySuggestionsPlacement?: 'input' | 'empty' | 'both';
   /**

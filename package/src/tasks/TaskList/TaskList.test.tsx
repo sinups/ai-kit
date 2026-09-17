@@ -6,7 +6,7 @@ import { TaskList } from './TaskList';
 
 const NOW = new Date('2026-09-17T12:00:00Z').getTime();
 
-describe('TaskList', () => {
+describe('tasks/TaskList', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -47,11 +47,13 @@ describe('TaskList', () => {
 
   it('shows stop for running tasks and retry for failed ones', async () => {
     const onStop = jest.fn();
-    const onRetry = jest.fn();
+    const onRetryTask = jest.fn();
     const tasks = createTaskFixtures(NOW).filter((task) =>
       ['dev-server', 'migration'].includes(task.id)
     );
-    render(<TaskList tasks={tasks} onStop={onStop} onRetry={onRetry} onRemove={jest.fn()} />);
+    render(
+      <TaskList tasks={tasks} onStop={onStop} onRetryTask={onRetryTask} onRemove={jest.fn()} />
+    );
 
     const [running, failed] = screen.getAllByRole('button', { name: 'Task actions' });
     await userEvent.click(running);
@@ -62,7 +64,7 @@ describe('TaskList', () => {
     await userEvent.click(failed);
     expect(await screen.findByRole('menuitem', { name: 'Remove' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('menuitem', { name: 'Retry' }));
-    expect(onRetry).toHaveBeenCalledWith(expect.objectContaining({ id: 'migration' }));
+    expect(onRetryTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'migration' }));
   });
 
   it('shows a rejected action in an alert', async () => {
@@ -76,16 +78,16 @@ describe('TaskList', () => {
   });
 
   it('renders the empty, loading and error states', async () => {
-    const onRetryLoad = jest.fn();
+    const onRetry = jest.fn();
     const { rerender } = render(<TaskList tasks={[]} />);
     expect(screen.getByText('No background tasks')).toBeInTheDocument();
 
     rerender(<TaskList tasks={[]} loading />);
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
 
-    rerender(<TaskList tasks={[]} error="Could not load tasks" onRetryLoad={onRetryLoad} />);
+    rerender(<TaskList tasks={[]} error="Could not load tasks" onRetry={onRetry} />);
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(onRetryLoad).toHaveBeenCalled();
+    expect(onRetry).toHaveBeenCalled();
   });
 
   it('shows blockers, owners and highlights recently completed tasks', () => {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Badge, Group, Tooltip } from '@mantine/core';
 import { getMcpToolAnnotationKinds, type McpToolAnnotationKind } from './mcp-server';
 import type { McpToolAnnotations } from './types';
@@ -8,7 +8,7 @@ export type McpToolAnnotationLabels = Record<
   { label: string; description: string }
 >;
 
-export const MCP_TOOL_ANNOTATION_LABELS: McpToolAnnotationLabels = {
+export const DEFAULT_MCP_TOOL_ANNOTATION_LABELS: McpToolAnnotationLabels = {
   'read-only': { label: 'read-only', description: 'Does not modify its environment' },
   destructive: { label: 'destructive', description: 'May delete or overwrite data' },
   idempotent: { label: 'idempotent', description: 'Repeating a call has no extra effect' },
@@ -31,9 +31,9 @@ export interface McpToolAnnotationBadgesProps {
   withTooltips?: boolean;
 }
 
-export function McpToolAnnotationBadges({
+export const McpToolAnnotationBadges = memo(function McpToolAnnotationBadges({
   annotations,
-  labels = MCP_TOOL_ANNOTATION_LABELS,
+  labels = DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
   withTooltips = false,
 }: McpToolAnnotationBadgesProps) {
   const kinds = getMcpToolAnnotationKinds(annotations);
@@ -58,4 +58,6 @@ export function McpToolAnnotationBadges({
       })}
     </Group>
   );
-}
+});
+
+McpToolAnnotationBadges.displayName = 'McpToolAnnotationBadges';

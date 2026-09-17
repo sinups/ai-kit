@@ -17,7 +17,7 @@ export interface FileAttachmentProps {
   className?: string;
   /** `'chip'` renders icon + name, `'image-only'` renders a square thumbnail (images with `url` only) */
   display?: 'chip' | 'image-only';
-  /** When `true` (default) clicking the image thumbnail opens a fullscreen preview */
+  /** Opens the image thumbnail in a fullscreen preview on click, `true` by default */
   enableImagePreview?: boolean;
   style?: React.CSSProperties;
 }

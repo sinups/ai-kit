@@ -54,8 +54,10 @@ Folders that start with an underscore are not exported:
 - **Domain types** live in `<module>/types.ts`, are exported, and stay structurally compatible
   with the source protocol where one exists (MCP specification for `mcp/` and `elicitation/`,
   AI SDK `UIMessage` for chat).
-- **Labels** are English defaults overridable through props (`labels?: Partial<XLabels>` for
-  components with many strings). No hard-coded user-visible text without an override.
+- **Labels** are English defaults in an exported `DEFAULT_<NAME>_LABELS`, overridable through
+  `labels?: Partial<XLabels>`; there are no separate `xLabel` props. Labels of a nested part sit
+  under a key of `XLabels` typed `Partial<YLabels>` (`labels.wizard`, `labels.toolSelector`).
+  `ariaLabel` stays a prop. No hard-coded user-visible text without an override.
 - **Width.** Layout adapts to the component's own width, not the viewport: Mantine
   `Grid type="container"`, `useElementSize`, or container queries. Wide: side by side (list and
   detail, navigation and content). Narrow: stacked with a back action.

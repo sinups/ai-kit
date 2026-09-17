@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { memoryPreview } from './memory-preview';
 import { MemoryNotice } from './MemoryNotice';
 
-describe('MemoryNotice', () => {
+describe('message-actions/MemoryNotice', () => {
   it('expands to the saved content and opens the memory', async () => {
     const onOpen = jest.fn();
     render(<MemoryNotice content="Use yarn, not npm" target="AGENTS.md" onOpen={onOpen} />);

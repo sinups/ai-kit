@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { skills } from './fixtures';
 import { SkillDetail } from './SkillDetail';
 
-describe('SkillDetail', () => {
+describe('skills/SkillDetail', () => {
   it('renders metadata, allowed tools and markdown instructions', () => {
     render(<SkillDetail skill={skills[0]} locale="en-US" />);
     expect(screen.getByRole('heading', { name: 'pdf' })).toBeInTheDocument();

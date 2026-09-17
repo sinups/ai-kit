@@ -213,7 +213,7 @@ function FullPageChatBody({ empty, compact }: { empty: boolean; compact: boolean
       collapseToolRuns
       alignComposer
       topFade
-      searchable
+      withSearch
       wrapLines={compact}
       emptyState={WELCOME}
       style={{ flex: 1, minHeight: 0 }}
@@ -428,7 +428,7 @@ function SettingsScreen() {
       title="Settings"
       sections={SETTINGS_SECTIONS}
       activeId={activeId}
-      onActiveChange={setActiveId}
+      onActiveIdChange={setActiveId}
       breakpoint={560}
       navWidth={180}
       style={{ flex: 1, minHeight: 0 }}

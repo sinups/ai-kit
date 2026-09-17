@@ -1,6 +1,6 @@
 import { fuzzyFilter, fuzzyScore, splitByIndices } from './fuzzy';
 
-describe('fuzzyScore', () => {
+describe('primitives/fuzzyScore', () => {
   it('matches a case-insensitive subsequence and returns indices', () => {
     expect(fuzzyScore('GS', 'git status')?.indices).toEqual([0, 4]);
     expect(fuzzyScore('opf', 'Open File')?.indices).toEqual([0, 1, 5]);
@@ -42,7 +42,7 @@ describe('fuzzyScore', () => {
   });
 });
 
-describe('fuzzyFilter', () => {
+describe('primitives/fuzzyFilter', () => {
   const items = [
     { name: 'Sort by date', tags: ['order'] },
     { name: 'Settings', tags: ['preferences'] },
@@ -78,7 +78,7 @@ describe('fuzzyFilter', () => {
   });
 });
 
-describe('splitByIndices', () => {
+describe('primitives/splitByIndices', () => {
   it('groups consecutive highlighted characters', () => {
     expect(splitByIndices('Open File', [0, 1, 5])).toEqual([
       { text: 'Op', highlighted: true },

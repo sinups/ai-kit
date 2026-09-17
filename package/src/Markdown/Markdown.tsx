@@ -50,13 +50,13 @@ export type MarkdownProps = {
   textContrast?: 'normal' | 'high';
   /** Controls rendered in code blocks, `{ code: true }` by default */
   controls?: { code?: boolean };
-  /** Wraps long lines in fenced code blocks instead of scrolling them horizontally */
-  codeWrap?: boolean;
+  /** Wraps long lines in fenced code blocks instead of scrolling them horizontally, `false` by default */
+  wrapLines?: boolean;
   /** Syntax highlighter for fenced code blocks */
   highlighter?: SyntaxHighlighter;
   /** Content is still arriving: finished blocks are parsed once and only the growing tail is re-parsed */
   streaming?: boolean;
-  /** Shows tables with too many columns for the available width as one card per row, off by default */
+  /** Shows tables with too many columns for the available width as one card per row, `false` by default */
   responsiveTables?: boolean;
 };
 
@@ -155,7 +155,7 @@ const OVERRIDES: MarkdownToJSX.Overrides = {
 
 interface RenderOptions {
   showCopy: boolean;
-  codeWrap: boolean;
+  wrapLines: boolean;
   highlighter?: SyntaxHighlighter;
   streaming: boolean;
   responsiveTables: boolean;
@@ -163,7 +163,7 @@ interface RenderOptions {
 
 function createOptions({
   showCopy,
-  codeWrap,
+  wrapLines,
   highlighter,
   streaming,
   responsiveTables,
@@ -181,7 +181,7 @@ function createOptions({
             language={node.lang}
             highlighter={highlighter}
             withCopy={showCopy}
-            wrap={codeWrap}
+            wrapLines={wrapLines}
             streaming={streaming}
           />
         );
@@ -222,7 +222,7 @@ export const Markdown = memo(function Markdown({
   className,
   controls,
   highlighter,
-  codeWrap = false,
+  wrapLines = false,
   streaming = false,
   responsiveTables = false,
 }: MarkdownProps) {
@@ -231,23 +231,23 @@ export const Markdown = memo(function Markdown({
     () =>
       createOptions({
         showCopy,
-        codeWrap,
+        wrapLines,
         highlighter,
         responsiveTables,
         streaming: false,
       }),
-    [showCopy, codeWrap, highlighter, responsiveTables]
+    [showCopy, wrapLines, highlighter, responsiveTables]
   );
   const tailOptions = useMemo(
     () =>
       createOptions({
         showCopy,
-        codeWrap,
+        wrapLines,
         highlighter,
         responsiveTables,
         streaming: true,
       }),
-    [showCopy, codeWrap, highlighter, responsiveTables]
+    [showCopy, wrapLines, highlighter, responsiveTables]
   );
   const normalized = useMemo(() => normalizeMarkdown(content), [content]);
   // Re-parsing a finished stream as one document would remount every code block and table.

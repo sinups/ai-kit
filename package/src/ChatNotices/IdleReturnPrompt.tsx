@@ -27,7 +27,7 @@ export interface IdleReturnPromptProps {
   onNewChat?: () => void;
   /** Turns the prompt off, the button is rendered only when set */
   onDontAskAgain?: () => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<IdleReturnPromptLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -35,7 +35,7 @@ export interface IdleReturnPromptProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: IdleReturnPromptLabels = {
+export const DEFAULT_IDLE_RETURN_PROMPT_LABELS: IdleReturnPromptLabels = {
   title: 'Welcome back, {duration} since your last message.',
   message: 'This chat already holds {tokens} tokens. Keep going here or start fresh?',
   messageWithoutTokens: 'Keep going here or start fresh?',
@@ -55,7 +55,7 @@ export const IdleReturnPrompt = memo(function IdleReturnPrompt({
   className,
   style,
 }: IdleReturnPromptProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_IDLE_RETURN_PROMPT_LABELS, ...labelsProp };
   const message =
     tokens === undefined
       ? labels.messageWithoutTokens

@@ -4,7 +4,7 @@ import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ErrorMessage } from './ErrorMessage';
 
-describe('ErrorMessage', () => {
+describe('ErrorMessage/ErrorMessage', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -41,8 +41,7 @@ describe('ErrorMessage', () => {
         message="Limit"
         resetsAt={new Date('2026-01-01T14:05:00')}
         onRetry={onRetry}
-        retryLabel="Try again"
-        resetsAtLabel={(time) => `Resets ${time}`}
+        labels={{ retry: 'Try again', resetsAt: (time) => `Resets ${time}` }}
       />
     );
     expect(screen.getByText(/^Resets /)).toBeInTheDocument();

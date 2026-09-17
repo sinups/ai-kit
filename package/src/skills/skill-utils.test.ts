@@ -18,7 +18,7 @@ const SKILLS: Skill[] = [
   { id: '3', name: 'deploy', description: 'Deploy', source: 'project', enabled: true },
 ];
 
-describe('validateSkillName', () => {
+describe('skills/validateSkillName', () => {
   it('accepts lowercase slugs', () => {
     expect(validateSkillName('pdf-forms-2')).toBeNull();
   });
@@ -33,7 +33,7 @@ describe('validateSkillName', () => {
   });
 });
 
-describe('validateSkillDraft', () => {
+describe('skills/validateSkillDraft', () => {
   it('reports name and description errors', () => {
     expect(validateSkillDraft({ ...skillToDraft(), name: 'Bad Name', description: '  ' })).toEqual({
       name: 'Use lowercase letters, digits and single hyphens',
@@ -46,7 +46,7 @@ describe('validateSkillDraft', () => {
   });
 });
 
-describe('drafts', () => {
+describe('skills/drafts', () => {
   it('creates an empty draft and one from a skill', () => {
     expect(skillToDraft()).toEqual({
       name: '',
@@ -88,7 +88,7 @@ describe('drafts', () => {
   });
 });
 
-describe('source helpers', () => {
+describe('skills/skill-utils source helpers', () => {
   it('filters and counts by source', () => {
     expect(filterSkillsBySource(SKILLS, 'all')).toBe(SKILLS);
     expect(filterSkillsBySource(SKILLS, 'project').map((skill) => skill.id)).toEqual(['2', '3']);
@@ -103,7 +103,7 @@ describe('source helpers', () => {
   });
 });
 
-describe('names', () => {
+describe('skills/names', () => {
   it('turns text into a slug', () => {
     expect(toSkillSlug('  PDF Forms & Tables! ')).toBe('pdf-forms-tables');
   });
@@ -114,7 +114,7 @@ describe('names', () => {
   });
 });
 
-describe('searchSkills', () => {
+describe('skills/searchSkills', () => {
   const catalog: Skill[] = [
     { id: 'a', name: 'deploy', description: 'Ship the web app', source: 'user', enabled: true },
     {

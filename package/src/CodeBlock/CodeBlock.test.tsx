@@ -6,7 +6,7 @@ import { CodeBlock } from './CodeBlock';
 const lines = (count: number) =>
   Array.from({ length: count }, (_, index) => `line ${index + 1}`).join('\n');
 
-describe('CodeBlock', () => {
+describe('CodeBlock/CodeBlock', () => {
   beforeEach(() => clearHighlightCache());
 
   it('renders the language, plain lines and a copy button', () => {

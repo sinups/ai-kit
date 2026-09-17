@@ -4,7 +4,7 @@ import { HookWizard } from './HookWizard';
 
 const next = () => userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-describe('HookWizard', () => {
+describe('hooks-config/HookWizard', () => {
   it('creates a tool hook step by step', async () => {
     const onSubmit = jest.fn();
     const onClose = jest.fn();

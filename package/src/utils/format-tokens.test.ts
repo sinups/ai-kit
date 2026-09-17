@@ -1,6 +1,6 @@
 import { formatTokens } from './format-tokens';
 
-describe('formatTokens', () => {
+describe('utils/formatTokens', () => {
   it('keeps small numbers as is', () => {
     expect(formatTokens(0)).toBe('0');
     expect(formatTokens(999)).toBe('999');

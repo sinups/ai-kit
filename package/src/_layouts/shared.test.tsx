@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useLayoutChat } from './shared';
 
-describe('useLayoutChat', () => {
+describe('_layouts/useLayoutChat', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
 

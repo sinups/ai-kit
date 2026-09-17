@@ -1,6 +1,6 @@
 import { countCodeLines, getCollapsedLineCount } from './code-lines';
 
-describe('code lines', () => {
+describe('CodeBlock/code-lines', () => {
   it('counts lines ignoring one trailing newline', () => {
     expect(countCodeLines('')).toBe(1);
     expect(countCodeLines('a\nb')).toBe(2);

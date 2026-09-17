@@ -11,7 +11,7 @@ const messages: ChatMessage[] = [
   { id: 'a2', role: 'assistant', parts: [{ type: 'text', text: 'Added' }] },
 ];
 
-describe('RewindDialog', () => {
+describe('message-actions/RewindDialog', () => {
   it('rewinds to the picked point with the chosen mode and closes', async () => {
     const onRewind = jest.fn();
     const onClose = jest.fn();
@@ -24,7 +24,7 @@ describe('RewindDialog', () => {
     expect(screen.getByText('3 later messages')).toBeInTheDocument();
 
     await userEvent.click(options[1]);
-    await userEvent.click(screen.getByRole('radio', { name: /Restore conversation and code/ }));
+    await userEvent.click(screen.getByRole('radio', { name: /Messages and file changes/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Rewind' }));
 
     expect(onRewind).toHaveBeenCalledWith({ messageId: 'u1', mode: 'conversation-and-code' });
@@ -70,17 +70,17 @@ describe('RewindDialog', () => {
       await screen.findByRole('textbox', { name: 'What should the summary keep?' }),
       '  keep the form fields  '
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Summarize up to here' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Summarize everything above' }));
     expect(onSummarize).toHaveBeenCalledWith({
       messageId: 'u1',
       direction: 'up-to',
       context: 'keep the form fields',
     });
-    expect(screen.getByRole('button', { name: 'Summarize up to here' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Summarize everything above' })).toHaveAttribute(
       'data-loading',
       'true'
     );
-    expect(screen.getByRole('button', { name: 'Summarize from here' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Summarize this and below' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Rewind' })).toBeDisabled();
 
     resolve();
@@ -100,7 +100,7 @@ describe('RewindDialog', () => {
       />
     );
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Summarize from here' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Summarize this and below' }));
     expect(onSummarize).toHaveBeenCalledWith({ messageId: 'u2', direction: 'from' });
     expect(await screen.findByText('Summary model unavailable')).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
@@ -109,7 +109,9 @@ describe('RewindDialog', () => {
   it('hides the summarize actions without onSummarize', async () => {
     render(<RewindDialog opened onClose={jest.fn()} messages={messages} onRewind={jest.fn()} />);
     await screen.findByRole('button', { name: 'Rewind' });
-    expect(screen.queryByRole('button', { name: 'Summarize from here' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Summarize this and below' })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'What should the summary keep?' })).toBeNull();
   });
 });

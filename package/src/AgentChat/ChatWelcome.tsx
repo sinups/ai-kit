@@ -18,6 +18,15 @@ export type ChatWelcomeAction = {
   onSelect?: () => void;
 };
 
+export interface ChatWelcomeLabels {
+  /** Accessible label of the action list, `Suggested actions` by default */
+  actions: string;
+}
+
+export const DEFAULT_CHAT_WELCOME_LABELS: ChatWelcomeLabels = {
+  actions: 'Suggested actions',
+};
+
 export interface ChatWelcomeProps {
   /** Logo or avatar shown in a 48px circle */
   avatar?: React.ReactNode;
@@ -29,8 +38,8 @@ export interface ChatWelcomeProps {
   actions?: ChatWelcomeAction[];
   /** Called for an action without its own `onSelect` */
   onAction?: (action: ChatWelcomeAction) => void;
-  /** Accessible label of the action list, `Suggested actions` by default */
-  actionsLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<ChatWelcomeLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -44,10 +53,11 @@ export const ChatWelcome = memo(function ChatWelcome({
   description,
   actions = [],
   onAction,
-  actionsLabel = 'Suggested actions',
+  labels: labelsProp,
   className,
   style,
 }: ChatWelcomeProps) {
+  const labels = { ...DEFAULT_CHAT_WELCOME_LABELS, ...labelsProp };
   const listRef = useRef<HTMLDivElement>(null);
 
   const moveFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -97,7 +107,7 @@ export const ChatWelcome = memo(function ChatWelcome({
             ref={listRef}
             gap={2}
             role="group"
-            aria-label={actionsLabel}
+            aria-label={labels.actions}
             className={classes.actions}
             onKeyDown={moveFocus}
           >

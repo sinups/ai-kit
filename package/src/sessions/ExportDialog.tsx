@@ -62,7 +62,7 @@ export interface ExportDialogProps {
   labels?: Partial<ExportDialogLabels>;
 }
 
-const DEFAULT_LABELS: ExportDialogLabels = {
+export const DEFAULT_EXPORT_DIALOG_LABELS: ExportDialogLabels = {
   title: 'Export conversation',
   format: 'Format',
   markdown: 'Markdown',
@@ -182,7 +182,7 @@ export const ExportDialog = memo(function ExportDialog({
   previewHeight = 320,
   labels,
 }: ExportDialogProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_EXPORT_DIALOG_LABELS, ...labels };
   const fullScreen = useMediaQuery('(max-width: 36em)') ?? false;
 
   return (

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { StatusPanel } from './StatusPanel';
 
-describe('StatusPanel', () => {
+describe('model-settings/StatusPanel', () => {
   it('summarizes the environment and counts MCP servers per status', () => {
     render(
       <StatusPanel

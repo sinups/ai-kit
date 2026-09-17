@@ -24,11 +24,11 @@ export interface PromptHistorySearchProps {
   history: string[];
   /** Called with the picked prompt */
   onSelect: (prompt: string) => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<PromptHistorySearchLabels>;
 }
 
-const DEFAULT_LABELS: PromptHistorySearchLabels = {
+export const DEFAULT_PROMPT_HISTORY_SEARCH_LABELS: PromptHistorySearchLabels = {
   search: 'Find a previous prompt',
   results: 'Prompts',
   empty: 'No matching prompts',
@@ -45,7 +45,7 @@ export const PromptHistorySearch = memo(function PromptHistorySearch({
   onSelect,
   labels: labelsProp,
 }: PromptHistorySearchProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_PROMPT_HISTORY_SEARCH_LABELS, ...labelsProp };
 
   const commands = useMemo<PaletteCommand[]>(
     () =>
@@ -72,8 +72,7 @@ export const PromptHistorySearch = memo(function PromptHistorySearch({
       onClose={onClose}
       commands={commands}
       placeholder={labels.search}
-      emptyLabel={labels.empty}
-      labels={{ search: labels.search, results: labels.results }}
+      labels={{ search: labels.search, results: labels.results, empty: labels.empty }}
     />
   );
 });

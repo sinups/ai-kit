@@ -209,16 +209,6 @@
   box-shadow: var(--mantine-shadow-sm);
 }
 
-:global(::highlight(ae-search-match)) {
-  background-color: alpha(var(--mantine-color-yellow-4), 0.45);
-  color: inherit;
-}
-
-:global(::highlight(ae-search-active)) {
-  background-color: var(--mantine-color-orange-5);
-  color: var(--mantine-color-black);
-}
-
 .root[data-top-fade] {
   mask-image: linear-gradient(to bottom, transparent 0, black var(--ae-top-fade-size, rem(24px)));
 }

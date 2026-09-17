@@ -1,6 +1,6 @@
 import { getTurnSummarySegments } from './turn-summary';
 
-describe('turn-summary', () => {
+describe('TurnSummary/turn-summary', () => {
   it('builds the summary segments', () => {
     expect(
       getTurnSummarySegments({

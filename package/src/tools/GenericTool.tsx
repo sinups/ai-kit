@@ -74,3 +74,5 @@ export const GenericTool = memo(function GenericTool({
     />
   );
 });
+
+GenericTool.displayName = 'GenericTool';

@@ -1,6 +1,6 @@
 import { getToolName, getToolResultNoticeVariant } from './tool-result-notice';
 
-describe('tool-result-notice', () => {
+describe('message-actions/tool-result-notice', () => {
   it('derives the variant from the part state and chat status', () => {
     const part = (state: string) => ({ type: 'tool-Edit', state });
     expect(getToolResultNoticeVariant(part('output-denied'))).toBe('rejected');

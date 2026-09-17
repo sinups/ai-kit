@@ -51,7 +51,7 @@ function controllableResizeObserver() {
   };
 }
 
-describe('SkillCatalog', () => {
+describe('skills/SkillCatalog', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

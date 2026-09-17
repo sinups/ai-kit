@@ -1,6 +1,6 @@
 import { formatPercent, getUsageLevel, getUsageRatio } from './context-usage';
 
-describe('context usage helpers', () => {
+describe('ContextUsage/context-usage', () => {
   it('clamps the ratio and guards against an empty total', () => {
     expect(getUsageRatio(50, 200)).toBe(0.25);
     expect(getUsageRatio(300, 200)).toBe(1);

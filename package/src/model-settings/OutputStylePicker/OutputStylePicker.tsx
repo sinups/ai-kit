@@ -16,8 +16,8 @@ export interface OutputStylePickerProps {
   description?: React.ReactNode;
   /** Id of an element that names the group when `label` is not set, for example a section heading */
   labelledBy?: string;
-  /** Hides the examples to keep the cards short */
-  withoutExamples?: boolean;
+  /** Shows the example answer on each card, `true` by default */
+  withExamples?: boolean;
   /** Disables every card */
   disabled?: boolean;
   /** Class name added to the root element */
@@ -34,7 +34,7 @@ export const OutputStylePicker = memo(function OutputStylePicker({
   label,
   description,
   labelledBy,
-  withoutExamples = false,
+  withExamples = true,
   disabled = false,
   className,
   style,
@@ -74,7 +74,7 @@ export const OutputStylePicker = memo(function OutputStylePicker({
                 <Text size="xs" c="dimmed">
                   {item.description}
                 </Text>
-                {item.example && !withoutExamples && (
+                {item.example && withExamples && (
                   <Text size="xs" fs="italic" className={classes.example}>
                     {item.example}
                   </Text>

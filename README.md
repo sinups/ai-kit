@@ -39,12 +39,28 @@ logic (validation, filtering, formatting) is exported next to them.
 npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react
 ```
 
-Import the stylesheets once at the root of your app:
+Import the stylesheets once at the root of your app. Either take all kit styles in one file:
 
 ```tsx
 import '@mantine/core/styles.css';
 import '@sinups/ai-kit/styles.css';
 ```
+
+or only the styles of the components you use, like `@mantine/core/styles/Button.css`. `base.css` holds
+the `--ae-*` tokens and is required once; each component file already includes the styles of the
+components it renders:
+
+```tsx
+import '@mantine/core/styles.css';
+import '@sinups/ai-kit/styles/base.css';
+import '@sinups/ai-kit/styles/Wizard.css';
+import '@sinups/ai-kit/styles/ChatLauncher.css';
+```
+
+With cascade layers, import `@sinups/ai-kit/styles.layer.css` (everything inside `@layer mantine`),
+or put per-component files into a layer yourself:
+`@import '@sinups/ai-kit/styles/Wizard.css' layer(ai-kit);`. JavaScript is tree-shaken the same way: importing `Wizard` bundles about 4 KB gzip, not the whole kit. Sizes per
+component are on the [Bundle size](https://sinups.github.io/ai-kit/docs/bundle-size) page.
 
 ## Usage
 
@@ -101,10 +117,12 @@ On a page you do not control, mount it in a shadow root:
 
 ```tsx
 import mantineCss from '@mantine/core/styles.css?inline';
-import kitCss from '@sinups/ai-kit/styles.css?inline';
+import baseCss from '@sinups/ai-kit/styles/base.css?inline';
+import launcherCss from '@sinups/ai-kit/styles/ChatLauncher.css?inline';
+import chatCss from '@sinups/ai-kit/styles/AgentChat.css?inline';
 
 const widget = mountChatLauncher(document.getElementById('assistant'), <SupportLauncher />, {
-  styles: [mantineCss, kitCss],
+  styles: [mantineCss, baseCss, launcherCss, chatCss],
 });
 ```
 

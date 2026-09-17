@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack } from '@mantine/core';
 import type { CustomToolRendererProps } from '../types';
 import { ToolRenderer } from './ToolRenderer';
-import { bashPart, editPart, NESTED_TOOLS } from './_stories-shared';
+import { bashPart, editPart, NESTED_TOOLS } from './_story-helpers';
 
 export default { title: 'tools/ToolRenderer' };
 

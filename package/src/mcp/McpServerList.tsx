@@ -62,7 +62,7 @@ export type McpServerListLabels = {
   scope: Record<McpServerScope, string>;
 };
 
-export const MCP_SERVER_LIST_LABELS: McpServerListLabels = {
+export const DEFAULT_MCP_SERVER_LIST_LABELS: McpServerListLabels = {
   addServer: 'Add server',
   list: 'MCP servers',
   search: 'Search servers',
@@ -106,7 +106,7 @@ export interface McpServerListProps {
   loading?: boolean;
   /** Error message shown instead of the list */
   error?: React.ReactNode;
-  /** Called by the retry button of the error */
+  /** Called by the retry button of the error alert */
   onRetry?: () => void;
   /** Renders the "Add server" button when set */
   onAdd?: () => void;
@@ -168,7 +168,7 @@ export const McpServerList = memo(function McpServerList({
   className,
   style,
 }: McpServerListProps) {
-  const labels = { ...MCP_SERVER_LIST_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_SERVER_LIST_LABELS, ...labelsOverride };
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<string>('all');
   const action = usePendingActions(labels.error);
@@ -240,9 +240,8 @@ export const McpServerList = memo(function McpServerList({
         loading={loading}
         error={error}
         onRetry={onRetry}
-        retryLabel={labels.retry}
+        labels={{ retry: labels.retry, noResults: labels.noResults }}
         ariaLabel={labels.list}
-        noResults={labels.noResults}
         empty={{
           title: labels.emptyTitle,
           description: labels.emptyDescription,
@@ -316,7 +315,7 @@ export const McpServerList = memo(function McpServerList({
                   : undefined
               }
               actions={getActions(server)}
-              actionsLabel={`${labels.actions}: ${server.name}`}
+              labels={{ actions: `${labels.actions}: ${server.name}` }}
               selected={selected}
             />
           );
@@ -330,9 +329,7 @@ export const McpServerList = memo(function McpServerList({
           message={
             removeTarget ? formatTemplate(labels.removeMessage, { name: removeTarget.name }) : null
           }
-          confirmLabel={labels.remove}
-          cancelLabel={labels.cancel}
-          errorLabel={labels.error}
+          labels={{ confirm: labels.remove, cancel: labels.cancel, error: labels.error }}
           onConfirm={() => (removeTarget ? onRemove(removeTarget) : undefined)}
           onClose={() => setRemoveTarget(null)}
         />
@@ -340,3 +337,5 @@ export const McpServerList = memo(function McpServerList({
     </Stack>
   );
 });
+
+McpServerList.displayName = 'McpServerList';

@@ -5,7 +5,7 @@ import { McpServerWizard } from './McpServerWizard';
 
 const next = () => userEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-describe('McpServerWizard', () => {
+describe('mcp/McpServerWizard', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

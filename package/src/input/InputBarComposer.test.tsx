@@ -14,7 +14,7 @@ function renderBar(props: Partial<InputBarProps> = {}) {
   return { onSend, user, textarea };
 }
 
-describe('InputBar paste collapsing', () => {
+describe('input/InputBar paste collapsing', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -74,7 +74,7 @@ describe('InputBar paste collapsing', () => {
   });
 });
 
-describe('InputBar prompt history', () => {
+describe('input/InputBar prompt history', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -172,7 +172,7 @@ function Controlled() {
   );
 }
 
-describe('InputBar controlled history', () => {
+describe('input/InputBar controlled history', () => {
   it('works with a controlled value', async () => {
     const user = userEvent.setup({ delay: null });
     render(<Controlled />);

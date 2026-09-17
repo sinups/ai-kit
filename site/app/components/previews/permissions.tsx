@@ -50,7 +50,7 @@ function RulesPanelPreview({ narrow = false }: { narrow?: boolean }) {
           setRules((prev) => (mode === "edit" ? prev.map((item) => (item.id === rule.id ? rule : item)) : [...prev, rule]));
         }}
         onDeleteRule={(rule) => setRules((prev) => prev.filter((item) => item.id !== rule.id))}
-        onChangeScope={(rule, scope) =>
+        onMoveRule={(rule, scope) =>
           setRules((prev) => prev.map((item) => (item.id === rule.id ? { ...item, scope } : item)))
         }
         onAddDirectory={async (directory) => {

@@ -226,6 +226,7 @@ export default function WhatsNewPage() {
       sections={[
         { id: "overview", label: "Overview" },
         { id: "breaking", label: "Breaking changes" },
+        { id: "package", label: "Package" },
         { id: "deprecations", label: "Deprecations" },
         { id: "modules", label: "New modules" },
         { id: "chat", label: "New chat components" },
@@ -296,6 +297,34 @@ export default function WhatsNewPage() {
         <DocCodeBlock code={INSTALL} language="bash" />
       </GuideSection>
 
+      <GuideSection id="package" title="Package">
+        <Bullets>
+          <li>
+            Styles can be imported per component, like <C>@mantine/core/styles/Button.css</C>:{" "}
+            <C>@sinups/ai-kit/styles/base.css</C> once, then <C>styles/Wizard.css</C>,{" "}
+            <C>styles/AgentChat.css</C> and so on. Each file includes the styles of the components it
+            renders. <C>styles.css</C> with everything stays. See{" "}
+            <Link href="/docs/installation" className={docLinkClass}>
+              Installation
+            </Link>{" "}
+            and{" "}
+            <Link href="/docs/bundle-size" className={docLinkClass}>
+              Bundle size
+            </Link>
+            .
+          </li>
+          <li>
+            One type declaration entry serves <C>import</C> and <C>require</C>. Projects with{" "}
+            <C>moduleResolution: node16</C> in ESM mode now get the kit types instead of{" "}
+            <C>any</C>.
+          </li>
+          <li>
+            Source maps are no longer published: the unpacked package is 3.4 MB instead of 13.9 MB,
+            the tarball 0.72 MB instead of 1.77 MB.
+          </li>
+        </Bullets>
+      </GuideSection>
+
       <GuideSection id="deprecations" title="Deprecations">
         <P>
           <C>AgentChat</C> <C>emptySuggestionsPosition</C> is deprecated. Suggestions always render
@@ -341,7 +370,7 @@ export default function WhatsNewPage() {
           <li>
             <ComponentLink name="AgentChat" />: <C>emptyState</C> (welcome and center layouts),{" "}
             <C>emptyStateWidth</C>, <C>statusBar</C>, <C>messageActions</C>, <C>onRetry</C>,{" "}
-            <C>onToolAction</C>, <C>searchable</C>, <C>stickyPrompt</C>,{" "}
+            <C>onToolAction</C>, <C>withSearch</C>, <C>stickyPrompt</C>,{" "}
             <C>longMessageThreshold</C>, <C>highlighter</C>, <C>collapseToolRuns</C>,{" "}
             <C>alignComposer</C>, <C>topFade</C>, <C>wrapLines</C>, <C>responsiveTables</C>,{" "}
             <C>hideSuggestionsWhenNotEmpty</C>, <C>inputBarProps</C>. <C>contentWidth</C> accepts
@@ -365,11 +394,11 @@ export default function WhatsNewPage() {
           </li>
           <li>
             <ComponentLink name="Markdown" />: <C>streaming</C> re-parses only the growing tail;{" "}
-            <C>highlighter</C>, <C>codeWrap</C>, <C>responsiveTables</C>.
+            <C>highlighter</C>, <C>wrapLines</C>, <C>responsiveTables</C>.
           </li>
           <li>
             <ComponentLink name="UserMessage" />: slash command chips (<C>commands</C>) and
-            collapsing of long messages (<C>longTextThreshold</C>).
+            collapsing of long messages (<C>longMessageThreshold</C>).
           </li>
           <li>
             <ComponentLink name="QuestionPrompt" /> and <ComponentLink name="QuestionTool" />:
@@ -382,7 +411,7 @@ export default function WhatsNewPage() {
           </li>
           <li>
             <ComponentLink name="BashTool" />: run metadata and formatted output (
-            <C>showOutputMeta</C>, <C>formatOutput</C>, <C>maxOutputLines</C>,{" "}
+            <C>withOutputMeta</C>, <C>formatOutput</C>, <C>maxOutputLines</C>,{" "}
             <C>commandSummary</C>).
           </li>
           <li>

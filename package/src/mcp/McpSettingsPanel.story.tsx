@@ -38,11 +38,11 @@ function Demo() {
   return (
     <McpSettingsPanel
       servers={servers}
-      onAddServer={async (draft) => {
+      onAdd={async (draft) => {
         await wait(700);
         setServers((prev) => [...prev, fromDraft(draft)]);
       }}
-      onUpdateServer={async (draft) => {
+      onUpdate={async (draft) => {
         await wait(700);
         setServers((prev) =>
           prev.map((server) => (server.id === draft.id ? fromDraft(draft, server) : server))
@@ -106,20 +106,20 @@ export function Wide() {
 }
 
 interface PanelFlowArgs {
-  onSelectedServerChange: (id: string | null) => void;
+  onSelectedIdChange: (id: string | null) => void;
   onTryTool: (server: McpServer, tool: { name: string }) => void;
-  onAddServer: (draft: McpServerDraft) => Promise<void>;
+  onAdd: (draft: McpServerDraft) => Promise<void>;
 }
 
-function FlowPanel({ onSelectedServerChange, onTryTool, onAddServer }: PanelFlowArgs) {
+function FlowPanel({ onSelectedIdChange, onTryTool, onAdd }: PanelFlowArgs) {
   const [servers, setServers] = useState(MCP_SERVERS);
   return (
     <McpSettingsPanel
       servers={servers}
-      onSelectedServerChange={onSelectedServerChange}
+      onSelectedIdChange={onSelectedIdChange}
       onTryTool={onTryTool}
-      onAddServer={async (draft) => {
-        await onAddServer(draft);
+      onAdd={async (draft) => {
+        await onAdd(draft);
         setServers((prev) => [...prev, fromDraft(draft)]);
       }}
     />
@@ -128,9 +128,9 @@ function FlowPanel({ onSelectedServerChange, onTryTool, onAddServer }: PanelFlow
 
 export const DrillDownFlow = {
   args: {
-    onSelectedServerChange: fn(),
+    onSelectedIdChange: fn(),
     onTryTool: fn(),
-    onAddServer: fn(async () => {}),
+    onAdd: fn(async () => {}),
   },
   render: (args: PanelFlowArgs) => (
     <WidthFrame width={NARROW_WIDTH}>
@@ -144,7 +144,7 @@ export const DrillDownFlow = {
     const canvas = within(canvasElement);
     await userEvent.click(await canvas.findByText('git'));
     await expect(await canvas.findByRole('heading', { name: 'git' })).toBeInTheDocument();
-    await expect(args.onSelectedServerChange).toHaveBeenLastCalledWith('git');
+    await expect(args.onSelectedIdChange).toHaveBeenLastCalledWith('git');
     await expect(canvas.queryByRole('textbox', { name: 'Search servers' })).not.toBeInTheDocument();
 
     await userEvent.click(canvas.getByText('Create issue'));
@@ -161,15 +161,15 @@ export const DrillDownFlow = {
     await expect(
       await canvas.findByRole('textbox', { name: 'Search servers' })
     ).toBeInTheDocument();
-    await expect(args.onSelectedServerChange).toHaveBeenLastCalledWith(null);
+    await expect(args.onSelectedIdChange).toHaveBeenLastCalledWith(null);
   },
 };
 
 export const AddServerFlow = {
   args: {
-    onSelectedServerChange: fn(),
+    onSelectedIdChange: fn(),
     onTryTool: fn(),
-    onAddServer: fn(async () => {
+    onAdd: fn(async () => {
       await wait(300);
     }),
   },
@@ -198,7 +198,7 @@ export const AddServerFlow = {
     await userEvent.click(await dialog.findByRole('button', { name: 'Add server' }));
 
     await waitFor(() =>
-      expect(args.onAddServer).toHaveBeenCalledWith(
+      expect(args.onAdd).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'memory', transport: 'stdio', command: 'npx' })
       )
     );

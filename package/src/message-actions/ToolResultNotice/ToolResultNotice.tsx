@@ -19,7 +19,7 @@ export interface ToolResultNoticeLabels {
   feedback: string;
 }
 
-const DEFAULT_LABELS: ToolResultNoticeLabels = {
+export const DEFAULT_TOOL_RESULT_NOTICE_LABELS: ToolResultNoticeLabels = {
   rejected: 'Rejected',
   cancelled: 'Cancelled',
   error: 'Failed',
@@ -70,7 +70,7 @@ export const ToolResultNotice = memo(function ToolResultNotice({
   className,
   style,
 }: ToolResultNoticeProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_TOOL_RESULT_NOTICE_LABELS, ...labelsProp };
   const { icon: VariantIcon, color } = VARIANT_ICON[variant];
   const feedbackText = variant === 'rejected' ? feedback?.trim() : undefined;
   const errorOutput = variant === 'error' ? errorText?.trim() : undefined;

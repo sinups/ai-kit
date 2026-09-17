@@ -25,7 +25,7 @@ export const RECIPES: Recipe[] = [
     collapseToolRuns
     alignComposer
     topFade
-    searchable
+    withSearch
     wrapLines={compact}
     emptyState={{
       avatar: <IconSparkles size={22} />,
@@ -79,7 +79,7 @@ export const RECIPES: Recipe[] = [
     summary: "Section navigation beside the content when wide, a list with a back action when narrow.",
     components: ["SettingsLayout", "McpSettingsPanel", "UsagePanel"],
     height: "700px",
-    code: `<SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveChange={setActiveId}>
+    code: `<SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveIdChange={setActiveId}>
   {activeId === "general" && (
     <SettingsSection title="Chat">
       <SettingRow label="Send with Enter" control={<Switch defaultChecked />} />

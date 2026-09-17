@@ -20,7 +20,7 @@ import type { WizardStep } from '../primitives/Wizard/wizard-state';
 import {
   createMcpServerDraft,
   getMcpDraftPairsKey,
-  MCP_DRAFT_LABELS,
+  DEFAULT_MCP_DRAFT_LABELS,
   normalizeMcpServerDraft,
   splitMcpCommandLine,
   validateMcpBasics,
@@ -69,8 +69,8 @@ export type McpServerWizardLabels = McpDraftLabels & {
   wizard: Partial<WizardLabels>;
 };
 
-export const MCP_SERVER_WIZARD_LABELS: McpServerWizardLabels = {
-  ...MCP_DRAFT_LABELS,
+export const DEFAULT_MCP_SERVER_WIZARD_LABELS: McpServerWizardLabels = {
+  ...DEFAULT_MCP_DRAFT_LABELS,
   addTitle: 'Add MCP server',
   editTitle: 'Edit MCP server',
   save: 'Save',
@@ -147,7 +147,7 @@ function useMcpWizardConfig({
   existingNames,
   labels: labelsOverride,
 }: Pick<McpServerWizardProps, 'initialServer' | 'defaultTransport' | 'existingNames' | 'labels'>) {
-  const labels = { ...MCP_SERVER_WIZARD_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_SERVER_WIZARD_LABELS, ...labelsOverride };
   const initialValues = useMemo(
     () => ({
       ...createMcpServerDraft(initialServer),
@@ -387,6 +387,8 @@ export const McpServerWizard = memo(function McpServerWizard({
   );
 });
 
+McpServerWizard.displayName = 'McpServerWizard';
+
 /** `McpServerWizard` in a modal that closes after a successful submit */
 export const McpServerWizardModal = memo(function McpServerWizardModal({
   opened,
@@ -422,3 +424,5 @@ export const McpServerWizardModal = memo(function McpServerWizardModal({
     />
   );
 });
+
+McpServerWizardModal.displayName = 'McpServerWizardModal';

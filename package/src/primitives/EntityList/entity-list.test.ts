@@ -12,7 +12,7 @@ const ITEMS = [
   { id: 'd', name: 'Delta', kind: 'plugin' },
 ];
 
-describe('filterEntities', () => {
+describe('primitives/filterEntities', () => {
   const byName = (item: (typeof ITEMS)[number], query: string) =>
     item.name.toLowerCase().includes(query.toLowerCase());
 
@@ -26,7 +26,7 @@ describe('filterEntities', () => {
   });
 });
 
-describe('groupEntities', () => {
+describe('primitives/groupEntities', () => {
   it('returns a single unnamed group without groupBy', () => {
     expect(groupEntities(ITEMS)).toEqual([{ key: '', items: ITEMS }]);
   });
@@ -43,7 +43,7 @@ describe('groupEntities', () => {
   });
 });
 
-describe('findNextEnabledIndex', () => {
+describe('primitives/findNextEnabledIndex', () => {
   const disabled = [false, true, false, true];
 
   it('skips disabled entries', () => {

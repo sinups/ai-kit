@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { ToolResultNotice } from './ToolResultNotice';
 
-describe('ToolResultNotice', () => {
+describe('message-actions/ToolResultNotice', () => {
   it('expands a rejected call to the user feedback', async () => {
     render(
       <ToolResultNotice

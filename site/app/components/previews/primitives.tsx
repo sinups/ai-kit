@@ -203,7 +203,7 @@ function ConfirmDialogPreview({ fails = false }: { fails?: boolean }) {
             <Code>Bash(npm run test:*)</Code> will be removed from the project settings.
           </>
         }
-        confirmLabel="Delete"
+        labels={{ confirm: "Delete" }}
         danger
         onConfirm={async () => {
           await wait(600);
@@ -290,7 +290,7 @@ function SettingsContent({ id }: { id: string }) {
 function SettingsLayoutPreview({ narrow = false }: { narrow?: boolean }) {
   const [activeId, setActiveId] = useState("general");
   const layout = (
-    <SettingsLayout title="Settings" sections={SETTINGS_SECTIONS} activeId={activeId} onActiveChange={setActiveId} searchable>
+    <SettingsLayout title="Settings" sections={SETTINGS_SECTIONS} activeId={activeId} onActiveIdChange={setActiveId} withSearch>
       <SettingsContent id={activeId} />
     </SettingsLayout>
   );

@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import { MessageActions } from './MessageActions';
 
-describe('MessageActions', () => {
+describe('message-actions/MessageActions', () => {
   it('renders only the actions whose callbacks are set, per role', () => {
     const { unmount } = render(
       <MessageActions messageRole="user" text="Hi" onEdit={() => {}} onRetry={() => {}} />

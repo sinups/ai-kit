@@ -482,7 +482,7 @@ function Workspace({ mobile = false }: AgentWorkspaceProps) {
             mapTask(current, task.id, { status: 'cancelled', endedAt: Date.now() })
           );
         }}
-        onRetry={async (task) => {
+        onRetryTask={async (task) => {
           await wait(500);
           setTasks((current) =>
             mapTask(current, task.id, {

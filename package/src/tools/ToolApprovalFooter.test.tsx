@@ -32,14 +32,18 @@ describe('tools/ToolApprovalFooter', () => {
     render(
       <ToolApprovalFooter
         isPending
-        approveLabel="Run"
-        approvedLabel="Allowed"
-        startingLabel="Launching"
+        labels={{ approve: 'Run', approved: 'Allowed', starting: 'Launching' }}
       />
     );
     await userEvent.click(screen.getByRole('button', { name: 'Run' }));
     expect(screen.getByText('Allowed')).toBeInTheDocument();
     expect(screen.getByText('Launching')).toBeInTheDocument();
+  });
+
+  it('still reads the deprecated approveLabel and rejectLabel', () => {
+    render(<ToolApprovalFooter approveLabel="Run" rejectLabel="Cancel" />);
+    expect(screen.getByRole('button', { name: 'Run' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   it('approves with the scope picked from the menu', async () => {
@@ -116,7 +120,7 @@ describe('tools/ToolApprovalFooter', () => {
       .fn()
       .mockRejectedValueOnce(new Error('Model unavailable'))
       .mockResolvedValueOnce({ risk: 'low', explanation: 'Reads a file' });
-    render(<ToolApprovalFooter onExplain={onExplain} riskLabels={{ low: 'Safe' }} />);
+    render(<ToolApprovalFooter onExplain={onExplain} labels={{ risk: { low: 'Safe' } }} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Why?' }));
     expect(await screen.findByText('Model unavailable')).toBeInTheDocument();

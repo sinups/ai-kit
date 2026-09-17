@@ -95,11 +95,11 @@ export function useWorkspaceSettings() {
     usage: { period: usagePeriod, onPeriodChange: setUsagePeriod },
     mcp: {
       servers,
-      onAddServer: async (draft: McpServerDraft) => {
+      onAdd: async (draft: McpServerDraft) => {
         await wait(700);
         setServers((current) => [...current, serverFromDraft(draft)]);
       },
-      onUpdateServer: async (draft: McpServerDraft) => {
+      onUpdate: async (draft: McpServerDraft) => {
         await wait(700);
         setServers((current) =>
           current.map((server) =>
@@ -145,7 +145,7 @@ export function useWorkspaceSettings() {
         await wait(500);
         setRules((current) => current.filter((item) => item.id !== rule.id));
       },
-      onChangeScope: async (rule: PermissionRule, scope: PermissionRule['scope']) => {
+      onMoveRule: async (rule: PermissionRule, scope: PermissionRule['scope']) => {
         await wait(500);
         setRules((current) =>
           current.map((item) => (item.id === rule.id ? { ...item, scope } : item))

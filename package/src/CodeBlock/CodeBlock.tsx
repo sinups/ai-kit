@@ -26,11 +26,11 @@ export interface CodeBlockProps {
   withLineNumbers?: boolean;
   /** Number of the first line, `1` by default */
   startLineNumber?: number;
-  /** Wraps long lines instead of scrolling horizontally */
-  wrap?: boolean;
+  /** Wraps long lines instead of scrolling horizontally, `false` by default */
+  wrapLines?: boolean;
   /** Shows the copy button, `true` by default */
   withCopy?: boolean;
-  /** Collapses long code behind "Show N more lines" after this many lines, off by default */
+  /** Collapses long code behind "Show N more lines" after this many lines, `false` by default */
   collapsedLines?: number | false;
   /** Code is still arriving: highlighting and collapsing wait until it is complete */
   streaming?: boolean;
@@ -42,7 +42,7 @@ export interface CodeBlockProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: CodeBlockLabels = {
+export const DEFAULT_CODE_BLOCK_LABELS: CodeBlockLabels = {
   copy: 'Copy code',
   copied: 'Copied',
   showMore: (count) => (count === 1 ? 'Show 1 more line' : `Show ${count} more lines`),
@@ -56,7 +56,7 @@ export const CodeBlock = memo(function CodeBlockView({
   highlighter,
   withLineNumbers = false,
   startLineNumber = 1,
-  wrap = false,
+  wrapLines = false,
   withCopy = true,
   collapsedLines = false,
   streaming = false,
@@ -64,7 +64,7 @@ export const CodeBlock = memo(function CodeBlockView({
   className,
   style,
 }: CodeBlockProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_CODE_BLOCK_LABELS, ...labels };
   const [expanded, setExpanded] = useState(false);
   const { lines: highlighted } = useHighlightedLines(
     code,
@@ -131,7 +131,7 @@ export const CodeBlock = memo(function CodeBlockView({
       <Box
         component="pre"
         className={classes.body}
-        data-wrap={wrap || undefined}
+        data-wrap={wrapLines || undefined}
         data-numbered={withLineNumbers || undefined}
         style={
           withLineNumbers

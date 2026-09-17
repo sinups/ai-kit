@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { UsagePanel } from './UsagePanel';
 
-describe('UsagePanel', () => {
+describe('model-settings/UsagePanel', () => {
   it('renders totals, limit levels with reset time, models and days', async () => {
     const onPeriodChange = jest.fn();
     const { container } = render(

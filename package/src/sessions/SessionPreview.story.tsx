@@ -42,7 +42,7 @@ export function Loading() {
   return <Demo width={640} loading />;
 }
 
-export const ErrorState = {
+export const Error = {
   name: 'Error',
   render: () => <Demo width={640} error="Could not load the conversation." onRetry={() => {}} />,
 };

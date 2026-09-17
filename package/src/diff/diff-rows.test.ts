@@ -2,7 +2,7 @@ import { buildDiffRows, collapseUnchanged, toSplitRows, type DiffRow } from './d
 
 const text = (row: DiffRow) => row.segments.map((segment) => segment.text).join('');
 
-describe('diff-rows', () => {
+describe('diff/diff-rows', () => {
   it('numbers lines and highlights words in replaced pairs', () => {
     const rows = buildDiffRows('a\nconst x = 1;\nb\n', 'a\nconst x = 2;\nb\nc\n');
     expect(rows.map((row) => [row.type, row.oldNumber, row.newNumber, text(row)])).toEqual([

@@ -5,7 +5,7 @@ import { AGENT_MODELS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDraft } from '../types';
 import { AgentCreateWizard } from './AgentCreateWizard';
 
-describe('AgentCreateWizard', () => {
+describe('agents/AgentCreateWizard', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

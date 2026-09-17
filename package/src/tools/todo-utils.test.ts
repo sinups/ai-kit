@@ -1,6 +1,6 @@
 import type { TodoItem } from './TodoTool';
 import {
-  DEFAULT_TODO_LABELS,
+  DEFAULT_TODO_TOOL_LABELS,
   describeHiddenTodos,
   getTodoBlockers,
   limitTodos,
@@ -19,9 +19,9 @@ describe('tools/todo-utils', () => {
     const { visible, hidden } = limitTodos(TODOS, 3);
     expect(visible.map((item) => item.todo.id)).toEqual(['b', 'c', 'e']);
     expect(hidden).toEqual({ inProgress: 0, pending: 1, completed: 1 });
-    expect(describeHiddenTodos(hidden, DEFAULT_TODO_LABELS)).toBe('+1 pending, 1 completed');
+    expect(describeHiddenTodos(hidden, DEFAULT_TODO_TOOL_LABELS)).toBe('+1 pending, 1 completed');
     expect(limitTodos(TODOS, 0).visible).toHaveLength(5);
-    expect(describeHiddenTodos(limitTodos(TODOS, 10).hidden, DEFAULT_TODO_LABELS)).toBe('');
+    expect(describeHiddenTodos(limitTodos(TODOS, 10).hidden, DEFAULT_TODO_TOOL_LABELS)).toBe('');
   });
 
   it('resolves unfinished blockers', () => {

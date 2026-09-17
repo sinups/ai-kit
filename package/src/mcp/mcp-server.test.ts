@@ -19,7 +19,7 @@ const server = (patch: Partial<McpServer>): McpServer => ({
   ...patch,
 });
 
-describe('getMcpAgentUiStatus', () => {
+describe('mcp/getMcpAgentUiStatus', () => {
   it('maps every server status to the shared vocabulary', () => {
     const statuses: McpServerStatus[] = [
       'connected',
@@ -40,7 +40,7 @@ describe('getMcpAgentUiStatus', () => {
   });
 });
 
-describe('getMcpServerTarget', () => {
+describe('mcp/getMcpServerTarget', () => {
   it('joins command and args for stdio and returns the url otherwise', () => {
     expect(getMcpServerTarget({ transport: 'stdio', command: 'npx', args: ['-y', 'pkg'] })).toBe(
       'npx -y pkg'
@@ -52,7 +52,7 @@ describe('getMcpServerTarget', () => {
   });
 });
 
-describe('getMcpToolCount', () => {
+describe('mcp/getMcpToolCount', () => {
   it('prefers loaded tools over the reported count', () => {
     expect(getMcpToolCount(server({ tools: [{ name: 'a' }], toolCount: 5 }))).toBe(1);
     expect(getMcpToolCount(server({ toolCount: 5 }))).toBe(5);
@@ -60,7 +60,7 @@ describe('getMcpToolCount', () => {
   });
 });
 
-describe('server filters', () => {
+describe('mcp/mcp-server server filters', () => {
   const servers = [
     server({ name: 'git', status: 'connected', scope: 'user' }),
     server({
@@ -107,7 +107,7 @@ describe('server filters', () => {
   });
 });
 
-describe('getMcpToolAnnotationKinds', () => {
+describe('mcp/getMcpToolAnnotationKinds', () => {
   it('lists explicit hints, read-only wins over destructive', () => {
     expect(getMcpToolAnnotationKinds(undefined)).toEqual([]);
     expect(getMcpToolAnnotationKinds({ readOnlyHint: true, destructiveHint: true })).toEqual([
@@ -123,7 +123,7 @@ describe('getMcpToolAnnotationKinds', () => {
   });
 });
 
-describe('tool and prompt helpers', () => {
+describe('mcp/mcp-server tool and prompt helpers', () => {
   it('searches tool name, title and description', () => {
     const tool = {
       name: 'create_issue',

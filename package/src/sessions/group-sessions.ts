@@ -16,7 +16,7 @@ export interface SessionDateGroup {
   sessions: SessionSummary[];
 }
 
-export const DEFAULT_SESSION_GROUP_LABELS: SessionDateGroupLabels = {
+export const DEFAULT_SESSION_DATE_GROUP_LABELS: SessionDateGroupLabels = {
   pinned: 'Pinned',
   today: 'Today',
   yesterday: 'Yesterday',
@@ -36,7 +36,7 @@ export function getSessionDateGroup(
   session: SessionSummary,
   now: Date = new Date(),
   locale = 'en',
-  labels: SessionDateGroupLabels = DEFAULT_SESSION_GROUP_LABELS
+  labels: SessionDateGroupLabels = DEFAULT_SESSION_DATE_GROUP_LABELS
 ): { key: string; label: string } {
   if (session.pinned && !session.archived) {
     return { key: 'pinned', label: labels.pinned };
@@ -72,7 +72,7 @@ export function groupSessionsByDate(
   labels: Partial<SessionDateGroupLabels> = {},
   locale = 'en'
 ): SessionDateGroup[] {
-  const merged = { ...DEFAULT_SESSION_GROUP_LABELS, ...labels };
+  const merged = { ...DEFAULT_SESSION_DATE_GROUP_LABELS, ...labels };
   const groups = new Map<string, SessionDateGroup>();
 
   const sorted = [...sessions].sort(

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { ShortcutHint } from './ShortcutHint';
 
-describe('ShortcutHint', () => {
+describe('primitives/ShortcutHint', () => {
   it('renders mac keys without separators', () => {
     const { container } = render(
       <ShortcutHint keys="mod+shift+P" label="Commands" platform="mac" />

@@ -173,8 +173,7 @@ export function PermissionsBentoPreview() {
         <ToolApprovalFooter
           onApprove={noop}
           onReject={noop}
-          approveLabel="Allow"
-          rejectLabel="Deny"
+          labels={{ approve: "Allow", reject: "Deny" }}
           reason="Deletes the dist folder"
         />
       </Paper>

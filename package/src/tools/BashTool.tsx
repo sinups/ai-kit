@@ -35,12 +35,12 @@ export interface BashToolTerminalCardProps {
   onComplete: () => void;
   /** When set, renders `ToolApprovalFooter` with approve/reject buttons under the card */
   approval?: ToolApproval;
-  /** Output and run metadata used by `showOutputMeta` and `formatOutput`, which also stream `run.output` while the command runs */
+  /** Output and run metadata used by `withOutputMeta` and `formatOutput`, which also stream `run.output` while the command runs */
   run?: BashRunInfo;
   /** Output lines shown from the end with `formatOutput`, `8` by default */
   maxOutputLines?: number;
-  /** Shows exit code, duration, timeout, size and a copy button above the output */
-  showOutputMeta?: boolean;
+  /** Shows exit code, duration, timeout, size and a copy button above the output, `false` by default */
+  withOutputMeta?: boolean;
   /** Renders ANSI colors, clickable links, pretty JSON and a Show all toggle in the output */
   formatOutput?: boolean;
   /** Header text: `short` lists the programs of a pipeline (`ls, grep`), `full` shows the whole command on one line, `short` by default */
@@ -59,7 +59,7 @@ export function BashToolTerminalCard({
   approval,
   run,
   maxOutputLines = 8,
-  showOutputMeta = false,
+  withOutputMeta = false,
   formatOutput = false,
   commandSummary = 'short',
   className,
@@ -70,7 +70,7 @@ export function BashToolTerminalCard({
   const command = step.bashCommand ?? step.toolDetail;
   const summary =
     commandSummary === 'full' ? toSingleLine(command) : extractCommandSummary(command);
-  const rich = showOutputMeta || formatOutput;
+  const rich = withOutputMeta || formatOutput;
   const output = rich
     ? (run?.output ?? (isPending ? undefined : step.bashOutput))
     : isPending
@@ -100,7 +100,7 @@ export function BashToolTerminalCard({
           <span className={classes.command}>{command}</span>
         </div>
         {rich
-          ? (Boolean(output) || (showOutputMeta && !isPending && run?.exitCode !== undefined)) && (
+          ? (Boolean(output) || (withOutputMeta && !isPending && run?.exitCode !== undefined)) && (
               <ShellOutput
                 variant="compact"
                 className={classes.rich}
@@ -108,8 +108,8 @@ export function BashToolTerminalCard({
                 live={isPending}
                 maxLines={formatOutput ? maxOutputLines : 0}
                 formatJson={formatOutput}
-                withMeta={showOutputMeta}
-                withCopy={showOutputMeta}
+                withMeta={withOutputMeta}
+                withCopy={withOutputMeta}
                 exitCode={isPending ? undefined : run?.exitCode}
                 durationMs={run?.durationMs}
                 startedAt={run?.startedAt}
@@ -133,8 +133,8 @@ export function BashToolTerminalCard({
 export interface BashToolProps {
   /** Tool part in AI SDK v5 shape: `{ type, toolCallId, state, input, output }` */
   part: ToolPart;
-  /** Shows exit code, duration, timeout, size and a copy button above the output */
-  showOutputMeta?: boolean;
+  /** Shows exit code, duration, timeout, size and a copy button above the output, `false` by default */
+  withOutputMeta?: boolean;
   /** Renders ANSI colors, clickable links, pretty JSON and a Show all toggle in the output */
   formatOutput?: boolean;
   /** Header text: `short` lists the programs of a pipeline (`ls, grep`), `full` shows the whole command on one line, `short` by default */
@@ -148,7 +148,7 @@ export interface BashToolProps {
 /** Renders a `tool-Bash` part as a terminal card */
 export const BashTool = memo(function BashTool({
   part,
-  showOutputMeta,
+  withOutputMeta,
   formatOutput,
   commandSummary,
   className,
@@ -166,7 +166,7 @@ export const BashTool = memo(function BashTool({
       onComplete={noopComplete}
       approval={approval}
       run={run}
-      showOutputMeta={showOutputMeta}
+      withOutputMeta={withOutputMeta}
       formatOutput={formatOutput}
       commandSummary={commandSummary}
       className={className}
@@ -174,3 +174,5 @@ export const BashTool = memo(function BashTool({
     />
   );
 });
+
+BashTool.displayName = 'BashTool';

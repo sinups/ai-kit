@@ -90,7 +90,7 @@ export interface DiffReviewProps {
   /** Error message shown instead of the file list */
   error?: React.ReactNode;
   /** Called by the retry button of the error alert */
-  onRetryLoad?: () => void;
+  onRetry?: () => void;
   /** File list width in px when wide, `320` by default */
   listWidth?: number;
   /** Component width in px from which the list and the diff sit side by side, `900` by default */
@@ -142,7 +142,7 @@ export const DiffReview = memo(function DiffReview({
   withHotkeys = true,
   loading,
   error,
-  onRetryLoad,
+  onRetry,
   listWidth = 320,
   breakpoint = 900,
   labels: labelsProp,
@@ -433,9 +433,9 @@ export const DiffReview = memo(function DiffReview({
         <MasterDetail
           listWidth={listWidth}
           breakpoint={breakpoint}
-          backLabel={labels.back}
+          labels={{ back: labels.back }}
           onBack={() => setDetailOpen(false)}
-          detailOpen={detailOpen}
+          detailOpened={detailOpen}
           emptyDetail={
             <EmptyState h="100%" p="xl" icon={<IconFileDiff />} title={labels.selectFile} />
           }
@@ -456,7 +456,7 @@ export const DiffReview = memo(function DiffReview({
                 decisions={decisions}
                 loading={loading}
                 error={error}
-                onRetryLoad={onRetryLoad}
+                onRetry={onRetry}
                 labels={labelsProp}
               />
             </Box>

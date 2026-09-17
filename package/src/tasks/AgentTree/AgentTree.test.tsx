@@ -6,7 +6,7 @@ import { AgentTree } from './AgentTree';
 const NOW = new Date('2026-09-17T12:00:00Z').getTime();
 const tree = createTaskFixtures(NOW).slice(0, 1);
 
-describe('AgentTree', () => {
+describe('tasks/AgentTree', () => {
   it('renders nested agents expanded with status and last activity', () => {
     render(<AgentTree tasks={tree} selectedId="tests-agent" />);
 

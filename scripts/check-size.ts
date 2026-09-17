@@ -4,33 +4,45 @@ import fs from 'fs-extra';
 import signale from 'signale';
 import { build, type Plugin } from 'esbuild';
 
-const entry = path.join(process.cwd(), 'package/dist/esm/index.mjs');
+const distDir = path.join(process.cwd(), 'package/dist');
+const entry = path.join(distDir, 'esm/index.mjs');
+const reportPath = path.join(process.cwd(), 'site/app/data/bundle-size.json');
 
-const budgets: { name: string; source: string; gzipBudget: number }[] = [
-  {
-    name: 'AgentChat',
-    source: "import { AgentChat } from '@sinups/ai-kit'; console.log(AgentChat);",
-    gzipBudget: 73_500,
-  },
-  {
-    name: 'Wizard',
-    source: "import { Wizard } from '@sinups/ai-kit'; console.log(Wizard);",
-    gzipBudget: 4_500,
-  },
-  {
-    name: 'ChatLauncher',
-    source: "import { ChatLauncher } from '@sinups/ai-kit'; console.log(ChatLauncher);",
-    gzipBudget: 3_900,
-  },
-  {
-    name: 'AiKitProvider',
-    source: "import { AiKitProvider } from '@sinups/ai-kit'; console.log(AiKitProvider);",
-    gzipBudget: 6_100,
-  },
+const namedImportBudgets: Record<string, number> = {
+  AgentChat: 84_900,
+  MessageList: 69_400,
+  InputBar: 34_700,
+  Markdown: 15_200,
+  BashTool: 14_100,
+  DiffReview: 23_800,
+  McpSettingsPanel: 27_500,
+  SettingsLayout: 5_000,
+  CommandPalette: 6_500,
+  Wizard: 6_300,
+  ChatLauncher: 6_300,
+  AiKitProvider: 9_600,
+  mountChatLauncher: 900,
+};
+
+type Entry = { name: string; source: string; stylesheets: string[]; gzipBudget: number };
+
+function stylesheetsFor(name: string) {
+  const file = path.join('styles', `${name}.css`);
+  return fs.existsSync(path.join(distDir, file)) ? ['styles/base.css', file] : [];
+}
+
+const entries: Entry[] = [
+  ...Object.entries(namedImportBudgets).map(([name, gzipBudget]) => ({
+    name,
+    source: `import { ${name} } from '@sinups/ai-kit'; console.log(${name});`,
+    stylesheets: stylesheetsFor(name),
+    gzipBudget,
+  })),
   {
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
-    gzipBudget: 197_500,
+    stylesheets: ['styles.css'],
+    gzipBudget: 218_600,
   },
 ];
 
@@ -41,7 +53,9 @@ const resolveKit: Plugin = {
   },
 };
 
-async function measure(source: string) {
+const gzipSize = (content: Uint8Array | Buffer) => gzipSync(content, { level: 9 }).length;
+
+async function measureJs(source: string) {
   const result = await build({
     stdin: { contents: source, resolveDir: process.cwd(), loader: 'js' },
     bundle: true,
@@ -54,7 +68,17 @@ async function measure(source: string) {
     plugins: [resolveKit],
   });
   const code = result.outputFiles[0].contents;
-  return { minified: code.length, gzip: gzipSync(code, { level: 9 }).length };
+  return { minified: code.length, gzip: gzipSize(code) };
+}
+
+function measureCss(stylesheets: string[]) {
+  return stylesheets.reduce(
+    (total, file) => {
+      const content = fs.readFileSync(path.join(distDir, file));
+      return { raw: total.raw + content.length, gzip: total.gzip + gzipSize(content) };
+    },
+    { raw: 0, gzip: 0 }
+  );
 }
 
 const kb = (bytes: number) => `${(bytes / 1000).toFixed(1)} KB`;
@@ -66,17 +90,32 @@ async function main() {
   }
 
   let failed = false;
+  const report = [];
 
-  for (const budget of budgets) {
-    const { minified, gzip } = await measure(budget.source);
-    const line = `${budget.name}: ${kb(minified)} minified, ${kb(gzip)} gzip (budget ${kb(budget.gzipBudget)})`;
+  for (const item of entries) {
+    const js = await measureJs(item.source);
+    const css = measureCss(item.stylesheets);
+    const total = js.gzip + css.gzip;
+    report.push({
+      name: item.name,
+      stylesheets: item.stylesheets,
+      jsGzip: js.gzip,
+      cssGzip: css.gzip,
+      totalGzip: total,
+    });
 
-    if (gzip > budget.gzipBudget) {
+    const line = `${item.name}: JS ${kb(js.gzip)} + CSS ${kb(css.gzip)} = ${kb(total)} gzip (budget ${kb(item.gzipBudget)})`;
+    if (total > item.gzipBudget) {
       failed = true;
       signale.error(line);
     } else {
       signale.success(line);
     }
+  }
+
+  if (process.argv.includes('--json')) {
+    fs.writeJsonSync(reportPath, report, { spaces: 2 });
+    signale.info(`Wrote ${path.relative(process.cwd(), reportPath)}`);
   }
 
   if (failed) {

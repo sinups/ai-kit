@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { ContextEventRow } from './ContextEventRow';
 
-describe('ContextEventRow', () => {
+describe('ContextEventRow/ContextEventRow', () => {
   it('renders the verb and object and expands to the items', async () => {
     render(
       <ContextEventRow

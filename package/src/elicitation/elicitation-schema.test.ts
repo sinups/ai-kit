@@ -22,7 +22,7 @@ const SCHEMA: ElicitationRequestedSchema = {
   required: ['name', 'plan'],
 };
 
-describe('getElicitationFields', () => {
+describe('elicitation/getElicitationFields', () => {
   it('maps schema properties to field kinds and options', () => {
     const fields = getElicitationFields(SCHEMA);
     expect(fields.map((f) => [f.name, f.kind])).toEqual([
@@ -54,7 +54,7 @@ describe('getElicitationFields', () => {
   });
 });
 
-describe('validateElicitationField', () => {
+describe('elicitation/validateElicitationField', () => {
   const fields = getElicitationFields(SCHEMA);
   const byName = (name: string) => fields.find((f) => f.name === name)!;
 
@@ -84,7 +84,7 @@ describe('validateElicitationField', () => {
   });
 });
 
-describe('buildElicitationContent', () => {
+describe('elicitation/buildElicitationContent', () => {
   it('returns errors and skips empty optional fields', () => {
     const fields = getElicitationFields(SCHEMA);
     const draft = getElicitationDraft(fields);
@@ -112,7 +112,7 @@ describe('buildElicitationContent', () => {
   });
 });
 
-describe('getElicitationHost', () => {
+describe('elicitation/getElicitationHost', () => {
   it('accepts only http(s) links', () => {
     expect(getElicitationHost('https://auth.example.com/login')).toBe('auth.example.com');
     expect(getElicitationHost('ftp://files.example.com/x')).toBeNull();

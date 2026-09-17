@@ -16,9 +16,9 @@ const segments = [
 export function Usage() {
   return (
     <Group p={80} gap={24}>
-      <ContextUsage used={45_200} total={200_000} segments={segments} showLabel />
-      <ContextUsage used={168_000} total={200_000} showLabel onCompact={() => {}} />
-      <ContextUsage used={194_000} total={200_000} showLabel onCompact={() => {}} />
+      <ContextUsage used={45_200} total={200_000} segments={segments} withLabel />
+      <ContextUsage used={168_000} total={200_000} withLabel onCompact={() => {}} />
+      <ContextUsage used={194_000} total={200_000} withLabel onCompact={() => {}} />
     </Group>
   );
 }
@@ -68,7 +68,7 @@ export const CompactFlow = {
           { label: 'Messages', value: 190_000 },
         ]}
         onCompact={onCompact}
-        showLabel
+        withLabel
       />
     </Group>
   ),

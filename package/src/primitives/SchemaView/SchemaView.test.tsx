@@ -23,9 +23,11 @@ const SCHEMA: JsonSchema = {
   },
 };
 
-describe('SchemaView', () => {
+describe('primitives/SchemaView', () => {
   it('shows the empty state for a schema without properties', () => {
-    render(<SchemaView schema={{ type: 'object', properties: {} }} emptyLabel="No inputs" />);
+    render(
+      <SchemaView schema={{ type: 'object', properties: {} }} labels={{ empty: 'No inputs' }} />
+    );
     expect(screen.getByText('No inputs')).toBeInTheDocument();
   });
 

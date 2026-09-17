@@ -4,7 +4,7 @@ import { IconArrowLeft, IconPlayerPlay } from '@tabler/icons-react';
 import { SchemaView } from '../primitives/SchemaView/SchemaView';
 import { getMcpToolDisplayName } from './mcp-server';
 import {
-  MCP_TOOL_ANNOTATION_LABELS,
+  DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
   McpToolAnnotationBadges,
   type McpToolAnnotationLabels,
 } from './McpToolAnnotationBadges';
@@ -20,13 +20,13 @@ export type McpToolDetailLabels = {
   annotations: McpToolAnnotationLabels;
 };
 
-export const MCP_TOOL_DETAIL_LABELS: McpToolDetailLabels = {
+export const DEFAULT_MCP_TOOL_DETAIL_LABELS: McpToolDetailLabels = {
   back: 'Back',
   input: 'Input',
   output: 'Output',
   noInput: 'This tool takes no arguments',
   tryTool: 'Try tool',
-  annotations: MCP_TOOL_ANNOTATION_LABELS,
+  annotations: DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
 };
 
 export interface McpToolDetailProps {
@@ -56,7 +56,7 @@ export const McpToolDetail = memo(function McpToolDetail({
   className,
   style,
 }: McpToolDetailProps) {
-  const labels = { ...MCP_TOOL_DETAIL_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_TOOL_DETAIL_LABELS, ...labelsOverride };
   const displayName = getMcpToolDisplayName(tool);
 
   return (
@@ -115,7 +115,10 @@ export const McpToolDetail = memo(function McpToolDetail({
 
       <Stack gap="xs">
         <Title order={4}>{labels.input}</Title>
-        <SchemaView schema={tool.inputSchema ?? { type: 'object' }} emptyLabel={labels.noInput} />
+        <SchemaView
+          schema={tool.inputSchema ?? { type: 'object' }}
+          labels={{ empty: labels.noInput }}
+        />
       </Stack>
 
       {tool.outputSchema && (
@@ -127,3 +130,5 @@ export const McpToolDetail = memo(function McpToolDetail({
     </Stack>
   );
 });
+
+McpToolDetail.displayName = 'McpToolDetail';

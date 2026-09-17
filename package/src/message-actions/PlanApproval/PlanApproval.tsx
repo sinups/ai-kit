@@ -52,7 +52,7 @@ export interface PlanApprovalLabels {
   moreApproveOptions: string;
 }
 
-const DEFAULT_LABELS: PlanApprovalLabels = {
+export const DEFAULT_PLAN_APPROVAL_LABELS: PlanApprovalLabels = {
   showFull: 'Show full plan',
   showLess: 'Show less',
   empty: 'No plan details provided.',
@@ -110,7 +110,7 @@ export const PlanApproval = memo(function PlanApproval({
   className,
   style,
 }: PlanApprovalProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_PLAN_APPROVAL_LABELS, ...labelsProp };
   const [mode, setMode] = useState<Mode>('idle');
   const [note, setNote] = useState('');
   const [internalDecision, setInternalDecision] = useState<PlanDecision | null>(null);

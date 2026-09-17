@@ -77,11 +77,11 @@ export interface HookWizardProps {
   knownTools?: string[];
   /** Creates ids for new hooks */
   createId?: () => string;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<HookWizardLabels>;
 }
 
-const DEFAULT_LABELS: HookWizardLabels = {
+export const DEFAULT_HOOK_WIZARD_LABELS: HookWizardLabels = {
   addTitle: 'Add hook',
   editTitle: 'Edit hook',
   add: 'Add hook',
@@ -172,7 +172,7 @@ export const HookWizard = memo(function HookWizard({
   createId = createHookId,
   labels: labelsProp,
 }: HookWizardProps) {
-  const labels = useMemo(() => ({ ...DEFAULT_LABELS, ...labelsProp }), [labelsProp]);
+  const labels = useMemo(() => ({ ...DEFAULT_HOOK_WIZARD_LABELS, ...labelsProp }), [labelsProp]);
   const messages = useMemo(
     () => ({ ...DEFAULT_HOOK_MESSAGES, ...labels.messages }),
     [labels.messages]

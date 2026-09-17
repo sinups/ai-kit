@@ -5,6 +5,7 @@ import {
   WEB_SEARCH_TOOL_TYPES,
 } from '../tools/tool-kinds';
 import type { CollapseToolRunsOptions, ToolPart } from '../types';
+import { formatCount } from '../utils/format-count';
 
 export const DEFAULT_COLLAPSIBLE_TOOL_TYPES: readonly string[] = [
   ...READ_TOOL_TYPES,
@@ -84,16 +85,12 @@ export interface ToolRunLabels {
   working: string;
 }
 
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
 export const DEFAULT_TOOL_RUN_LABELS: ToolRunLabels = {
-  reads: (count) => `read ${plural(count, 'file', 'files')}`,
-  edits: (count) => `edited ${plural(count, 'file', 'files')}`,
-  searches: (count) => `searched ${plural(count, 'pattern', 'patterns')}`,
-  webSearches: (count) => `ran ${plural(count, 'web search', 'web searches')}`,
-  otherTools: (count) => `used ${plural(count, 'tool', 'tools')}`,
+  reads: (count) => `read ${formatCount(count, 'file', 'files')}`,
+  edits: (count) => `edited ${formatCount(count, 'file', 'files')}`,
+  searches: (count) => `searched ${formatCount(count, 'pattern', 'patterns')}`,
+  webSearches: (count) => `ran ${formatCount(count, 'web search', 'web searches')}`,
+  otherTools: (count) => `used ${formatCount(count, 'tool', 'tools')}`,
   reading: 'Reading...',
   editing: 'Editing...',
   searching: 'Searching...',

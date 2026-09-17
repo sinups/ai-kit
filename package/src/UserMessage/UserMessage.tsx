@@ -14,28 +14,33 @@ import classes from './UserMessage.module.css';
 export type UserMessageProps = {
   message: ChatMessage;
   className?: string;
-  /**
-   * When true (default) clicking an attached image opens a fullscreen
-   * lightbox preview. Set to false to render images as plain thumbnails.
-   */
+  /** Opens an attached image in a fullscreen lightbox on click, plain thumbnails when `false`; `true` by default */
   enableImagePreview?: boolean;
   /**
    * Known slash commands. Text that starts with one of them, for example `/review src/auth`, is shown
    * as a command chip with its arguments; unknown `/…` text such as a file path stays plain.
    */
   commands?: SlashCommandInfo[];
-  /** Shows the head and tail of a text longer than the threshold with a button that expands it; `true` uses `{ chars: 2000, lines: 30 }`, off by default */
-  longTextThreshold?: LongTextThreshold | boolean;
-  /** Label of the expand button, receives the number of hidden lines or characters */
-  showFullLabel?: (hidden: { lines: number; chars: number }) => string;
-  /** Label of the collapse button, `Show less` by default */
-  showLessLabel?: string;
+  /** Shows the head and tail of a text longer than the threshold with a button that expands it; `true` uses `{ chars: 2000, lines: 30 }`, `false` by default */
+  longMessageThreshold?: LongTextThreshold | boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<UserMessageLabels>;
 };
 
-const defaultShowFullLabel = ({ lines, chars }: { lines: number; chars: number }) =>
-  lines > 0
-    ? `Show full message (${lines} more ${lines === 1 ? 'line' : 'lines'})`
-    : `Show full message (${chars.toLocaleString('en-US')} more characters)`;
+export interface UserMessageLabels {
+  /** Expand button, receives the number of hidden lines or characters */
+  showFull: (hidden: { lines: number; chars: number }) => string;
+  /** Collapse button, `Show less` by default */
+  showLess: string;
+}
+
+export const DEFAULT_USER_MESSAGE_LABELS: UserMessageLabels = {
+  showFull: ({ lines, chars }) =>
+    lines > 0
+      ? `Show full message (${lines} more ${lines === 1 ? 'line' : 'lines'})`
+      : `Show full message (${chars.toLocaleString('en-US')} more characters)`,
+  showLess: 'Show less',
+};
 
 function getMimeType(part: Record<string, unknown>): string | undefined {
   const mime = part.mediaType ?? part.mimeType;
@@ -111,10 +116,10 @@ export const UserMessage = memo(function UserMessage({
   className,
   enableImagePreview = true,
   commands,
-  longTextThreshold = false,
-  showFullLabel = defaultShowFullLabel,
-  showLessLabel = 'Show less',
+  longMessageThreshold = false,
+  labels: labelsProp,
 }: UserMessageProps) {
+  const labels = { ...DEFAULT_USER_MESSAGE_LABELS, ...labelsProp };
   const [expanded, setExpanded] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const textParts = message.parts?.filter(isTextPart) ?? [];
@@ -145,9 +150,9 @@ export const UserMessage = memo(function UserMessage({
 
   const command = commands?.length ? matchSlashCommand(text, commands) : null;
   const collapsed =
-    command || longTextThreshold === false
+    command || longMessageThreshold === false
       ? null
-      : collapseLongText(text, longTextThreshold === true ? undefined : longTextThreshold);
+      : collapseLongText(text, longMessageThreshold === true ? undefined : longMessageThreshold);
 
   if (!text && images.length === 0 && files.length === 0) {
     return null;
@@ -224,8 +229,11 @@ export const UserMessage = memo(function UserMessage({
                   onClick={() => setExpanded((value) => !value)}
                 >
                   {expanded
-                    ? showLessLabel
-                    : showFullLabel({ lines: collapsed.hiddenLines, chars: collapsed.hiddenChars })}
+                    ? labels.showLess
+                    : labels.showFull({
+                        lines: collapsed.hiddenLines,
+                        chars: collapsed.hiddenChars,
+                      })}
                 </UnstyledButton>
               </>
             ) : (

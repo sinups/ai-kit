@@ -94,6 +94,10 @@ export interface AgentCreateWizardLabels extends AgentFieldLabels {
   /** `{tools}` is replaced */
   destructiveWarning: string;
   toolSummary: Partial<AgentToolSummaryLabels>;
+  /** Labels of the tool selector */
+  toolSelector: Partial<ToolSelectorLabels>;
+  /** Validation messages of the fields */
+  validation: Partial<AgentValidationMessages>;
 }
 
 export const DEFAULT_AGENT_CREATE_WIZARD_LABELS: AgentCreateWizardLabels = {
@@ -133,6 +137,8 @@ export const DEFAULT_AGENT_CREATE_WIZARD_LABELS: AgentCreateWizardLabels = {
   warnings: 'Check before creating',
   destructiveWarning: 'The agent can call destructive tools: {tools}',
   toolSummary: {},
+  toolSelector: {},
+  validation: {},
 };
 
 export interface AgentCreateWizardProps {
@@ -156,12 +162,8 @@ export interface AgentCreateWizardProps {
   existingNames?: string[];
   /** Values the wizard starts from */
   initialDraft?: Partial<AgentDraft>;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AgentCreateWizardLabels>;
-  /** Overrides for the English tool selector labels */
-  toolSelectorLabels?: Partial<ToolSelectorLabels>;
-  /** Overrides for the English validation messages */
-  validationMessages?: Partial<AgentValidationMessages>;
 }
 
 function pickErrors(errors: AgentDraftErrors, fields: AgentDraftField[]): AgentDraftErrors | null {
@@ -322,8 +324,6 @@ export const AgentCreateWizard = memo(function AgentCreateWizard({
   existingNames = [],
   initialDraft,
   labels: labelsProp,
-  toolSelectorLabels,
-  validationMessages,
 }: AgentCreateWizardProps) {
   const labels = { ...DEFAULT_AGENT_CREATE_WIZARD_LABELS, ...labelsProp };
   const [generating, setGenerating] = useState(false);
@@ -345,7 +345,7 @@ export const AgentCreateWizard = memo(function AgentCreateWizard({
   );
 
   const validate = (values: AgentWizardValues) =>
-    validateAgentDraft(toAgentDraft(values), { existingNames, messages: validationMessages });
+    validateAgentDraft(toAgentDraft(values), { existingNames, messages: labels.validation });
 
   const steps: WizardStep<AgentWizardValues>[] = [
     {
@@ -405,7 +405,7 @@ export const AgentCreateWizard = memo(function AgentCreateWizard({
             value={values.tools}
             error={errors.tools}
             onChange={(tools) => setValues({ tools })}
-            labels={toolSelectorLabels}
+            labels={labels.toolSelector}
           />
           <MultiSelect
             label={labels.disallowedTools}

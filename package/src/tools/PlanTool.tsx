@@ -156,3 +156,5 @@ export const PlanTool = memo(function PlanTool({
     </Box>
   );
 }, areToolPropsEqual);
+
+PlanTool.displayName = 'PlanTool';

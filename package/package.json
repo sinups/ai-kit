@@ -1,7 +1,7 @@
 {
   "name": "@sinups/ai-kit",
   "version": "0.1.0",
-  "description": "Agent chat UI components for Mantine: message list, streaming markdown, tool cards, composer",
+  "description": "Mantine UI kit for agent products: chat, tool calls, diff review, sessions, MCP, agents, skills, permissions, wizards and settings",
   "homepage": "https://github.com/sinups/ai-kit#readme",
   "packageManager": "yarn@4.0.1",
   "license": "MIT",
@@ -20,17 +20,13 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/types/index.d.mts",
-        "default": "./dist/esm/index.mjs"
-      },
-      "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.cjs"
-      }
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs"
     },
     "./styles.css": "./dist/styles.css",
-    "./styles.layer.css": "./dist/styles.layer.css"
+    "./styles.layer.css": "./dist/styles.layer.css",
+    "./styles/*": "./dist/styles/*"
   },
   "repository": "https://github.com/sinups/ai-kit.git",
   "peerDependencies": {

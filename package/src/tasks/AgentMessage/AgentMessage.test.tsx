@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { AgentMessage } from './AgentMessage';
 
-describe('AgentMessage', () => {
+describe('tasks/AgentMessage', () => {
   it('shows sender, recipient, time and expands the content', async () => {
     render(
       <AgentMessage

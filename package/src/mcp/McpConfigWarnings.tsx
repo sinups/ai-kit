@@ -13,7 +13,7 @@ export type McpConfigWarningsLabels = {
   kinds: Record<string, string>;
 };
 
-export const MCP_CONFIG_WARNINGS_LABELS: McpConfigWarningsLabels = {
+export const DEFAULT_MCP_CONFIG_WARNINGS_LABELS: McpConfigWarningsLabels = {
   title: '{count} configuration warnings',
   openFile: 'Open file',
   kinds: {
@@ -45,9 +45,9 @@ export const McpConfigWarnings = memo(function McpConfigWarnings({
   style,
 }: McpConfigWarningsProps) {
   const labels = {
-    ...MCP_CONFIG_WARNINGS_LABELS,
+    ...DEFAULT_MCP_CONFIG_WARNINGS_LABELS,
     ...labelsOverride,
-    kinds: { ...MCP_CONFIG_WARNINGS_LABELS.kinds, ...labelsOverride?.kinds },
+    kinds: { ...DEFAULT_MCP_CONFIG_WARNINGS_LABELS.kinds, ...labelsOverride?.kinds },
   };
   const groups = useMemo(() => groupConfigWarnings(warnings), [warnings]);
   const total = groups.reduce((sum, group) => sum + group.warnings.length, 0);
@@ -110,3 +110,5 @@ export const McpConfigWarnings = memo(function McpConfigWarnings({
     </Stack>
   );
 });
+
+McpConfigWarnings.displayName = 'McpConfigWarnings';

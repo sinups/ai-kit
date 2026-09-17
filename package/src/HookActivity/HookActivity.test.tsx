@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { HookActivity } from './HookActivity';
 
-describe('HookActivity', () => {
+describe('HookActivity/HookActivity', () => {
   it('shows running hooks without details', () => {
     render(<HookActivity event="PreToolUse" status="running" hooks={[{ name: 'lint' }]} />);
     expect(screen.getByText('Running PreToolUse hooks…')).toBeInTheDocument();

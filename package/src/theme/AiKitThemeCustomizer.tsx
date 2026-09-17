@@ -46,7 +46,7 @@ export interface AiKitThemeCustomizerLabels {
   accents?: Partial<Record<AiKitAccent, string>>;
 }
 
-const DEFAULT_LABELS: AiKitThemeCustomizerLabels = {
+export const DEFAULT_AI_KIT_THEME_CUSTOMIZER_LABELS: AiKitThemeCustomizerLabels = {
   title: 'Theme',
   reset: 'Reset',
   color: 'Color',
@@ -77,7 +77,7 @@ export interface AiKitThemeCustomizerProps {
   accents?: readonly AiKitAccent[];
   /** Hides sections, for example when the host controls the color scheme itself */
   sections?: Partial<Record<'color' | 'radius' | 'density' | 'mode', boolean>>;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AiKitThemeCustomizerLabels>;
 }
 
@@ -143,7 +143,7 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
   sections,
   labels: labelOverrides,
 }: AiKitThemeCustomizerProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelOverrides };
+  const labels = { ...DEFAULT_AI_KIT_THEME_CUSTOMIZER_LABELS, ...labelOverrides };
   const provider = useOptionalAiKitTheme();
   const mantineTheme = useMantineTheme();
   const { colorScheme: activeScheme } = useMantineColorScheme();
@@ -286,3 +286,5 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
     </Stack>
   );
 });
+
+AiKitThemeCustomizer.displayName = 'AiKitThemeCustomizer';

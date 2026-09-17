@@ -1,6 +1,6 @@
 import { downloadFile } from './download';
 
-describe('downloadFile', () => {
+describe('sessions/downloadFile', () => {
   it('clicks a temporary link with the file name and a blob url', () => {
     const createObjectURL = jest.fn(() => 'blob:export');
     const revokeObjectURL = jest.fn();

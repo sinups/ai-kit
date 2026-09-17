@@ -52,7 +52,7 @@ export interface SessionPreviewProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SessionPreviewLabels = {
+export const DEFAULT_SESSION_PREVIEW_LABELS: SessionPreviewLabels = {
   resume: 'Resume',
   export: 'Export',
   retry: 'Retry',
@@ -78,7 +78,7 @@ export const SessionPreview = memo(function SessionPreview({
   className,
   style,
 }: SessionPreviewProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_SESSION_PREVIEW_LABELS, ...labels };
   const visible = useMemo(() => messages.slice(0, maxMessages), [messages, maxMessages]);
   const hidden = Math.max(messages.length - visible.length, 0);
   const numbers = new Intl.NumberFormat(locale);

@@ -15,7 +15,7 @@ const change = (path: string, extra: Partial<FileChange> = {}): FileChange => ({
   ...extra,
 });
 
-describe('file-tree', () => {
+describe('diff/file-tree', () => {
   it('computes stats from contents unless they are given', () => {
     expect(
       computeFileStats(change('a.ts', { oldContent: 'a\nb\nc\n', newContent: 'a\nB\nc\nd\n' }))

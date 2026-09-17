@@ -23,7 +23,7 @@ export type McpDiscoveredServersLabels = {
   transports: Record<McpTransport, string>;
 };
 
-export const MCP_DISCOVERED_SERVERS_LABELS: McpDiscoveredServersLabels = {
+export const DEFAULT_MCP_DISCOVERED_SERVERS_LABELS: McpDiscoveredServersLabels = {
   title: 'Found {count} new MCP servers in this project',
   description: 'Project servers can run commands on your machine. Approve only the ones you trust.',
   selectAll: 'Select all',
@@ -62,7 +62,7 @@ export const McpDiscoveredServers = memo(function McpDiscoveredServers({
   className,
   style,
 }: McpDiscoveredServersProps) {
-  const labels = { ...MCP_DISCOVERED_SERVERS_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_DISCOVERED_SERVERS_LABELS, ...labelsOverride };
   const action = usePendingActions(labels.error);
   const [deselected, setDeselected] = useState<ReadonlySet<string>>(
     () =>
@@ -202,3 +202,5 @@ export const McpDiscoveredServers = memo(function McpDiscoveredServers({
     </Paper>
   );
 });
+
+McpDiscoveredServers.displayName = 'McpDiscoveredServers';

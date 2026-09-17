@@ -62,7 +62,7 @@ export interface KeyValueEditorProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: KeyValueEditorLabels = {
+export const DEFAULT_KEY_VALUE_EDITOR_LABELS: KeyValueEditorLabels = {
   remove: 'Remove',
   markSecret: 'Mark as secret',
   unmarkSecret: 'Mark as not secret',
@@ -95,7 +95,7 @@ export const KeyValueEditor = memo(function KeyValueEditor({
 }: KeyValueEditorProps) {
   const baseId = useId();
   const [focusRowId, setFocusRowId] = useState<string | null>(null);
-  const labels = { ...DEFAULT_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_KEY_VALUE_EDITOR_LABELS, ...labelsOverride };
   const errors = validateKeyValuePairs(value, validateKey, labels);
   const canAdd = !disabled && (maxRows === undefined || value.length < maxRows);
 
@@ -218,3 +218,5 @@ export const KeyValueEditor = memo(function KeyValueEditor({
     </Stack>
   );
 });
+
+KeyValueEditor.displayName = 'KeyValueEditor';

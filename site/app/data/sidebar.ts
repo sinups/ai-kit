@@ -203,6 +203,7 @@ const GUIDES: SidebarItem[] = [
   { label: "Theming", href: "/docs/theming" },
   { label: "Layouts", href: "/docs/layouts" },
   { label: "Embedding the launcher", href: "/docs/launcher" },
+  { label: "Bundle size", href: "/docs/bundle-size" },
   { label: "What's new", href: "/docs/whats-new" },
 ];
 

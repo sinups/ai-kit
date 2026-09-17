@@ -51,7 +51,7 @@ function controllableResizeObserver() {
   };
 }
 
-describe('EffortSelector', () => {
+describe('model-settings/EffortSelector', () => {
   it('renders a segmented control when wide with the level description', async () => {
     const restore = setElementWidth(600);
     const onChange = jest.fn();

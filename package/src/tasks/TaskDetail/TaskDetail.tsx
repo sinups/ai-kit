@@ -12,7 +12,7 @@ import { TaskElapsed, TaskKindIcon } from '../TaskMeta';
 import {
   canRetryTask,
   canStopTask,
-  DEFAULT_TASK_LABELS,
+  DEFAULT_BACKGROUND_TASK_LABELS,
   getOpenBlockers,
   getProgressPercent,
   getTaskKindLabel,
@@ -28,7 +28,7 @@ export interface TaskDetailProps {
   /** Stops the task, the button is shown for queued and running tasks when set */
   onStop?: (task: BackgroundTask) => void | Promise<void>;
   /** Retries the task, the button is shown for failed and cancelled tasks when set */
-  onRetry?: (task: BackgroundTask) => void | Promise<void>;
+  onRetryTask?: (task: BackgroundTask) => void | Promise<void>;
   /** Called when a subtask is chosen in the Subtasks tab */
   onSelectSubtask?: (task: BackgroundTask) => void;
   /** Tab opened first, `output` by default */
@@ -53,7 +53,7 @@ export interface TaskDetailProps {
 export const TaskDetail = memo(function TaskDetail({
   task,
   onStop,
-  onRetry,
+  onRetryTask,
   onSelectSubtask,
   defaultTab = 'output',
   outputHeight = 320,
@@ -64,7 +64,10 @@ export const TaskDetail = memo(function TaskDetail({
   className,
   style,
 }: TaskDetailProps) {
-  const labels = useMemo(() => ({ ...DEFAULT_TASK_LABELS, ...labelsProp }), [labelsProp]);
+  const labels = useMemo(
+    () => ({ ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp }),
+    [labelsProp]
+  );
   const actions = usePendingActions();
   const subtasks = task.children ?? [];
   const messages = task.messages ?? [];
@@ -145,14 +148,14 @@ export const TaskDetail = memo(function TaskDetail({
                 {labels.stop}
               </Button>
             )}
-            {onRetry && canRetryTask(task) && (
+            {onRetryTask && canRetryTask(task) && (
               <Button
                 size="xs"
                 variant="subtle"
                 color="gray"
                 leftSection={<IconRefresh size={14} />}
                 loading={actions.isPending(retryKey)}
-                onClick={() => actions.run(retryKey, () => onRetry(task))}
+                onClick={() => actions.run(retryKey, () => onRetryTask(task))}
               >
                 {labels.retry}
               </Button>

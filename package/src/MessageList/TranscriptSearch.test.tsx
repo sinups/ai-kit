@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { TranscriptSearch } from './TranscriptSearch';
 
-describe('TranscriptSearch', () => {
+describe('MessageList/TranscriptSearch', () => {
   it('navigates with Enter and Shift+Enter and closes with Escape', async () => {
     const onNext = jest.fn();
     const onPrevious = jest.fn();

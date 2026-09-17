@@ -76,6 +76,24 @@ export interface EntityListItemState {
   selected: boolean;
 }
 
+export interface EntityListLabels {
+  /** Retry button of the error alert, `Retry` by default */
+  retry: string;
+  /** Text shown when the search query matches nothing, `No results` by default */
+  noResults: string;
+  /** Search placeholder when `search.placeholder` is not set, `Search` by default */
+  search: string;
+  /** Filter control label when `filters.label` is not set, `Filter` by default */
+  filter: string;
+}
+
+export const DEFAULT_ENTITY_LIST_LABELS: EntityListLabels = {
+  retry: 'Retry',
+  noResults: 'No results',
+  search: 'Search',
+  filter: 'Filter',
+};
+
 export interface EntityListProps<T> {
   /** Items to render */
   items: T[];
@@ -97,8 +115,6 @@ export interface EntityListProps<T> {
   error?: React.ReactNode;
   /** Called by the retry button of the error alert, the button is rendered only when set */
   onRetry?: () => void;
-  /** Retry button label, `Retry` by default */
-  retryLabel?: string;
   /** Empty state shown when there are no items and no search query */
   empty?: EntityListEmpty;
   /** Search input above the list */
@@ -111,10 +127,10 @@ export interface EntityListProps<T> {
   groupOrder?: string[];
   /** Content rendered to the right of the search input, for example an add button */
   toolbar?: React.ReactNode;
-  /** Text shown when the search query matches nothing, `No results` by default */
-  noResults?: React.ReactNode;
   /** Accessible label of the list */
   ariaLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<EntityListLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -134,18 +150,18 @@ function EntityListInner<T>({
   skeletonCount = 4,
   error,
   onRetry,
-  retryLabel = 'Retry',
   empty,
   search,
   filters,
   groupBy,
   groupOrder,
   toolbar,
-  noResults = 'No results',
   ariaLabel,
+  labels: labelsProp,
   className,
   style,
 }: EntityListProps<T>) {
+  const labels = { ...DEFAULT_ENTITY_LIST_LABELS, ...labelsProp };
   const baseId = useId();
   const { ref: rootRef, width } = useElementSize<HTMLDivElement>();
   const optionRefs = useRef(new Map<string, HTMLDivElement>());
@@ -223,7 +239,12 @@ function EntityListInner<T>({
   };
 
   const filterControl = filters && filters.options.length > 0 && (
-    <FilterControl filters={filters} wide={width >= WIDE_FILTERS_WIDTH} measuring={width === 0} />
+    <FilterControl
+      filters={filters}
+      wide={width >= WIDE_FILTERS_WIDTH}
+      measuring={width === 0}
+      defaultLabel={labels.filter}
+    />
   );
 
   const header =
@@ -237,8 +258,8 @@ function EntityListInner<T>({
                 miw={0}
                 value={search.value}
                 onChange={(event) => search.onChange(event.currentTarget.value)}
-                placeholder={search.placeholder ?? 'Search'}
-                aria-label={search.placeholder ?? 'Search'}
+                placeholder={search.placeholder ?? labels.search}
+                aria-label={search.placeholder ?? labels.search}
                 data-autofocus={search.dataAutofocus || undefined}
                 leftSection={<IconSearch size={16} />}
               />
@@ -276,7 +297,7 @@ function EntityListInner<T>({
           <Text size="sm">{error}</Text>
           {onRetry && (
             <Button size="xs" variant="light" color="red" onClick={onRetry}>
-              {retryLabel}
+              {labels.retry}
             </Button>
           )}
         </Stack>
@@ -297,7 +318,7 @@ function EntityListInner<T>({
         </EmptyState>
       ) : (
         <Text size="sm" c="dimmed" ta="center" py="lg">
-          {noResults}
+          {labels.noResults}
         </Text>
       );
   } else {
@@ -375,12 +396,14 @@ function FilterControl<T>({
   filters,
   wide,
   measuring,
+  defaultLabel,
 }: {
   filters: EntityListFilters<T>;
   wide: boolean;
   measuring: boolean;
+  defaultLabel: string;
 }) {
-  const label = filters.label ?? 'Filter';
+  const label = filters.label ?? defaultLabel;
   const measuringProps = { className: classes.measured, 'data-measuring': measuring || undefined };
 
   if (wide && filters.options.length <= 4) {
@@ -425,6 +448,8 @@ function FilterControl<T>({
   );
 }
 
-export const EntityList = memo(EntityListInner) as <T>(
-  props: EntityListProps<T>
-) => React.ReactElement;
+const EntityListMemo = memo(EntityListInner);
+
+EntityListMemo.displayName = 'EntityList';
+
+export const EntityList = EntityListMemo as <T>(props: EntityListProps<T>) => React.ReactElement;

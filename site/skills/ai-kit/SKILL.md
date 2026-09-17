@@ -51,7 +51,8 @@ package is missing, install it with the project's package manager.
   return a promise; the component shows the pending state and the rejection message.
 - Data views take `loading`, `error` + `onRetry` and render an empty state.
 - Layout adapts to the component's own width (360px widget to 900px page), not the viewport.
-- Visible text has English defaults overridable through `labels`.
+- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds
+  them); labels of nested parts sit under a key, for example `labels.wizard`.
 - Messages are `ChatMessage[]`, structurally compatible with AI SDK `UIMessage`; status is
   `ChatStatus`. `useChat()` output plugs in without importing `ai`.
 
@@ -91,7 +92,7 @@ export function Chat() {
 
 - `AgentChat` props: `messages`, `status`, `onSend`, `onStop` (required); `error`,
   `suggestions`, `attachments`, `toolRenderers`, `onToolAction`, `messageActions`, `onRetry`,
-  `statusBar`, `inputBarProps`, `searchable`, `stickyPrompt`, `collapseToolRuns`,
+  `statusBar`, `inputBarProps`, `withSearch`, `stickyPrompt`, `collapseToolRuns`,
   `highlighter`, `longMessageThreshold`, `contentWidth`, `emptyState`, `emptyStateWidth`,
   `alignComposer`, `topFade`, `wrapLines`, `responsiveTables`, `classNames`, `slots`.
 - `contentWidth`: `420px` by default; a number such as `760` on pages, `"100%"` in panels and

@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
+import { formatCount } from '../utils/format-count';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
 import { COMMAND_TOOL_TYPES, FILE_TOOL_TYPES, SEARCH_TOOL_TYPES } from './tool-kinds';
@@ -33,14 +34,6 @@ export interface ToolGroupProps {
   style?: React.CSSProperties;
 }
 
-function formatCount(value: number, label: string): string {
-  return `${value} ${value === 1 ? label : `${label}s`}`;
-}
-
-function formatSearches(count: number): string {
-  return `${count} ${count === 1 ? 'search' : 'searches'}`;
-}
-
 function summarizeNestedTools(nestedTools: ToolPart[]): string {
   if (nestedTools.length === 0) {
     return '';
@@ -62,13 +55,13 @@ function summarizeNestedTools(nestedTools: ToolPart[]): string {
 
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file'));
+    parts.push(formatCount(fileCount, 'file', 'files'));
   }
   if (searchCount > 0) {
-    parts.push(formatSearches(searchCount));
+    parts.push(formatCount(searchCount, 'search', 'searches'));
   }
   if (commandCount > 0) {
-    parts.push(formatCount(commandCount, 'command'));
+    parts.push(formatCount(commandCount, 'command', 'commands'));
   }
 
   if (parts.length === 0) {
@@ -99,10 +92,10 @@ function getNestedCounts(nestedTools: ToolPart[]) {
 function formatStreamCounts(fileCount: number, searchCount: number): string {
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file'));
+    parts.push(formatCount(fileCount, 'file', 'files'));
   }
   if (searchCount > 0) {
-    parts.push(formatSearches(searchCount));
+    parts.push(formatCount(searchCount, 'search', 'searches'));
   }
   return parts.join(', ');
 }
@@ -296,3 +289,5 @@ export const ToolGroup = memo(function ToolGroup({
     </ToolRowBase>
   );
 });
+
+ToolGroup.displayName = 'ToolGroup';

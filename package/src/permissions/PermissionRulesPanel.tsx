@@ -98,6 +98,8 @@ export interface PermissionRulesPanelLabels {
   emptyDirectoriesTitle: string;
   emptyDirectoriesDescription: string;
   error: string;
+  /** Labels of the rule wizard */
+  wizard: Partial<AddPermissionRuleWizardLabels>;
 }
 
 export interface PermissionRulesPanelProps {
@@ -118,7 +120,7 @@ export interface PermissionRulesPanelProps {
   /** Called by the delete action, hidden when omitted */
   onDeleteRule?: (rule: PermissionRule) => void | Promise<void>;
   /** Called by the move actions with the new scope, hidden when omitted */
-  onChangeScope?: (rule: PermissionRule, scope: PermissionScope) => void | Promise<void>;
+  onMoveRule?: (rule: PermissionRule, scope: PermissionScope) => void | Promise<void>;
   /** Called with a new directory, the add form is hidden when omitted */
   onAddDirectory?: (directory: WorkspaceDirectory) => void | Promise<void>;
   /** Called by the remove action of a directory, hidden when omitted */
@@ -131,17 +133,15 @@ export interface PermissionRulesPanelProps {
   defaultTab?: PermissionRulesTab;
   /** Called with the tab the user picked */
   onTabChange?: (tab: PermissionRulesTab) => void;
-  /** Overrides for the English labels of the panel */
+  /** Overrides of the default English labels of the panel */
   labels?: Partial<PermissionRulesPanelLabels>;
-  /** Overrides for the English labels of the rule wizard */
-  wizardLabels?: Partial<AddPermissionRuleWizardLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: PermissionRulesPanelLabels = {
+export const DEFAULT_PERMISSION_RULES_PANEL_LABELS: PermissionRulesPanelLabels = {
   title: 'Permissions',
   description:
     'Rules that decide which tool calls run without asking, need approval or are blocked.',
@@ -172,6 +172,7 @@ const DEFAULT_LABELS: PermissionRulesPanelLabels = {
   emptyDirectoriesTitle: 'No additional directories',
   emptyDirectoriesDescription: 'The agent can work only inside the project directory.',
   error: 'Something went wrong',
+  wizard: {},
 };
 
 const BEHAVIOR_ICONS: Record<PermissionBehavior, React.ReactNode> = {
@@ -216,7 +217,7 @@ export const PermissionRulesPanel = memo(function PermissionRulesPanel({
   onRetry,
   onSaveRule,
   onDeleteRule,
-  onChangeScope,
+  onMoveRule,
   onAddDirectory,
   onRemoveDirectory,
   knownTools,
@@ -224,11 +225,10 @@ export const PermissionRulesPanel = memo(function PermissionRulesPanel({
   defaultTab = 'allow',
   onTabChange,
   labels: labelsProp,
-  wizardLabels,
   className,
   style,
 }: PermissionRulesPanelProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_PERMISSION_RULES_PANEL_LABELS, ...labelsProp };
   const { ref, width } = useElementSize();
   const [uncontrolledTab, setUncontrolledTab] = useState<PermissionRulesTab>(defaultTab);
   const [query, setQuery] = useState('');
@@ -337,12 +337,12 @@ export const PermissionRulesPanel = memo(function PermissionRulesPanel({
                 },
               ]
             : []),
-          ...(onChangeScope
+          ...(onMoveRule
             ? EDITABLE_PERMISSION_SCOPES.filter((scope) => scope !== rule.scope).map((scope) => ({
                 label: `${labels.moveTo} ${PERMISSION_SCOPES[scope].label}`,
                 icon: <IconArrowsExchange size={14} />,
                 disabled: pending,
-                onClick: () => rowActions.run(ruleKey(rule), () => onChangeScope(rule, scope)),
+                onClick: () => rowActions.run(ruleKey(rule), () => onMoveRule(rule, scope)),
               }))
             : []),
           ...(onDeleteRule
@@ -653,9 +653,11 @@ export const PermissionRulesPanel = memo(function PermissionRulesPanel({
         title={
           confirmTarget?.kind === 'directory' ? labels.removeDirectoryTitle : labels.deleteRuleTitle
         }
-        confirmLabel={confirmTarget?.kind === 'directory' ? labels.remove : labels.delete}
-        cancelLabel={labels.cancel}
-        errorLabel={labels.error}
+        labels={{
+          confirm: confirmTarget?.kind === 'directory' ? labels.remove : labels.delete,
+          cancel: labels.cancel,
+          error: labels.error,
+        }}
         message={
           confirmTarget?.kind === 'rule' ? (
             <>
@@ -680,7 +682,7 @@ export const PermissionRulesPanel = memo(function PermissionRulesPanel({
           onClose={() => setWizardOpened(false)}
           initialRule={draft}
           knownTools={knownTools}
-          labels={wizardLabels}
+          labels={labels.wizard}
           onSubmit={(rule) => onSaveRule(rule, draft?.id ? 'edit' : 'create')}
         />
       )}

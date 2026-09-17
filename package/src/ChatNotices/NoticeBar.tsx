@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box, UnstyledButton } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { cx } from '../utils/cx';
@@ -10,25 +10,34 @@ export interface NoticeBarAction {
   kind?: 'primary' | 'secondary' | 'muted';
 }
 
+export interface NoticeBarLabels {
+  close: string;
+}
+
+export const DEFAULT_NOTICE_BAR_LABELS: NoticeBarLabels = {
+  close: 'Close',
+};
+
 export interface NoticeBarProps {
   title: React.ReactNode;
   description?: React.ReactNode;
   actions?: NoticeBarAction[];
   onClose?: () => void;
-  closeLabel?: string;
+  labels?: Partial<NoticeBarLabels>;
   className?: string;
   style?: React.CSSProperties;
 }
 
-export function NoticeBar({
+export const NoticeBar = memo(function NoticeBar({
   title,
   description,
   actions = [],
   onClose,
-  closeLabel = 'Close',
+  labels: labelsProp,
   className,
   style,
 }: NoticeBarProps) {
+  const labels = { ...DEFAULT_NOTICE_BAR_LABELS, ...labelsProp };
   return (
     <Box role="status" className={cx(classes.root, className)} style={style}>
       <div className={classes.text}>
@@ -49,7 +58,7 @@ export function NoticeBar({
             </UnstyledButton>
           ))}
           {onClose && (
-            <UnstyledButton className={classes.close} aria-label={closeLabel} onClick={onClose}>
+            <UnstyledButton className={classes.close} aria-label={labels.close} onClick={onClose}>
               <IconX size={14} stroke={2} />
             </UnstyledButton>
           )}
@@ -57,4 +66,6 @@ export function NoticeBar({
       )}
     </Box>
   );
-}
+});
+
+NoticeBar.displayName = 'NoticeBar';

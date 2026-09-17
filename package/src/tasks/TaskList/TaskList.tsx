@@ -20,7 +20,7 @@ import {
   canRetryTask,
   canStopTask,
   countTasksByKind,
-  DEFAULT_TASK_LABELS,
+  DEFAULT_BACKGROUND_TASK_LABELS,
   getProgressPercent,
   describeHiddenTasks,
   getOpenBlockers,
@@ -52,7 +52,7 @@ export interface TaskListProps {
   /** Stops a queued or running task, the action is shown only when set */
   onStop?: TaskAction;
   /** Retries a failed or cancelled task, the action is shown only when set */
-  onRetry?: TaskAction;
+  onRetryTask?: TaskAction;
   /** Removes a finished task from the list, the action is shown only when set */
   onRemove?: TaskAction;
   /** Shows skeleton rows */
@@ -60,7 +60,7 @@ export interface TaskListProps {
   /** Error message shown instead of the list */
   error?: React.ReactNode;
   /** Called by the retry button of the error alert */
-  onRetryLoad?: () => void;
+  onRetry?: () => void;
   /** Shows the search input, `true` by default */
   withSearch?: boolean;
   /** Marks the search input with `data-autofocus` so an enclosing Drawer or Modal focuses it on open */
@@ -89,11 +89,11 @@ export const TaskList = memo(function TaskList({
   selectedId,
   onSelect,
   onStop,
-  onRetry,
+  onRetryTask,
   onRemove,
   loading,
   error,
-  onRetryLoad,
+  onRetry,
   withSearch = true,
   searchAutofocus = false,
   withKindFilter = true,
@@ -104,7 +104,10 @@ export const TaskList = memo(function TaskList({
   className,
   style,
 }: TaskListProps) {
-  const labels = useMemo(() => ({ ...DEFAULT_TASK_LABELS, ...labelsProp }), [labelsProp]);
+  const labels = useMemo(
+    () => ({ ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp }),
+    [labelsProp]
+  );
   const [query, setQuery] = useState('');
   const [selectedKind, setKind] = useState(ALL_KINDS);
   const [showAll, setShowAll] = useState(false);
@@ -181,12 +184,12 @@ export const TaskList = memo(function TaskList({
         onClick: () => actions.run(`stop:${task.id}`, () => onStop(task)),
       });
     }
-    if (onRetry && canRetryTask(task)) {
+    if (onRetryTask && canRetryTask(task)) {
       items.push({
         label: labels.retry,
         icon: <IconRefresh size={14} />,
         disabled: actions.isPending(`retry:${task.id}`),
-        onClick: () => actions.run(`retry:${task.id}`, () => onRetry(task)),
+        onClick: () => actions.run(`retry:${task.id}`, () => onRetryTask(task)),
       });
     }
     if (onRemove && !canStopTask(task)) {
@@ -234,8 +237,7 @@ export const TaskList = memo(function TaskList({
               }}
               value={query}
               onChange={setQuery}
-              label={labels.search}
-              closeLabel={labels.closeSearch}
+              labels={{ search: labels.search, close: labels.closeSearch }}
             />
           )}
           {!(withSearch && searchOpen) && <Group flex={1} />}
@@ -264,15 +266,14 @@ export const TaskList = memo(function TaskList({
         onSelect={onSelect}
         loading={loading}
         error={error}
-        onRetry={onRetryLoad}
-        retryLabel={labels.loadRetry}
+        onRetry={onRetry}
+        labels={{ retry: labels.loadRetry, noResults: labels.noResults }}
         ariaLabel={labels.title}
         empty={
           compact && query.trim()
             ? undefined
             : { title: labels.emptyTitle, description: labels.emptyDescription }
         }
-        noResults={labels.noResults}
         search={
           withSearch && !compact
             ? {
@@ -360,7 +361,7 @@ export const TaskList = memo(function TaskList({
                 </Stack>
               }
               actions={getActions(task)}
-              actionsLabel={labels.actions}
+              labels={{ actions: labels.actions }}
             />
           );
         }}

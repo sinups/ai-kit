@@ -5,7 +5,7 @@ import { MantineProvider } from '@mantine/core';
 import { clearHighlightCache, type SyntaxHighlighter } from '../utils/highlighter';
 import { Markdown } from './Markdown';
 
-describe('Markdown streaming', () => {
+describe('Markdown/Markdown streaming', () => {
   beforeEach(() => clearHighlightCache());
 
   it('parses finished blocks once and re-parses only the growing tail', () => {

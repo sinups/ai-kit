@@ -9,7 +9,7 @@ import {
   type KeyValuePair,
 } from './key-value';
 
-describe('parseKeyValueText', () => {
+describe('primitives/parseKeyValueText', () => {
   it('parses .env lines, skipping blanks and comments', () => {
     const text = [
       '# database',
@@ -51,7 +51,7 @@ describe('parseKeyValueText', () => {
   });
 });
 
-describe('isKeyValueText', () => {
+describe('primitives/isKeyValueText', () => {
   it('detects pasted pairs but not plain keys', () => {
     expect(isKeyValueText('A=1')).toBe(true);
     expect(isKeyValueText('A\nB')).toBe(true);
@@ -61,7 +61,7 @@ describe('isKeyValueText', () => {
   });
 });
 
-describe('key validators', () => {
+describe('primitives/key-value key validators', () => {
   it('accepts environment variable names only', () => {
     expect(envKeyValidator('NODE_ENV')).toBeNull();
     expect(envKeyValidator('_private1')).toBeNull();
@@ -76,7 +76,7 @@ describe('key validators', () => {
   });
 });
 
-describe('validateKeyValuePairs', () => {
+describe('primitives/validateKeyValuePairs', () => {
   const pairs: KeyValuePair[] = [
     { id: '1', key: 'A', value: '1' },
     { id: '2', key: '', value: '' },
@@ -100,7 +100,7 @@ describe('validateKeyValuePairs', () => {
   });
 });
 
-describe('expandPastedPairs', () => {
+describe('primitives/expandPastedPairs', () => {
   const base: KeyValuePair[] = [
     { id: 'a', key: 'FIRST', value: '1' },
     { id: 'b', key: '', value: '', secret: true },

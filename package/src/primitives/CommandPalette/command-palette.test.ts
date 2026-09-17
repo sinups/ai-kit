@@ -7,7 +7,7 @@ const COMMANDS: PaletteCommand[] = [
   { id: 'help', label: 'Help' },
 ];
 
-describe('buildPaletteSections', () => {
+describe('primitives/buildPaletteSections', () => {
   it('lists recent commands first and then groups in order of appearance', () => {
     const sections = buildPaletteSections(COMMANDS, '', ['theme', 'missing', 'new-chat']);
     expect(sections.map((section) => section.label)).toEqual([

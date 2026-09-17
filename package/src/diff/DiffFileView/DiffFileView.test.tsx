@@ -8,7 +8,7 @@ import { DiffFileView } from './DiffFileView';
 
 const byPath = (suffix: string) => DIFF_FIXTURES.find((change) => change.path.endsWith(suffix))!;
 
-describe('DiffFileView', () => {
+describe('diff/DiffFileView', () => {
   it('renders a unified diff with word highlights and collapsed unchanged lines', async () => {
     const { container } = render(<DiffFileView change={byPath('invoice.ts')} />);
 

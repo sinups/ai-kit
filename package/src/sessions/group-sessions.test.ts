@@ -7,7 +7,7 @@ function session(id: string, updatedAt: Date, extra: Partial<SessionSummary> = {
   return { id, title: id, createdAt: updatedAt, updatedAt, messageCount: 1, ...extra };
 }
 
-describe('getSessionDateGroup', () => {
+describe('sessions/getSessionDateGroup', () => {
   it('splits days at local midnight', () => {
     expect(getSessionDateGroup(session('a', new Date(2026, 8, 17, 0, 0)), NOW).key).toBe('today');
     expect(getSessionDateGroup(session('b', new Date(2026, 8, 16, 23, 59)), NOW).key).toBe(
@@ -50,7 +50,7 @@ describe('getSessionDateGroup', () => {
   });
 });
 
-describe('groupSessionsByDate', () => {
+describe('sessions/groupSessionsByDate', () => {
   it('orders groups and sorts sessions by updatedAt descending', () => {
     const groups = groupSessionsByDate(
       [
@@ -85,7 +85,7 @@ describe('groupSessionsByDate', () => {
   });
 });
 
-describe('matchesSessionFilter', () => {
+describe('sessions/matchesSessionFilter', () => {
   const active = session('active', NOW);
   const pinned = session('pinned', NOW, { pinned: true });
   const archived = session('archived', NOW, { archived: true, pinned: true });

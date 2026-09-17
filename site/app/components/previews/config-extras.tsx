@@ -77,8 +77,8 @@ function SettingsModalPreview() {
         onClose={() => setOpened(false)}
         sections={SETTINGS_SECTIONS}
         activeId={activeId}
-        onActiveChange={setActiveId}
-        searchable
+        onActiveIdChange={setActiveId}
+        withSearch
       >
         <SettingsSection title={SETTINGS_SECTIONS.find((section) => section.id === activeId)?.label ?? ""}>
           <SettingRow
@@ -436,7 +436,7 @@ const MEMORY_FILES: MemoryFile[] = [
     id: "agent-reviewer",
     scope: "agent",
     agentName: "code-reviewer",
-    path: ".agent/agent-memory/code-reviewer/MEMORY.md",
+    path: ".agent/memory/agents/code-reviewer.md",
     updatedAt: "2026-09-16T18:40:00Z",
     content: "# Review notes\n\n- `any` is accepted only in test fixtures",
   },

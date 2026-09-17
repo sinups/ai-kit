@@ -4,7 +4,7 @@ import { act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AgentStatus } from './AgentStatus';
 
-describe('AgentStatus', () => {
+describe('AgentStatus/AgentStatus', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -29,7 +29,11 @@ describe('AgentStatus', () => {
     jest.useFakeTimers();
     const now = Date.now();
     const { container } = render(
-      <AgentStatus lastActivityAt={now} stalledLabel="Waiting for response" stallAfterMs={1000} />
+      <AgentStatus
+        lastActivityAt={now}
+        labels={{ stalled: 'Waiting for response' }}
+        stallAfterMs={1000}
+      />
     );
     expect(container.querySelector('[data-stalled]')).toBeNull();
     act(() => {
@@ -41,7 +45,7 @@ describe('AgentStatus', () => {
 
   it('calls onStop', async () => {
     const onStop = jest.fn();
-    render(<AgentStatus onStop={onStop} stopLabel="Interrupt" />);
+    render(<AgentStatus onStop={onStop} labels={{ stop: 'Interrupt' }} />);
     await userEvent.click(screen.getByRole('button', { name: 'Interrupt' }));
     expect(onStop).toHaveBeenCalledTimes(1);
   });

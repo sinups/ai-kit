@@ -1,6 +1,6 @@
 import { diffWords, splitWordDiff, tokenizeWords, wordDiffSimilarity } from './word-diff';
 
-describe('word-diff', () => {
+describe('diff/word-diff', () => {
   it('tokenizes words, whitespace and punctuation', () => {
     expect(tokenizeWords('const total = sum(items);')).toEqual([
       'const',

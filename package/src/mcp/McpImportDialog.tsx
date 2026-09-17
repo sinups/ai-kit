@@ -17,7 +17,7 @@ import { IconAlertCircle, IconDownload, IconServer } from '@tabler/icons-react';
 import { usePendingActions } from '../hooks/use-pending-actions';
 import { OVERLAY_INNER_CLASS } from '../styles/overlay';
 import {
-  MCP_IMPORT_NAME_LABELS,
+  DEFAULT_MCP_IMPORT_NAME_LABELS,
   resolveImportNames,
   validateImportNames,
   type McpImportNameLabels,
@@ -44,8 +44,8 @@ export type McpImportDialogLabels = McpImportNameLabels & {
   transports: Record<McpTransport, string>;
 };
 
-export const MCP_IMPORT_DIALOG_LABELS: McpImportDialogLabels = {
-  ...MCP_IMPORT_NAME_LABELS,
+export const DEFAULT_MCP_IMPORT_DIALOG_LABELS: McpImportDialogLabels = {
+  ...DEFAULT_MCP_IMPORT_NAME_LABELS,
   title: 'Import MCP servers from {source}',
   description: 'Found {count} servers in {source}. Names already in use get a suffix you can edit.',
   selectAll: 'Select all',
@@ -242,7 +242,7 @@ export const McpImportDialog = memo(function McpImportDialog({
   onImport,
   labels: labelsOverride,
 }: McpImportDialogProps) {
-  const labels = { ...MCP_IMPORT_DIALOG_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_IMPORT_DIALOG_LABELS, ...labelsOverride };
   return (
     <Modal
       opened={opened}
@@ -263,3 +263,5 @@ export const McpImportDialog = memo(function McpImportDialog({
     </Modal>
   );
 });
+
+McpImportDialog.displayName = 'McpImportDialog';

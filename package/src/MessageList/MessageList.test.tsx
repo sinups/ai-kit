@@ -17,7 +17,7 @@ const messages: ChatMessage[] = [
   },
 ];
 
-describe('MessageList', () => {
+describe('MessageList/MessageList', () => {
   it('renders user and assistant text', () => {
     render(<MessageList messages={messages} status="ready" />);
     expect(screen.getByText('Hello there')).toBeInTheDocument();
@@ -352,7 +352,7 @@ describe('MessageList', () => {
     const { container } = render(
       <MessageList
         status="ready"
-        searchable
+        withSearch
         messages={[
           { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Refresh the token' }] },
           {

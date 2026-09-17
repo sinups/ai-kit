@@ -7,7 +7,7 @@ import {
 
 const item = (value: string): CompletionItem => ({ value, label: value });
 
-describe('useCompletionItems', () => {
+describe('input/useCompletionItems', () => {
   it('keeps the previous async results, filtered, while the next query resolves', async () => {
     const pending: Array<(items: CompletionItem[]) => void> = [];
     const source: CompletionSource = {

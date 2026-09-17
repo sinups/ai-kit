@@ -224,3 +224,5 @@ export const EditTool = memo(function EditTool({
     />
   );
 });
+
+EditTool.displayName = 'EditTool';

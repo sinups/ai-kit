@@ -2,7 +2,7 @@ import {
   buildTaskTree,
   canRetryTask,
   canStopTask,
-  DEFAULT_TASK_LABELS,
+  DEFAULT_BACKGROUND_TASK_LABELS,
   describeHiddenTasks,
   describeTaskSummary,
   getOpenBlockers,
@@ -29,7 +29,7 @@ const task = (id: string, extra: Partial<BackgroundTask> = {}): BackgroundTask =
   ...extra,
 });
 
-describe('task-utils', () => {
+describe('tasks/task-utils', () => {
   it('maps task statuses to the shared vocabulary', () => {
     expect(getTaskUiStatus('queued')).toBe('pending');
     expect(getTaskUiStatus('running')).toBe('running');
@@ -63,11 +63,17 @@ describe('task-utils', () => {
       failed: 1,
       cancelled: 0,
     });
-    expect(describeTaskSummary(summary, DEFAULT_TASK_LABELS)).toEqual(['2 running', '1 failed']);
+    expect(describeTaskSummary(summary, DEFAULT_BACKGROUND_TASK_LABELS)).toEqual([
+      '2 running',
+      '1 failed',
+    ]);
     expect(
-      describeTaskSummary(summarizeTasks([task('a', { status: 'completed' })]), DEFAULT_TASK_LABELS)
+      describeTaskSummary(
+        summarizeTasks([task('a', { status: 'completed' })]),
+        DEFAULT_BACKGROUND_TASK_LABELS
+      )
     ).toEqual(['1 done']);
-    expect(describeTaskSummary(summarizeTasks([]), DEFAULT_TASK_LABELS)).toEqual([]);
+    expect(describeTaskSummary(summarizeTasks([]), DEFAULT_BACKGROUND_TASK_LABELS)).toEqual([]);
   });
 
   it('flattens a tree depth-first and builds it back', () => {
@@ -166,12 +172,12 @@ describe('task-utils', () => {
     const { visible, hidden } = limitTasks(tasks, 2);
     expect(visible.map((item) => item.id)).toEqual(['r1', 'r2']);
     expect(hidden).toEqual({ running: 1, queued: 2, finished: 1 });
-    expect(describeHiddenTasks(hidden, DEFAULT_TASK_LABELS)).toBe(
+    expect(describeHiddenTasks(hidden, DEFAULT_BACKGROUND_TASK_LABELS)).toBe(
       '+1 in progress, 2 pending, 1 done'
     );
-    expect(describeHiddenTasks({ running: 0, queued: 0, finished: 0 }, DEFAULT_TASK_LABELS)).toBe(
-      ''
-    );
+    expect(
+      describeHiddenTasks({ running: 0, queued: 0, finished: 0 }, DEFAULT_BACKGROUND_TASK_LABELS)
+    ).toBe('');
     expect(limitTasks(tasks, 0).visible).toHaveLength(6);
   });
 });

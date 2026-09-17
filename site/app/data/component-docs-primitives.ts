@@ -135,7 +135,7 @@ export function Example() {
         onClose={() => setOpened(false)}
         title="Delete rule"
         message={<><Code>Bash(npm run test:*)</Code> will be removed from the project settings.</>}
-        confirmLabel="Delete"
+        labels={{ confirm: "Delete" }}
         danger
         onConfirm={() => deleteRule("allow-test")}
       />
@@ -158,7 +158,7 @@ export function Example() {
   onClose={close}
   title="Delete rule"
   message="Bash(npm run test:*) will be removed from the project settings."
-  confirmLabel="Delete"
+  labels={{ confirm: "Delete" }}
   danger
   onConfirm={deleteRule}
 />`,
@@ -171,7 +171,7 @@ export function Example() {
   opened={opened}
   onClose={close}
   title="Delete rule"
-  confirmLabel="Delete"
+  labels={{ confirm: "Delete" }}
   danger
   onConfirm={async () => {
     throw new Error(".agent/settings.json is read-only");
@@ -202,7 +202,7 @@ export function Example() {
   const [activeId, setActiveId] = useState("general");
   return (
     <div style={{ height: 560 }}>
-      <SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveChange={setActiveId} searchable>
+      <SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveIdChange={setActiveId} withSearch>
         <SettingsSection title="Appearance" description="How the assistant looks">
           <SettingRow
             label="Compact messages"
@@ -219,13 +219,13 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Build a settings screen from three pieces. `SettingsLayout` shows grouped `NavLink` navigation beside the content from 720px of its own width and a section picker above the content when narrower; `searchable` filters sections by label and description. `SettingsSection` is a borderless group with a title, description, actions and dividers between rows, set apart by spacing; `danger` marks destructive settings. `SettingRow` places the control beside the label from 480px of row width and under it when narrower (`layout` forces either). The layout fills the parent height and scrolls navigation and content separately.",
+          "Build a settings screen from three pieces. `SettingsLayout` shows grouped `NavLink` navigation beside the content from 720px of its own width and a section picker above the content when narrower; `withSearch` filters sections by label and description. `SettingsSection` is a borderless group with a title, description, actions and dividers between rows, set apart by spacing; `danger` marks destructive settings. `SettingRow` places the control beside the label from 480px of row width and under it when narrower (`layout` forces either). The layout fills the parent height and scrolls navigation and content separately.",
       },
       {
         type: "example",
         title: "Wide",
         previewId: "SettingsLayout/wide",
-        code: `<SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveChange={setActiveId} searchable>
+        code: `<SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveIdChange={setActiveId} withSearch>
   {sectionContent}
 </SettingsLayout>`,
       },
@@ -234,7 +234,7 @@ export function Example() {
         title: "Narrow",
         previewId: "SettingsLayout/narrow",
         code: `<div style={{ width: 360, height: 520 }}>
-  <SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveChange={setActiveId} searchable>
+  <SettingsLayout title="Settings" sections={sections} activeId={activeId} onActiveIdChange={setActiveId} withSearch>
     {sectionContent}
   </SettingsLayout>
 </div>`,
@@ -300,7 +300,7 @@ export function Example({ servers }: { servers: McpServer[] }) {
         title: "Narrow",
         previewId: "MasterDetail/narrow",
         code: `<div style={{ width: 360, height: 460 }}>
-  <MasterDetail list={serverList} detail={detail} onBack={clearSelection} backLabel="Servers" />
+  <MasterDetail list={serverList} detail={detail} onBack={clearSelection} labels={{ back: "Servers" }} />
 </div>`,
       },
       {

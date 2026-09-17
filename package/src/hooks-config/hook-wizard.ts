@@ -1,3 +1,4 @@
+import { createId } from '../utils/create-id';
 import {
   HOOK_EVENTS,
   HOOK_EVENT_ORDER,
@@ -235,5 +236,5 @@ export const DEFAULT_HOOK_TOOLS = [
 ];
 
 export function createHookId(): string {
-  return `hook-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return createId('hook');
 }

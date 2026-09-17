@@ -8,17 +8,28 @@ import { formatTokens } from '../utils/format-tokens';
 import { useStalled } from './use-stalled';
 import classes from './AgentStatus.module.css';
 
+export interface AgentStatusLabels {
+  /** Text shown instead of `label` while stalled, empty by default to keep `label` */
+  stalled: string;
+  /** Token count text, `{tokens}` is replaced, `↓ {tokens} tokens` by default */
+  tokens: string;
+  /** Stop button, `Stop` by default */
+  stop: string;
+}
+
+export const DEFAULT_AGENT_STATUS_LABELS: AgentStatusLabels = {
+  stalled: '',
+  tokens: '↓ {tokens} tokens',
+  stop: 'Stop',
+};
+
 export interface AgentStatusProps {
   /** Status text while the agent is working, `Thinking` by default */
   label?: string;
-  /** Text shown instead of `label` while stalled, falls back to `label` */
-  stalledLabel?: string;
   /** Moment the turn started, used for the live elapsed time */
   startedAt?: number | Date;
   /** Tokens received in this turn */
   tokens?: number;
-  /** Token count text, `{tokens}` is replaced, `↓ {tokens} tokens` by default */
-  tokensLabel?: string;
   /** Moment the last token or event arrived, `startedAt` by default */
   lastActivityAt?: number | Date;
   /** Inactivity in ms after which the status is shown as stalled, `3000` by default */
@@ -27,8 +38,8 @@ export interface AgentStatusProps {
   paused?: boolean;
   /** Renders the stop button when provided */
   onStop?: () => void;
-  /** Stop button label, `Stop` by default */
-  stopLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<AgentStatusLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -38,21 +49,20 @@ export interface AgentStatusProps {
 /** Live "agent is working" line with elapsed time, token count and stall detection */
 export const AgentStatus = memo(function AgentStatus({
   label = 'Thinking',
-  stalledLabel,
   startedAt,
   tokens,
-  tokensLabel = '↓ {tokens} tokens',
   lastActivityAt,
   stallAfterMs = 3000,
   paused,
   onStop,
-  stopLabel = 'Stop',
+  labels: labelsProp,
   className,
   style,
 }: AgentStatusProps) {
+  const labels = { ...DEFAULT_AGENT_STATUS_LABELS, ...labelsProp };
   const { elapsedMs, isStalled } = useStalled({ startedAt, lastActivityAt, stallAfterMs, paused });
   const elapsed = formatElapsedTime(elapsedMs);
-  const text = isStalled ? (stalledLabel ?? label) : label;
+  const text = isStalled ? labels.stalled || label : label;
   const hasTokens = tokens !== undefined && tokens > 0;
 
   return (
@@ -74,7 +84,9 @@ export const AgentStatus = memo(function AgentStatus({
         <span className={classes.meta} aria-hidden="true">
           {elapsed && <span>{elapsed}</span>}
           {elapsed && hasTokens && <span>·</span>}
-          {hasTokens && <span>{fillTemplate(tokensLabel, { tokens: formatTokens(tokens) })}</span>}
+          {hasTokens && (
+            <span>{fillTemplate(labels.tokens, { tokens: formatTokens(tokens) })}</span>
+          )}
         </span>
       )}
       {onStop && (
@@ -85,7 +97,7 @@ export const AgentStatus = memo(function AgentStatus({
           className={classes.stop}
           onClick={onStop}
         >
-          {stopLabel}
+          {labels.stop}
         </Button>
       )}
     </Box>

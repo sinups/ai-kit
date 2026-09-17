@@ -9,7 +9,7 @@ import {
 
 const tool = (type: string): ToolPart => ({ type, state: 'output-available' });
 
-describe('groupToolRuns', () => {
+describe('MessageList/groupToolRuns', () => {
   const isTool = (item: string) => item.startsWith('t');
 
   it('groups runs that reach the minimum length', () => {
@@ -36,7 +36,7 @@ describe('groupToolRuns', () => {
   });
 });
 
-describe('resolveToolRunOptions', () => {
+describe('MessageList/resolveToolRunOptions', () => {
   it('is disabled unless requested', () => {
     expect(resolveToolRunOptions(undefined)).toBeNull();
     expect(resolveToolRunOptions(false)).toBeNull();
@@ -57,7 +57,7 @@ describe('resolveToolRunOptions', () => {
   });
 });
 
-describe('describeToolRun', () => {
+describe('MessageList/describeToolRun', () => {
   it('summarizes reads and searches', () => {
     expect(
       describeToolRun([tool('tool-Read'), tool('tool-Grep'), tool('tool-Read'), tool('tool-Glob')])
@@ -88,7 +88,7 @@ describe('describeToolRun', () => {
   });
 });
 
-describe('DEFAULT_COLLAPSIBLE_TOOL_TYPES', () => {
+describe('MessageList/DEFAULT_COLLAPSIBLE_TOOL_TYPES', () => {
   it('collapses read, pattern search and web search tools', () => {
     expect([...DEFAULT_COLLAPSIBLE_TOOL_TYPES].sort()).toEqual(
       ['tool-Glob', 'tool-Grep', 'tool-Read', 'tool-Search', 'tool-WebSearch'].sort()

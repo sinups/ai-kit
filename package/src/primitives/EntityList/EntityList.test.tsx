@@ -38,7 +38,7 @@ function renderList(props: Partial<EntityListProps<Server>> = {}) {
   );
 }
 
-describe('EntityList', () => {
+describe('primitives/EntityList', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -124,7 +124,7 @@ describe('EntityList', () => {
             placeholder: 'Search servers',
             filter: (server, query) => server.name.toLowerCase().includes(query.toLowerCase()),
           }}
-          noResults="Nothing matches"
+          labels={{ noResults: 'Nothing matches' }}
         />
       );
     }

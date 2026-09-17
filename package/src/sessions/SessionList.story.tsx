@@ -85,7 +85,7 @@ export function Loading() {
   );
 }
 
-export const ErrorState = {
+export const Error = {
   name: 'Error',
   render: () => (
     <WidthFrame width={NARROW_WIDTH}>

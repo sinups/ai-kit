@@ -31,7 +31,7 @@ const renderWide = async (ui: React.ReactElement) => {
   return result;
 };
 
-describe('MemoryPanel', () => {
+describe('memory/MemoryPanel', () => {
   let restore: () => void;
   beforeEach(() => {
     restore = setElementWidth(1000);
@@ -48,7 +48,7 @@ describe('MemoryPanel', () => {
     );
     expect(within(list).getByRole('group', { name: 'Local' })).toHaveTextContent('AGENTS.local.md');
     expect(within(list).getByRole('group', { name: 'Agent' })).toHaveTextContent(
-      'code-reviewer · .agent/agent-memory/code-reviewer/MEMORY.md'
+      'code-reviewer · .agent/memory/agents/code-reviewer.md'
     );
     expect(within(list).getByText('12 minutes ago')).toBeInTheDocument();
   });

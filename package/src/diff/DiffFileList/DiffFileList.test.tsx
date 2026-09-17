@@ -4,7 +4,7 @@ import { summarizeChanges } from '../file-tree';
 import { DIFF_FIXTURES } from '../fixtures';
 import { DiffFileList } from './DiffFileList';
 
-describe('DiffFileList', () => {
+describe('diff/DiffFileList', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -85,18 +85,16 @@ describe('DiffFileList', () => {
   });
 
   it('renders empty, loading and error states', async () => {
-    const onRetryLoad = jest.fn();
+    const onRetry = jest.fn();
     const { rerender } = render(<DiffFileList changes={[]} />);
     expect(screen.getByText('No changes')).toBeInTheDocument();
 
     rerender(<DiffFileList changes={[]} loading />);
     expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
 
-    rerender(
-      <DiffFileList changes={[]} error="Could not load the diff" onRetryLoad={onRetryLoad} />
-    );
+    rerender(<DiffFileList changes={[]} error="Could not load the diff" onRetry={onRetry} />);
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(onRetryLoad).toHaveBeenCalled();
+    expect(onRetry).toHaveBeenCalled();
   });
 
   it('keeps one ghost toolbar row when compact', async () => {

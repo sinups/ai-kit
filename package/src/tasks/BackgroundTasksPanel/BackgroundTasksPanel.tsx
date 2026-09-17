@@ -5,7 +5,7 @@ import { IconListDetails } from '@tabler/icons-react';
 import { MasterDetail } from '../../primitives/MasterDetail/MasterDetail';
 import { TaskDetail } from '../TaskDetail/TaskDetail';
 import { TaskList, type TaskAction } from '../TaskList/TaskList';
-import { DEFAULT_TASK_LABELS, findParentTask, findTask } from '../task-utils';
+import { DEFAULT_BACKGROUND_TASK_LABELS, findParentTask, findTask } from '../task-utils';
 import type { BackgroundTask, BackgroundTaskLabels } from '../types';
 import { cx } from '../../utils/cx';
 import classes from './BackgroundTasksPanel.module.css';
@@ -22,7 +22,7 @@ export interface BackgroundTasksPanelProps {
   /** Stops a queued or running task */
   onStop?: TaskAction;
   /** Retries a failed or cancelled task */
-  onRetry?: TaskAction;
+  onRetryTask?: TaskAction;
   /** Removes a finished task */
   onRemove?: TaskAction;
   /** Shows skeleton rows in the list */
@@ -30,7 +30,7 @@ export interface BackgroundTasksPanelProps {
   /** Error message shown instead of the list */
   error?: React.ReactNode;
   /** Called by the retry button of the error alert */
-  onRetryLoad?: () => void;
+  onRetry?: () => void;
   /** Sends an instruction to a running agent task from its detail */
   onSteer?: (taskId: string, text: string) => void | Promise<void>;
   /** Shows at most this many tasks in the list with a summary of the rest */
@@ -62,11 +62,11 @@ export const BackgroundTasksPanel = memo(function BackgroundTasksPanel({
   defaultSelectedId = null,
   onSelectedIdChange,
   onStop,
-  onRetry,
+  onRetryTask,
   onRemove,
   loading,
   error,
-  onRetryLoad,
+  onRetry,
   searchAutofocus,
   onSteer,
   maxVisible,
@@ -81,7 +81,10 @@ export const BackgroundTasksPanel = memo(function BackgroundTasksPanel({
   const { ref, width } = useElementSize<HTMLDivElement>();
   const measuring = compactProp === undefined && width === 0;
   const compact = compactProp ?? width < (breakpoint ?? DEFAULT_BREAKPOINT);
-  const labels = useMemo(() => ({ ...DEFAULT_TASK_LABELS, ...labelsProp }), [labelsProp]);
+  const labels = useMemo(
+    () => ({ ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp }),
+    [labelsProp]
+  );
   const [innerSelectedId, setInnerSelectedId] = useState(defaultSelectedId);
   const selectedId = selectedIdProp !== undefined ? selectedIdProp : innerSelectedId;
   const selected = findTask(tasks, selectedId);
@@ -108,7 +111,7 @@ export const BackgroundTasksPanel = memo(function BackgroundTasksPanel({
         <MasterDetail
           listWidth={listWidth}
           breakpoint={breakpoint}
-          backLabel={labels.back}
+          labels={{ back: labels.back }}
           onBack={handleBack}
           emptyDetail={
             <EmptyState
@@ -130,11 +133,11 @@ export const BackgroundTasksPanel = memo(function BackgroundTasksPanel({
                 selectedId={rootId}
                 onSelect={(task) => setSelectedId(task.id)}
                 onStop={onStop}
-                onRetry={onRetry}
+                onRetryTask={onRetryTask}
                 onRemove={onRemove}
                 loading={loading}
                 error={error}
-                onRetryLoad={onRetryLoad}
+                onRetry={onRetry}
                 searchAutofocus={searchAutofocus}
                 compact={compact}
                 maxVisible={maxVisible}
@@ -148,7 +151,7 @@ export const BackgroundTasksPanel = memo(function BackgroundTasksPanel({
                 key={selected.id}
                 task={selected}
                 onStop={onStop}
-                onRetry={onRetry}
+                onRetryTask={onRetryTask}
                 onSteer={onSteer}
                 allTasks={tasks}
                 onSelectSubtask={(task) => setSelectedId(task.id)}

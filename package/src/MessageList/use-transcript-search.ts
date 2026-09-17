@@ -4,6 +4,21 @@ import { findDomMatches, stepMatchIndex } from './transcript-search';
 const MATCH_HIGHLIGHT = 'ae-search-match';
 const ACTIVE_HIGHLIGHT = 'ae-search-active';
 const NO_MATCHES = { query: '', ranges: [] as Range[] };
+const HIGHLIGHT_STYLE_ATTRIBUTE = 'data-ai-kit-search-highlights';
+// CSS parsers in Next.js and Vite builds reject ::highlight() in stylesheets, so the rules are added at runtime.
+const HIGHLIGHT_STYLES = `::highlight(${MATCH_HIGHLIGHT}){background-color:color-mix(in srgb,var(--mantine-color-yellow-4) 45%,transparent);color:inherit}::highlight(${ACTIVE_HIGHLIGHT}){background-color:var(--mantine-color-orange-5);color:var(--mantine-color-black)}`;
+
+function ensureHighlightStyles(element: HTMLElement) {
+  const root = element.getRootNode();
+  const container = root instanceof ShadowRoot ? root : element.ownerDocument.head;
+  if (container.querySelector(`style[${HIGHLIGHT_STYLE_ATTRIBUTE}]`)) {
+    return;
+  }
+  const style = element.ownerDocument.createElement('style');
+  style.setAttribute(HIGHLIGHT_STYLE_ATTRIBUTE, '');
+  style.textContent = HIGHLIGHT_STYLES;
+  container.appendChild(style);
+}
 
 type HighlightRegistry = {
   set: (name: string, value: unknown) => void;
@@ -78,6 +93,7 @@ export function useTranscriptSearch({
     );
     const highlights = getHighlights();
     if (highlights) {
+      ensureHighlightStyles(root);
       highlights.registry.set(MATCH_HIGHLIGHT, highlights.create(found));
       ownsHighlightsRef.current = true;
     }

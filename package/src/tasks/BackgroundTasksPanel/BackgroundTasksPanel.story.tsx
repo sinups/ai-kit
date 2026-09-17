@@ -17,7 +17,7 @@ function Demo(props: Partial<BackgroundTasksPanelProps>) {
       <BackgroundTasksPanel
         tasks={tasks}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onRemove={remove}
         onSteer={steer}
         defaultSelectedId="review-agent"
@@ -59,13 +59,13 @@ export function Loading() {
   );
 }
 
-export function LoadError() {
+export function Error() {
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <Demo
         tasks={[]}
         error="Could not reach the task runner"
-        onRetryLoad={() => {}}
+        onRetry={() => {}}
         defaultSelectedId={null}
       />
     </WidthFrame>
@@ -90,7 +90,7 @@ export function InDrawer() {
         onClose={() => setOpened(false)}
         tasks={tasks}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onRemove={remove}
         onSteer={steer}
       />

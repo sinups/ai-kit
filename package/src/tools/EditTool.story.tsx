@@ -2,7 +2,7 @@ import React from 'react';
 import { expect, fn, userEvent, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { EditTool } from './EditTool';
-import { demoHighlighter, editPart, NEW_CODE } from './_stories-shared';
+import { demoHighlighter, editPart, NEW_CODE } from './_story-helpers';
 
 export default { title: 'tools/EditTool' };
 
@@ -94,7 +94,7 @@ function EditApprovalCard({ onApprove, onReject }: EditApprovalArgs) {
             file_path: '/project/src/utils/greet.ts',
             old_string: 'const a = 1;',
             new_string: 'const a = 2;',
-            approval: { approveLabel: 'Apply', rejectLabel: 'Discard', onApprove, onReject },
+            approval: { labels: { approve: 'Apply', reject: 'Discard' }, onApprove, onReject },
           },
         })}
       />

@@ -4,7 +4,7 @@ import { ContextBreakdown } from './ContextBreakdown';
 import { ContextUsage } from './ContextUsage';
 import { CONTEXT_GROUPS, CONTEXT_SUGGESTIONS } from './fixtures';
 
-describe('ContextBreakdown', () => {
+describe('ContextUsage/ContextBreakdown', () => {
   it('summarizes groups and expands a group into items', async () => {
     const user = userEvent.setup({ delay: null });
     render(<ContextBreakdown groups={CONTEXT_GROUPS} total={200_000} />);

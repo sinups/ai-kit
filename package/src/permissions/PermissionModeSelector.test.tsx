@@ -17,7 +17,7 @@ function Controlled({ onChange }: { onChange?: (mode: PermissionMode) => void })
   );
 }
 
-describe('PermissionModeSelector', () => {
+describe('permissions/PermissionModeSelector', () => {
   it('describes the selected mode and warns about bypass', async () => {
     const onChange = jest.fn();
     render(<Controlled onChange={onChange} />);
@@ -37,7 +37,7 @@ describe('PermissionModeSelector', () => {
         variant="select"
         value="plan"
         onChange={jest.fn()}
-        modeLabels={{ plan: { label: 'Planning', description: 'Only think' } }}
+        labels={{ modes: { plan: { label: 'Planning', description: 'Only think' } } }}
       />
     );
     expect(screen.getByDisplayValue('Planning')).toBeInTheDocument();

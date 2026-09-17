@@ -5,7 +5,7 @@ import { setElementWidth } from '../primitives/_testing/element-width';
 import { MCP_SERVERS } from './fixtures';
 import { McpSettingsPanel } from './McpSettingsPanel';
 
-describe('McpSettingsPanel', () => {
+describe('mcp/McpSettingsPanel', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -29,8 +29,8 @@ describe('McpSettingsPanel', () => {
   });
 
   it('adds a server through the wizard modal', async () => {
-    const onAddServer = jest.fn(() => Promise.resolve());
-    render(<McpSettingsPanel servers={MCP_SERVERS} onAddServer={onAddServer} />);
+    const onAdd = jest.fn(() => Promise.resolve());
+    render(<McpSettingsPanel servers={MCP_SERVERS} onAdd={onAdd} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Add server' }));
     const dialog = await screen.findByRole('dialog', { name: 'Add MCP server' });
@@ -43,22 +43,14 @@ describe('McpSettingsPanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add server' }));
 
-    expect(onAddServer).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'memory', command: 'npx' })
-    );
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ name: 'memory', command: 'npx' }));
   });
 
   it('keeps list and detail side by side when wide and edits the selected server', async () => {
     const restore = setElementWidth(1200);
-    const onUpdateServer = jest.fn();
+    const onUpdate = jest.fn();
     try {
-      render(
-        <McpSettingsPanel
-          servers={MCP_SERVERS}
-          selectedServerId="postgres"
-          onUpdateServer={onUpdateServer}
-        />
-      );
+      render(<McpSettingsPanel servers={MCP_SERVERS} selectedId="postgres" onUpdate={onUpdate} />);
 
       expect(await screen.findByRole('textbox', { name: 'Search servers' })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'postgres' })).toBeInTheDocument();

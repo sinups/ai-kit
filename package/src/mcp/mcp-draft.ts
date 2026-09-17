@@ -17,7 +17,7 @@ export type McpDraftLabels = {
   urlInvalid: string;
 };
 
-export const MCP_DRAFT_LABELS: McpDraftLabels = {
+export const DEFAULT_MCP_DRAFT_LABELS: McpDraftLabels = {
   nameRequired: 'Enter a server name',
   nameInvalid: 'Use letters, digits, dashes and underscores',
   nameTaken: 'A server with this name already exists',
@@ -54,7 +54,7 @@ export function isValidMcpUrl(value: string): boolean {
 export function validateMcpBasics(
   draft: McpServerDraft,
   existingNames: readonly string[] = [],
-  labels: McpDraftLabels = MCP_DRAFT_LABELS
+  labels: McpDraftLabels = DEFAULT_MCP_DRAFT_LABELS
 ): McpDraftErrors {
   const name = draft.name.trim();
   if (!name) {
@@ -72,7 +72,7 @@ export function validateMcpBasics(
 
 export function validateMcpConnection(
   draft: McpServerDraft,
-  labels: McpDraftLabels = MCP_DRAFT_LABELS
+  labels: McpDraftLabels = DEFAULT_MCP_DRAFT_LABELS
 ): McpDraftErrors {
   if (draft.transport === 'stdio') {
     return draft.command.trim() ? {} : { command: labels.commandRequired };

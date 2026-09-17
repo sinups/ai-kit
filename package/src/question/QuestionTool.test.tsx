@@ -24,7 +24,7 @@ function createPart(input: Partial<NonNullable<QuestionToolPart['input']>>): Que
   };
 }
 
-describe('QuestionTool', () => {
+describe('question/QuestionTool', () => {
   it('hides the question navigation unless progress or review is enabled', () => {
     render(<QuestionTool part={createPart({})} />);
     expect(screen.queryByRole('navigation', { name: 'Questions' })).not.toBeInTheDocument();

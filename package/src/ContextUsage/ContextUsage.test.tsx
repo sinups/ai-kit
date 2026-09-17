@@ -4,9 +4,9 @@ import { act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContextUsage } from './ContextUsage';
 
-describe('ContextUsage', () => {
+describe('ContextUsage/ContextUsage', () => {
   it('exposes the level and percentage', () => {
-    const { container } = render(<ContextUsage used={170_000} total={200_000} showLabel />);
+    const { container } = render(<ContextUsage used={170_000} total={200_000} withLabel />);
     expect(container.querySelector('[data-level="warning"]')).not.toBeNull();
     expect(screen.getByText('85%')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Context usage: 85%' })).toBeInTheDocument();

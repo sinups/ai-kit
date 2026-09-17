@@ -191,3 +191,5 @@ export const MemoryFileDetail = memo(function MemoryFileDetail({
     </Stack>
   );
 });
+
+MemoryFileDetail.displayName = 'MemoryFileDetail';

@@ -64,10 +64,10 @@ export function Loading() {
   );
 }
 
-export function LoadError() {
+export function Error() {
   return (
     <WidthFrame width={NARROW_WIDTH}>
-      <Demo changes={[]} error="Could not load the diff" onRetryLoad={() => {}} />
+      <Demo changes={[]} error="Could not load the diff" onRetry={() => {}} />
     </WidthFrame>
   );
 }

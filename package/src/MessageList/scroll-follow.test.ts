@@ -11,7 +11,7 @@ const metrics = (scrollTop: number, scrollHeight = 2000, clientHeight = 600) => 
   clientHeight,
 });
 
-describe('scroll-follow', () => {
+describe('MessageList/scroll-follow', () => {
   it('detects the bottom within the threshold', () => {
     expect(isNearBottom(metrics(1400))).toBe(true);
     expect(isNearBottom(metrics(1330))).toBe(true);

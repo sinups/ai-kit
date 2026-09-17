@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { setElementWidth } from '../../primitives/_testing/element-width';
 import { ModelSettingsPanel } from './ModelSettingsPanel';
 
-describe('ModelSettingsPanel', () => {
+describe('model-settings/ModelSettingsPanel', () => {
   it('shows sections for the given props and switches between them', async () => {
     const restore = setElementWidth(900);
     const onActiveSectionChange = jest.fn();
@@ -34,7 +34,7 @@ describe('ModelSettingsPanel', () => {
     const restore = setElementWidth(900);
     render(
       <ModelSettingsPanel
-        defaultSection="output-style"
+        defaultActiveSection="output-style"
         outputStyle={{
           styles: [{ id: 'concise', name: 'Concise', description: 'Short answers' }],
           value: 'concise',

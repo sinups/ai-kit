@@ -24,7 +24,7 @@ function Harness({
   );
 }
 
-describe('ToolSelector', () => {
+describe('agents/ToolSelector', () => {
   it('toggles tools and shows the counter', async () => {
     const onChange = jest.fn();
     render(<Harness initial={['Read']} onChange={onChange} />);

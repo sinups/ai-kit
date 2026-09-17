@@ -64,11 +64,11 @@ export interface AddPermissionRuleWizardProps {
   examples?: string[];
   /** Creates ids for new rules */
   createId?: () => string;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AddPermissionRuleWizardLabels>;
 }
 
-const DEFAULT_LABELS: AddPermissionRuleWizardLabels = {
+export const DEFAULT_ADD_PERMISSION_RULE_WIZARD_LABELS: AddPermissionRuleWizardLabels = {
   addTitle: 'Add permission rule',
   editTitle: 'Edit permission rule',
   add: 'Add rule',
@@ -136,7 +136,10 @@ export const AddPermissionRuleWizard = memo(function AddPermissionRuleWizard({
   createId = createPermissionId,
   labels: labelsProp,
 }: AddPermissionRuleWizardProps) {
-  const labels = useMemo(() => ({ ...DEFAULT_LABELS, ...labelsProp }), [labelsProp]);
+  const labels = useMemo(
+    () => ({ ...DEFAULT_ADD_PERMISSION_RULE_WIZARD_LABELS, ...labelsProp }),
+    [labelsProp]
+  );
   const isEdit = !!initialRule?.id;
   const initialValues = useMemo(
     () => createRuleDraft(initialRule, defaultScope),

@@ -3,7 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { BashTool } from './BashTool';
 import type { ToolApprovalExplanation } from './ToolApprovalFooter';
-import { bashPart } from './_stories-shared';
+import { bashPart } from './_story-helpers';
 
 export default { title: 'tools/BashTool' };
 
@@ -49,7 +49,7 @@ export function WithApproval() {
         part={bashPart('output-available', {
           input: {
             command: 'yarn build',
-            approval: { approveLabel: 'Run', rejectLabel: 'Cancel' },
+            approval: { labels: { approve: 'Run', reject: 'Cancel' } },
           },
           output: { stdout: 'Built in 2.1s', exitCode: 0 },
         })}
@@ -87,7 +87,7 @@ function StreamingDemo() {
         callProviderMetadata: { custom: { startedAt: Date.now() - count * 700 } },
         output: done ? { stdout: tail, exitCode: 0, durationMs: 6100 } : { outputTail: tail },
       })}
-      showOutputMeta
+      withOutputMeta
       formatOutput
     />
   );
@@ -110,7 +110,7 @@ export function Streaming() {
             durationMs: 12400,
           },
         })}
-        showOutputMeta
+        withOutputMeta
         formatOutput
       />
     </Stack>
@@ -148,8 +148,7 @@ function ApprovalCard(args: ApprovalArgs) {
           input: {
             command: 'yarn test --coverage',
             approval: {
-              approveLabel: 'Run',
-              rejectLabel: 'Skip',
+              labels: { approve: 'Run', reject: 'Skip' },
               reason: 'Runs a shell command',
               approveOptions: [
                 { value: 'once', label: 'Allow once' },
@@ -275,7 +274,7 @@ export const StreamingOutputFlow = {
             durationMs: 3200,
           },
         })}
-        showOutputMeta
+        withOutputMeta
         formatOutput
       />
     </Stack>

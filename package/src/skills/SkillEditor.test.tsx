@@ -4,14 +4,14 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { AVAILABLE_TOOLS, skills } from './fixtures';
 import { SkillEditor } from './SkillEditor';
 
-describe('SkillEditor', () => {
+describe('skills/SkillEditor', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
 
   it('validates the slug and taken names before saving', async () => {
     const onSave = jest.fn();
-    render(<SkillEditor takenNames={['pdf']} onSave={onSave} />);
+    render(<SkillEditor existingNames={['pdf']} onSave={onSave} />);
 
     await userEvent.type(screen.getByRole('textbox', { name: /Name/ }), 'My Skill');
     await userEvent.click(screen.getByRole('button', { name: 'Create skill' }));

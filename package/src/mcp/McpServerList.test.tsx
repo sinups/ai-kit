@@ -4,7 +4,7 @@ import { waitFor, within } from '@testing-library/react';
 import { MCP_SERVERS } from './fixtures';
 import { McpServerList } from './McpServerList';
 
-describe('McpServerList', () => {
+describe('mcp/McpServerList', () => {
   it('renders servers grouped by scope with status and tool counts', () => {
     render(<McpServerList servers={MCP_SERVERS} />);
 

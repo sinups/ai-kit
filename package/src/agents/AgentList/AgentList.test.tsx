@@ -4,7 +4,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { AGENT_MODELS, AGENTS } from '../fixtures';
 import { AgentList } from './AgentList';
 
-describe('AgentList', () => {
+describe('agents/AgentList', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

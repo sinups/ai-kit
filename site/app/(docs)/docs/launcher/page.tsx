@@ -49,7 +49,10 @@ const CONTROLLED = `const [opened, setOpened] = useState(false);
 </ChatLauncher>`;
 
 const MOUNT = `import mantineCss from "@mantine/core/styles.css?inline";
-import kitCss from "@sinups/ai-kit/styles.css?inline";
+import baseCss from "@sinups/ai-kit/styles/base.css?inline";
+import launcherCss from "@sinups/ai-kit/styles/ChatLauncher.css?inline";
+import chatCss from "@sinups/ai-kit/styles/AgentChat.css?inline";
+import providerCss from "@sinups/ai-kit/styles/AiKitProvider.css?inline";
 import { AgentChat, AiKitProvider, ChatLauncher, mountChatLauncher } from "@sinups/ai-kit";
 
 const host = document.createElement("div");
@@ -61,7 +64,7 @@ const widget = mountChatLauncher(
     <AgentChat {...chat} contentWidth="100%" wrapLines alignComposer />
   </ChatLauncher>,
   {
-    styles: [mantineCss, kitCss],
+    styles: [mantineCss, baseCss, launcherCss, chatCss, providerCss],
     theme: { fontFamily: "system-ui, sans-serif" },
     colorScheme: "light",
     wrap: (element) => <AiKitProvider accent="indigo">{element}</AiKitProvider>,
@@ -80,7 +83,7 @@ const URLS = `mountChatLauncher(host, <SupportLauncher />, {
 
 const DEV = `mountChatLauncher(host, <SupportLauncher />, {
   adoptDocumentStyles: import.meta.env.DEV,
-  styles: import.meta.env.DEV ? [] : [mantineCss, kitCss],
+  styles: import.meta.env.DEV ? [] : [mantineCss, baseCss, launcherCss, chatCss],
 });`;
 
 export default function LauncherPage() {
@@ -175,7 +178,9 @@ export default function LauncherPage() {
         <Bullets>
           <li>
             <C>styles</C>: CSS text, for example from a bundler import with <C>?inline</C> (shown
-            above). <C>:root</C>, <C>html</C> and <C>body</C> selectors are rewritten to the widget
+            above). Pass <C>styles/base.css</C> and the files of the components the widget renders
+            (<C>ChatLauncher</C>, <C>AgentChat</C>, <C>AiKitProvider</C> when you wrap with it)
+            instead of the whole <C>styles.css</C>. <C>:root</C>, <C>html</C> and <C>body</C> selectors are rewritten to the widget
             container, so Mantine variables are declared on the widget and not on the page.
           </li>
           <li>

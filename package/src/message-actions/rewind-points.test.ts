@@ -19,7 +19,7 @@ const messages: ChatMessage[] = [
   { id: 'a3', role: 'assistant', parts: [] },
 ];
 
-describe('rewind-points', () => {
+describe('message-actions/rewind-points', () => {
   it('lists user messages newest first with the number of messages after them', () => {
     const points = buildRewindPoints(messages);
     expect(points.map((point) => [point.messageId, point.index, point.messagesAfter])).toEqual([

@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { AGENT_MODELS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import { AgentDetail } from './AgentDetail';
 
-describe('AgentDetail', () => {
+describe('agents/AgentDetail', () => {
   it('shows the configuration and expands the tool list', async () => {
     render(<AgentDetail agent={AGENTS[0]} catalog={TOOL_CATALOG} models={AGENT_MODELS} />);
 

@@ -23,7 +23,7 @@ describe('primitives/status-meta', () => {
   });
 });
 
-describe('StatusBadge', () => {
+describe('primitives/StatusBadge', () => {
   it('renders the default label with an icon', () => {
     const { container } = render(<StatusBadge status="success" />);
     expect(screen.getByText('Success')).toBeInTheDocument();

@@ -28,7 +28,7 @@ export function AgentChat({
   onToolAction,
   inputBarProps,
   statusBar,
-  searchable = false,
+  withSearch = false,
   stickyPrompt,
   highlighter,
   longMessageThreshold,
@@ -216,7 +216,7 @@ export function AgentChat({
       data-empty-centered={isCenteredEmptyState || undefined}
       data-align-composer={alignComposer || undefined}
       onKeyDown={
-        searchable && !isCenteredEmptyState && !isWelcome
+        withSearch && !isCenteredEmptyState && !isWelcome
           ? (event: React.KeyboardEvent<HTMLDivElement>) => {
               if (
                 !event.defaultPrevented &&
@@ -274,7 +274,7 @@ export function AgentChat({
           messageActions={messageActions}
           onRetry={onRetry}
           onToolAction={onToolAction}
-          searchable={searchable}
+          withSearch={withSearch}
           searchOpened={searchOpened}
           onSearchOpenedChange={setSearchOpened}
           stickyPrompt={stickyPrompt}

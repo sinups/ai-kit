@@ -186,7 +186,7 @@ function EditorPreview({ create = false }: { create?: boolean }) {
       <SkillEditor
         skill={create ? null : SKILLS[1]}
         availableTools={TOOLS}
-        takenNames={SKILLS.map((skill) => skill.name)}
+        existingNames={SKILLS.map((skill) => skill.name)}
         onSave={async (draft) => {
           await wait(500);
           setSaved(draft);

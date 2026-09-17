@@ -1,6 +1,6 @@
 import { getApproveModeLabel, getCollapsedPlanHeight, getPlanFileName } from './plan-approval';
 
-describe('plan-approval', () => {
+describe('message-actions/plan-approval', () => {
   it('builds the plan file name', () => {
     expect(getPlanFileName({})).toBe('plan-working.md');
     expect(getPlanFileName({ id: ' auth ' })).toBe('plan-auth.md');

@@ -35,7 +35,7 @@ function Stateful(props: Partial<PermissionRulesPanelProps>) {
         );
       }}
       onDeleteRule={(rule) => setRules((prev) => prev.filter((item) => item.id !== rule.id))}
-      onChangeScope={(rule, scope) =>
+      onMoveRule={(rule, scope) =>
         setRules((prev) => prev.map((item) => (item.id === rule.id ? { ...item, scope } : item)))
       }
       onAddDirectory={async (directory) => {
@@ -116,7 +116,7 @@ export function Loading() {
   );
 }
 
-export function ErrorState() {
+export function Error() {
   return (
     <Frame width={720}>
       <PermissionRulesPanel
@@ -157,7 +157,7 @@ export function ReadOnly() {
 type FlowArgs = {
   onSaveRule: (rule: PermissionRule, mode: 'create' | 'edit') => void;
   onDeleteRule: (rule: PermissionRule) => void;
-  onChangeScope: (rule: PermissionRule, scope: PermissionRule['scope']) => void;
+  onMoveRule: (rule: PermissionRule, scope: PermissionRule['scope']) => void;
   onAddDirectory: (directory: WorkspaceDirectory) => void;
 };
 
@@ -166,7 +166,7 @@ type FlowContext = { args: FlowArgs; canvasElement: HTMLElement };
 const flowArgs = (): FlowArgs => ({
   onSaveRule: fn(),
   onDeleteRule: fn(),
-  onChangeScope: fn(),
+  onMoveRule: fn(),
   onAddDirectory: fn(),
 });
 
@@ -191,8 +191,8 @@ function FlowPanel({ args, ...props }: { args: FlowArgs } & Partial<PermissionRu
           await wait(600);
           setRules((prev) => prev.filter((item) => item.id !== rule.id));
         }}
-        onChangeScope={(rule, scope) => {
-          args.onChangeScope(rule, scope);
+        onMoveRule={(rule, scope) => {
+          args.onMoveRule(rule, scope);
           setRules((prev) => prev.map((item) => (item.id === rule.id ? { ...item, scope } : item)));
         }}
         onAddDirectory={(directory) => {
@@ -277,7 +277,7 @@ export const ChangeScopeFlow = {
     await userEvent.click(
       await body(canvasElement).findByRole('menuitem', { name: 'Move to Project' })
     );
-    await expect(args.onChangeScope).toHaveBeenCalledWith(
+    await expect(args.onMoveRule).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'allow-docs' }),
       'project'
     );

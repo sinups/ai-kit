@@ -1,3 +1,4 @@
+import { createId } from '../utils/create-id';
 import type { PermissionDenial, PermissionRule, WorkspaceDirectory } from './types';
 
 export interface ParsedPermissionRule {
@@ -277,7 +278,7 @@ export function validateDirectoryPath(
 }
 
 export function createPermissionId(): string {
-  return `rule-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return createId('rule');
 }
 
 export function getToolSuggestions(

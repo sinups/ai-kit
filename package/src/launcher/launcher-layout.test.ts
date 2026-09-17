@@ -112,7 +112,7 @@ describe('launcher/launcher-layout', () => {
   });
 });
 
-describe('findLauncherFeed', () => {
+describe('launcher/findLauncherFeed', () => {
   it('returns the outermost scroll container and skips nested ones', () => {
     const body = document.createElement('div');
     body.innerHTML =

@@ -154,9 +154,9 @@ export function WorkspaceSettings({
           onModelChange={settings.model.onChange}
           effort={settings.effort}
           outputStyle={{ styles: OUTPUT_STYLES, ...settings.outputStyle }}
-          usage={{ ...usage, withoutTitle: true }}
+          usage={{ ...usage, withTitle: false }}
           status={{
-            withoutTitle: true,
+            withTitle: false,
             version: '2.1.4',
             model: MODELS.find((item) => item.id === settings.model.value)?.name,
             account: { email: 'dev@example.com', plan: 'Team' },
@@ -247,7 +247,7 @@ export function WorkspaceSettings({
             knownTools={PERMISSION_TOOLS_FIXTURE}
             onSaveRule={settings.permissions.onSaveRule}
             onDeleteRule={settings.permissions.onDeleteRule}
-            onChangeScope={settings.permissions.onChangeScope}
+            onMoveRule={settings.permissions.onMoveRule}
             onAddDirectory={settings.permissions.onAddDirectory}
             onRemoveDirectory={settings.permissions.onRemoveDirectory}
           />
@@ -278,8 +278,8 @@ export function WorkspaceSettings({
       size="90rem"
       sections={WORKSPACE_SETTINGS_SECTIONS}
       activeId={section}
-      onActiveChange={(id) => onSectionChange(id as WorkspaceSettingsSection)}
-      searchable
+      onActiveIdChange={(id) => onSectionChange(id as WorkspaceSettingsSection)}
+      withSearch
     >
       {content}
     </SettingsModal>

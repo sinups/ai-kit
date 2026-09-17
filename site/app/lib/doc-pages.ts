@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { COMPONENT_DOCS } from "@/app/data/component-docs";
 import { metadata as architecture } from "@/app/(docs)/docs/architecture/layout";
+import { metadata as bundleSize } from "@/app/(docs)/docs/bundle-size/layout";
 import { metadata as installation } from "@/app/(docs)/docs/installation/layout";
 import { metadata as launcher } from "@/app/(docs)/docs/launcher/layout";
 import { metadata as layouts } from "@/app/(docs)/docs/layouts/layout";
@@ -29,6 +30,7 @@ export const DOC_PAGE_DESCRIPTIONS: Record<string, string> = {
   "/docs/theming": describe(theming),
   "/docs/layouts": describe(layouts),
   "/docs/launcher": describe(launcher),
+  "/docs/bundle-size": describe(bundleSize),
   "/docs/whats-new": describe(whatsNew),
   "/docs/utilities": describe(utilities),
 };

@@ -14,7 +14,7 @@ const file = (patch: Partial<MemoryFile>): MemoryFile => ({
   ...patch,
 });
 
-describe('getMemoryFileName', () => {
+describe('memory/getMemoryFileName', () => {
   it('returns the last path segment for posix and windows paths', () => {
     expect(getMemoryFileName('~/.agent/AGENTS.md')).toBe('AGENTS.md');
     expect(getMemoryFileName('C:\\repo\\AGENTS.local.md')).toBe('AGENTS.local.md');
@@ -23,7 +23,7 @@ describe('getMemoryFileName', () => {
   });
 });
 
-describe('sortMemoryFiles', () => {
+describe('memory/sortMemoryFiles', () => {
   it('orders by scope, then agent name, then path', () => {
     const sorted = sortMemoryFiles([
       file({ scope: 'agent', path: 'b.md', agentName: 'reviewer' }),
@@ -44,7 +44,7 @@ describe('sortMemoryFiles', () => {
   });
 });
 
-describe('matchesMemoryQuery', () => {
+describe('memory/matchesMemoryQuery', () => {
   const memory = file({
     path: 'src/AGENTS.md',
     content: 'Use yarn, not npm',
@@ -60,7 +60,7 @@ describe('matchesMemoryQuery', () => {
   });
 });
 
-describe('formatMemoryUpdatedAt', () => {
+describe('memory/formatMemoryUpdatedAt', () => {
   const now = Date.parse('2026-09-17T12:00:00Z');
 
   it('formats relative time in the largest fitting unit', () => {

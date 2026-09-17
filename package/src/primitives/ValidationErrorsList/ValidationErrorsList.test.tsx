@@ -18,7 +18,7 @@ const ERRORS: SettingsValidationError[] = [
   { file: '~/.agent/settings.json', path: 'model', message: 'Unknown model', severity: 'warning' },
 ];
 
-describe('ValidationErrorsList', () => {
+describe('primitives/ValidationErrorsList', () => {
   it('groups deduplicated errors by file with paths, suggestions and docs links', async () => {
     const onOpenFile = jest.fn();
     render(<ValidationErrorsList errors={ERRORS} onOpenFile={onOpenFile} />);
@@ -71,7 +71,7 @@ describe('ValidationErrorsList', () => {
   });
 });
 
-describe('InvalidSettingsNotice', () => {
+describe('primitives/InvalidSettingsNotice', () => {
   it('summarizes the problems and expands the details', async () => {
     const onOpenFile = jest.fn();
     render(

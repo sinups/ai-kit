@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { IdleReturnPrompt } from './IdleReturnPrompt';
 import { SpendThresholdNotice } from './SpendThresholdNotice';
 
-describe('IdleReturnPrompt', () => {
+describe('ChatNotices/IdleReturnPrompt', () => {
   it('describes the absence and runs the actions', async () => {
     const user = userEvent.setup({ delay: null });
     const onContinue = jest.fn();
@@ -46,7 +46,7 @@ describe('IdleReturnPrompt', () => {
   });
 });
 
-describe('SpendThresholdNotice', () => {
+describe('ChatNotices/SpendThresholdNotice', () => {
   it('formats the spend and limit and runs actions', async () => {
     const user = userEvent.setup({ delay: null });
     const onViewUsage = jest.fn();

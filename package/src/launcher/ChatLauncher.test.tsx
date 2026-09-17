@@ -14,7 +14,7 @@ function Composer() {
   );
 }
 
-describe('ChatLauncher', () => {
+describe('launcher/ChatLauncher', () => {
   it('opens the panel, focuses the composer and returns focus to the button on Escape', async () => {
     const onOpenedChange = jest.fn();
     render(

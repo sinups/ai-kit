@@ -69,7 +69,7 @@ export type MessageListLabels = {
   toolRuns?: Partial<ToolRunLabels>;
 };
 
-const DEFAULT_LABELS: MessageListLabels = {
+export const DEFAULT_MESSAGE_LIST_LABELS: MessageListLabels = {
   newMessages: (count) => `${count} new ${count === 1 ? 'message' : 'messages'}`,
   scrollToPrompt: 'Scroll to the prompt',
 };
@@ -93,14 +93,11 @@ export type MessageListProps = {
    *   or read-only transcripts where the user should read top-to-bottom.
    */
   initialScrollBehavior?: 'bottom' | 'top';
-  /**
-   * When true (default) clicking an attached image in a user message opens
-   * the fullscreen lightbox preview. Set to false to disable previews.
-   */
+  /** Opens an attached image of a user message in a fullscreen lightbox on click, `true` by default */
   enableImagePreview?: boolean;
   /**
    * Collapses runs of consecutive read and search tool calls in an assistant message into one
-   * summary row, for example `Read 3 files, searched 2 patterns`. Off by default.
+   * summary row, for example `Read 3 files, searched 2 patterns`, `false` by default.
    */
   collapseToolRuns?: boolean | CollapseToolRunsOptions;
   /**
@@ -117,7 +114,7 @@ export type MessageListProps = {
       className?: string;
       enableImagePreview?: boolean;
       commands?: SlashCommandInfo[];
-      longTextThreshold?: LongTextThreshold | boolean;
+      longMessageThreshold?: LongTextThreshold | boolean;
     }>;
     ToolRenderer?: React.ComponentType<ToolRendererSlotProps>;
   };
@@ -129,21 +126,21 @@ export type MessageListProps = {
   onToolAction?: ToolActionHandler;
   /** Adds a retry button to error parts */
   onRetry?: () => void;
-  /** Adds the conversation search, opened with Mod+F while focus is inside the list */
-  searchable?: boolean;
+  /** Adds the conversation search, opened with Mod+F while focus is inside the list, `false` by default */
+  withSearch?: boolean;
   /** Controlled open state of the search */
   searchOpened?: boolean;
   /** Called when the search opens or closes */
   onSearchOpenedChange?: (opened: boolean) => void;
   /** Pins the prompt of the answer being read to the top while scrolling a long answer */
   stickyPrompt?: boolean;
-  /** Collapses long user messages to head and tail; `true` uses `{ chars: 2000, lines: 30 }`, off by default */
+  /** Collapses long user messages to head and tail; `true` uses `{ chars: 2000, lines: 30 }`, `false` by default */
   longMessageThreshold?: LongTextThreshold | boolean;
   /** Fades the top edge of the list once it is scrolled, so content does not end abruptly under a header */
   topFade?: boolean;
-  /** Wraps long lines in code blocks and diffs instead of scrolling them sideways, for narrow layouts; off by default */
+  /** Wraps long lines in code blocks and diffs instead of scrolling them sideways, for narrow layouts, `false` by default */
   wrapLines?: boolean;
-  /** Shows answer tables with too many columns for the width as one card per row, off by default */
+  /** Shows answer tables with too many columns for the width as one card per row, `false` by default */
   responsiveTables?: boolean;
   /** Called with the width in px of the vertical scrollbar whenever it appears, disappears or resizes */
   onScrollbarWidthChange?: (width: number) => void;
@@ -372,7 +369,7 @@ export const MessageList = memo(function MessageList({
   toolRenderers,
   onToolAction,
   onRetry,
-  searchable = false,
+  withSearch = false,
   searchOpened: searchOpenedProp,
   onSearchOpenedChange,
   stickyPrompt = false,
@@ -384,7 +381,7 @@ export const MessageList = memo(function MessageList({
   onScrollbarWidthChange,
   labels: labelsProp,
 }: MessageListProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_MESSAGE_LIST_LABELS, ...labelsProp };
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const chatContainerObserverRef = useRef<ResizeObserver | null>(null);
@@ -610,7 +607,7 @@ export const MessageList = memo(function MessageList({
   const turnsRootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [internalSearchOpened, setInternalSearchOpened] = useState(false);
-  const isSearchOpen = searchable && (searchOpenedProp ?? internalSearchOpened);
+  const isSearchOpen = withSearch && (searchOpenedProp ?? internalSearchOpened);
   const setSearchOpen = useCallback(
     (opened: boolean) => {
       setInternalSearchOpened(opened);
@@ -626,7 +623,7 @@ export const MessageList = memo(function MessageList({
   });
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!searchable || !isModKey(event) || event.key.toLowerCase() !== 'f') {
+    if (!withSearch || !isModKey(event) || event.key.toLowerCase() !== 'f') {
       return;
     }
     event.preventDefault();
@@ -714,8 +711,8 @@ export const MessageList = memo(function MessageList({
     <Box
       ref={containerRefCallback}
       onScroll={handleScroll}
-      onKeyDown={searchable ? handleKeyDown : undefined}
-      tabIndex={searchable ? -1 : undefined}
+      onKeyDown={withSearch ? handleKeyDown : undefined}
+      tabIndex={withSearch ? -1 : undefined}
       data-top-fade={topFade && isScrolled ? true : undefined}
       className={cx(classes.root, className)}
       style={getContentWidthStyle(contentWidth, style)}
@@ -826,7 +823,7 @@ export const MessageList = memo(function MessageList({
                             className={classNames?.userMessage}
                             enableImagePreview={enableImagePreview}
                             commands={commands}
-                            longTextThreshold={longMessageThreshold}
+                            longMessageThreshold={longMessageThreshold}
                           />
                           <MessageActions
                             messageRole="user"
@@ -847,7 +844,7 @@ export const MessageList = memo(function MessageList({
                           className={classNames?.userMessage}
                           enableImagePreview={enableImagePreview}
                           commands={commands}
-                          longTextThreshold={longMessageThreshold}
+                          longMessageThreshold={longMessageThreshold}
                         />
                         {showUserToolbar && (
                           <MessageToolbar
@@ -1114,7 +1111,7 @@ function AssistantParts({
             <Markdown
               content={part.text}
               highlighter={highlighter}
-              codeWrap={wrapLines}
+              wrapLines={wrapLines}
               responsiveTables={responsiveTables}
               streaming={isLast && isTextStreaming && index === lastTextIndex ? true : undefined}
             />

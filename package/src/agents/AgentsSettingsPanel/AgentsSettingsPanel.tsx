@@ -1,4 +1,5 @@
 import React, { memo, useState } from 'react';
+import { useUncontrolled } from '@mantine/hooks';
 import { Stack, type MantineColor } from '@mantine/core';
 import { ConfirmDialog } from '../../primitives/ConfirmDialog/ConfirmDialog';
 import { MasterDetail } from '../../primitives/MasterDetail/MasterDetail';
@@ -14,7 +15,6 @@ import {
   type AgentEditorLabels,
 } from '../AgentEditor/AgentEditor';
 import { AgentList, type AgentListLabels } from '../AgentList/AgentList';
-import type { ToolSelectorLabels } from '../ToolSelector/ToolSelector';
 import type { AgentDefinition, AgentDraft, ToolCatalogItem } from '../types';
 import { createAgentDraft, getCopyName } from '../validate-agent';
 import { formatTemplate } from '../../utils/format-template';
@@ -29,6 +29,14 @@ export interface AgentsSettingsPanelLabels {
   deleteConfirm: string;
   cancel: string;
   deleteError: string;
+  /** Labels of the agent list */
+  list: Partial<AgentListLabels>;
+  /** Labels of the agent detail */
+  detail: Partial<AgentDetailLabels>;
+  /** Labels of the editor, including `toolSelector` */
+  editor: Partial<AgentEditorLabels>;
+  /** Labels of the creation wizard, including `toolSelector` */
+  wizard: Partial<AgentCreateWizardLabels>;
 }
 
 export const DEFAULT_AGENTS_SETTINGS_PANEL_LABELS: AgentsSettingsPanelLabels = {
@@ -39,6 +47,10 @@ export const DEFAULT_AGENTS_SETTINGS_PANEL_LABELS: AgentsSettingsPanelLabels = {
   deleteConfirm: 'Delete',
   cancel: 'Cancel',
   deleteError: 'Could not delete the agent',
+  list: {},
+  detail: {},
+  editor: {},
+  wizard: {},
 };
 
 export interface AgentsSettingsPanelProps {
@@ -56,7 +68,7 @@ export interface AgentsSettingsPanelProps {
   loading?: boolean;
   /** Error shown instead of the list */
   error?: React.ReactNode;
-  /** Called by the retry button of the error */
+  /** Called by the retry button of the error alert */
   onRetry?: () => void;
   /** Creates an agent from the wizard or a duplicate; resolve with the agent to select it */
   onCreate: (draft: AgentDraft) => Promise<AgentDefinition | void> | AgentDefinition | void;
@@ -70,19 +82,16 @@ export interface AgentsSettingsPanelProps {
   onUseInChat?: (agent: AgentDefinition) => void;
   /** BCP 47 locale for dates, `en` by default */
   locale?: string;
-  /** Initially selected agent id */
+  /** Id of the agent shown in the detail, uncontrolled when omitted */
+  selectedId?: string | null;
+  /** Initially selected agent id when uncontrolled */
   defaultSelectedId?: string | null;
+  /** Called when the selected agent changes */
+  onSelectedIdChange?: (id: string | null) => void;
   /** Component width in px from which list and detail sit side by side, `720` by default */
   breakpoint?: number;
-  /** Overrides for the English labels of the panel and its parts */
-  labels?: {
-    panel?: Partial<AgentsSettingsPanelLabels>;
-    list?: Partial<AgentListLabels>;
-    detail?: Partial<AgentDetailLabels>;
-    editor?: Partial<AgentEditorLabels>;
-    wizard?: Partial<AgentCreateWizardLabels>;
-    toolSelector?: Partial<ToolSelectorLabels>;
-  };
+  /** Overrides of the default English labels of the panel and its parts */
+  labels?: Partial<AgentsSettingsPanelLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -107,14 +116,21 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
   onGenerate,
   onUseInChat,
   locale = 'en',
+  selectedId: selectedIdProp,
   defaultSelectedId = null,
+  onSelectedIdChange,
   breakpoint,
-  labels: labelsProp = {},
+  labels: labelsProp,
   className,
   style,
 }: AgentsSettingsPanelProps) {
-  const labels = { ...DEFAULT_AGENTS_SETTINGS_PANEL_LABELS, ...labelsProp.panel };
-  const [selectedId, setSelectedId] = useState<string | null>(defaultSelectedId);
+  const labels = { ...DEFAULT_AGENTS_SETTINGS_PANEL_LABELS, ...labelsProp };
+  const [selectedId, setSelectedId] = useUncontrolled<string | null>({
+    value: selectedIdProp,
+    defaultValue: defaultSelectedId,
+    finalValue: null,
+    onChange: onSelectedIdChange,
+  });
   const [mode, setMode] = useState<Mode>({ kind: 'view' });
   const [wizardOpen, setWizardOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<AgentDefinition | null>(null);
@@ -125,7 +141,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
 
   const [editorDirty, setEditorDirty] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
-  const editorLabels = { ...DEFAULT_AGENT_EDITOR_LABELS, ...labelsProp.editor };
+  const editorLabels = { ...DEFAULT_AGENT_EDITOR_LABELS, ...labels.editor };
 
   const leaveEditor = (nextSelectedId: string | null, nextMode: Mode) => {
     setSelectedId(nextSelectedId);
@@ -191,8 +207,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         skills={skills}
         colors={colors}
         existingNames={names}
-        labels={labelsProp.editor}
-        toolSelectorLabels={labelsProp.toolSelector}
+        labels={labels.editor}
         onCancel={() => leaveEditor(selected.id, { kind: 'view' })}
         onDirtyChange={setEditorDirty}
         onSave={async (draft) => {
@@ -211,8 +226,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         skills={skills}
         colors={colors}
         existingNames={names}
-        labels={labelsProp.editor}
-        toolSelectorLabels={labelsProp.toolSelector}
+        labels={labels.editor}
         onCancel={() => leaveEditor(selected.id, { kind: 'view' })}
         onDirtyChange={setEditorDirty}
         onSave={async (draft) => {
@@ -228,7 +242,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         catalog={catalog}
         models={models}
         locale={locale}
-        labels={labelsProp.detail}
+        labels={labels.detail}
         onUseInChat={onUseInChat}
         onEdit={() => setMode({ kind: 'edit' })}
         onDuplicate={duplicate}
@@ -243,7 +257,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         className={className}
         style={style}
         breakpoint={breakpoint}
-        backLabel={labels.back}
+        labels={{ back: labels.back }}
         onBack={() =>
           navigate(() =>
             mode.kind === 'view' ? select(null) : leaveEditor(selectedId, { kind: 'view' })
@@ -258,7 +272,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
               loading={loading}
               error={error}
               onRetry={onRetry}
-              labels={labelsProp.list}
+              labels={labels.list}
               onSelect={(agent) => {
                 if (agent.id !== selectedId || mode.kind === 'view') {
                   navigate(() => select(agent));
@@ -284,16 +298,14 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         skills={skills}
         colors={colors}
         existingNames={names}
-        labels={labelsProp.wizard}
-        toolSelectorLabels={labelsProp.toolSelector}
+        labels={labels.wizard}
       />
 
       <ConfirmDialog
         opened={!!pendingNavigation}
         title={editorLabels.discardTitle}
         message={editorLabels.discardMessage}
-        confirmLabel={editorLabels.discard}
-        cancelLabel={editorLabels.keepEditing}
+        labels={{ confirm: editorLabels.discard, cancel: editorLabels.keepEditing }}
         danger
         onConfirm={() => pendingNavigation?.()}
         onClose={() => setPendingNavigation(null)}
@@ -305,10 +317,8 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
         message={formatTemplate(labels.deleteMessage, {
           name: pendingDelete?.displayName || pendingDelete?.name || '',
         })}
-        confirmLabel={labels.deleteConfirm}
-        cancelLabel={labels.cancel}
+        labels={{ confirm: labels.deleteConfirm, cancel: labels.cancel, error: labels.deleteError }}
         danger
-        errorLabel={labels.deleteError}
         onConfirm={confirmDelete}
         onClose={() => setDeleteOpen(false)}
       />

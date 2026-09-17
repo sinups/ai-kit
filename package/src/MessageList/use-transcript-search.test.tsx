@@ -22,7 +22,7 @@ function setup(text: string) {
   };
 }
 
-describe('useTranscriptSearch', () => {
+describe('MessageList/useTranscriptSearch', () => {
   const registry = new Map<string, unknown>();
   const globals = globalThis as { CSS?: unknown; Highlight?: unknown };
 
@@ -79,5 +79,29 @@ describe('useTranscriptSearch', () => {
 
     act(() => result.current.next());
     expect(scroller.scrollTop).toBeGreaterThan(0);
+  });
+  it('adds the highlight styles once, inside a shadow root when the transcript is in one', () => {
+    const first = setup('alpha');
+    const second = setup('alpha');
+    for (const refs of [first, second]) {
+      const { result } = renderHook(() =>
+        useTranscriptSearch({ enabled: true, contentKey: 1, ...refs })
+      );
+      act(() => result.current.setQuery('alpha'));
+    }
+    expect(document.head.querySelectorAll('style[data-ai-kit-search-highlights]')).toHaveLength(1);
+
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const root = document.createElement('div');
+    root.textContent = 'alpha';
+    shadow.appendChild(root);
+    const shadowRefs = { rootRef: { current: root }, scrollRef: { current: root } };
+    const { result } = renderHook(() =>
+      useTranscriptSearch({ enabled: true, contentKey: 1, ...shadowRefs })
+    );
+    act(() => result.current.setQuery('alpha'));
+    expect(shadow.querySelectorAll('style[data-ai-kit-search-highlights]')).toHaveLength(1);
   });
 });

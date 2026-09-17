@@ -44,6 +44,8 @@ export interface MemoryPanelLabels {
   noSelection: string;
   noSelectionDescription: string;
   scopes: Record<MemoryScope, string>;
+  /** Labels of the file view */
+  detail: Partial<MemoryFileDetailLabels>;
 }
 
 export const DEFAULT_MEMORY_PANEL_LABELS: MemoryPanelLabels = {
@@ -65,6 +67,7 @@ export const DEFAULT_MEMORY_PANEL_LABELS: MemoryPanelLabels = {
   noSelectionDescription: 'Its instructions appear here',
   keepEditing: 'Keep editing',
   scopes: MEMORY_SCOPE_LABELS,
+  detail: {},
 };
 
 export interface MemoryPanelProps {
@@ -96,8 +99,6 @@ export interface MemoryPanelProps {
   locale?: string;
   /** Overrides of the default English labels of the panel */
   labels?: Partial<MemoryPanelLabels>;
-  /** Overrides of the default English labels of the file view */
-  detailLabels?: Partial<MemoryFileDetailLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element, give the panel a height */
@@ -120,7 +121,6 @@ export const MemoryPanel = memo(function MemoryPanel({
   now,
   locale = 'en',
   labels,
-  detailLabels,
   className,
   style,
 }: MemoryPanelProps) {
@@ -188,7 +188,7 @@ export const MemoryPanel = memo(function MemoryPanel({
         style={style}
         breakpoint={breakpoint}
         listWidth={listWidth}
-        backLabel={text.back}
+        labels={{ back: text.back }}
         emptyDetail={
           <EmptyState
             h="100%"
@@ -218,7 +218,7 @@ export const MemoryPanel = memo(function MemoryPanel({
               onOpenLocation={onOpenLocation}
               now={currentTime}
               locale={locale}
-              labels={detailLabels}
+              labels={text.detail}
             />
           ) : null
         }
@@ -230,9 +230,8 @@ export const MemoryPanel = memo(function MemoryPanel({
             loading={loading}
             error={error}
             onRetry={onRetry}
-            retryLabel={text.retry}
+            labels={{ retry: text.retry, noResults: text.noResults }}
             ariaLabel={text.list}
-            noResults={text.noResults}
             selectedId={selectedId}
             onSelect={(file) => {
               if (file.id === editingId) {
@@ -285,7 +284,7 @@ export const MemoryPanel = memo(function MemoryPanel({
                 icon={file.scope === 'agent' ? <IconRobot size={18} /> : <IconFileText size={18} />}
                 meta={formatMemoryUpdatedAt(file.updatedAt, currentTime, locale) ?? undefined}
                 actions={actionsFor(file)}
-                actionsLabel={`${text.actions}: ${file.path}`}
+                labels={{ actions: `${text.actions}: ${file.path}` }}
                 selected={isSelected}
               />
             )}
@@ -296,8 +295,7 @@ export const MemoryPanel = memo(function MemoryPanel({
         opened={pendingLeave !== null}
         title={text.discardTitle}
         message={text.discardMessage}
-        confirmLabel={text.discard}
-        cancelLabel={text.keepEditing}
+        labels={{ confirm: text.discard, cancel: text.keepEditing }}
         danger
         onConfirm={() => {
           closeEditor();
@@ -308,3 +306,5 @@ export const MemoryPanel = memo(function MemoryPanel({
     </>
   );
 });
+
+MemoryPanel.displayName = 'MemoryPanel';

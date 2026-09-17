@@ -26,8 +26,8 @@ export function ModelSettings() {
         onModelChange={setModel}
         effort={{ value: effort, onChange: setEffort }}
         outputStyle={{ styles: outputStyles, value: style, onChange: setStyle }}
-        usage={{ period, onPeriodChange: setPeriod, withoutTitle: true, summary, limits }}
-        status={{ withoutTitle: true, version: "2.1.4", model: "Qwen 2.5 Coder 32B", mcpServers }}
+        usage={{ period, onPeriodChange: setPeriod, withTitle: false, summary, limits }}
+        status={{ withTitle: false, version: "2.1.4", model: "Qwen 2.5 Coder 32B", mcpServers }}
       />
     </div>
   );
@@ -49,8 +49,8 @@ export function ModelSettings() {
   onModelChange={setModel}
   effort={{ value: effort, onChange: setEffort, thinking, onThinkingChange: setThinking }}
   outputStyle={{ styles: outputStyles, value: style, onChange: setStyle }}
-  usage={{ period, onPeriodChange: setPeriod, withoutTitle: true, summary, limits, models: modelUsage, daily }}
-  status={{ withoutTitle: true, version: "2.1.4", model: "Qwen 2.5 Coder 32B", mcpServers, context }}
+  usage={{ period, onPeriodChange: setPeriod, withTitle: false, summary, limits, models: modelUsage, daily }}
+  status={{ withTitle: false, version: "2.1.4", model: "Qwen 2.5 Coder 32B", mcpServers, context }}
 />`,
       },
       {
@@ -127,7 +127,7 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Choose how the agent writes its answers. Each style is a radio card with its name, description and an optional sample answer; cards form one to three columns depending on the component width. `withoutExamples` keeps the cards short.",
+          "Choose how the agent writes its answers. Each style is a radio card with its name, description and an optional sample answer; cards form one to three columns depending on the component width. `withExamples={false}` keeps the cards short.",
       },
       {
         type: "example",
@@ -139,7 +139,7 @@ export function Example() {
         type: "example",
         title: "Narrow without examples",
         previewId: "OutputStylePicker/narrow",
-        code: `<OutputStylePicker styles={outputStyles} value={style} onChange={setStyle} withoutExamples />`,
+        code: `<OutputStylePicker styles={outputStyles} value={style} onChange={setStyle} withExamples={false} />`,
       },
     ],
   },
@@ -261,7 +261,7 @@ export function Tasks({ tasks }: { tasks: BackgroundTask[] }) {
       <BackgroundTasksPanel
         tasks={tasks}
         onStop={(task) => runner.stop(task.id)}
-        onRetry={(task) => runner.retry(task.id)}
+        onRetryTask={(task) => runner.retry(task.id)}
         onRemove={(task) => runner.remove(task.id)}
       />
     </div>
@@ -278,14 +278,14 @@ export function Tasks({ tasks }: { tasks: BackgroundTask[] }) {
         type: "example",
         title: "Wide",
         previewId: "BackgroundTasksPanel/wide",
-        code: `<BackgroundTasksPanel tasks={tasks} onStop={stop} onRetry={retry} onRemove={remove} defaultSelectedId="review-agent" />`,
+        code: `<BackgroundTasksPanel tasks={tasks} onStop={stop} onRetryTask={retry} onRemove={remove} defaultSelectedId="review-agent" />`,
       },
       {
         type: "example",
         title: "Narrow",
         previewId: "BackgroundTasksPanel/narrow",
         code: `<div style={{ width: 360, height: 600 }}>
-  <BackgroundTasksPanel tasks={tasks} onStop={stop} onRetry={retry} onRemove={remove} />
+  <BackgroundTasksPanel tasks={tasks} onStop={stop} onRetryTask={retry} onRemove={remove} />
 </div>`,
       },
       {
@@ -294,7 +294,7 @@ export function Tasks({ tasks }: { tasks: BackgroundTask[] }) {
         previewId: "BackgroundTasksPanel/drawer",
         code: `<>
   <TaskStatusPill tasks={flattenTaskTree(tasks)} onOpen={open} />
-  <BackgroundTasksDrawer opened={opened} onClose={close} tasks={tasks} onStop={stop} onRetry={retry} onRemove={remove} />
+  <BackgroundTasksDrawer opened={opened} onClose={close} tasks={tasks} onStop={stop} onRetryTask={retry} onRemove={remove} />
 </>`,
       },
     ],
@@ -314,7 +314,7 @@ export function Example() {
       selectedId={selectedId}
       onSelect={(task) => setSelectedId(task.id)}
       onStop={stop}
-      onRetry={retry}
+      onRetryTask={retry}
       onRemove={remove}
     />
   );
@@ -330,7 +330,7 @@ export function Example() {
         type: "example",
         title: "Tasks",
         previewId: "TaskList/basic",
-        code: `<TaskList tasks={tasks} selectedId={selectedId} onSelect={select} onStop={stop} onRetry={retry} onRemove={remove} />`,
+        code: `<TaskList tasks={tasks} selectedId={selectedId} onSelect={select} onStop={stop} onRetryTask={retry} onRemove={remove} />`,
       },
       {
         type: "example",
@@ -338,7 +338,7 @@ export function Example() {
         previewId: "TaskList/states",
         code: `<>
   <TaskList tasks={[]} loading />
-  <TaskList tasks={[]} error="Could not reach the task runner" onRetryLoad={reload} />
+  <TaskList tasks={[]} error="Could not reach the task runner" onRetry={reload} />
   <TaskList tasks={[]} />
 </>`,
       },
@@ -357,7 +357,7 @@ export function Example() {
     <TaskDetail
       task={task}
       onStop={stop}
-      onRetry={retry}
+      onRetryTask={retry}
       onSelectSubtask={(subtask) => setSelectedId(subtask.id)}
     />
   );
@@ -379,7 +379,7 @@ export function Example() {
         type: "example",
         title: "Failed task",
         previewId: "TaskDetail/failed",
-        code: `<TaskDetail task={migration} onRetry={retry} outputHeight={220} />`,
+        code: `<TaskDetail task={migration} onRetryTask={retry} outputHeight={220} />`,
       },
     ],
   },

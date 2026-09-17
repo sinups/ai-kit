@@ -8,7 +8,7 @@ import {
   sortDailyUsage,
 } from './usage';
 
-describe('usage', () => {
+describe('model-settings/usage', () => {
   it('computes the level from thresholds', () => {
     expect(getUsageLevel(50, 100)).toBe('normal');
     expect(getUsageLevel(75, 100)).toBe('warning');

@@ -17,7 +17,7 @@ function Demo(props: Partial<SkillEditorProps>) {
       <SkillEditor
         skill={skills[1]}
         availableTools={AVAILABLE_TOOLS}
-        takenNames={TAKEN}
+        existingNames={TAKEN}
         onSave={async (draft) => {
           await new Promise((resolve) => setTimeout(resolve, 800));
           setSaved(JSON.stringify(draft, null, 2));
@@ -86,7 +86,7 @@ export function CreateFlow(args: EditorFlowArgs) {
       <SkillEditor
         skill={null}
         availableTools={AVAILABLE_TOOLS}
-        takenNames={TAKEN}
+        existingNames={TAKEN}
         onSave={args.onSave}
         onCancel={args.onCancel}
       />
@@ -146,7 +146,7 @@ export function SaveErrorFlow(args: EditorFlowArgs) {
       <SkillEditor
         skill={skills[1]}
         availableTools={AVAILABLE_TOOLS}
-        takenNames={TAKEN}
+        existingNames={TAKEN}
         onSave={args.onSave}
         onCancel={args.onCancel}
       />

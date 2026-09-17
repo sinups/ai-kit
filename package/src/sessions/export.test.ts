@@ -49,7 +49,7 @@ const ALL: ExportOptions = {
   title: 'Login bug',
 };
 
-describe('exportConversation', () => {
+describe('sessions/exportConversation', () => {
   it('renders markdown with every known part type', () => {
     const result = exportConversation(MESSAGES, ALL);
     expect(result.mimeType).toBe('text/markdown');
@@ -207,7 +207,7 @@ describe('exportConversation', () => {
   });
 });
 
-describe('getExportFilename', () => {
+describe('sessions/getExportFilename', () => {
   it('slugifies the title and adds the extension', () => {
     expect(getExportFilename('Fix: Login bug (v2)!', 'markdown')).toBe('fix-login-bug-v2.md');
     expect(getExportFilename('Café résumé', 'json')).toBe('cafe-resume.json');

@@ -74,7 +74,7 @@ export interface ChatLauncherProps {
   withinPortal?: boolean;
   /** Stacking order of the button and the panel, `200` by default */
   zIndex?: number;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<ChatLauncherLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -84,7 +84,7 @@ export interface ChatLauncherProps {
   classNames?: ChatLauncherClassNames;
 }
 
-const DEFAULT_LABELS: ChatLauncherLabels = {
+export const DEFAULT_CHAT_LAUNCHER_LABELS: ChatLauncherLabels = {
   open: 'Open chat',
   close: 'Close chat',
   panel: 'Chat',
@@ -130,7 +130,7 @@ export const ChatLauncher = memo(function ChatLauncher({
   style,
   classNames,
 }: ChatLauncherProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_CHAT_LAUNCHER_LABELS, ...labelsProp };
   const [opened, setOpened] = useUncontrolled({
     value: openedProp,
     defaultValue: defaultOpened,

@@ -149,8 +149,7 @@ export function useDemoChat({ initialMessages, onAlwaysAllow }: DemoChatOptions)
               description: 'Run the auth tests',
               approval: {
                 reason: 'Runs a command that is not allowed by your permission rules',
-                approveLabel: 'Run',
-                rejectLabel: 'Skip',
+                labels: { approve: 'Run', reject: 'Skip' },
                 approveOptions: [
                   { value: 'once', label: 'Allow once' },
                   { value: 'session', label: 'Allow for this session' },

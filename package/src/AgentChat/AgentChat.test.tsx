@@ -18,7 +18,7 @@ const messages: ChatMessage[] = [
   { id: 'a1', role: 'assistant', parts: [{ type: 'text', text: 'First answer' }] },
 ];
 
-describe('AgentChat', () => {
+describe('AgentChat/AgentChat', () => {
   it('calls onSend from the input bar', async () => {
     const onSend = jest.fn();
     render(
@@ -177,13 +177,13 @@ describe('AgentChat', () => {
     const InputBarProbe: ChatSlots['InputBar'] = ({
       placeholder,
       leftActions,
-      queuedLabel,
+      labels,
       onQueue,
     }) => (
       <div>
         <span>placeholder:{placeholder}</span>
         {leftActions}
-        <span>queued:{queuedLabel}</span>
+        <span>queued:{labels?.queued}</span>
         <span>queue:{typeof onQueue}</span>
       </div>
     );
@@ -198,7 +198,7 @@ describe('AgentChat', () => {
         inputBarProps={{
           placeholder: 'Ask the agent',
           leftActions: <span>effort</span>,
-          queuedLabel: 'Up next',
+          labels: { queued: 'Up next' },
           onQueue: () => {},
         }}
       />
@@ -263,7 +263,7 @@ describe('AgentChat', () => {
       <AgentChat
         messages={messages}
         status="ready"
-        searchable
+        withSearch
         onSend={() => {}}
         onStop={() => {}}
         slots={{ InputBar: StubInputBar }}
@@ -280,7 +280,7 @@ describe('AgentChat', () => {
       <AgentChat
         messages={[]}
         status="ready"
-        searchable
+        withSearch
         emptyState={{ title: 'Hello' }}
         onSend={() => {}}
         onStop={() => {}}

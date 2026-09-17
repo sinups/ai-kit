@@ -8,6 +8,11 @@ import { getDocNav } from "@/app/utils/doc-nav";
 const STYLES_EXAMPLE = `import "@mantine/core/styles.css";
 import "@sinups/ai-kit/styles.css";`;
 
+const PER_COMPONENT_STYLES_EXAMPLE = `import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles/base.css";
+import "@sinups/ai-kit/styles/Wizard.css";
+import "@sinups/ai-kit/styles/ChatLauncher.css";`;
+
 const PROVIDER_EXAMPLE = `import { MantineProvider } from "@mantine/core";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -138,6 +143,33 @@ export default function InstallationPage() {
           of your application:
         </p>
         <DocCodeBlock code={STYLES_EXAMPLE} language="tsx" />
+        <p className="text-base text-muted-foreground">
+          If you use a few components, import only their styles instead, the
+          same way as <code className="code-doc">@mantine/core/styles/Button.css</code>.{" "}
+          <code className="code-doc">styles/base.css</code> holds the{" "}
+          <code className="code-doc">--ae-*</code> tokens and is required once.
+          Each component file already includes the styles of the components it
+          renders, so one import per component you use is enough:
+        </p>
+        <DocCodeBlock code={PER_COMPONENT_STYLES_EXAMPLE} language="tsx" />
+        <p className="text-base text-muted-foreground">
+          With cascade layers, import{" "}
+          <code className="code-doc">styles.layer.css</code>, which puts
+          everything inside <code className="code-doc">@layer mantine</code>,
+          or put per-component files into a layer yourself:{" "}
+          <code className="code-doc">
+            @import &quot;@sinups/ai-kit/styles/Wizard.css&quot; layer(ai-kit);
+          </code>
+          . Sizes of JavaScript
+          and styles per component are on{" "}
+          <Link
+            href="/docs/bundle-size"
+            className="text-an-primary-color hover:underline underline-offset-2"
+          >
+            Bundle size
+          </Link>
+          .
+        </p>
         <p className="text-base text-muted-foreground">
           Components render inside{" "}
           <code className="code-doc">MantineProvider</code> and follow its

@@ -14,7 +14,7 @@ export interface MemoryNoticeLabels {
   error: string;
 }
 
-const DEFAULT_LABELS: MemoryNoticeLabels = {
+export const DEFAULT_MEMORY_NOTICE_LABELS: MemoryNoticeLabels = {
   saved: 'Saved to memory',
   undone: 'Removed from memory',
   open: 'Open',
@@ -52,7 +52,7 @@ export const MemoryNotice = memo(function MemoryNotice({
   className,
   style,
 }: MemoryNoticeProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_MEMORY_NOTICE_LABELS, ...labelsProp };
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [undone, setUndone] = useState(false);
   const { pendingKey, error, run } = useAsyncAction(labels.error);

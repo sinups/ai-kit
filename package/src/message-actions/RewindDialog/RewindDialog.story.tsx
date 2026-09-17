@@ -137,7 +137,7 @@ export const RewindFlow = {
     const page = within(canvasElement.ownerDocument.body);
     const options = await page.findAllByRole('option');
     await userEvent.click(options[options.length - 1]);
-    await userEvent.click(page.getByRole('radio', { name: /Restore conversation and code/ }));
+    await userEvent.click(page.getByRole('radio', { name: /Messages and file changes/ }));
     await userEvent.click(page.getByRole('button', { name: 'Rewind' }));
     await expect(args.onRewind).toHaveBeenCalledWith({
       messageId: 'u1',

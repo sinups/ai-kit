@@ -68,6 +68,12 @@ function renderInstallation(): string {
     codeFence(`import "@mantine/core/styles.css";
 import "@sinups/ai-kit/styles.css";`),
     "",
+    "Or import styles per component, like `@mantine/core/styles/Button.css`: `styles/base.css` (the `--ae-*` tokens) once, then one file per component you use. Each file includes the styles of the components it renders.",
+    "",
+    codeFence(`import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles/base.css";
+import "@sinups/ai-kit/styles/Wizard.css";`),
+    "",
     "Render the app inside `MantineProvider`; light and dark schemes follow its color scheme. Wrap kit screens in `AiKitProvider` to give stock Mantine components inside them the kit look and to expose accent, radius and density settings.",
     "",
     "## Usage",
@@ -115,7 +121,7 @@ function renderEssentials(): string {
     "- `AgentChat` `emptySuggestionsPosition` is deprecated: suggestions always render above the composer and `\"bottom\"` behaves as `\"top\"`. Remove the prop.",
     "- `contentWidth` sets the message column and composer width: `420px` by default, a number such as `760` on full pages, `\"100%\"` in panels and widgets. Pass `wrapLines` in narrow containers.",
     "- Layout adapts to the component's own width, from a 360px widget to a 900px page. Data views handle loading, error and empty states.",
-    "- Visible text has English defaults overridable through `labels`.",
+    "- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds them); labels of nested parts sit under a key, for example `labels.wizard`.",
   ].join("\n");
 }
 
@@ -159,7 +165,7 @@ function renderLayouts(): string {
   return page("/docs/layouts", "Layouts", [
     "- Give the chat a bounded height: a flex column with `minHeight: 0` on every level down to `AgentChat`.",
     "- Measure the container, not the viewport. Below about 720px pass `wrapLines` and move side panes into a `Drawer`.",
-    "- Full-page chat: a header aligned with the column, `AgentChat` with `contentWidth={760}`, `alignComposer`, `topFade`, `collapseToolRuns`, `searchable`, `stickyPrompt`.",
+    "- Full-page chat: a header aligned with the column, `AgentChat` with `contentWidth={760}`, `alignComposer`, `topFade`, `collapseToolRuns`, `withSearch`, `stickyPrompt`.",
     "- Chat with a sidebar: a 272px `SessionList` column on `--ae-bg-tertiary`; a drawer when narrow.",
     "- Chat with an inspector: Mantine `Splitter` with a collapsible pane for `DiffReview` or `BackgroundTasksPanel`; a bottom drawer on phones.",
     "- Settings page: `SettingsLayout` with `SettingsSection` and `SettingRow`; `fill: true` sections for panels that scroll themselves such as `McpSettingsPanel`.",
@@ -177,10 +183,13 @@ function renderLauncher(): string {
     "- `mountChatLauncher(target, element, options)` renders into an open shadow root with its own `MantineProvider` and returns `{ container, unmount }`. Options: `shadow` (default `true`), `styles` (CSS text; `:root`, `html`, `body` are scoped to the widget), `styleUrls`, `adoptDocumentStyles` (development), `theme`, `colorScheme` (default `light`), `wrap`.",
     "",
     codeFence(`import mantineCss from "@mantine/core/styles.css?inline";
-import kitCss from "@sinups/ai-kit/styles.css?inline";
+import baseCss from "@sinups/ai-kit/styles/base.css?inline";
+import launcherCss from "@sinups/ai-kit/styles/ChatLauncher.css?inline";
+import chatCss from "@sinups/ai-kit/styles/AgentChat.css?inline";
+import providerCss from "@sinups/ai-kit/styles/AiKitProvider.css?inline";
 
 const widget = mountChatLauncher(host, <SupportLauncher />, {
-  styles: [mantineCss, kitCss],
+  styles: [mantineCss, baseCss, launcherCss, chatCss, providerCss],
   wrap: (element) => <AiKitProvider>{element}</AiKitProvider>,
 });
 widget.unmount();`),
@@ -191,7 +200,7 @@ function renderWhatsNew(): string {
   return page("/docs/whats-new", "What's new", [
     "- New modules: primitives, MCP, agents, skills, permissions, hooks configuration, memory, sessions, message actions, background tasks, diff review, model settings, help, elicitation.",
     "- New chat components: AgentStatus, ContextUsage, ContextBreakdown, CompactBoundary, TurnSummary, ContextEventRow, HookActivity, IdleReturnPrompt, SpendThresholdNotice, TranscriptSearch, PromptHistorySearch, PastedTextAttachment, CodeBlock, ShellOutput.",
-    "- AgentChat gained `emptyState`, `statusBar`, `messageActions`, `searchable`, `stickyPrompt`, `collapseToolRuns`, `alignComposer`, `topFade`, `wrapLines`, `inputBarProps` and more; InputBar gained completions, a message queue, collapsed pastes and prompt history.",
+    "- AgentChat gained `emptyState`, `statusBar`, `messageActions`, `withSearch`, `stickyPrompt`, `collapseToolRuns`, `alignComposer`, `topFade`, `wrapLines`, `inputBarProps` and more; InputBar gained completions, a message queue, collapsed pastes and prompt history.",
     "- Theming: AiKitProvider, AiKitThemeCustomizer, createAiKitTheme, mergeAiKitTheme. Launcher: ChatLauncher, mountChatLauncher.",
     "- Deprecated: `emptySuggestionsPosition` (suggestions always render above the composer).",
   ]);

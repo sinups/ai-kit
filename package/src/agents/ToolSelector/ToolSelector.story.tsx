@@ -63,7 +63,7 @@ export function AllTools() {
   );
 }
 
-export function WithError() {
+export function Error() {
   return (
     <WidthFrame width={NARROW_WIDTH}>
       <Demo initial={[]} error="Select at least one tool" />

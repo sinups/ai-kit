@@ -11,7 +11,7 @@ export interface TranscriptSearchLabels {
   noResults: string;
 }
 
-const DEFAULT_LABELS: TranscriptSearchLabels = {
+export const DEFAULT_TRANSCRIPT_SEARCH_LABELS: TranscriptSearchLabels = {
   input: 'Search conversation',
   placeholder: 'Search conversation',
   previous: 'Previous match',
@@ -59,7 +59,7 @@ export const TranscriptSearch = memo(function TranscriptSearch({
   className,
   style,
 }: TranscriptSearchProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_TRANSCRIPT_SEARCH_LABELS, ...labelsProp };
   const hasQuery = value.trim().length > 0;
 
   return (

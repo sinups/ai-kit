@@ -6,7 +6,7 @@ function ago(seconds: number) {
   return new Date(NOW.getTime() - seconds * 1000);
 }
 
-describe('formatRelativeTime', () => {
+describe('sessions/formatRelativeTime', () => {
   it('returns now for less than 45 seconds either way', () => {
     expect(formatRelativeTime(ago(10), NOW)).toBe('now');
     expect(formatRelativeTime(ago(-30), NOW)).toBe('now');

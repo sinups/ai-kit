@@ -45,7 +45,7 @@ function option(title: string) {
   return screen.getByText(title).closest('[role="option"]') as HTMLElement;
 }
 
-describe('SessionList', () => {
+describe('sessions/SessionList', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

@@ -15,7 +15,7 @@ import classes from './ContextEventRow.module.css';
 
 export type ContextEventLabels = Record<ContextEventKind, string>;
 
-const DEFAULT_LABELS: ContextEventLabels = {
+export const DEFAULT_CONTEXT_EVENT_LABELS: ContextEventLabels = {
   file: 'Read',
   directory: 'Listed',
   memory: 'Loaded memory',
@@ -56,7 +56,7 @@ export const ContextEventRow = memo(function ContextEventRow({
   style,
 }: ContextEventRowProps) {
   const KindIcon = KIND_ICON[kind] ?? IconFile;
-  const verb = { ...DEFAULT_LABELS, ...labels }[kind] ?? kind;
+  const verb = { ...DEFAULT_CONTEXT_EVENT_LABELS, ...labels }[kind] ?? kind;
   const hasItems = Boolean(items && items.length > 0);
 
   return (

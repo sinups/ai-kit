@@ -24,7 +24,7 @@ function Controlled({
   );
 }
 
-describe('KeyValueEditor', () => {
+describe('primitives/KeyValueEditor', () => {
   it('adds a row, focuses its key and edits it', async () => {
     const onPairs = jest.fn();
     render(<Controlled initial={[]} onPairs={onPairs} addLabel="Add variable" />);

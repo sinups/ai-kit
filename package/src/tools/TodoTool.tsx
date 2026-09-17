@@ -11,7 +11,7 @@ import {
   getToolStatus,
 } from '../utils/format-tool';
 import {
-  DEFAULT_TODO_LABELS,
+  DEFAULT_TODO_TOOL_LABELS,
   describeHiddenTodos,
   getTodoBlockers,
   limitTodos,
@@ -172,7 +172,7 @@ export const TodoTool = memo(function TodoTool({
   className,
   style,
 }: TodoToolProps) {
-  const labels = { ...DEFAULT_TODO_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_TODO_TOOL_LABELS, ...labelsProp };
   const [showAll, setShowAll] = useState(false);
   const { isPending } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
@@ -239,3 +239,5 @@ export const TodoTool = memo(function TodoTool({
     </Box>
   );
 }, areToolPropsEqual);
+
+TodoTool.displayName = 'TodoTool';

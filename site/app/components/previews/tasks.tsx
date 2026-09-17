@@ -198,7 +198,7 @@ function BackgroundTasksPanelPreview({ narrow = false }: { narrow?: boolean }) {
     <BackgroundTasksPanel
       tasks={tasks}
       onStop={stop}
-      onRetry={retry}
+      onRetryTask={retry}
       onRemove={remove}
       defaultSelectedId={narrow ? null : "review-agent"}
     />
@@ -222,7 +222,7 @@ function BackgroundTasksDrawerPreview() {
         onClose={() => setOpened(false)}
         tasks={tasks}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onRemove={remove}
       />
     </WideFrame>
@@ -239,7 +239,7 @@ function TaskListPreview() {
         selectedId={selectedId}
         onSelect={(task) => setSelectedId(task.id)}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onRemove={remove}
       />
     </NarrowFrame>
@@ -253,7 +253,7 @@ function TaskListStatesPreview() {
         <TaskList tasks={[]} loading />
       </div>
       <div className="rounded-lg border border-border p-3">
-        <TaskList tasks={[]} error="Could not reach the task runner" onRetryLoad={() => {}} />
+        <TaskList tasks={[]} error="Could not reach the task runner" onRetry={() => {}} />
       </div>
       <div className="rounded-lg border border-border p-3">
         <TaskList tasks={[]} />
@@ -271,7 +271,7 @@ function TaskDetailPreview({ failed = false }: { failed?: boolean }) {
       <TaskDetail
         task={task}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onSelectSubtask={(subtask) => setTaskId(subtask.id)}
         outputHeight={220}
       />

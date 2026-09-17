@@ -59,6 +59,8 @@ export interface SessionListLabels {
   deleteMessage: (title: string) => React.ReactNode;
   deleteConfirm: string;
   cancel: string;
+  /** Date group headers */
+  groups: Partial<SessionDateGroupLabels>;
 }
 
 export interface SessionListProps {
@@ -100,15 +102,13 @@ export interface SessionListProps {
   locale?: string;
   /** Overrides of the default English labels */
   labels?: Partial<SessionListLabels>;
-  /** Overrides of the date group headers */
-  groupLabels?: Partial<SessionDateGroupLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: SessionListLabels = {
+export const DEFAULT_SESSION_LIST_LABELS: SessionListLabels = {
   list: 'Sessions',
   search: 'Search sessions',
   openSearch: 'Search',
@@ -142,6 +142,7 @@ const DEFAULT_LABELS: SessionListLabels = {
   ),
   deleteConfirm: 'Delete',
   cancel: 'Cancel',
+  groups: {},
 };
 
 const SEARCH_KEYS: FuzzyKey<SessionSummary>[] = ['title', 'preview', 'tags'];
@@ -178,11 +179,10 @@ export const SessionList = memo(function SessionList({
   now: nowProp,
   locale = 'en',
   labels,
-  groupLabels,
   className,
   style,
 }: SessionListProps) {
-  const text = { ...DEFAULT_LABELS, ...labels };
+  const text = { ...DEFAULT_SESSION_LIST_LABELS, ...labels };
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [innerFilter, setInnerFilter] = useState<SessionFilter>('all');
@@ -211,7 +211,7 @@ export const SessionList = memo(function SessionList({
 
   const { items, groupOf, groupOrder } = useMemo(() => {
     const ordered = results.map((result) => result.item);
-    const groups = groupSessionsByDate(ordered, now, groupLabels, locale);
+    const groups = groupSessionsByDate(ordered, now, text.groups, locale);
     const byId = new Map<string, string>();
     for (const group of groups) {
       for (const session of group.sessions) {
@@ -223,7 +223,7 @@ export const SessionList = memo(function SessionList({
       groupOf: byId,
       groupOrder: groups.map((group) => group.label),
     };
-  }, [results, now, groupLabels, locale, query]);
+  }, [results, now, text.groups, locale, query]);
 
   const counts = useMemo(
     () => ({
@@ -362,7 +362,7 @@ export const SessionList = memo(function SessionList({
         }
         meta={formatRelativeTime(session.updatedAt, now, locale)}
         actions={actionsFor(session)}
-        actionsLabel={text.actions}
+        labels={{ actions: text.actions }}
         selected={selected}
       />
     );
@@ -523,11 +523,10 @@ export const SessionList = memo(function SessionList({
         loading={loading}
         error={error}
         onRetry={onRetry}
-        retryLabel={text.retry}
+        labels={{ retry: text.retry, noResults: text.noResults }}
         ariaLabel={text.list}
         groupBy={query.trim() ? undefined : (session) => groupOf.get(session.id) ?? ''}
         groupOrder={groupOrder}
-        noResults={text.noResults}
         empty={
           sessions.length === 0
             ? {
@@ -543,8 +542,7 @@ export const SessionList = memo(function SessionList({
         opened={deleteOpened}
         title={text.deleteTitle}
         message={deleteTarget && text.deleteMessage(deleteTarget.title)}
-        confirmLabel={text.deleteConfirm}
-        cancelLabel={text.cancel}
+        labels={{ confirm: text.deleteConfirm, cancel: text.cancel }}
         danger
         onConfirm={async () => {
           if (deleteTarget && onDelete) {

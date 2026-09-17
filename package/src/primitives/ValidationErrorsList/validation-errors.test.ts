@@ -14,7 +14,7 @@ const ERRORS: SettingsValidationError[] = [
   { file: '.agent/settings.json', path: 'hooks', message: 'Expected an object' },
 ];
 
-describe('dedupeValidationErrors', () => {
+describe('primitives/dedupeValidationErrors', () => {
   it('keeps the first of identical file, path and message', () => {
     expect(dedupeValidationErrors(ERRORS)).toEqual([ERRORS[0], ERRORS[1], ERRORS[3]]);
   });
@@ -25,7 +25,7 @@ describe('dedupeValidationErrors', () => {
   });
 });
 
-describe('groupValidationErrors', () => {
+describe('primitives/groupValidationErrors', () => {
   it('groups by file in order of first appearance and counts severities', () => {
     expect(groupValidationErrors(ERRORS)).toEqual([
       {
@@ -39,7 +39,7 @@ describe('groupValidationErrors', () => {
   });
 });
 
-describe('helpers', () => {
+describe('primitives/helpers', () => {
   it('derives keys and the overall severity', () => {
     expect(getValidationErrorKey({ ...ERRORS[0], id: 'x' })).toBe('x');
     expect(getValidationErrorKey(ERRORS[0])).toBe(getValidationErrorKey(ERRORS[2]));
@@ -49,7 +49,7 @@ describe('helpers', () => {
   });
 });
 
-describe('fillValidationTemplate', () => {
+describe('primitives/fillValidationTemplate', () => {
   it('replaces known placeholders and keeps unknown ones', () => {
     expect(
       fillValidationTemplate('{file} has {count} problems {x}', { file: 'a.json', count: '2' })

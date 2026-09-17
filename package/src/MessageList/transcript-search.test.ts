@@ -1,6 +1,6 @@
 import { findDomMatches, findTextMatches, stepMatchIndex } from './transcript-search';
 
-describe('transcript-search', () => {
+describe('MessageList/transcript-search', () => {
   it('finds case-insensitive non-overlapping matches', () => {
     expect(findTextMatches('Token token TOKEN', 'token')).toEqual([
       { start: 0, end: 5 },

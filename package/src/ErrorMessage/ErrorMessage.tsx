@@ -25,23 +25,28 @@ export type ErrorMessageProps = {
   retry?: ErrorMessageRetry;
   /** When a usage limit resets; rendered as a local time */
   resetsAt?: number | Date;
-  /** Collapses a message longer than 6 lines or 600 characters behind "Show more", off by default */
+  /** Collapses a message longer than 6 lines or 600 characters behind "Show more", `false` by default */
   collapsible?: boolean;
   /** Renders a retry button */
   onRetry?: () => void;
-  /** Retry button label, `Retry` by default */
-  retryLabel?: string;
-  /** Countdown text of an automatic retry, `secondsLeft` is `0` once the attempt has started */
-  retryingLabel?: (secondsLeft: number, retry: ErrorMessageRetry) => string;
-  /** Reset time text, receives the formatted local time */
-  resetsAtLabel?: (time: string) => string;
-  /** "Show more" label of a long collapsed message, `Show more` by default */
-  showMoreLabel?: string;
-  /** "Show less" label of an expanded long message, `Show less` by default */
-  showLessLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<ErrorMessageLabels>;
   /** Class name added to the root element */
   className?: string;
 };
+
+export interface ErrorMessageLabels {
+  /** Retry button, `Retry` by default */
+  retry: string;
+  /** Countdown text of an automatic retry, `secondsLeft` is `0` once the attempt has started */
+  retrying: (secondsLeft: number, retry: ErrorMessageRetry) => string;
+  /** Reset time text, receives the formatted local time, `Available again at {time}` by default */
+  resetsAt: (time: string) => string;
+  /** Button that expands a long collapsed message, `Show more` by default */
+  showMore: string;
+  /** Button that collapses an expanded long message, `Show less` by default */
+  showLess: string;
+}
 
 function formatRetrying(secondsLeft: number, retry: ErrorMessageRetry): string {
   const attempt = retry.maxAttempts
@@ -54,6 +59,14 @@ function formatResetsAt(time: string): string {
   return `Available again at ${time}`;
 }
 
+export const DEFAULT_ERROR_MESSAGE_LABELS: ErrorMessageLabels = {
+  retry: 'Retry',
+  retrying: formatRetrying,
+  resetsAt: formatResetsAt,
+  showMore: 'Show more',
+  showLess: 'Show less',
+};
+
 /** Inline error card rendered in place of an assistant reply */
 export const ErrorMessage = memo(function ErrorMessage({
   title = 'Something went wrong',
@@ -63,13 +76,10 @@ export const ErrorMessage = memo(function ErrorMessage({
   resetsAt,
   collapsible = false,
   onRetry,
-  retryLabel = 'Retry',
-  retryingLabel = formatRetrying,
-  resetsAtLabel = formatResetsAt,
-  showMoreLabel = 'Show more',
-  showLessLabel = 'Show less',
+  labels: labelsProp,
   className,
 }: ErrorMessageProps) {
+  const labels = { ...DEFAULT_ERROR_MESSAGE_LABELS, ...labelsProp };
   const secondsLeft = useCountdown(retry?.retryAt);
   const [expanded, setExpanded] = useState(false);
   const shortened = useMemo(
@@ -85,8 +95,8 @@ export const ErrorMessage = memo(function ErrorMessage({
       hour: '2-digit',
       minute: '2-digit',
     }).format(resetsAt instanceof Date ? resetsAt : new Date(resetsAt));
-    return resetsAtLabel(time);
-  }, [resetsAt, resetsAtLabel]);
+    return labels.resetsAt(time);
+  }, [resetsAt, labels.resetsAt]);
 
   const hasFooter = Boolean(retry || resetsAtText || onRetry);
 
@@ -106,25 +116,25 @@ export const ErrorMessage = memo(function ErrorMessage({
             aria-expanded={expanded}
             onClick={() => setExpanded((value) => !value)}
           >
-            {expanded ? showLessLabel : showMoreLabel}
+            {expanded ? labels.showLess : labels.showMore}
           </Button>
         )}
         {hasFooter && (
           <div className={classes.footer}>
             <div className={classes.meta}>
               {retry && secondsLeft !== undefined && (
-                <span>{retryingLabel(secondsLeft, retry)}</span>
+                <span>{labels.retrying(secondsLeft, retry)}</span>
               )}
               {retry && (
                 <VisuallyHidden aria-live="polite">
-                  {secondsLeft !== undefined && secondsLeft <= 0 ? retryingLabel(0, retry) : ''}
+                  {secondsLeft !== undefined && secondsLeft <= 0 ? labels.retrying(0, retry) : ''}
                 </VisuallyHidden>
               )}
               {resetsAtText && <span>{resetsAtText}</span>}
             </div>
             {onRetry && (
               <Button size="compact-xs" variant="default" onClick={onRetry}>
-                {retryLabel}
+                {labels.retry}
               </Button>
             )}
           </div>

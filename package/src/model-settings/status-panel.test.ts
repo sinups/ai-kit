@@ -1,6 +1,6 @@
 import { countMcpStatuses } from './status-panel';
 
-describe('status-panel', () => {
+describe('model-settings/status-panel', () => {
   it('counts servers per status in a stable order', () => {
     expect(
       countMcpStatuses([

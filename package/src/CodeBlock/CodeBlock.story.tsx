@@ -41,7 +41,7 @@ function Demo() {
         withLineNumbers
       />
       <CodeBlock code={WIDE_LINE} language="bash" highlighter={storyHighlighter} />
-      <CodeBlock code={WIDE_LINE} language="bash" highlighter={storyHighlighter} wrap />
+      <CodeBlock code={WIDE_LINE} language="bash" highlighter={storyHighlighter} wrapLines />
       <CodeBlock code="plain text without a highlighter" />
     </Stack>
   );

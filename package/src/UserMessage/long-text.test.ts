@@ -1,6 +1,6 @@
 import { collapseLongText } from './long-text';
 
-describe('collapseLongText', () => {
+describe('UserMessage/collapseLongText', () => {
   it('keeps short text as is', () => {
     expect(collapseLongText('short\ntext')).toBeNull();
   });

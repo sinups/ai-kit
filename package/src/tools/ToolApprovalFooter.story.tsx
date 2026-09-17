@@ -26,15 +26,13 @@ function Demo() {
       <Frame>
         <ToolApprovalFooter
           isPending
-          approveLabel="Run"
-          rejectLabel="Cancel"
+          labels={{ approve: 'Run', reject: 'Cancel' }}
           reason="Approve to start the command"
         />
       </Frame>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Allow"
-          rejectLabel="Deny"
+          labels={{ approve: 'Allow', reject: 'Deny' }}
           reason="Runs a shell command: yarn test --coverage --runInBand"
           approveOptions={[
             { value: 'once', label: 'Allow once' },
@@ -73,7 +71,7 @@ export function Usage() {
         <ToolApprovalFooter onApprove={() => console.log('approve')} />
       </MainFrame>
       <MainFrame>
-        <ToolApprovalFooter isPending approveLabel="Run" rejectLabel="Cancel" />
+        <ToolApprovalFooter isPending labels={{ approve: 'Run', reject: 'Cancel' }} />
       </MainFrame>
     </Stack>
   );
@@ -85,8 +83,7 @@ export const ApproveForSessionFlow = {
     <Stack p={40} maw={420}>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Allow"
-          rejectLabel="Deny"
+          labels={{ approve: 'Allow', reject: 'Deny' }}
           reason="Runs a shell command: yarn test"
           approveOptions={[
             { value: 'once', label: 'Allow once' },
@@ -135,8 +132,7 @@ function ExplainDemo() {
     <Stack gap={16}>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Run"
-          rejectLabel="Skip"
+          labels={{ approve: 'Run', reject: 'Skip' }}
           reason="Runs a shell command: rm -rf dist && yarn build"
           onApprove={() => {}}
           onExplain={async () => {
@@ -180,7 +176,7 @@ function RuleDemo() {
     <Stack gap={10}>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Run"
+          labels={{ approve: 'Run' }}
           reason="Runs npm run test -- src/auth"
           matchedRule="no allow rule matches Bash(npm run test -- src/auth)"
           approveOptions={[
@@ -204,7 +200,7 @@ function RequestedByDemo() {
     <Stack gap={16}>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Allow"
+          labels={{ approve: 'Allow' }}
           reason="Edits package.json"
           matchedRule="Edit(package.json) is set to ask"
           requestedBy={{ name: 'test-runner', color: 'teal' }}
@@ -213,7 +209,7 @@ function RequestedByDemo() {
       </Frame>
       <Frame>
         <ToolApprovalFooter
-          approveLabel="Allow"
+          labels={{ approve: 'Allow' }}
           reason="Creates an issue in the tracker"
           requestedBy={{ name: 'release-helper-with-a-long-name', color: 'violet' }}
           onApprove={() => {}}

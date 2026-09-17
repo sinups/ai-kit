@@ -66,7 +66,7 @@ export const StopFlow = {
 
 type RetryArgs = SendArgs & { onRetry: () => void };
 
-export const ErrorRetryFlow = {
+export const RetryFlow = {
   args: { onSend: fn(), onStop: fn(), onRetry: fn() },
   render: ({ onSend, onStop, onRetry }: RetryArgs) => (
     <Frame>
@@ -94,7 +94,7 @@ export function SearchFromComposerFlow() {
       <AgentChat
         messages={conversation}
         status="ready"
-        searchable
+        withSearch
         onSend={() => {}}
         onStop={() => {}}
       />

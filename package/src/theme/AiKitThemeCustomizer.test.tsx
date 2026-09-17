@@ -8,7 +8,7 @@ function Settings() {
   return <span data-testid="settings">{JSON.stringify(useAiKitTheme().settings)}</span>;
 }
 
-describe('AiKitThemeCustomizer', () => {
+describe('theme/AiKitThemeCustomizer', () => {
   it('changes the nearest provider and resets it', async () => {
     render(
       <AiKitProvider>

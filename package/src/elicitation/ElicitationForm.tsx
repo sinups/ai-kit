@@ -32,6 +32,33 @@ import classes from './ElicitationForm.module.css';
 
 export type ElicitationAction = 'accept' | 'decline' | 'cancel';
 
+export interface ElicitationFormLabels {
+  /** Submit button in `form` mode, `Submit` by default */
+  submit: string;
+  /** Accept button in `url` mode, `Open link` by default */
+  openLink: string;
+  /** Decline button, `Decline` by default */
+  decline: string;
+  /** Cancel button, `Cancel` by default */
+  cancel: string;
+  /** Status after the request was accepted, `Accepted` by default */
+  accepted: string;
+  /** Status after the request was declined, `Declined` by default */
+  declined: string;
+  /** Status after the request was canceled, `Canceled` by default */
+  canceled: string;
+}
+
+export const DEFAULT_ELICITATION_FORM_LABELS: ElicitationFormLabels = {
+  submit: 'Submit',
+  openLink: 'Open link',
+  decline: 'Decline',
+  cancel: 'Cancel',
+  accepted: 'Accepted',
+  declined: 'Declined',
+  canceled: 'Canceled',
+};
+
 export interface ElicitationFormProps {
   /** Message from the server explaining what is requested */
   message: string;
@@ -49,27 +76,17 @@ export interface ElicitationFormProps {
   onDecline?: () => void;
   /** Called when the user dismisses the request, the cancel button is rendered only when set */
   onCancel?: () => void;
-  /** Submit button label, `Submit` by default (`Open link` in `url` mode) */
-  acceptLabel?: string;
-  /** Decline button label, `Decline` by default */
-  declineLabel?: string;
-  /** Cancel button label, `Cancel` by default */
-  cancelLabel?: string;
   /** Header title when `serverName` is not set, `Input requested` by default */
   title?: string;
   /** Disables all fields and actions */
   disabled?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<ElicitationFormLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
-
-const DECISION_LABELS: Record<ElicitationAction, string> = {
-  accept: 'Accepted',
-  decline: 'Declined',
-  cancel: 'Canceled',
-};
 
 const GRID_BREAKPOINTS = {
   xs: '360px',
@@ -222,14 +239,18 @@ export const ElicitationForm = memo(function ElicitationForm({
   onAccept,
   onDecline,
   onCancel,
-  acceptLabel,
-  declineLabel = 'Decline',
-  cancelLabel = 'Cancel',
   title = 'Input requested',
   disabled = false,
+  labels: labelsProp,
   className,
   style,
 }: ElicitationFormProps) {
+  const labels = { ...DEFAULT_ELICITATION_FORM_LABELS, ...labelsProp };
+  const decisionLabels: Record<ElicitationAction, string> = {
+    accept: labels.accepted,
+    decline: labels.declined,
+    cancel: labels.canceled,
+  };
   const fields = useMemo(() => getElicitationFields(requestedSchema), [requestedSchema]);
   const [draft, setDraft] = useState(() => getElicitationDraft(fields));
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -364,7 +385,7 @@ export const ElicitationForm = memo(function ElicitationForm({
         className={classes.bar}
       >
         <Text size="xs" c="dimmed">
-          {decision ? DECISION_LABELS[decision] : null}
+          {decision ? decisionLabels[decision] : null}
         </Text>
         <Group gap={4} wrap="nowrap">
           {onCancel && (
@@ -375,7 +396,7 @@ export const ElicitationForm = memo(function ElicitationForm({
               onClick={handleCancel}
               disabled={isLocked}
             >
-              {cancelLabel}
+              {labels.cancel}
             </Button>
           )}
           <Button
@@ -385,7 +406,7 @@ export const ElicitationForm = memo(function ElicitationForm({
             onClick={handleDecline}
             disabled={isLocked}
           >
-            {declineLabel}
+            {labels.decline}
           </Button>
           {mode === 'url' ? (
             host &&
@@ -405,12 +426,12 @@ export const ElicitationForm = memo(function ElicitationForm({
                   handleOpenLink();
                 }}
               >
-                {acceptLabel ?? 'Open link'}
+                {labels.openLink}
               </Button>
             )
           ) : (
             <Button type="submit" size="compact-xs" disabled={isLocked}>
-              {acceptLabel ?? 'Submit'}
+              {labels.submit}
             </Button>
           )}
         </Group>

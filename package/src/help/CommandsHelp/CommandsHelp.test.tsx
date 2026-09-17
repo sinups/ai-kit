@@ -14,7 +14,7 @@ const shortcuts: ShortcutHelpItem[] = [
   { keys: ['shift', 'enter'], description: 'New line', group: 'Composer' },
 ];
 
-describe('CommandsHelp', () => {
+describe('help/CommandsHelp', () => {
   it('lists grouped commands and filters them with fuzzy search', async () => {
     render(<CommandsHelp commands={commands} shortcuts={shortcuts} />);
 

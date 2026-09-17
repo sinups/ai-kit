@@ -28,6 +28,8 @@ export interface InvalidSettingsNoticeLabels {
   error: string;
   /** Accessible label of the close button */
   close: string;
+  /** Labels of the embedded error list */
+  list: Partial<ValidationErrorsListLabels>;
 }
 
 export interface InvalidSettingsNoticeProps {
@@ -51,17 +53,15 @@ export interface InvalidSettingsNoticeProps {
   onDismiss?: () => void;
   /** Shows the error list expanded initially */
   defaultExpanded?: boolean;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<InvalidSettingsNoticeLabels>;
-  /** Overrides for the labels of the embedded error list */
-  listLabels?: Partial<ValidationErrorsListLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: InvalidSettingsNoticeLabels = {
+export const DEFAULT_INVALID_SETTINGS_NOTICE_LABELS: InvalidSettingsNoticeLabels = {
   title: 'Settings file is invalid',
   descriptionOne: '{file} has a problem and is ignored until it is fixed.',
   descriptionMany: '{file} has {count} problems and is ignored until they are fixed.',
@@ -72,6 +72,7 @@ const DEFAULT_LABELS: InvalidSettingsNoticeLabels = {
   hideDetails: 'Hide details',
   error: 'Something went wrong',
   close: 'Dismiss',
+  list: {},
 };
 
 /** Alert telling that a settings file failed validation, with the problems and recovery actions */
@@ -87,11 +88,10 @@ export const InvalidSettingsNotice = memo(function InvalidSettingsNotice({
   onDismiss,
   defaultExpanded = false,
   labels: labelsProp,
-  listLabels,
   className,
   style,
 }: InvalidSettingsNoticeProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_INVALID_SETTINGS_NOTICE_LABELS, ...labelsProp };
   const [expanded, setExpanded] = useState(defaultExpanded);
   const actions = usePendingActions(labels.error);
   const problems = errors
@@ -131,7 +131,7 @@ export const InvalidSettingsNotice = memo(function InvalidSettingsNotice({
         </Text>
         {hasDetails && (
           <Collapse expanded={expanded}>
-            <ValidationErrorsList errors={errors} withFileHeaders={false} labels={listLabels} />
+            <ValidationErrorsList errors={errors} withFileHeaders={false} labels={labels.list} />
           </Collapse>
         )}
         {actions.error && (

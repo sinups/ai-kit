@@ -1177,7 +1177,7 @@ export function Example() {
           '  state: "input-available",\n' +
           "  input: {\n" +
           '    command: "pnpm test --filter ./apps/web -- --runInBand",\n' +
-          '    approval: { approveLabel: "Run", rejectLabel: "Skip" },\n' +
+          '    approval: { labels: { approve: "Run", reject: "Skip" } },\n' +
           "  },\n" +
           "};\n\n" +
           "<BashTool part={approvalPart} />",
@@ -1231,7 +1231,7 @@ export function Example() {
           '  state: "output-available",\n' +
           "  input: {\n" +
           '    file_path: "/app/page.tsx",\n' +
-          '    approval: { approveLabel: "Apply", rejectLabel: "Skip" },\n' +
+          '    approval: { labels: { approve: "Apply", reject: "Skip" } },\n' +
           "  },\n" +
           "  output: {\n" +
           "    old_content: \"export const metadata = { title: 'Old' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n\",\n" +
@@ -2088,8 +2088,7 @@ export function Example() {
 export function Example() {
   return (
     <ToolApprovalFooter
-      approveLabel="Allow"
-      rejectLabel="Deny"
+      labels={{ approve: "Allow", reject: "Deny" }}
       reason="Runs a shell command"
       approveOptions={[
         { value: "once", label: "Allow once" },
@@ -2114,8 +2113,7 @@ export function Example() {
         title: "Approval scopes and feedback",
         previewId: "ToolApprovalFooter/scopes",
         code: `<ToolApprovalFooter
-  approveLabel="Allow"
-  rejectLabel="Deny"
+  labels={{ approve: "Allow", reject: "Deny" }}
   reason="Runs a shell command"
   approveOptions={[
     { value: "once", label: "Allow once" },
@@ -2131,8 +2129,8 @@ export function Example() {
         title: "Basic and pending",
         previewId: "ToolApprovalFooter/basic",
         code: `<>
-  <ToolApprovalFooter approveLabel="Run" rejectLabel="Skip" onApprove={approve} />
-  <ToolApprovalFooter isPending approveLabel="Run" rejectLabel="Cancel" />
+  <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={approve} />
+  <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
 </>`,
       },
     ],
@@ -2209,7 +2207,7 @@ export function Example() {
       startedAt={turnStartedAt}
       tokens={receivedTokens}
       lastActivityAt={lastChunkAt}
-      stalledLabel="Waiting for response"
+      labels={{ stalled: "Waiting for response" }}
       onStop={stop}
     />
   );
@@ -2229,7 +2227,7 @@ export function Example() {
   startedAt={startedAt}
   tokens={tokens}
   lastActivityAt={lastActivityAt}
-  stalledLabel="Waiting for response"
+  labels={{ stalled: "Waiting for response" }}
   onStop={stop}
 />`,
       },
@@ -2282,9 +2280,9 @@ export function Example() {
         title: "Usage levels",
         previewId: "ContextUsage/levels",
         code: `<>
-  <ContextUsage used={45_200} total={200_000} segments={segments} showLabel />
-  <ContextUsage used={168_000} total={200_000} showLabel onCompact={compact} />
-  <ContextUsage used={194_000} total={200_000} showLabel onCompact={compact} />
+  <ContextUsage used={45_200} total={200_000} segments={segments} withLabel />
+  <ContextUsage used={168_000} total={200_000} withLabel onCompact={compact} />
+  <ContextUsage used={194_000} total={200_000} withLabel onCompact={compact} />
 </>`,
       },
       {

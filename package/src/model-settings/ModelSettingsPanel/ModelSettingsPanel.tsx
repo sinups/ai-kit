@@ -29,7 +29,7 @@ export interface ModelSettingsPanelLabels {
   status: string;
 }
 
-const DEFAULT_LABELS: ModelSettingsPanelLabels = {
+export const DEFAULT_MODEL_SETTINGS_PANEL_LABELS: ModelSettingsPanelLabels = {
   title: 'Model settings',
   model: 'Model',
   modelDescription: 'Model and reasoning',
@@ -62,7 +62,7 @@ export interface ModelSettingsPanelProps {
   /** Called with the picked section */
   onActiveSectionChange?: (section: ModelSettingsSection) => void;
   /** Section shown first in uncontrolled mode, the first available one by default */
-  defaultSection?: ModelSettingsSection;
+  defaultActiveSection?: ModelSettingsSection;
   /** Overrides of the default English labels */
   labels?: Partial<ModelSettingsPanelLabels>;
   /** Class name added to the root element */
@@ -82,12 +82,12 @@ export const ModelSettingsPanel = memo(function ModelSettingsPanel({
   status,
   activeSection,
   onActiveSectionChange,
-  defaultSection,
+  defaultActiveSection,
   labels: labelsProp,
   className,
   style,
 }: ModelSettingsPanelProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_MODEL_SETTINGS_PANEL_LABELS, ...labelsProp };
   const modelSelectId = useId();
   const outputStyleTitleId = useId();
   const hasModel = Boolean((models && models.length > 0) || effort);
@@ -116,7 +116,7 @@ export const ModelSettingsPanel = memo(function ModelSettingsPanel({
     sections.push({ id: 'status', label: labels.status, icon: <IconActivity size={16} /> });
   }
 
-  const [internalSection, setInternalSection] = useState<string | undefined>(defaultSection);
+  const [internalSection, setInternalSection] = useState<string | undefined>(defaultActiveSection);
   const requested = activeSection ?? internalSection;
   const active = sections.some((section) => section.id === requested)
     ? requested!
@@ -173,7 +173,7 @@ export const ModelSettingsPanel = memo(function ModelSettingsPanel({
       title={labels.title}
       sections={sections}
       activeId={active}
-      onActiveChange={handleChange}
+      onActiveIdChange={handleChange}
       className={className}
       style={style}
     >

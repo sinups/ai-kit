@@ -237,9 +237,8 @@ function AgentStatusRun({ onRestart }: { onRestart: () => void }) {
         startedAt={startedAt}
         tokens={tokens}
         lastActivityAt={lastActivityAt}
-        stalledLabel="Waiting for response"
+        labels={{ stalled: "Waiting for response", stop: "Restart" }}
         onStop={onRestart}
-        stopLabel="Restart"
       />
       <p className="text-xs text-muted-foreground">
         Tokens stop after 5 seconds; 3 seconds later the line turns stalled.
@@ -256,9 +255,9 @@ function AgentStatusPausedPreview() {
 function ContextUsageLevelsPreview() {
   return (
     <div className="flex items-center gap-8">
-      <ContextUsage used={45_200} total={200_000} segments={contextSegments} showLabel />
-      <ContextUsage used={168_000} total={200_000} showLabel onCompact={noop} />
-      <ContextUsage used={194_000} total={200_000} showLabel onCompact={noop} />
+      <ContextUsage used={45_200} total={200_000} segments={contextSegments} withLabel />
+      <ContextUsage used={168_000} total={200_000} withLabel onCompact={noop} />
+      <ContextUsage used={194_000} total={200_000} withLabel onCompact={noop} />
     </div>
   );
 }
@@ -308,8 +307,7 @@ function ToolApprovalScopesPreview() {
       <ToolApprovalCard>
         <ToolApprovalFooter
           key={run}
-          approveLabel="Allow"
-          rejectLabel="Deny"
+          labels={{ approve: "Allow", reject: "Deny" }}
           reason="Runs a shell command"
           approveOptions={[
             { value: "once", label: "Allow once" },
@@ -345,10 +343,10 @@ function ToolApprovalBasicPreview() {
   return (
     <div className="flex w-full flex-col gap-3">
       <ToolApprovalCard>
-        <ToolApprovalFooter approveLabel="Run" rejectLabel="Skip" onApprove={noop} />
+        <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={noop} />
       </ToolApprovalCard>
       <ToolApprovalCard>
-        <ToolApprovalFooter isPending approveLabel="Run" rejectLabel="Cancel" />
+        <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
       </ToolApprovalCard>
     </div>
   );

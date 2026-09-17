@@ -75,7 +75,7 @@ export interface DiffFileListProps {
   /** Error message shown instead of the files */
   error?: React.ReactNode;
   /** Called by the retry button of the error alert */
-  onRetryLoad?: () => void;
+  onRetry?: () => void;
   /** Overrides of the default English labels */
   labels?: Partial<DiffLabels>;
   /** Class name added to the root element */
@@ -115,7 +115,7 @@ export const DiffFileList = memo(function DiffFileList({
   searchAutofocus = false,
   loading,
   error,
-  onRetryLoad,
+  onRetry,
   labels: labelsProp,
   className,
   style,
@@ -195,8 +195,8 @@ export const DiffFileList = memo(function DiffFileList({
       <Alert color="red" variant="light" icon={<IconAlertCircle size={16} />}>
         <Stack gap="xs" align="flex-start">
           <Text size="sm">{error}</Text>
-          {onRetryLoad && (
-            <Button size="xs" variant="light" color="red" onClick={onRetryLoad}>
+          {onRetry && (
+            <Button size="xs" variant="light" color="red" onClick={onRetry}>
               {labels.retry}
             </Button>
           )}
@@ -299,8 +299,7 @@ export const DiffFileList = memo(function DiffFileList({
             onClose={closeSearch}
             value={query}
             onChange={setQuery}
-            label={labels.searchFiles}
-            closeLabel={labels.closeSearch}
+            labels={{ search: labels.searchFiles, close: labels.closeSearch }}
           />
           {!searchOpen && (
             <Group gap={6} wrap="nowrap" miw={0} flex={1}>

@@ -7,7 +7,7 @@ const candidate = (id: string, name: string): McpServerCandidate => ({
   transport: 'stdio',
 });
 
-describe('resolveImportNames', () => {
+describe('mcp/resolveImportNames', () => {
   it('keeps free names and suffixes collisions with existing and earlier candidates', () => {
     expect(
       resolveImportNames(
@@ -23,7 +23,7 @@ describe('resolveImportNames', () => {
   });
 });
 
-describe('validateImportNames', () => {
+describe('mcp/validateImportNames', () => {
   it('checks the name rules, existing names and duplicates among selected servers', () => {
     const names = { a: 'git', b: 'my server', c: 'dup', d: 'DUP', e: '' };
     expect(validateImportNames(['a', 'b', 'c', 'd', 'e'], names, ['git'])).toEqual({
@@ -36,7 +36,7 @@ describe('validateImportNames', () => {
   });
 });
 
-describe('groupConfigWarnings', () => {
+describe('mcp/groupConfigWarnings', () => {
   it('groups by file in order of appearance and drops exact duplicates', () => {
     const warnings = [
       {

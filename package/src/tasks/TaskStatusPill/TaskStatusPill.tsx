@@ -2,7 +2,7 @@ import React, { Fragment, memo, useMemo } from 'react';
 import { Badge, Button, Loader, type MantineColor } from '@mantine/core';
 import {
   describeTaskSummary,
-  DEFAULT_TASK_LABELS,
+  DEFAULT_BACKGROUND_TASK_LABELS,
   flattenTaskTree,
   summarizeTasks,
 } from '../task-utils';
@@ -43,7 +43,7 @@ export const TaskStatusPill = memo(function TaskStatusPill({
   className,
   style,
 }: TaskStatusPillProps) {
-  const labels = { ...DEFAULT_TASK_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp };
   const summary = useMemo(
     () =>
       summaryProp ?? summarizeTasks(countSubtasks ? flattenTaskTree(tasks ?? []) : (tasks ?? [])),

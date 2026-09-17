@@ -28,7 +28,7 @@ function Harness(props: Partial<AgentsSettingsPanelProps>) {
   );
 }
 
-describe('AgentsSettingsPanel', () => {
+describe('agents/AgentsSettingsPanel', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -134,5 +134,20 @@ describe('AgentsSettingsPanel', () => {
     render(<Harness />);
     await user.click(screen.getByRole('button', { name: 'New agent' }));
     expect(await screen.findByRole('dialog', { name: 'New agent' })).toBeInTheDocument();
+  });
+
+  it('reports selection changes and follows a controlled selectedId', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onSelectedIdChange = jest.fn();
+    const { rerender } = render(
+      <Harness selectedId={null} onSelectedIdChange={onSelectedIdChange} />
+    );
+
+    await user.click(screen.getByText('Test runner'));
+    expect(onSelectedIdChange).toHaveBeenCalledWith('agent-test-runner');
+    expect(screen.queryByRole('heading', { name: 'Test runner' })).not.toBeInTheDocument();
+
+    rerender(<Harness selectedId="agent-test-runner" onSelectedIdChange={onSelectedIdChange} />);
+    expect(screen.getByRole('heading', { name: 'Test runner' })).toBeInTheDocument();
   });
 });

@@ -48,7 +48,7 @@ export const LIMITS: UsageLimit[] = [
   },
   {
     id: 'spend',
-    label: 'Extra usage',
+    label: 'Pay-as-you-go',
     used: 12.4,
     limit: 50,
     unit: 'cost',

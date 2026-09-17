@@ -96,7 +96,7 @@ export interface AgentDetailProps {
   locale?: string;
   /** Formats `updatedAt`, a medium date in `locale` by default */
   formatDate?: (iso: string) => string;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AgentDetailLabels>;
   /** Class name added to the root element */
   className?: string;

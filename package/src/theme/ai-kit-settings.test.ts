@@ -14,7 +14,7 @@ const host = mergeMantineTheme(DEFAULT_THEME, {});
 const kit = (settings = {}) =>
   mergeMantineTheme(host, createAiKitTheme(getAiKitSettingsTheme(settings)));
 
-describe('getAiKitSettingsTheme', () => {
+describe('theme/getAiKitSettingsTheme', () => {
   it('writes settings to standard theme fields', () => {
     expect(getAiKitSettingsTheme({})).toEqual({});
     expect(
@@ -29,7 +29,7 @@ describe('getAiKitSettingsTheme', () => {
   });
 });
 
-describe('getAiKitOther', () => {
+describe('theme/getAiKitOther', () => {
   it('matches the original chat surface for the Mantine default radius and default density', () => {
     const other = getAiKitOther(host);
     expect(other.radii).toMatchObject({
@@ -51,7 +51,7 @@ describe('getAiKitOther', () => {
   });
 });
 
-describe('getAiKitCssVariables', () => {
+describe('theme/getAiKitCssVariables', () => {
   it('re-declares only the Mantine variables the kit theme changes, plus kit surfaces', () => {
     const vars = getAiKitCssVariables(host, kit());
     expect(vars.variables['--mantine-font-weight-medium']).toBe('500');
@@ -84,7 +84,7 @@ describe('getAiKitCssVariables', () => {
   });
 });
 
-describe('buildAiKitScopedCss', () => {
+describe('theme/buildAiKitScopedCss', () => {
   it('writes shared variables and per-scheme blocks and strips rule breakers', () => {
     expect(
       buildAiKitScopedCss('s', {
@@ -98,7 +98,7 @@ describe('buildAiKitScopedCss', () => {
   });
 });
 
-describe('settings persistence', () => {
+describe('theme/ai-kit-settings settings persistence', () => {
   afterEach(() => window.localStorage.clear());
 
   it('keeps only valid values', () => {

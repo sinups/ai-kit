@@ -74,6 +74,10 @@ export interface AgentEditorLabels extends AgentFieldLabels {
   discardMessage: string;
   keepEditing: string;
   discard: string;
+  /** Labels of the tool selector */
+  toolSelector: Partial<ToolSelectorLabels>;
+  /** Validation messages of the fields */
+  validation: Partial<AgentValidationMessages>;
 }
 
 export const DEFAULT_AGENT_EDITOR_LABELS: AgentEditorLabels = {
@@ -96,6 +100,8 @@ export const DEFAULT_AGENT_EDITOR_LABELS: AgentEditorLabels = {
   discardMessage: 'Your edits to this agent will be lost.',
   keepEditing: 'Keep editing',
   discard: 'Discard',
+  toolSelector: {},
+  validation: {},
 };
 
 export interface AgentEditorProps {
@@ -121,12 +127,8 @@ export interface AgentEditorProps {
   onCancel?: () => void;
   /** Called whenever the dirty state changes */
   onDirtyChange?: (dirty: boolean) => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AgentEditorLabels>;
-  /** Overrides for the English tool selector labels */
-  toolSelectorLabels?: Partial<ToolSelectorLabels>;
-  /** Overrides for the English validation messages */
-  validationMessages?: Partial<AgentValidationMessages>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -147,8 +149,6 @@ export const AgentEditor = memo(function AgentEditor({
   onCancel,
   onDirtyChange,
   labels: labelsProp,
-  toolSelectorLabels,
-  validationMessages,
   className,
   style,
 }: AgentEditorProps) {
@@ -182,8 +182,8 @@ export const AgentEditor = memo(function AgentEditor({
     [existingNames, agent?.name]
   );
   const allErrors = useMemo(
-    () => validateAgentDraft(draft, { existingNames: otherNames, messages: validationMessages }),
-    [draft, otherNames, validationMessages]
+    () => validateAgentDraft(draft, { existingNames: otherNames, messages: labels.validation }),
+    [draft, otherNames, labels.validation]
   );
   const errors: AgentDraftErrors = submitted ? allErrors : {};
   const hasErrors = Object.keys(allErrors).length > 0;
@@ -255,7 +255,7 @@ export const AgentEditor = memo(function AgentEditor({
                 onChange={(tools) => patch({ tools })}
                 error={errors.tools}
                 disabled={readOnly}
-                labels={toolSelectorLabels}
+                labels={labels.toolSelector}
               />
               <MultiSelect
                 label={labels.disallowedTools}
@@ -319,8 +319,7 @@ export const AgentEditor = memo(function AgentEditor({
         opened={confirmOpen}
         title={labels.discardTitle}
         message={labels.discardMessage}
-        confirmLabel={labels.discard}
-        cancelLabel={labels.keepEditing}
+        labels={{ confirm: labels.discard, cancel: labels.keepEditing }}
         danger
         onConfirm={() => onCancel?.()}
         onClose={() => setConfirmOpen(false)}

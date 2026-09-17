@@ -19,7 +19,7 @@ function commands(onRun: (id: string) => void): PaletteCommand[] {
   ];
 }
 
-describe('CommandPalette', () => {
+describe('primitives/CommandPalette', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
@@ -151,7 +151,7 @@ describe('CommandPalette', () => {
   });
 });
 
-describe('useFuzzySearch', () => {
+describe('primitives/useFuzzySearch', () => {
   it('filters, sorts and limits results', () => {
     const items = [{ name: 'Reset layout' }, { name: 'Settings' }, { name: 'Sort by date' }];
     const keys = ['name' as const];

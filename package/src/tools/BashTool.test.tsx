@@ -58,7 +58,7 @@ describe('tools/BashTool', () => {
           type: 'tool-Bash',
           toolCallId: 'b9',
           state: 'output-available',
-          input: { command: 'rm -rf dist', approval: { approveLabel: 'Run' } },
+          input: { command: 'rm -rf dist', approval: { labels: { approve: 'Run' } } },
           output: { stdout: '', exitCode: 0 },
         }}
       />
@@ -68,7 +68,7 @@ describe('tools/BashTool', () => {
 
   it('removes the approval footer once the approved command finishes with hideWhenComplete', async () => {
     const approval = {
-      approveLabel: 'Run',
+      labels: { approve: 'Run' },
       reason: 'Deletes the build output',
       hideWhenComplete: true,
     };
@@ -109,7 +109,7 @@ describe('tools/BashTool', () => {
           input: { command: 'yarn build', timeout: 60000 },
           output: { outputTail: tail },
         }}
-        showOutputMeta
+        withOutputMeta
         formatOutput
       />
     );
@@ -129,7 +129,7 @@ describe('tools/BashTool', () => {
           input: { command: 'yarn test' },
           output: { stdout: 'FAIL src/a.test.ts', exitCode: 1, durationMs: 4500 },
         }}
-        showOutputMeta
+        withOutputMeta
       />
     );
     expect(screen.getByText('exit 1')).toBeInTheDocument();
@@ -175,7 +175,7 @@ describe('tools/BashTool', () => {
           type: 'tool-Bash',
           toolCallId: 'b3',
           state: 'input-available',
-          input: { command: 'rm -rf dist', approval: { approveLabel: 'Run' } },
+          input: { command: 'rm -rf dist', approval: { labels: { approve: 'Run' } } },
         }}
       />
     );

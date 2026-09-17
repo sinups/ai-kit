@@ -34,7 +34,7 @@ function Harness({
   );
 }
 
-describe('SkillsSettingsPanel', () => {
+describe('skills/SkillsSettingsPanel', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

@@ -123,3 +123,5 @@ export const ThinkingTool = memo(function ThinkingTool({
     />
   );
 });
+
+ThinkingTool.displayName = 'ThinkingTool';

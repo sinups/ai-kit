@@ -41,7 +41,7 @@ export interface ContextBreakdownProps {
   variant?: 'compact' | 'full';
   /** Ids of groups expanded on the first render */
   defaultExpanded?: string[];
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<ContextBreakdownLabels>;
   /** Class name added to the root element */
   className?: string;

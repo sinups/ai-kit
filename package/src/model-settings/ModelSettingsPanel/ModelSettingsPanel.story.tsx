@@ -26,14 +26,14 @@ function Demo() {
         usage={{
           period,
           onPeriodChange: setPeriod,
-          withoutTitle: true,
+          withTitle: false,
           summary: { tokens: 6_200_000, cost: 67.54, requests: 1_284 },
           limits: LIMITS,
           models: MODEL_USAGE,
           daily: DAILY_USAGE,
         }}
         status={{
-          withoutTitle: true,
+          withTitle: false,
           version: '2.1.4',
           model: 'Qwen 2.5 Coder 32B',
           account: { email: 'dev@example.com', plan: 'Max' },
@@ -100,10 +100,10 @@ export function NavigationFlow(args: NavigationFlowArgs) {
               setPeriod(next);
               args.onPeriodChange(next);
             },
-            withoutTitle: true,
+            withTitle: false,
             summary: { tokens: 6_200_000, cost: 67.54, requests: 1_284 },
           }}
-          status={{ withoutTitle: true, version: '2.1.4', model: 'Qwen 2.5 Coder 32B' }}
+          status={{ withTitle: false, version: '2.1.4', model: 'Qwen 2.5 Coder 32B' }}
           onActiveSectionChange={args.onActiveSectionChange}
         />
       </Paper>

@@ -4,7 +4,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import type { QuestionConfig } from '../question/QuestionPrompt';
 import { InputBar } from './InputBar';
 
-describe('InputBar', () => {
+describe('input/InputBar', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

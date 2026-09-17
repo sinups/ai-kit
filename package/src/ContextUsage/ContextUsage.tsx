@@ -37,6 +37,18 @@ export type ContextUsageSegment = {
   color?: MantineColor;
 };
 
+export interface ContextUsageLabels {
+  /** Compact button, `Compact conversation` by default */
+  compact: string;
+  /** Labels of the breakdown, `summary` is also the totals line without `breakdown` */
+  breakdown: Partial<ContextBreakdownLabels>;
+}
+
+export const DEFAULT_CONTEXT_USAGE_LABELS: ContextUsageLabels = {
+  compact: 'Compact conversation',
+  breakdown: {},
+};
+
 export interface ContextUsageProps {
   /** Tokens currently in the context window */
   used: number;
@@ -48,22 +60,20 @@ export interface ContextUsageProps {
   breakdown?: ContextBreakdownGroup[];
   /** Ways to free context, shown under the breakdown */
   suggestions?: ContextSuggestion[];
-  /** Overrides for the English labels of the breakdown, `summary` is also the totals line without `breakdown` */
-  breakdownLabels?: Partial<ContextBreakdownLabels>;
   /** Ratio at which the ring turns to the warning color, `0.8` by default */
   warnAt?: number;
   /** Ratio at which the ring turns to the danger color, `0.95` by default */
   dangerAt?: number;
   /** Ring size in px, `20` by default */
   size?: number;
-  /** Shows the percentage next to the ring */
-  showLabel?: boolean;
+  /** Shows the percentage next to the ring, `false` by default */
+  withLabel?: boolean;
   /** Renders the compact button in the details once usage reaches `warnAt` */
   onCompact?: () => void;
-  /** Compact button label, `Compact conversation` by default */
-  compactLabel?: string;
   /** Accessible label of the trigger, `Context usage` by default */
   ariaLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<ContextUsageLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -87,17 +97,17 @@ export const ContextUsage = memo(function ContextUsage({
   segments,
   breakdown,
   suggestions,
-  breakdownLabels,
   warnAt = 0.8,
   dangerAt = 0.95,
   size = 20,
-  showLabel,
+  withLabel,
   onCompact,
-  compactLabel = 'Compact conversation',
   ariaLabel = 'Context usage',
+  labels: labelsProp,
   className,
   style,
 }: ContextUsageProps) {
+  const labels = { ...DEFAULT_CONTEXT_USAGE_LABELS, ...labelsProp };
   const [openedBy, setOpenedBy] = useState<'hover' | 'click' | null>(null);
   const hoverClose = useTimeout(
     () => setOpenedBy((current) => (current === 'hover' ? null : current)),
@@ -153,7 +163,7 @@ export const ContextUsage = memo(function ContextUsage({
         <Popover.Target>
           <UnstyledButton
             className={classes.trigger}
-            data-with-label={showLabel || undefined}
+            data-with-label={withLabel || undefined}
             aria-label={`${ariaLabel}: ${formatPercent(ratio)}`}
             aria-expanded={openedBy !== null}
             onClick={toggle}
@@ -166,7 +176,7 @@ export const ContextUsage = memo(function ContextUsage({
               sections={sections}
               rootColor="var(--ae-border)"
             />
-            {showLabel && <span className={classes.label}>{formatPercent(ratio)}</span>}
+            {withLabel && <span className={classes.label}>{formatPercent(ratio)}</span>}
           </UnstyledButton>
         </Popover.Target>
         <Popover.Dropdown
@@ -181,13 +191,13 @@ export const ContextUsage = memo(function ContextUsage({
               used={used}
               total={total}
               suggestions={suggestions}
-              labels={breakdownLabels}
+              labels={labels.breakdown}
             />
           ) : (
             <>
               <div className={classes.total}>
                 {fillTemplate(
-                  breakdownLabels?.summary ?? DEFAULT_CONTEXT_BREAKDOWN_LABELS.summary,
+                  labels.breakdown.summary ?? DEFAULT_CONTEXT_BREAKDOWN_LABELS.summary,
                   {
                     used: formatTokens(used),
                     total: formatTokens(total),
@@ -218,7 +228,7 @@ export const ContextUsage = memo(function ContextUsage({
           )}
           {onCompact && level !== 'normal' && (
             <UnstyledButton className={classes.compact} onClick={onCompact}>
-              {compactLabel}
+              {labels.compact}
             </UnstyledButton>
           )}
         </Popover.Dropdown>

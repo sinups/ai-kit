@@ -77,7 +77,7 @@ export function Loading() {
   );
 }
 
-export function ErrorState() {
+export function Error() {
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <HooksPanel
@@ -290,7 +290,7 @@ export const EditHookFlow = {
   },
 };
 
-export const ErrorRetryFlow = {
+export const RetryFlow = {
   args: flowArgs(),
   render: (args: FlowArgs) => (
     <WidthFrame width={WIDE_WIDTH}>

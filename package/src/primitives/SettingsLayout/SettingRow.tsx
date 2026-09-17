@@ -50,3 +50,5 @@ export const SettingRow = memo(function SettingRow({
     </Box>
   );
 });
+
+SettingRow.displayName = 'SettingRow';

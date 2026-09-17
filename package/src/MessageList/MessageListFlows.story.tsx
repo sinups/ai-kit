@@ -51,7 +51,7 @@ export function SearchFlow() {
       <MessageList
         messages={longConversation}
         status="ready"
-        searchable
+        withSearch
         initialScrollBehavior="top"
       />
     </Frame>

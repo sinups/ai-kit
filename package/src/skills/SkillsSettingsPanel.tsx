@@ -39,16 +39,8 @@ export interface SkillsSettingsPanelProps {
   breakpoint?: number;
   /** Catalog pane width in px when wide, `340` by default */
   listWidth?: number;
-  /** Label overrides of the catalog */
-  catalogLabels?: Partial<SkillCatalogLabels>;
-  /** Label overrides of the detail view */
-  detailLabels?: Partial<SkillDetailLabels>;
-  /** Label overrides of the editor */
-  editorLabels?: Partial<SkillEditorLabels>;
-  /** Label overrides of the remove confirmation */
-  removeLabels?: Partial<SkillRemoveLabels>;
-  /** Back button label on narrow widths, `Skills` by default */
-  backLabel?: string;
+  /** Overrides of the default English labels of the panel and its parts */
+  labels?: Partial<SkillsSettingsPanelLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element, give the panel a height */
@@ -63,12 +55,33 @@ export interface SkillRemoveLabels {
   error: string;
 }
 
-const DEFAULT_REMOVE_LABELS: SkillRemoveLabels = {
+export const DEFAULT_SKILL_REMOVE_LABELS: SkillRemoveLabels = {
   title: 'Remove skill?',
   message: (skill) => `${skill.name} will be removed. This cannot be undone.`,
   confirm: 'Remove',
   cancel: 'Cancel',
   error: 'Could not remove the skill',
+};
+
+export interface SkillsSettingsPanelLabels {
+  /** Back button on narrow widths, `Skills` by default */
+  back: string;
+  /** Labels of the catalog */
+  catalog: Partial<SkillCatalogLabels>;
+  /** Labels of the detail view */
+  detail: Partial<SkillDetailLabels>;
+  /** Labels of the editor */
+  editor: Partial<SkillEditorLabels>;
+  /** Labels of the remove confirmation */
+  remove: Partial<SkillRemoveLabels>;
+}
+
+export const DEFAULT_SKILLS_SETTINGS_PANEL_LABELS: SkillsSettingsPanelLabels = {
+  back: 'Skills',
+  catalog: {},
+  detail: {},
+  editor: {},
+  remove: {},
 };
 
 type PanelMode =
@@ -94,11 +107,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
   catalogVariant = 'list',
   breakpoint,
   listWidth = 340,
-  catalogLabels,
-  detailLabels,
-  editorLabels,
-  removeLabels,
-  backLabel = 'Skills',
+  labels: labelsProp,
   className,
   style,
 }: SkillsSettingsPanelProps) {
@@ -108,12 +117,13 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
   const [pendingLeave, setPendingLeave] = useState<(() => void) | null>(null);
   const [removeTarget, setRemoveTarget] = useState<Skill | null>(null);
   const [removeOpen, setRemoveOpen] = useState(false);
-  const discardText = { ...DEFAULT_SKILL_EDITOR_LABELS, ...editorLabels };
-  const removeText = { ...DEFAULT_REMOVE_LABELS, ...removeLabels };
+  const labels = { ...DEFAULT_SKILLS_SETTINGS_PANEL_LABELS, ...labelsProp };
+  const discardText = { ...DEFAULT_SKILL_EDITOR_LABELS, ...labels.editor };
+  const removeText = { ...DEFAULT_SKILL_REMOVE_LABELS, ...labels.remove };
 
   const selectedId = selectedIdProp !== undefined ? selectedIdProp : selectedIdState;
   const selected = skills.find((skill) => skill.id === selectedId) ?? null;
-  const takenNames = useMemo(() => skills.map((skill) => skill.name), [skills]);
+  const existingNames = useMemo(() => skills.map((skill) => skill.name), [skills]);
 
   const select = (id: string | null) => {
     setSelectedIdState(id);
@@ -160,8 +170,8 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         key={`create-${mode.key}`}
         initialDraft={mode.draft}
         availableTools={availableTools}
-        takenNames={takenNames}
-        labels={editorLabels}
+        existingNames={existingNames}
+        labels={labels.editor}
         onCancel={closeEditor}
         onDirtyChange={handleDirtyChange}
         onSave={async (draft) => {
@@ -179,8 +189,8 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         key={`edit-${editingSkill.id}`}
         skill={editingSkill}
         availableTools={availableTools}
-        takenNames={takenNames}
-        labels={editorLabels}
+        existingNames={existingNames}
+        labels={labels.editor}
         onCancel={closeEditor}
         onDirtyChange={handleDirtyChange}
         onSave={async (draft) => {
@@ -196,7 +206,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         skill={selected}
         onToggle={onToggle}
         onEdit={edit && isEditable(selected) ? edit : undefined}
-        labels={detailLabels}
+        labels={labels.detail}
       />
     );
   }
@@ -209,7 +219,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         breakpoint={breakpoint}
         listWidth={listWidth}
         detail={detail}
-        backLabel={backLabel}
+        labels={{ back: labels.back }}
         onBack={() =>
           leaveEditor(() => {
             closeEditor();
@@ -224,7 +234,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
             onRetry={onRetry}
             variant={catalogVariant}
             selectedId={selectedId}
-            labels={catalogLabels}
+            labels={labels.catalog}
             className={classes.panelCatalog}
             isEditable={isEditable}
             onSelect={(skill) => {
@@ -243,7 +253,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
                 ? (skill) =>
                     startCreate({
                       ...skillToDraft(skill),
-                      name: getDuplicateSkillName(skill.name, takenNames),
+                      name: getDuplicateSkillName(skill.name, existingNames),
                     })
                 : undefined
             }
@@ -263,8 +273,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         opened={pendingLeave !== null}
         title={discardText.discardTitle}
         message={discardText.discardMessage}
-        confirmLabel={discardText.discard}
-        cancelLabel={discardText.keepEditing}
+        labels={{ confirm: discardText.discard, cancel: discardText.keepEditing }}
         danger
         onConfirm={() => pendingLeave?.()}
         onClose={() => setPendingLeave(null)}
@@ -274,9 +283,11 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
           opened={removeOpen}
           title={removeText.title}
           message={removeTarget ? removeText.message(removeTarget) : null}
-          confirmLabel={removeText.confirm}
-          cancelLabel={removeText.cancel}
-          errorLabel={removeText.error}
+          labels={{
+            confirm: removeText.confirm,
+            cancel: removeText.cancel,
+            error: removeText.error,
+          }}
           danger
           onConfirm={async () => {
             if (!removeTarget) {
@@ -294,3 +305,5 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
     </>
   );
 });
+
+SkillsSettingsPanel.displayName = 'SkillsSettingsPanel';

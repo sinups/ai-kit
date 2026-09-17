@@ -11,7 +11,7 @@ import {
 import { McpServerDetail } from './McpServerDetail';
 import { McpToolDetail } from './McpToolDetail';
 
-describe('McpServerDetail', () => {
+describe('mcp/McpServerDetail', () => {
   it('lists tools with annotations and opens a tool', async () => {
     const onSelectTool = jest.fn();
     render(<McpServerDetail server={GIT_SERVER} onSelectTool={onSelectTool} />);
@@ -123,7 +123,7 @@ describe('McpServerDetail', () => {
   });
 });
 
-describe('McpToolDetail', () => {
+describe('mcp/McpToolDetail', () => {
   it('renders annotations and schemas and calls back', async () => {
     const onBack = jest.fn();
     const onTry = jest.fn();

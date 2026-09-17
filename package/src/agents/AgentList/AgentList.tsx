@@ -84,9 +84,9 @@ export interface AgentListProps {
   loading?: boolean;
   /** Error message shown instead of the list */
   error?: React.ReactNode;
-  /** Called by the retry button of the error */
+  /** Called by the retry button of the error alert */
   onRetry?: () => void;
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<AgentListLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -175,7 +175,7 @@ export const AgentList = memo(function AgentList({
       loading={loading}
       error={error}
       onRetry={onRetry}
-      retryLabel={labels.retry}
+      labels={{ retry: labels.retry, noResults: labels.noResults }}
       ariaLabel={labels.list}
       groupBy={groupBySource ? groupBy : undefined}
       groupOrder={AGENT_SOURCE_ORDER.map((source) => labels.sources[source])}
@@ -203,7 +203,6 @@ export const AgentList = memo(function AgentList({
             }
           : undefined
       }
-      noResults={labels.noResults}
       empty={{
         icon: <IconRobot />,
         title: labels.emptyTitle,
@@ -230,7 +229,7 @@ export const AgentList = memo(function AgentList({
           title={agent.displayName || agent.name}
           description={agent.description}
           actions={getActions(agent)}
-          actionsLabel={`${labels.actions}: ${agent.displayName || agent.name}`}
+          labels={{ actions: `${labels.actions}: ${agent.displayName || agent.name}` }}
           badges={
             <Group gap={4} wrap="nowrap">
               {!groupBySource && (

@@ -92,7 +92,7 @@ export const RetryFlow = {
         variant="warning"
         message="Usage limit reached"
         onRetry={onRetry}
-        retryLabel="Try again"
+        labels={{ retry: 'Try again' }}
       />
     </Stack>
   ),

@@ -4,7 +4,7 @@ import { Markdown } from './Markdown';
 
 const WIDE_TABLE = '| a | b | c | d |\n| - | - | - | - |\n| 1 | 2 | 3 | 4 |';
 
-describe('Markdown', () => {
+describe('Markdown/Markdown', () => {
   it('renders tables as plain scrollable tables by default', () => {
     const { container } = render(<Markdown content={WIDE_TABLE} />);
     expect(container.querySelector('table')).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('Markdown', () => {
     expect(document.querySelector('pre code')?.textContent).toBe('yarn test');
   });
 
-  it('wraps long code lines only with codeWrap', () => {
+  it('wraps long code lines only with wrapLines', () => {
     const content =
       '```bash\ncurl -X POST https://api.example.com/v1/items -d \'{"name":"item"}\'\n```';
     const { container, rerender } = render(<Markdown content={content} />);
@@ -65,7 +65,7 @@ describe('Markdown', () => {
 
     rerender(
       <>
-        <Markdown content={content} codeWrap />
+        <Markdown content={content} wrapLines />
       </>
     );
     expect(container.querySelector('pre')).toHaveAttribute('data-wrap', 'true');

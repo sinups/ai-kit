@@ -185,7 +185,7 @@ function Search({ width }: { width: number }) {
       <MessageList
         messages={longConversation}
         status="ready"
-        searchable
+        withSearch
         searchOpened={opened}
         onSearchOpenedChange={setOpened}
         initialScrollBehavior="top"

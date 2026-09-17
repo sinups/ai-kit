@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import { setElementWidth } from '../_testing/element-width';
 import { MasterDetail } from './MasterDetail';
 
-describe('MasterDetail', () => {
+describe('primitives/MasterDetail', () => {
   describe('narrow', () => {
     it('shows only the list while nothing is selected', () => {
       render(<MasterDetail list={<div>Item list</div>} detail={null} />);
@@ -24,12 +24,12 @@ describe('MasterDetail', () => {
       expect(onBack).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the list when detailOpen is false', () => {
+    it('keeps the list when detailOpened is false', () => {
       render(
         <MasterDetail
           list={<div>Item list</div>}
           detail={<div>Item detail</div>}
-          detailOpen={false}
+          detailOpened={false}
         />
       );
       expect(screen.getByText('Item list')).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('MasterDetail', () => {
           list={<div>Item list</div>}
           detail={<div>Item detail</div>}
           onBack={() => {}}
-          backLabel="Return"
+          labels={{ back: 'Return' }}
         />
       );
 
@@ -66,7 +66,11 @@ describe('MasterDetail', () => {
       expect(await screen.findByText('Select an item')).toBeInTheDocument();
 
       rerender(
-        <MasterDetail list={<div>Item list</div>} detail={null} emptyTitle="Nothing selected" />
+        <MasterDetail
+          list={<div>Item list</div>}
+          detail={null}
+          labels={{ emptyTitle: 'Nothing selected' }}
+        />
       );
       expect(await screen.findByText('Nothing selected')).toBeInTheDocument();
 
@@ -133,7 +137,7 @@ describe('MasterDetail', () => {
             breakpoint={wide ? 0 : 100000}
             list={<button type="button">List item</button>}
             detail={<div>Item detail</div>}
-            detailOpen={false}
+            detailOpened={false}
           />
         </div>
       );

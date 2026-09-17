@@ -8,6 +8,27 @@ import { fillTemplate } from '../utils/fill-template';
 import { formatTokens } from '../utils/format-tokens';
 import classes from './CompactBoundary.module.css';
 
+export interface CompactBoundaryLabels {
+  /** Divider text without `direction`, `History summarized` by default */
+  summarized: string;
+  /** Divider text with `direction="from"`, `Summarized from here` by default */
+  summarizedFrom: string;
+  /** Divider text with `direction="up-to"`, `Summarized up to here` by default */
+  summarizedUpTo: string;
+  /** Token size text, `{tokens}` is replaced with `182k → 12.3k` or `12.3k`, `{tokens} tokens` by default */
+  tokens: string;
+  /** Prefix of `userContext`, `Kept` by default */
+  userContext: string;
+}
+
+export const DEFAULT_COMPACT_BOUNDARY_LABELS: CompactBoundaryLabels = {
+  summarized: 'History summarized',
+  summarizedFrom: 'Summarized from here',
+  summarizedUpTo: 'Summarized up to here',
+  tokens: '{tokens} tokens',
+  userContext: 'Kept',
+};
+
 export interface CompactBoundaryProps {
   /** Summary that replaced the compacted history, rendered as markdown when expanded */
   summary?: string;
@@ -19,26 +40,19 @@ export interface CompactBoundaryProps {
   direction?: 'from' | 'up-to';
   /** What the user asked the summary to keep, shown with the summary */
   userContext?: string;
-  /** Divider label, `History summarized` by default, `Summarized from here` or `Summarized up to here` with `direction` */
+  /** Divider text that replaces the one picked from `labels` by `direction` */
   label?: string;
-  /** Token size text, `{tokens}` is replaced with `182k → 12.3k` or `12.3k`, `{tokens} tokens` by default */
-  tokensLabel?: string;
-  /** Prefix of `userContext`, `Kept` by default */
-  userContextLabel?: string;
   /** Show the summary on mount, `false` by default */
   defaultExpanded?: boolean;
   /** Syntax highlighter for code blocks in the summary */
   highlighter?: SyntaxHighlighter;
+  /** Overrides of the default English labels */
+  labels?: Partial<CompactBoundaryLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
-
-const DIRECTION_LABELS = {
-  from: 'Summarized from here',
-  'up-to': 'Summarized up to here',
-} as const;
 
 function formatTokenChange(before?: number, after?: number): string {
   if (after === undefined) {
@@ -56,14 +70,21 @@ export const CompactBoundary = memo(function CompactBoundary({
   tokensAfter,
   direction,
   userContext,
-  label = direction ? DIRECTION_LABELS[direction] : 'History summarized',
-  tokensLabel = '{tokens} tokens',
-  userContextLabel = 'Kept',
+  label: labelProp,
   defaultExpanded = false,
   highlighter,
+  labels: labelsProp,
   className,
   style,
 }: CompactBoundaryProps) {
+  const labels = { ...DEFAULT_COMPACT_BOUNDARY_LABELS, ...labelsProp };
+  const directionLabel =
+    direction === 'from'
+      ? labels.summarizedFrom
+      : direction === 'up-to'
+        ? labels.summarizedUpTo
+        : labels.summarized;
+  const label = labelProp ?? directionLabel;
   const [expanded, setExpanded] = useState(defaultExpanded);
   const tokenChange = formatTokenChange(tokensBefore, tokensAfter);
   const context = userContext?.trim();
@@ -71,7 +92,7 @@ export const CompactBoundary = memo(function CompactBoundary({
 
   const text = (
     <Text span size="xs" c="inherit" truncate="end" miw={0}>
-      {tokenChange ? `${label} · ${fillTemplate(tokensLabel, { tokens: tokenChange })}` : label}
+      {tokenChange ? `${label} · ${fillTemplate(labels.tokens, { tokens: tokenChange })}` : label}
     </Text>
   );
 
@@ -111,7 +132,7 @@ export const CompactBoundary = memo(function CompactBoundary({
           <Stack gap="xs" pt="xs">
             {context && (
               <Text size="xs" c="dimmed">
-                {userContextLabel}: {context}
+                {labels.userContext}: {context}
               </Text>
             )}
             {summary?.trim() && <Markdown content={summary} highlighter={highlighter} />}

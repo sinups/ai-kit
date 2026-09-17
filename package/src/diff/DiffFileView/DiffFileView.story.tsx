@@ -3,7 +3,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test';
 import { Checkbox, Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame';
 import { DIFF_EXTRA_FIXTURES, DIFF_FIXTURES } from '../fixtures';
-import { demoHighlighter } from '../../tools/_stories-shared';
+import { demoHighlighter } from '../../tools/_story-helpers';
 import { DiffFileView, type DiffViewMode } from './DiffFileView';
 
 export default { title: 'diff/DiffFileView' };

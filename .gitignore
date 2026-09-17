@@ -153,3 +153,5 @@ storybook-visual-diff/
 package/__visual__/
 __diff_output__/
 __received_output__/
+
+.pack/

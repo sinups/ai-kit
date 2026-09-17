@@ -1,6 +1,6 @@
 import { formatCommandUsage, groupHelpItems, toPaletteCommands } from './commands-help';
 
-describe('commands-help', () => {
+describe('help/commands-help', () => {
   it('formats the command usage', () => {
     expect(formatCommandUsage({ name: 'review', args: ' <path> ' })).toBe('/review <path>');
     expect(formatCommandUsage({ name: '/init' })).toBe('/init');

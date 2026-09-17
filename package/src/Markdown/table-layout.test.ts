@@ -1,6 +1,6 @@
 import { shouldStackTable } from './table-layout';
 
-describe('shouldStackTable', () => {
+describe('Markdown/shouldStackTable', () => {
   it('never stacks before the width is measured or with few columns', () => {
     expect(shouldStackTable(6, 0)).toBe(false);
     expect(shouldStackTable(2, 100)).toBe(false);

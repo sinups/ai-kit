@@ -14,7 +14,7 @@ function Controlled(props: Partial<PermissionRuleInputProps>) {
   );
 }
 
-describe('PermissionRuleInput', () => {
+describe('permissions/PermissionRuleInput', () => {
   it('describes a valid rule in plain words', async () => {
     render(<Controlled behavior="deny" />);
     await userEvent.type(screen.getByLabelText('Rule'), 'Bash(rm -rf *)');

@@ -1,6 +1,6 @@
 import { matchSlashCommand, parseSlashCommand } from './slash-command';
 
-describe('slash-command', () => {
+describe('message-actions/slash-command', () => {
   it('parses the command name and arguments', () => {
     expect(parseSlashCommand('/review src/auth')).toEqual({ name: 'review', args: 'src/auth' });
     expect(parseSlashCommand('  /compact  ')).toEqual({ name: 'compact', args: '' });

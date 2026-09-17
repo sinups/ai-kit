@@ -8,7 +8,7 @@ const plan = {
   summary: '1. Extract token store\n2. Add tests',
 };
 
-describe('PlanApproval', () => {
+describe('message-actions/PlanApproval', () => {
   it('approves the plan and renders the final state', async () => {
     const onApprove = jest.fn();
     render(<PlanApproval plan={plan} onApprove={onApprove} />);

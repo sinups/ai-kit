@@ -53,7 +53,7 @@ export function createLimits(): UsageLimit[] {
   return [
     { id: "session", label: "5-hour limit", used: 184, limit: 200, unit: "requests", resetsAt: hoursFromNow(1.4) },
     { id: "weekly", label: "Weekly limit", used: 6_200_000, limit: 10_000_000, resetsAt: hoursFromNow(80) },
-    { id: "spend", label: "Extra usage", used: 12.4, limit: 50, unit: "cost", resetsAt: hoursFromNow(300) },
+    { id: "spend", label: "Pay-as-you-go", used: 12.4, limit: 50, unit: "cost", resetsAt: hoursFromNow(300) },
   ];
 }
 
@@ -121,13 +121,13 @@ function ModelSettingsPanelPreview({ narrow = false }: { narrow?: boolean }) {
       usage={{
         period,
         onPeriodChange: setPeriod,
-        withoutTitle: true,
+        withTitle: false,
         summary: { tokens: 6_200_000, cost: 67.54, requests: 1_284 },
         limits,
         models: MODEL_USAGE,
         daily,
       }}
-      status={{ ...STATUS_PROPS, withoutTitle: true }}
+      status={{ ...STATUS_PROPS, withTitle: false }}
     />
   );
   return narrow ? <NarrowFrame height={600}>{panel}</NarrowFrame> : <WideFrame height={600}>{panel}</WideFrame>;
@@ -176,7 +176,7 @@ function OutputStylePickerPreview({ narrow = false }: { narrow?: boolean }) {
         onChange={setStyle}
         label="Output style"
         description="How the agent writes its answers"
-        withoutExamples={narrow}
+        withExamples={!narrow}
       />
     </div>
   );

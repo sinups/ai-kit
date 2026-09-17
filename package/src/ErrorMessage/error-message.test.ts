@@ -1,6 +1,6 @@
 import { truncateErrorMessage } from './error-message';
 
-describe('truncateErrorMessage', () => {
+describe('ErrorMessage/truncateErrorMessage', () => {
   it('keeps short messages', () => {
     expect(truncateErrorMessage('Boom')).toEqual({ text: 'Boom', truncated: false });
     expect(truncateErrorMessage('a\nb\nc\nd\ne\nf')).toEqual({

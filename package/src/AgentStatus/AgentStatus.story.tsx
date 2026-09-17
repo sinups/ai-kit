@@ -29,7 +29,7 @@ function Demo() {
         startedAt={startedAt}
         tokens={tokens}
         lastActivityAt={lastActivityAt}
-        stalledLabel="Waiting for response"
+        labels={{ stalled: 'Waiting for response' }}
         onStop={() => {}}
       />
       <AgentStatus label="Running tools" startedAt={startedAt} paused />
@@ -61,7 +61,7 @@ export function Stalled() {
         startedAt={startedAt}
         tokens={4210}
         lastActivityAt={startedAt}
-        stalledLabel="Waiting for response"
+        labels={{ stalled: 'Waiting for response' }}
         onStop={() => {}}
       />
     </WidthFrame>

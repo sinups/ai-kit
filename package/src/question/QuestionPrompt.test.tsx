@@ -23,7 +23,7 @@ const MULTI: QuestionConfig = {
   maxSelections: 2,
 };
 
-describe('QuestionPrompt', () => {
+describe('question/QuestionPrompt previews and notes', () => {
   it('disables Send until an option is chosen, then submits the selection', async () => {
     const onSubmit = jest.fn();
     render(<QuestionPrompt questions={[SINGLE]} onSubmit={onSubmit} />);
@@ -126,7 +126,7 @@ const PREVIEW: QuestionConfig = {
   ],
 };
 
-describe('QuestionPrompt previews and notes', () => {
+describe('question/QuestionPrompt', () => {
   let restore: () => void = () => {};
   afterEach(() => restore());
 

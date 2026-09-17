@@ -47,7 +47,7 @@ import {
 } from './mcp-server';
 import classes from './Mcp.module.css';
 import {
-  MCP_TOOL_ANNOTATION_LABELS,
+  DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
   McpToolAnnotationBadges,
   type McpToolAnnotationLabels,
 } from './McpToolAnnotationBadges';
@@ -112,7 +112,7 @@ export type McpServerDetailLabels = {
   annotations: McpToolAnnotationLabels;
 };
 
-export const MCP_SERVER_DETAIL_LABELS: McpServerDetailLabels = {
+export const DEFAULT_MCP_SERVER_DETAIL_LABELS: McpServerDetailLabels = {
   reconnect: 'Reconnect',
   authenticate: 'Authenticate',
   enable: 'Enable',
@@ -153,7 +153,7 @@ export const MCP_SERVER_DETAIL_LABELS: McpServerDetailLabels = {
   status: MCP_STATUS_LABELS,
   scopes: MCP_SCOPE_LABELS,
   transports: MCP_TRANSPORT_LABELS,
-  annotations: MCP_TOOL_ANNOTATION_LABELS,
+  annotations: DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
 };
 
 type ServerAction = (server: McpServer) => void | Promise<void>;
@@ -266,7 +266,7 @@ export const McpServerDetail = memo(function McpServerDetail({
   className,
   style,
 }: McpServerDetailProps) {
-  const labels = { ...MCP_SERVER_DETAIL_LABELS, ...labelsOverride };
+  const labels = { ...DEFAULT_MCP_SERVER_DETAIL_LABELS, ...labelsOverride };
   const { ref, width } = useElementSize();
   const [uncontrolledTab, setUncontrolledTab] = useState<McpServerDetailTab>('tools');
   const [toolQuery, setToolQuery] = useState('');
@@ -661,9 +661,7 @@ export const McpServerDetail = memo(function McpServerDetail({
           danger
           title={labels.removeTitle}
           message={formatTemplate(labels.removeMessage, { name: server.name })}
-          confirmLabel={labels.remove}
-          cancelLabel={labels.cancel}
-          errorLabel={labels.actionFailed}
+          labels={{ confirm: labels.remove, cancel: labels.cancel, error: labels.actionFailed }}
           onConfirm={() => onRemove(server)}
           onClose={() => setConfirmRemove(false)}
         />
@@ -671,3 +669,5 @@ export const McpServerDetail = memo(function McpServerDetail({
     </Stack>
   );
 });
+
+McpServerDetail.displayName = 'McpServerDetail';

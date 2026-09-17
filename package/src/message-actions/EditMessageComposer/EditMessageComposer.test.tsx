@@ -3,7 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { waitFor } from '@testing-library/react';
 import { EditMessageComposer } from './EditMessageComposer';
 
-describe('EditMessageComposer', () => {
+describe('message-actions/EditMessageComposer', () => {
   it('resends the trimmed text with Enter and keeps Shift+Enter as a new line', async () => {
     const onSubmit = jest.fn();
     render(<EditMessageComposer defaultValue="Hello" onSubmit={onSubmit} onCancel={() => {}} />);

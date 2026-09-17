@@ -31,7 +31,7 @@ export interface CommandsHelpLabels {
   clearSearch: string;
 }
 
-const DEFAULT_LABELS: CommandsHelpLabels = {
+export const DEFAULT_COMMANDS_HELP_LABELS: CommandsHelpLabels = {
   commands: 'Commands',
   shortcuts: 'Shortcuts',
   search: 'Search commands and shortcuts',
@@ -91,7 +91,7 @@ export const CommandsHelp = memo(function CommandsHelp({
   className,
   style,
 }: CommandsHelpProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_COMMANDS_HELP_LABELS, ...labelsProp };
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<HelpTab>(defaultTab);
   const commandResults = useFuzzySearch({ items: commands, keys: COMMAND_SEARCH_KEYS, query });

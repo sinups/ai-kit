@@ -19,7 +19,7 @@ function Demo(props: Partial<TaskListProps>) {
         selectedId={selectedId}
         onSelect={(task) => setSelectedId(task.id)}
         onStop={stop}
-        onRetry={retry}
+        onRetryTask={retry}
         onRemove={remove}
         {...props}
       />
@@ -59,10 +59,10 @@ export function Loading() {
   );
 }
 
-export function LoadError() {
+export function Error() {
   return (
     <WidthFrame width={480}>
-      <Demo tasks={[]} error="Could not reach the task runner" onRetryLoad={() => {}} />
+      <Demo tasks={[]} error="Could not reach the task runner" onRetry={() => {}} />
     </WidthFrame>
   );
 }
@@ -86,12 +86,17 @@ export function MaxVisible() {
 type ListArgs = {
   onSelect: (task: BackgroundTask) => void;
   onStop: (task: BackgroundTask) => void;
-  onRetry: (task: BackgroundTask) => void;
+  onRetryTask: (task: BackgroundTask) => void;
   onRemove: (task: BackgroundTask) => void;
 };
 type FlowContext<A> = { canvasElement: HTMLElement; args: A };
 
-const listArgs = (): ListArgs => ({ onSelect: fn(), onStop: fn(), onRetry: fn(), onRemove: fn() });
+const listArgs = (): ListArgs => ({
+  onSelect: fn(),
+  onStop: fn(),
+  onRetryTask: fn(),
+  onRemove: fn(),
+});
 
 function FlowList({ maxVisible, ...args }: ListArgs & { maxVisible?: number }) {
   const [tasks] = useState(() => createTaskFixtures());
@@ -158,7 +163,9 @@ export const TaskActionsFlow = {
     await waitFor(() => expect(page.queryAllByRole('menuitem')).toHaveLength(0));
     await userEvent.click(actionsOf(/^Backfill invoice totals/));
     await userEvent.click(await page.findByRole('menuitem', { name: 'Retry' }));
-    await expect(args.onRetry).toHaveBeenCalledWith(expect.objectContaining({ id: 'migration' }));
+    await expect(args.onRetryTask).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'migration' })
+    );
 
     await waitFor(() => expect(page.queryAllByRole('menuitem')).toHaveLength(0));
     await userEvent.click(actionsOf(/^yarn lint --fix/));

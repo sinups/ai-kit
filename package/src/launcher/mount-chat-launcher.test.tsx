@@ -2,7 +2,7 @@ import React, { act } from 'react';
 import { mountChatLauncher } from './mount-chat-launcher';
 import { ChatLauncher } from './ChatLauncher';
 
-describe('mountChatLauncher', () => {
+describe('launcher/mountChatLauncher', () => {
   beforeAll(() => {
     (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   });

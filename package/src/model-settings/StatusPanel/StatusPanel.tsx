@@ -28,7 +28,7 @@ export interface StatusPanelLabels {
   actionError: string;
 }
 
-const DEFAULT_LABELS: StatusPanelLabels = {
+export const DEFAULT_STATUS_PANEL_LABELS: StatusPanelLabels = {
   title: 'Status',
   version: 'Version',
   model: 'Model',
@@ -80,8 +80,8 @@ export interface StatusPanelProps {
   items?: { label: React.ReactNode; value: React.ReactNode }[];
   /** Buttons under the summary, for example `Doctor` or `Log out` */
   actions?: StatusAction[];
-  /** Hides the heading */
-  withoutTitle?: boolean;
+  /** Shows the heading, `true` by default */
+  withTitle?: boolean;
   /** Overrides of the default English labels */
   labels?: Partial<StatusPanelLabels>;
   /** Class name added to the root element */
@@ -102,15 +102,15 @@ export const StatusPanel = memo(function StatusPanel({
   context,
   items = [],
   actions = [],
-  withoutTitle = false,
+  withTitle = true,
   labels: labelsProp,
   className,
   style,
 }: StatusPanelProps) {
   const labels = {
-    ...DEFAULT_LABELS,
+    ...DEFAULT_STATUS_PANEL_LABELS,
     ...labelsProp,
-    mcpStatus: { ...DEFAULT_LABELS.mcpStatus, ...labelsProp?.mcpStatus },
+    mcpStatus: { ...DEFAULT_STATUS_PANEL_LABELS.mcpStatus, ...labelsProp?.mcpStatus },
   };
   const { ref, width } = useElementSize();
   const pending = usePendingActions(labels.actionError);
@@ -214,7 +214,7 @@ export const StatusPanel = memo(function StatusPanel({
             total={context.total}
             segments={context.segments}
             onCompact={context.onCompact}
-            showLabel
+            withLabel
           />
           <Text size="xs" c="dimmed">
             {labels.contextValue(formatTokens(context.used), formatTokens(context.total))}
@@ -229,7 +229,7 @@ export const StatusPanel = memo(function StatusPanel({
 
   return (
     <Stack ref={ref} gap="md" className={className} style={style}>
-      {!withoutTitle && (
+      {withTitle && (
         <Title order={3} size="h5">
           {labels.title}
         </Title>

@@ -12,7 +12,7 @@ const step = (overrides: Partial<ToolCallStep>): ToolCallStep => ({
   ...overrides,
 });
 
-describe('routeToolCall', () => {
+describe('tools/routeToolCall', () => {
   it('does not render Read steps as an edit card', () => {
     render(<>{routeToolCall(step({ filePath: '/repo/index.ts' }), 'complete', () => {}, 0)}</>);
     expect(screen.queryByText(/Edited/)).toBeNull();

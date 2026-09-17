@@ -15,7 +15,7 @@ import {
 
 const LINES: HighlightedLines = [[{ content: 'const', color: '#00f', darkColor: '#9cf' }]];
 
-describe('highlighter helpers', () => {
+describe('utils/highlighter helpers', () => {
   beforeEach(() => clearHighlightCache());
 
   it('hashes deterministically and distinguishes lengths', () => {
@@ -75,7 +75,7 @@ describe('highlighter helpers', () => {
   });
 });
 
-describe('useHighlightedLines', () => {
+describe('utils/useHighlightedLines', () => {
   beforeEach(() => clearHighlightCache());
 
   it('returns nothing without a highlighter and sync lines immediately', () => {
@@ -115,7 +115,7 @@ describe('useHighlightedLines', () => {
   });
 });
 
-describe('createShikiHighlighter', () => {
+describe('utils/createShikiHighlighter', () => {
   it('maps light and dark variants and falls back to null', () => {
     const shiki: ShikiHighlighterLike = {
       codeToTokensWithThemes: (code, { lang }) => {

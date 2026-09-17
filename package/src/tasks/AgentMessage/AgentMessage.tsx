@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { Badge, Button, Collapse, Group, Stack, Text } from '@mantine/core';
 import { IconArrowRight, IconChevronDown } from '@tabler/icons-react';
 import { cx } from '../../utils/cx';
-import { DEFAULT_TASK_LABELS, toTimestamp } from '../task-utils';
+import { DEFAULT_BACKGROUND_TASK_LABELS, toTimestamp } from '../task-utils';
 import type { AgentIdentity, AgentMessageData, BackgroundTaskLabels } from '../types';
 import classes from './AgentMessage.module.css';
 
@@ -47,7 +47,7 @@ export const AgentMessage = memo(function AgentMessage({
   className,
   style,
 }: AgentMessageProps) {
-  const labels = { ...DEFAULT_TASK_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_BACKGROUND_TASK_LABELS, ...labelsProp };
   const [expanded, setExpanded] = useState(defaultExpanded);
   const time = toTimestamp(message.timestamp);
   const hasContent = Boolean(message.content && message.content !== message.summary);

@@ -10,7 +10,7 @@ const task = (id: string, status: BackgroundTask['status']): BackgroundTask => (
   status,
 });
 
-describe('TaskStatusPill', () => {
+describe('tasks/TaskStatusPill', () => {
   it('summarizes running and failed tasks and opens on click', async () => {
     const onOpen = jest.fn();
     render(

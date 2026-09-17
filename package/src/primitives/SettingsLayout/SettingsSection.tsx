@@ -70,3 +70,5 @@ export const SettingsSection = memo(function SettingsSection({
     </Stack>
   );
 });
+
+SettingsSection.displayName = 'SettingsSection';

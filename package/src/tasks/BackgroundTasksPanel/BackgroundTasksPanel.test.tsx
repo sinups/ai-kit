@@ -8,7 +8,7 @@ import { BackgroundTasksPanel } from './BackgroundTasksPanel';
 const NOW = new Date('2026-09-17T12:00:00Z').getTime();
 const tasks = createTaskFixtures(NOW);
 
-describe('BackgroundTasksPanel', () => {
+describe('tasks/BackgroundTasksPanel', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

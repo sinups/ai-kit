@@ -176,11 +176,11 @@ function useServers() {
 
   return {
     servers,
-    onAddServer: async (draft: McpServerDraft) => {
+    onAdd: async (draft: McpServerDraft) => {
       await wait(600);
       setServers((prev) => [...prev, fromDraft(draft)]);
     },
-    onUpdateServer: async (draft: McpServerDraft) => {
+    onUpdate: async (draft: McpServerDraft) => {
       await wait(600);
       setServers((prev) => prev.map((server) => (server.id === draft.id ? fromDraft(draft, server) : server)));
     },

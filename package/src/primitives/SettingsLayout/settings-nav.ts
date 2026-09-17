@@ -1,7 +1,7 @@
 import type React from 'react';
 
 export type SettingsNavItem = {
-  /** Unique section id passed to `onActiveChange` */
+  /** Unique section id passed to `onActiveIdChange` */
   id: string;
   /** Navigation label, also used by the search filter */
   label: string;

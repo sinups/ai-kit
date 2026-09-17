@@ -6,7 +6,7 @@ import { McpConfigWarnings } from './McpConfigWarnings';
 import { McpDiscoveredServers } from './McpDiscoveredServers';
 import { McpImportDialog } from './McpImportDialog';
 
-describe('McpDiscoveredServers', () => {
+describe('mcp/McpDiscoveredServers', () => {
   it('approves the selected servers', async () => {
     const onApprove = jest.fn();
     render(<McpDiscoveredServers servers={DISCOVERED_SERVERS} onApprove={onApprove} />);
@@ -86,7 +86,7 @@ describe('McpDiscoveredServers', () => {
   });
 });
 
-describe('McpImportDialog', () => {
+describe('mcp/McpImportDialog', () => {
   it('renames colliding servers and imports the selection with final names', async () => {
     const onImport = jest.fn(() => Promise.resolve());
     const onClose = jest.fn();
@@ -149,7 +149,7 @@ describe('McpImportDialog', () => {
   });
 });
 
-describe('McpConfigWarnings', () => {
+describe('mcp/McpConfigWarnings', () => {
   it('groups warnings by file and opens a file', async () => {
     const onOpenFile = jest.fn();
     render(

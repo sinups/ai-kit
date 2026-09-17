@@ -113,7 +113,7 @@ function ContextBreakdownPopoverPreview() {
         total={200_000}
         breakdown={CONTEXT_GROUPS}
         suggestions={CONTEXT_SUGGESTIONS}
-        showLabel
+        withLabel
       />
     </Group>
   );
@@ -533,7 +533,7 @@ function CodeBlockNarrowPreview() {
     <NarrowFrame className="p-3">
       <Stack gap="sm">
         <CodeBlock code={RETRY_CODE.split("\n").slice(0, 12).join("\n")} language="ts" />
-        <CodeBlock code={RETRY_CODE.split("\n").slice(0, 12).join("\n")} language="ts" wrap />
+        <CodeBlock code={RETRY_CODE.split("\n").slice(0, 12).join("\n")} language="ts" wrapLines />
       </Stack>
     </NarrowFrame>
   );

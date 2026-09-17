@@ -1,4 +1,4 @@
-import { createMcpServerDraft, MCP_DRAFT_LABELS, validateMcpBasics } from './mcp-draft';
+import { createMcpServerDraft, DEFAULT_MCP_DRAFT_LABELS, validateMcpBasics } from './mcp-draft';
 import type { McpConfigWarning, McpServerCandidate } from './types';
 
 export function resolveImportNames(
@@ -26,10 +26,10 @@ export type McpImportNameLabels = {
   nameDuplicate: string;
 };
 
-export const MCP_IMPORT_NAME_LABELS: McpImportNameLabels = {
-  nameRequired: MCP_DRAFT_LABELS.nameRequired,
-  nameInvalid: MCP_DRAFT_LABELS.nameInvalid,
-  nameTaken: MCP_DRAFT_LABELS.nameTaken,
+export const DEFAULT_MCP_IMPORT_NAME_LABELS: McpImportNameLabels = {
+  nameRequired: DEFAULT_MCP_DRAFT_LABELS.nameRequired,
+  nameInvalid: DEFAULT_MCP_DRAFT_LABELS.nameInvalid,
+  nameTaken: DEFAULT_MCP_DRAFT_LABELS.nameTaken,
   nameDuplicate: 'Another imported server uses this name',
 };
 
@@ -37,14 +37,14 @@ export function validateImportNames(
   selectedIds: readonly string[],
   names: Readonly<Record<string, string>>,
   existingNames: readonly string[] = [],
-  labels: McpImportNameLabels = MCP_IMPORT_NAME_LABELS
+  labels: McpImportNameLabels = DEFAULT_MCP_IMPORT_NAME_LABELS
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   const seen = new Set<string>();
   for (const id of selectedIds) {
     const name = (names[id] ?? '').trim();
     const draftErrors = validateMcpBasics({ ...createMcpServerDraft(), name }, existingNames, {
-      ...MCP_DRAFT_LABELS,
+      ...DEFAULT_MCP_DRAFT_LABELS,
       ...labels,
     });
     if (draftErrors.name) {

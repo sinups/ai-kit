@@ -35,7 +35,7 @@ export function ChatPage({ chat }: { chat: ChatState }) {
         collapseToolRuns
         alignComposer
         topFade
-        searchable
+        withSearch
         stickyPrompt
         style={{ flex: 1, minHeight: 0 }}
       />
@@ -163,7 +163,7 @@ export function SettingsPage() {
   const [activeId, setActiveId] = useState("general");
 
   return (
-    <SettingsLayout title="Settings" sections={SECTIONS} activeId={activeId} onActiveChange={setActiveId}>
+    <SettingsLayout title="Settings" sections={SECTIONS} activeId={activeId} onActiveIdChange={setActiveId}>
       {activeId === "general" && (
         <SettingsSection title="Chat">
           <SettingRow
@@ -239,7 +239,7 @@ export default function LayoutsPage() {
       <GuideSection id="full-page" title="Full-page chat">
         <P>
           One centered column: a 48px header aligned with the column, the feed without frames and
-          the composer pinned to the bottom. <C>searchable</C> adds Mod+F search;{" "}
+          the composer pinned to the bottom. <C>withSearch</C> adds Mod+F search;{" "}
           <C>stickyPrompt</C> keeps the prompt of a long answer visible.
         </P>
         <DocCodeBlock code={FULL_PAGE} language="tsx" />

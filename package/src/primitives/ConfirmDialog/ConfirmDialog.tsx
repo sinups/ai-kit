@@ -4,6 +4,21 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import { OVERLAY_INNER_CLASS } from '../../styles/overlay';
 import { getErrorMessage } from '../../utils/error-message';
 
+export interface ConfirmDialogLabels {
+  /** Confirm button, `Confirm` by default */
+  confirm: string;
+  /** Cancel button, `Cancel` by default */
+  cancel: string;
+  /** Shown when `onConfirm` rejects without a message, `Something went wrong` by default */
+  error: string;
+}
+
+export const DEFAULT_CONFIRM_DIALOG_LABELS: ConfirmDialogLabels = {
+  confirm: 'Confirm',
+  cancel: 'Cancel',
+  error: 'Something went wrong',
+};
+
 export interface ConfirmDialogProps {
   /** Whether the dialog is open */
   opened: boolean;
@@ -11,18 +26,14 @@ export interface ConfirmDialogProps {
   title: React.ReactNode;
   /** Explanation that names what is affected */
   message?: React.ReactNode;
-  /** Confirm button label, `Confirm` by default */
-  confirmLabel?: string;
-  /** Cancel button label, `Cancel` by default */
-  cancelLabel?: string;
   /** Colors the confirm button red for destructive actions */
   danger?: boolean;
   /** Called by the confirm button; the dialog closes when it settles and shows the rejection in an alert */
   onConfirm: () => void | Promise<void>;
   /** Called when the dialog is dismissed or the confirmed action succeeded */
   onClose: () => void;
-  /** Shown when `onConfirm` rejects without a message, `Something went wrong` by default */
-  errorLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<ConfirmDialogLabels>;
 }
 
 /** Small confirmation modal for destructive or irreversible actions, with a pending confirm button and an error alert */
@@ -30,13 +41,12 @@ export const ConfirmDialog = memo(function ConfirmDialog({
   opened,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
   danger = false,
   onConfirm,
   onClose,
-  errorLabel = 'Something went wrong',
+  labels: labelsProp,
 }: ConfirmDialogProps) {
+  const labels = { ...DEFAULT_CONFIRM_DIALOG_LABELS, ...labelsProp };
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -64,7 +74,7 @@ export const ConfirmDialog = memo(function ConfirmDialog({
       onClose();
     } catch (error) {
       setPending(false);
-      setFailure(getErrorMessage(error, errorLabel));
+      setFailure(getErrorMessage(error, labels.error));
     }
   };
 
@@ -96,7 +106,7 @@ export const ConfirmDialog = memo(function ConfirmDialog({
             disabled={pending}
             data-autofocus={danger || undefined}
           >
-            {cancelLabel}
+            {labels.cancel}
           </Button>
           <Button
             size="sm"
@@ -105,7 +115,7 @@ export const ConfirmDialog = memo(function ConfirmDialog({
             onClick={handleConfirm}
             data-autofocus={!danger || undefined}
           >
-            {confirmLabel}
+            {labels.confirm}
           </Button>
         </Group>
       </Stack>

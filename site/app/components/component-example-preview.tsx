@@ -962,7 +962,7 @@ const bashToolApprovalPart = {
   state: "input-available",
   input: {
     command: "pnpm test --filter ./apps/web -- --runInBand",
-    approval: { approveLabel: "Run", rejectLabel: "Skip" },
+    approval: { labels: { approve: "Run", reject: "Skip" } },
   },
 };
 
@@ -1009,7 +1009,7 @@ const editToolApprovalPart = {
   state: "output-available",
   input: {
     file_path: "/app/page.tsx",
-    approval: { approveLabel: "Apply", rejectLabel: "Skip" },
+    approval: { labels: { approve: "Apply", reject: "Skip" } },
   },
   output: {
     old_content:

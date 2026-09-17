@@ -20,7 +20,8 @@ yarn install
 | `yarn format:write` | Format the package, scripts and Storybook config |
 | `yarn test` | Dependency check, format check, typecheck, lint, site lint and jest |
 | `yarn build` | Build `package/dist`; the site reads the built package |
-| `yarn size` | Bundle size of `AgentChat`, `Wizard`, `ChatLauncher`, `AiKitProvider` and `import *` against budgets; run after `yarn build` |
+| `yarn pack:preview` | Build and pack exactly what `npm publish` uploads into `.pack/`: the tarball, its unpacked contents and a size summary |
+| `yarn size` | JS and CSS gzip of the main entries (`AgentChat`, `MessageList`, `InputBar`, settings panels, primitives, launcher, provider) and `import *` against budgets; run after `yarn build`. `yarn size --json` also rewrites `site/app/data/bundle-size.json` for the Bundle size page |
 | `yarn site:build` | Build the documentation site |
 | `yarn test:storybook` | Play functions and render checks against a running Storybook |
 | `yarn test:visual:baseline` | Record visual baselines from the base branch Storybook (port 8272) into `package/__visual__/` |

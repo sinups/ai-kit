@@ -4,7 +4,7 @@ import { act, within } from '@testing-library/react';
 import { HOOKS_FIXTURE } from './fixtures';
 import { HooksPanel } from './HooksPanel';
 
-describe('HooksPanel', () => {
+describe('hooks-config/HooksPanel', () => {
   it('groups hooks by event with counters and expands events that have hooks', () => {
     render(<HooksPanel hooks={HOOKS_FIXTURE} />);
 

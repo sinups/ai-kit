@@ -59,7 +59,7 @@ export interface ToolSelectorProps {
   disabled?: boolean;
   /** Groups collapsed on the first render, all groups are expanded by default */
   defaultCollapsedGroups?: string[];
-  /** Overrides for the English labels */
+  /** Overrides of the default English labels */
   labels?: Partial<ToolSelectorLabels>;
   /** Class name added to the root element */
   className?: string;
@@ -67,7 +67,7 @@ export interface ToolSelectorProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: ToolSelectorLabels = {
+export const DEFAULT_TOOL_SELECTOR_LABELS: ToolSelectorLabels = {
   all: 'All tools',
   selected: 'Selected',
   allDescription: 'The agent can call every tool, including tools connected later',
@@ -206,7 +206,7 @@ export const ToolSelector = memo(function ToolSelector({
   className,
   style,
 }: ToolSelectorProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_TOOL_SELECTOR_LABELS, ...labelsProp };
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState<string[]>(defaultCollapsedGroups);
   const lastSelection = useRef<string[] | null>(Array.isArray(value) ? value : null);

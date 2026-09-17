@@ -3,7 +3,7 @@ import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import { CompactBoundary } from './CompactBoundary';
 
-describe('CompactBoundary', () => {
+describe('CompactBoundary/CompactBoundary', () => {
   it('shows the label with the token change', () => {
     render(<CompactBoundary tokensBefore={182_400} tokensAfter={12_300} />);
     expect(screen.getByText('History summarized · 182k → 12.3k tokens')).toBeInTheDocument();
@@ -22,7 +22,9 @@ describe('CompactBoundary', () => {
     const { rerender } = render(<CompactBoundary direction="from" tokensAfter={9_800} />);
     expect(screen.getByText('Summarized from here · 9.8k tokens')).toBeInTheDocument();
 
-    rerender(<CompactBoundary direction="from" tokensAfter={9_800} tokensLabel="{tokens} left" />);
+    rerender(
+      <CompactBoundary direction="from" tokensAfter={9_800} labels={{ tokens: '{tokens} left' }} />
+    );
     expect(screen.getByText('Summarized from here · 9.8k left')).toBeInTheDocument();
 
     rerender(<CompactBoundary direction="up-to" userContext="decisions about auth" />);

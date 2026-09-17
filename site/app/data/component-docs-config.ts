@@ -31,8 +31,8 @@ export function Example() {
         onClose={() => setOpened(false)}
         sections={sections}
         activeId={activeId}
-        onActiveChange={setActiveId}
-        searchable
+        onActiveIdChange={setActiveId}
+        withSearch
       >
         <SettingsSection title="General">
           <SettingRow label="Stream responses" control={<Switch defaultChecked />} />
@@ -57,8 +57,8 @@ export function Example() {
   onClose={close}
   sections={sections}
   activeId={activeId}
-  onActiveChange={setActiveId}
-  searchable
+  onActiveIdChange={setActiveId}
+  withSearch
 >
   <SettingsSection title="Models">
     <SettingRow label="Default model" description="Used for new conversations" control={<Select data={models} />} />
@@ -153,7 +153,7 @@ export function Example({
         type: "usage",
         title: "Usage",
         content:
-          "Tell the user that a settings file failed validation and is ignored, and offer a way out. Place it above the chat or at the top of a settings screen. The description is built from the problem count: pass `errors` to show the count and an expandable ValidationErrorsList (Show details), or only `count` when the details are not available. The color follows the errors: red when at least one is an error, yellow when all are warnings; `severity` overrides it. Actions appear only for the callbacks you pass: Open file (`onOpenFile`), Continue without this file (`onContinueWithout`, which may return a promise: the button shows a loader and a rejection message is shown inside the alert) and a close button (`onDismiss`). `defaultExpanded` opens the details initially; `title`, `description`, `labels` and `listLabels` replace the English texts.",
+          "Tell the user that a settings file failed validation and is ignored, and offer a way out. Place it above the chat or at the top of a settings screen. The description is built from the problem count: pass `errors` to show the count and an expandable ValidationErrorsList (Show details), or only `count` when the details are not available. The color follows the errors: red when at least one is an error, yellow when all are warnings; `severity` overrides it. Actions appear only for the callbacks you pass: Open file (`onOpenFile`), Continue without this file (`onContinueWithout`, which may return a promise: the button shows a loader and a rejection message is shown inside the alert) and a close button (`onDismiss`). `defaultExpanded` opens the details initially; `title`, `description` and `labels` (with `labels.list` for the error list) replace the English texts.",
       },
       {
         type: "example",
@@ -362,7 +362,7 @@ export function ToolRow({ tool }: { tool: McpToolDefinition }) {
         type: "usage",
         title: "Usage",
         content:
-          "Show the behavior hints an MCP server declares for a tool: read-only (teal), destructive (red), idempotent (gray) and open world (blue), mapped from `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint`. Hints that are false or missing produce no badge; with no hints the component renders nothing. `withTooltips` adds a one-line explanation to each badge; `labels` replaces the label and description of every kind (defaults are in `MCP_TOOL_ANNOTATION_LABELS`). McpToolDetail and McpServerDetail use it; use it in your own tool lists and approval prompts. `getMcpToolAnnotationKinds` returns the kinds without rendering.",
+          "Show the behavior hints an MCP server declares for a tool: read-only (teal), destructive (red), idempotent (gray) and open world (blue), mapped from `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint`. Hints that are false or missing produce no badge; with no hints the component renders nothing. `withTooltips` adds a one-line explanation to each badge; `labels` replaces the label and description of every kind (defaults are in `DEFAULT_MCP_TOOL_ANNOTATION_LABELS`). McpToolDetail and McpServerDetail use it; use it in your own tool lists and approval prompts. `getMcpToolAnnotationKinds` returns the kinds without rendering.",
       },
       {
         type: "example",
@@ -383,13 +383,15 @@ export function ToolRow({ tool }: { tool: McpToolDefinition }) {
         type: "code",
         title: "Code",
         content: `import { Group, Text } from "@mantine/core";
-import { MCP_TRANSPORT_LABELS, McpTransportIcon, type McpTransport } from "@sinups/ai-kit";
+import { McpTransportIcon, type McpTransport } from "@sinups/ai-kit";
+
+const TRANSPORT_NAMES: Record<McpTransport, string> = { stdio: "stdio", http: "HTTP", sse: "SSE" };
 
 export function TransportLabel({ transport }: { transport: McpTransport }) {
   return (
     <Group gap={6} wrap="nowrap">
       <McpTransportIcon transport={transport} size={14} />
-      <Text size="xs">{MCP_TRANSPORT_LABELS[transport]}</Text>
+      <Text size="xs">{TRANSPORT_NAMES[transport]}</Text>
     </Group>
   );
 }`,
@@ -398,7 +400,7 @@ export function TransportLabel({ transport }: { transport: McpTransport }) {
         type: "usage",
         title: "Usage",
         content:
-          "Icon for an MCP transport: a terminal for `stdio`, a globe for `http` and a broadcast icon for `sse`. `size` is in px, 16 by default. The icon is decorative (`aria-hidden`), so put the transport name next to it; `MCP_TRANSPORT_LABELS` holds the English names (stdio, HTTP, SSE). The MCP list, detail, wizard, import and discovery components use it.",
+          "Icon for an MCP transport: a terminal for `stdio`, a globe for `http` and a broadcast icon for `sse`. `size` is in px, 16 by default. The icon is decorative (`aria-hidden`), so put the transport name next to it. The MCP list, detail, wizard, import and discovery components use it.",
       },
       {
         type: "example",
@@ -471,7 +473,7 @@ export function AgentForm({ existingNames }: { existingNames: string[] }) {
         type: "usage",
         title: "Usage",
         content:
-          "The field groups that AgentEditor and AgentCreateWizard are built from, exported for your own agent forms. All of them are controlled: they read an `AgentDraft`, report partial changes through `onChange` and show messages from `errors`. AgentIdentityFields renders display name, name and \"when to use\" description; while `autoName` is true the name follows the display name through `slugifyAgentName`, and `onNameEdited` fires when the user types a name by hand; `nameDisabled` locks the name when editing an existing agent. AgentPromptField is the system prompt editor with Write and Preview tabs (Markdown preview). AgentModelFields renders the model select (with an Inherit from the session option; see `getModelSelectData`), max turns, a skills multiselect when `skills` or the draft has any, and AgentColorPicker. AgentColorPicker can be used alone: clicking the selected color clears it, `colors` defaults to `AGENT_COLORS`. Name and model fields sit in pairs when the form is wide and stack below that. Validate with `validateAgentDraft` and create drafts with `createAgentDraft` or `toAgentDraft`.",
+          "The field groups that AgentEditor and AgentCreateWizard are built from, exported for your own agent forms. All of them are controlled: they read an `AgentDraft`, report partial changes through `onChange` and show messages from `errors`. AgentIdentityFields renders display name, name and \"when to use\" description; while `autoName` is true the name follows the display name through `slugifyAgentName`, and `onNameEdited` fires when the user types a name by hand; `nameDisabled` locks the name when editing an existing agent. AgentPromptField is the system prompt editor with Write and Preview tabs (Markdown preview). AgentModelFields renders the model select (with an Inherit from the session option), max turns, a skills multiselect when `skills` or the draft has any, and AgentColorPicker. AgentColorPicker can be used alone: clicking the selected color clears it, `colors` defaults to `AGENT_COLORS`. Name and model fields sit in pairs when the form is wide and stack below that. Validate with `validateAgentDraft` and create drafts with `createAgentDraft` or `toAgentDraft`.",
       },
       {
         type: "example",
@@ -943,7 +945,10 @@ export function SupportWidget({ chat, unread, reset }: { chat: AgentChatProps; u
         type: "code",
         title: "Mount on any page",
         content: `import mantineCss from "@mantine/core/styles.css?inline";
-import kitCss from "@sinups/ai-kit/styles.css?inline";
+import baseCss from "@sinups/ai-kit/styles/base.css?inline";
+import launcherCss from "@sinups/ai-kit/styles/ChatLauncher.css?inline";
+import chatCss from "@sinups/ai-kit/styles/AgentChat.css?inline";
+import providerCss from "@sinups/ai-kit/styles/AiKitProvider.css?inline";
 import { AiKitProvider, ChatLauncher, mountChatLauncher } from "@sinups/ai-kit";
 
 const host = document.createElement("div");
@@ -955,7 +960,7 @@ const widget = mountChatLauncher(
     <SupportChat />
   </ChatLauncher>,
   {
-    styles: [mantineCss, kitCss],
+    styles: [mantineCss, baseCss, launcherCss, chatCss, providerCss],
     colorScheme: "light",
     wrap: (element) => <AiKitProvider accent="indigo">{element}</AiKitProvider>,
   }

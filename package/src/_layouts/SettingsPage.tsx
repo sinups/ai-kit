@@ -107,7 +107,7 @@ export function SettingsPage() {
       title="Settings"
       sections={SECTIONS}
       activeId={activeId}
-      onActiveChange={setActiveId}
+      onActiveIdChange={setActiveId}
       className={classes.settingsPage}
     >
       {activeId === 'general' && <General />}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { IconBroadcast, IconTerminal2, IconWorld } from '@tabler/icons-react';
 import type { McpTransport } from './types';
 
@@ -13,14 +13,25 @@ export interface McpTransportIconProps {
   transport: McpTransport;
   /** Icon size in px, `16` by default */
   size?: number;
+  /** Class name added to the icon */
+  className?: string;
+  /** Inline styles added to the icon */
+  style?: React.CSSProperties;
 }
 
-export function McpTransportIcon({ transport, size = 16 }: McpTransportIconProps) {
+export const McpTransportIcon = memo(function McpTransportIcon({
+  transport,
+  size = 16,
+  className,
+  style,
+}: McpTransportIconProps) {
   if (transport === 'stdio') {
-    return <IconTerminal2 size={size} aria-hidden />;
+    return <IconTerminal2 size={size} className={className} style={style} aria-hidden />;
   }
   if (transport === 'sse') {
-    return <IconBroadcast size={size} aria-hidden />;
+    return <IconBroadcast size={size} className={className} style={style} aria-hidden />;
   }
-  return <IconWorld size={size} aria-hidden />;
-}
+  return <IconWorld size={size} className={className} style={style} aria-hidden />;
+});
+
+McpTransportIcon.displayName = 'McpTransportIcon';

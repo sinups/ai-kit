@@ -1,6 +1,6 @@
 import { collectDocumentStyles, scopeCssToShadowRoot } from './shadow-styles';
 
-describe('scopeCssToShadowRoot', () => {
+describe('launcher/scopeCssToShadowRoot', () => {
   it('scopes document level selectors to the widget container', () => {
     expect(scopeCssToShadowRoot(':root { --a: 1 } :root[data-x] { --b: 2 }')).toBe(
       '.ae-shadow-root { --a: 1 } .ae-shadow-root[data-x] { --b: 2 }'
@@ -16,7 +16,7 @@ describe('scopeCssToShadowRoot', () => {
   });
 });
 
-describe('collectDocumentStyles', () => {
+describe('launcher/collectDocumentStyles', () => {
   it('reads inline styles and stylesheet links from the head', () => {
     const doc = document.implementation.createHTMLDocument('host');
     doc.head.innerHTML =

@@ -11,7 +11,7 @@ import {
 
 const theme = mergeMantineTheme(DEFAULT_THEME, createAiKitTheme());
 
-describe('normalizeAiKitSize', () => {
+describe('theme/normalizeAiKitSize', () => {
   it('drops the compact prefix and falls back to sm', () => {
     expect(normalizeAiKitSize('compact-xs')).toBe('xs');
     expect(normalizeAiKitSize(undefined)).toBe('sm');
@@ -19,7 +19,7 @@ describe('normalizeAiKitSize', () => {
   });
 });
 
-describe('size vars', () => {
+describe('theme/create-ai-kit-theme size vars', () => {
   it('maps button and action icon sizes to kit control heights', () => {
     expect(getAiKitButtonVars('xs')).toEqual({
       '--button-height': 'var(--ae-control-height-xs)',
@@ -31,7 +31,7 @@ describe('size vars', () => {
   });
 });
 
-describe('aiKitVariantColorResolver', () => {
+describe('theme/aiKitVariantColorResolver', () => {
   const resolve = (variant: string, color?: string) =>
     aiKitVariantColorResolver({ theme, variant, color: color ?? theme.primaryColor });
 
@@ -63,7 +63,7 @@ describe('aiKitVariantColorResolver', () => {
   });
 });
 
-describe('createAiKitTheme', () => {
+describe('theme/createAiKitTheme', () => {
   it('sets the standard theme fields of the kit language', () => {
     const override = createAiKitTheme();
     expect(override.fontWeights).toEqual({ medium: '500' });
@@ -96,7 +96,7 @@ describe('createAiKitTheme', () => {
   });
 });
 
-describe('isAiKitThemed', () => {
+describe('theme/isAiKitThemed', () => {
   it('themes components with their own classes and skips explicit opt-outs', () => {
     expect(isAiKitThemed({})).toBe(true);
     expect(isAiKitThemed({ className: 'x', classNames: { root: 'x' } })).toBe(true);

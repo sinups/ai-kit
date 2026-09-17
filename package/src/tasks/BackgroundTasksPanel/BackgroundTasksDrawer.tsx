@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Box, Drawer, Group, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { TaskStatusPill } from '../TaskStatusPill/TaskStatusPill';
-import { DEFAULT_TASK_LABELS } from '../task-utils';
+import { DEFAULT_BACKGROUND_TASK_LABELS } from '../task-utils';
 import { BackgroundTasksPanel, type BackgroundTasksPanelProps } from './BackgroundTasksPanel';
 import classes from './BackgroundTasksPanel.module.css';
 import { OVERLAY_INNER_CLASS } from '../../styles/overlay';
@@ -32,7 +32,7 @@ export const BackgroundTasksDrawer = memo(function BackgroundTasksDrawer({
   ...panelProps
 }: BackgroundTasksDrawerProps) {
   const labels = useMemo(
-    () => ({ ...DEFAULT_TASK_LABELS, ...panelProps.labels }),
+    () => ({ ...DEFAULT_BACKGROUND_TASK_LABELS, ...panelProps.labels }),
     [panelProps.labels]
   );
   const narrow = useMediaQuery(narrowQuery) ?? false;

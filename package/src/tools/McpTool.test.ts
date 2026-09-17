@@ -1,6 +1,6 @@
 import { unwrapMcpOutput } from './McpTool';
 
-describe('unwrapMcpOutput', () => {
+describe('tools/unwrapMcpOutput', () => {
   it('unwraps MCP CallToolResult content blocks', () => {
     expect(
       unwrapMcpOutput({ content: [{ type: 'text', text: '{"id":1}' }], isError: false })

@@ -48,7 +48,7 @@ export interface UsagePanelLabels {
   retry: string;
 }
 
-const DEFAULT_LABELS: UsagePanelLabels = {
+export const DEFAULT_USAGE_PANEL_LABELS: UsagePanelLabels = {
   title: 'Usage',
   periods: { day: 'Day', week: 'Week', month: 'Month' },
   periodLabel: 'Period',
@@ -96,14 +96,14 @@ export interface UsagePanelProps {
   loading?: boolean;
   /** Error message shown instead of data */
   error?: React.ReactNode;
-  /** Adds a retry button to the error */
+  /** Called by the retry button of the error alert */
   onRetry?: () => void;
   /** Time used to compute reset countdowns, the current time by default */
   now?: Date;
   /** Locale of numbers, costs, dates and durations, `en-US` by default */
   locale?: string;
-  /** Hides the heading */
-  withoutTitle?: boolean;
+  /** Shows the heading, `true` by default */
+  withTitle?: boolean;
   /** Overrides of the default English labels */
   labels?: Partial<UsagePanelLabels>;
   /** Class name added to the root element */
@@ -150,15 +150,15 @@ export const UsagePanel = memo(function UsagePanel({
   onRetry,
   now,
   locale = 'en-US',
-  withoutTitle = false,
+  withTitle = true,
   labels: labelsProp,
   className,
   style,
 }: UsagePanelProps) {
   const labels = {
-    ...DEFAULT_LABELS,
+    ...DEFAULT_USAGE_PANEL_LABELS,
     ...labelsProp,
-    periods: { ...DEFAULT_LABELS.periods, ...labelsProp?.periods },
+    periods: { ...DEFAULT_USAGE_PANEL_LABELS.periods, ...labelsProp?.periods },
   };
   const { ref, width } = useElementSize();
   const isNarrow = width > 0 && width < 420;
@@ -166,9 +166,9 @@ export const UsagePanel = memo(function UsagePanel({
   const hasModelCost = models.some((item) => item.cost !== undefined);
 
   const header =
-    !withoutTitle || onPeriodChange ? (
+    withTitle || onPeriodChange ? (
       <Group justify="space-between" gap="sm">
-        {!withoutTitle && (
+        {withTitle && (
           <Title order={3} size="h5">
             {labels.title}
           </Title>

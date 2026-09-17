@@ -17,6 +17,15 @@ export interface EntityListItemAction {
   disabled?: boolean;
 }
 
+export interface EntityListItemLabels {
+  /** Accessible label of the actions menu button, `Actions` by default */
+  actions: string;
+}
+
+export const DEFAULT_ENTITY_LIST_ITEM_LABELS: EntityListItemLabels = {
+  actions: 'Actions',
+};
+
 export interface EntityListItemProps {
   /** Main line of the row */
   title: React.ReactNode;
@@ -32,8 +41,6 @@ export interface EntityListItemProps {
   badges?: React.ReactNode;
   /** Per-item actions shown in a menu, opening the menu does not select the row */
   actions?: EntityListItemAction[];
-  /** Accessible label of the actions menu button, `Actions` by default */
-  actionsLabel?: string;
   /** Renders the row in the active state */
   selected?: boolean;
   /** Dims the row and blocks clicks */
@@ -42,6 +49,8 @@ export interface EntityListItemProps {
   descriptionLines?: number;
   /** Called when a standalone row is clicked and makes it focusable; ignored inside `EntityList`, which selects through `onSelect` */
   onClick?: () => void;
+  /** Overrides of the default English labels */
+  labels?: Partial<EntityListItemLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -75,7 +84,7 @@ export const EntityListItem = memo(function EntityListItem({
   meta,
   badges,
   actions,
-  actionsLabel = 'Actions',
+  labels: labelsProp,
   selected = false,
   disabled = false,
   descriptionLines = 2,
@@ -83,6 +92,7 @@ export const EntityListItem = memo(function EntityListItem({
   className,
   style,
 }: EntityListItemProps) {
+  const labels = { ...DEFAULT_ENTITY_LIST_ITEM_LABELS, ...labelsProp };
   const insideList = useContext(EntityListOptionContext);
   const hasActions = !!actions && actions.length > 0;
   const interactive = !!onClick && !disabled && !insideList;
@@ -102,7 +112,7 @@ export const EntityListItem = memo(function EntityListItem({
                 variant="subtle"
                 color="gray"
                 size="sm"
-                aria-label={actionsLabel}
+                aria-label={labels.actions}
                 disabled={disabled}
                 onClick={stopPropagation}
               >
@@ -178,3 +188,5 @@ export const EntityListItem = memo(function EntityListItem({
     />
   );
 });
+
+EntityListItem.displayName = 'EntityListItem';

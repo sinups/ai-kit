@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import { FeedbackForm } from './FeedbackForm';
 
-describe('FeedbackForm', () => {
+describe('message-actions/FeedbackForm', () => {
   it('requires a reason or a comment and shows the rejection message', async () => {
     const onSubmit = jest.fn().mockRejectedValueOnce(new Error('Network down'));
     render(<FeedbackForm value="down" onSubmit={onSubmit} />);

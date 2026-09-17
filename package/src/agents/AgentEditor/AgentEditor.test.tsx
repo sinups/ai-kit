@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import { AGENT_MODELS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import { AgentEditor } from './AgentEditor';
 
-describe('AgentEditor', () => {
+describe('agents/AgentEditor', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });

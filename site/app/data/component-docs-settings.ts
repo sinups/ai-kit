@@ -16,8 +16,8 @@ export function McpSettings({ servers }: { servers: McpServer[] }) {
     <div style={{ height: 640 }}>
       <McpSettingsPanel
         servers={servers}
-        onAddServer={(draft: McpServerDraft) => api.addServer(draft)}
-        onUpdateServer={(draft) => api.updateServer(draft.id!, draft)}
+        onAdd={(draft: McpServerDraft) => api.addServer(draft)}
+        onUpdate={(draft) => api.updateServer(draft.id!, draft)}
         onReconnect={(server) => api.reconnect(server.id)}
         onAuthenticate={(server) => api.startOAuth(server.id)}
         onEnable={(server) => api.setEnabled(server.id, true)}
@@ -41,8 +41,8 @@ export function McpSettings({ servers }: { servers: McpServer[] }) {
         previewId: "McpSettingsPanel/wide",
         code: `<McpSettingsPanel
   servers={servers}
-  onAddServer={addServer}
-  onUpdateServer={updateServer}
+  onAdd={addServer}
+  onUpdate={updateServer}
   onReconnect={reconnect}
   onAuthenticate={authenticate}
   onEnable={enable}
@@ -55,7 +55,7 @@ export function McpSettings({ servers }: { servers: McpServer[] }) {
         title: "Narrow widget",
         previewId: "McpSettingsPanel/narrow",
         code: `<div style={{ width: 360, height: 600 }}>
-  <McpSettingsPanel servers={servers} onAddServer={addServer} onReconnect={reconnect} onRemove={remove} />
+  <McpSettingsPanel servers={servers} onAdd={addServer} onReconnect={reconnect} onRemove={remove} />
 </div>`,
       },
     ],
@@ -270,7 +270,7 @@ export function Example() {
       knownTools={toolNames}
       onSaveRule={(rule, mode) => (mode === "edit" ? api.updateRule(rule) : api.addRule(rule))}
       onDeleteRule={(rule) => api.deleteRule(rule.id)}
-      onChangeScope={(rule, scope) => api.moveRule(rule.id, scope)}
+      onMoveRule={(rule, scope) => api.moveRule(rule.id, scope)}
       onAddDirectory={(directory) => api.addDirectory(directory)}
       onRemoveDirectory={(directory) => api.removeDirectory(directory.path)}
     />
@@ -287,7 +287,7 @@ export function Example() {
         type: "example",
         title: "Wide",
         previewId: "PermissionRulesPanel/wide",
-        code: `<PermissionRulesPanel rules={rules} denials={denials} directories={directories} knownTools={tools} onSaveRule={saveRule} onDeleteRule={deleteRule} onChangeScope={moveRule} />`,
+        code: `<PermissionRulesPanel rules={rules} denials={denials} directories={directories} knownTools={tools} onSaveRule={saveRule} onDeleteRule={deleteRule} onMoveRule={moveRule} />`,
       },
       {
         type: "example",

@@ -12,7 +12,7 @@ export interface EditMessageComposerLabels {
   error: string;
 }
 
-const DEFAULT_LABELS: EditMessageComposerLabels = {
+export const DEFAULT_EDIT_MESSAGE_COMPOSER_LABELS: EditMessageComposerLabels = {
   input: 'Edit message',
   placeholder: 'Edit your message',
   save: 'Save & resend',
@@ -30,8 +30,8 @@ export interface EditMessageComposerProps {
   onCancel: () => void;
   /** Maximum number of rows before the editor scrolls, `10` by default */
   maxRows?: number;
-  /** Hides the keyboard hint */
-  withoutHint?: boolean;
+  /** Shows the keyboard hint, `true` by default */
+  withHint?: boolean;
   /** Overrides of the default English labels */
   labels?: Partial<EditMessageComposerLabels>;
   /** Class name added to the root element */
@@ -46,12 +46,12 @@ export const EditMessageComposer = memo(function EditMessageComposer({
   onSubmit,
   onCancel,
   maxRows = 10,
-  withoutHint = false,
+  withHint = true,
   labels: labelsProp,
   className,
   style,
 }: EditMessageComposerProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_EDIT_MESSAGE_COMPOSER_LABELS, ...labelsProp };
   const [value, setValue] = useState(defaultValue);
   const { pendingKey, error, run } = useAsyncAction(labels.error);
   const isPending = pendingKey !== null;
@@ -102,12 +102,12 @@ export const EditMessageComposer = memo(function EditMessageComposer({
           </Alert>
         )}
         <Group gap="xs" justify="space-between" wrap="nowrap">
-          {withoutHint ? (
-            <span />
-          ) : (
+          {withHint ? (
             <Text size="xs" c="dimmed" truncate="end" miw={0}>
               {labels.hint}
             </Text>
+          ) : (
+            <span />
           )}
           <Group gap="xs" wrap="nowrap">
             <Button size="xs" variant="subtle" color="gray" onClick={onCancel} disabled={isPending}>

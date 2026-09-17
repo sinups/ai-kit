@@ -54,7 +54,7 @@ export interface WizardProps<V> {
   onCancel?: () => void;
   /** Renders a final `Review` step with a summary of the values */
   review?: (values: V) => React.ReactNode;
-  /** Overrides for the English button and step labels */
+  /** Overrides of the default English button and step labels */
   labels?: Partial<WizardLabels>;
   /** Blocks navigation, cancel and the step content while the host is busy, for example saving a draft */
   busy?: boolean;
@@ -70,7 +70,7 @@ export interface WizardProps<V> {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_LABELS: WizardLabels = {
+export const DEFAULT_WIZARD_LABELS: WizardLabels = {
   back: 'Back',
   next: 'Next',
   finish: 'Finish',
@@ -103,7 +103,7 @@ function WizardInner<V>({
   className,
   style,
 }: WizardProps<V>) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = { ...DEFAULT_WIZARD_LABELS, ...labelsProp };
   const { ref, width } = useElementSize<HTMLDivElement>();
   const [isCompleting, setIsCompleting] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);

@@ -17,7 +17,7 @@ const pick = (schema: JsonSchema) =>
     hasChildren,
   }));
 
-describe('getSchemaTypeLabel', () => {
+describe('primitives/getSchemaTypeLabel', () => {
   it('describes scalars, arrays, nullable and unions', () => {
     expect(getSchemaTypeLabel({ type: 'string' })).toBe('string');
     expect(getSchemaTypeLabel({ type: ['string', 'null'] })).toBe('string | null');
@@ -36,7 +36,7 @@ describe('getSchemaTypeLabel', () => {
   });
 });
 
-describe('flattenSchema', () => {
+describe('primitives/flattenSchema', () => {
   it('flattens nested objects with required flags and metadata', () => {
     const rows = flattenSchema({
       type: 'object',
@@ -161,7 +161,7 @@ describe('flattenSchema', () => {
   });
 });
 
-describe('getVisibleSchemaRows', () => {
+describe('primitives/getVisibleSchemaRows', () => {
   const rows = flattenSchema({
     type: 'object',
     properties: {

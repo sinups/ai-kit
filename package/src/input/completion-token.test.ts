@@ -1,6 +1,6 @@
 import { applyCompletion, findCompletionToken } from './completion-token';
 
-describe('findCompletionToken', () => {
+describe('input/findCompletionToken', () => {
   it('finds a slash command at the start of the input', () => {
     expect(findCompletionToken('/rev', 4, ['/', '@'])).toEqual({
       trigger: '/',
@@ -49,7 +49,7 @@ describe('findCompletionToken', () => {
   });
 });
 
-describe('applyCompletion', () => {
+describe('input/applyCompletion', () => {
   it('replaces the token with the trigger, value and a trailing space', () => {
     const token = findCompletionToken('ask @al now', 7, ['@'])!;
     expect(applyCompletion('ask @al now', token, 'alice')).toEqual({
