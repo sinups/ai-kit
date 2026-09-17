@@ -43,6 +43,8 @@ export function AgentChat({
   topFade,
   wrapLines,
   responsiveTables,
+  frameBatched = true,
+  tailGranularity,
   emptySuggestionsPlacement = 'input',
   emptyStateWidth,
   questionTool,
@@ -282,6 +284,8 @@ export function AgentChat({
           onScrollbarWidthChange={alignComposer ? setScrollbarWidth : undefined}
           wrapLines={wrapLines}
           responsiveTables={responsiveTables}
+          frameBatched={frameBatched}
+          tailGranularity={tailGranularity}
           highlighter={highlighter}
           longMessageThreshold={longMessageThreshold}
           initialScrollBehavior={initialScrollBehavior}

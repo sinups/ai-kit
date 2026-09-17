@@ -505,4 +505,59 @@ describe('AgentChat/AgentChat', () => {
       expect(screen.getByRole('textbox', { name: 'composer' })).toHaveValue('Run the tests');
     });
   });
+
+  describe('streaming', () => {
+    let setText: (next: string) => void = () => {};
+
+    function LiveHarness({ frameBatched }: { frameBatched?: boolean }) {
+      const [text, setTextState] = React.useState('Answer');
+      setText = setTextState;
+      return (
+        <AgentChat
+          messages={[{ id: 'live', role: 'assistant', parts: [{ type: 'text', text }] }]}
+          status="streaming"
+          frameBatched={frameBatched}
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+    }
+
+    function withFakeFrames(run: (flush: () => void) => void) {
+      const frames: FrameRequestCallback[] = [];
+      const request = jest
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback: FrameRequestCallback) => frames.push(callback));
+      const cancel = jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+      try {
+        run(() =>
+          act(() => {
+            frames.splice(0).forEach((frame) => frame(0));
+          })
+        );
+      } finally {
+        request.mockRestore();
+        cancel.mockRestore();
+      }
+    }
+
+    it('holds the streamed answer until the next frame', () => {
+      withFakeFrames((flush) => {
+        render(<LiveHarness />);
+        act(() => setText('Answer grows'));
+        expect(screen.getByText('Answer')).toBeInTheDocument();
+        flush();
+        expect(screen.getByText('Answer grows')).toBeInTheDocument();
+      });
+    });
+
+    it('commits the streamed answer right away with frameBatched off', () => {
+      withFakeFrames(() => {
+        render(<LiveHarness frameBatched={false} />);
+        act(() => setText('Answer grows'));
+        expect(screen.getByText('Answer grows')).toBeInTheDocument();
+      });
+    });
+  });
 });

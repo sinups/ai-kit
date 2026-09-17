@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useReducedMotion } from '@mantine/hooks';
 
 export type UseStreamingTextOptions = {
   delayBefore?: number;
@@ -20,6 +21,8 @@ export function useStreamingText(fullText: string, options: UseStreamingTextOpti
   onCompleteRef.current = onComplete;
   onUpdateRef.current = onUpdate;
 
+  const reducedMotion = useReducedMotion();
+
   const tokens = useMemo(() => fullText.split(/(\s+)/), [fullText]);
 
   const cleanup = useCallback(() => {
@@ -33,6 +36,12 @@ export function useStreamingText(fullText: string, options: UseStreamingTextOpti
 
   const startStreaming = useCallback(() => {
     cleanup();
+    if (reducedMotion) {
+      setVisibleCount(tokens.length);
+      setState('complete');
+      onCompleteRef.current?.();
+      return;
+    }
     setVisibleCount(0);
     setState('idle');
     timeoutRef.current = setTimeout(() => {
@@ -55,7 +64,7 @@ export function useStreamingText(fullText: string, options: UseStreamingTextOpti
         }
       }, wordInterval);
     }, delayBefore);
-  }, [tokens, delayBefore, wordInterval, cleanup]);
+  }, [tokens, delayBefore, wordInterval, cleanup, reducedMotion]);
 
   useEffect(() => {
     if (autoStart) {

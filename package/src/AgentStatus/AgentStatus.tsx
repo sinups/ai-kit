@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Box, Button } from '@mantine/core';
+import { useMinDisplayTime } from '../hooks/use-min-display-time';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import { cx } from '../utils/cx';
 import { fillTemplate } from '../utils/fill-template';
@@ -36,6 +37,8 @@ export interface AgentStatusProps {
   stallAfterMs?: number;
   /** Disables stall detection, for example while tools are running */
   paused?: boolean;
+  /** How long a status stays readable before the next one replaces it in ms, `600` by default, `0` disables */
+  minStatusMs?: number;
   /** Renders the stop button when provided */
   onStop?: () => void;
   /** Overrides of the default English labels */
@@ -54,6 +57,7 @@ export const AgentStatus = memo(function AgentStatus({
   lastActivityAt,
   stallAfterMs = 3000,
   paused,
+  minStatusMs,
   onStop,
   labels: labelsProp,
   className,
@@ -62,21 +66,24 @@ export const AgentStatus = memo(function AgentStatus({
   const labels = { ...DEFAULT_AGENT_STATUS_LABELS, ...labelsProp };
   const { elapsedMs, isStalled } = useStalled({ startedAt, lastActivityAt, stallAfterMs, paused });
   const elapsed = formatElapsedTime(elapsedMs);
-  const text = isStalled ? labels.stalled || label : label;
+  const status = useMinDisplayTime(
+    { text: isStalled ? labels.stalled || label : label, isStalled },
+    { minMs: minStatusMs, key: `${isStalled}\u0000${isStalled ? labels.stalled || label : label}` }
+  );
   const hasTokens = tokens !== undefined && tokens > 0;
 
   return (
     <Box
       className={cx(classes.root, className)}
       style={style}
-      data-stalled={isStalled || undefined}
+      data-stalled={status.isStalled || undefined}
     >
       <span role="status" aria-live="polite">
-        {isStalled ? (
-          <span className={classes.label}>{text}</span>
+        {status.isStalled ? (
+          <span className={classes.label}>{status.text}</span>
         ) : (
           <TextShimmer className={classes.label} duration={1.6}>
-            {text}
+            {status.text}
           </TextShimmer>
         )}
       </span>

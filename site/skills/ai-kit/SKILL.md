@@ -94,7 +94,10 @@ export function Chat() {
   `suggestions`, `attachments`, `toolRenderers`, `onToolAction`, `messageActions`, `onRetry`,
   `statusBar`, `inputBarProps`, `withSearch`, `stickyPrompt`, `collapseToolRuns`,
   `highlighter`, `longMessageThreshold`, `contentWidth`, `emptyState`, `emptyStateWidth`,
-  `alignComposer`, `topFade`, `wrapLines`, `responsiveTables`, `classNames`, `slots`.
+  `alignComposer`, `topFade`, `wrapLines`, `responsiveTables`, `frameBatched`, `tailGranularity`,
+  `classNames`, `slots`.
+- `frameBatched`: `true` by default, commits the streaming answer once per animation frame;
+  `tailGranularity="line"` reveals the growing tail line by line instead of character by character.
 - `contentWidth`: `420px` by default; a number such as `760` on pages, `"100%"` in panels and
   widgets. In narrow containers pass `wrapLines`.
 - `emptyState`: the `welcome` layout (default) shows `avatar`, `title`, `description` and

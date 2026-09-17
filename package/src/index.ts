@@ -66,7 +66,7 @@ export type {
   ErrorMessageLabels,
 } from './ErrorMessage/ErrorMessage';
 export { Markdown } from './Markdown/Markdown';
-export type { MarkdownProps } from './Markdown/Markdown';
+export type { MarkdownProps, MarkdownTailGranularity } from './Markdown/Markdown';
 export { ImageLightbox } from './ImageLightbox/ImageLightbox';
 export type { ImageLightboxProps, LightboxImage } from './ImageLightbox/ImageLightbox';
 

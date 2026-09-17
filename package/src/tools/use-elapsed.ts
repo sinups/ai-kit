@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import type { ToolPart } from '../types';
+import { useAnimationTime } from '../hooks/use-animation-clock';
 import { formatElapsedTime } from '../utils/format-elapsed';
 import { getPartOutput } from '../utils/format-tool';
 
@@ -13,21 +13,17 @@ function getStartedAt(part: ToolPart): number | undefined {
  * then switches to the duration reported in the output when available.
  */
 export function useElapsed(part: ToolPart, isPending: boolean): string {
-  const [elapsedMs, setElapsedMs] = useState(0);
   const startedAt = getStartedAt(part);
   const output = getPartOutput(part);
   const outputDuration: number | undefined =
     output?.totalDurationMs || output?.duration || output?.duration_ms;
 
-  useEffect(() => {
-    if (isPending && startedAt) {
-      setElapsedMs(Date.now() - startedAt);
-      const interval = setInterval(() => {
-        setElapsedMs(Date.now() - startedAt);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isPending, startedAt]);
+  const now = useAnimationTime({
+    intervalMs: 1000,
+    active: Boolean(isPending && startedAt),
+    respectReducedMotion: false,
+  });
+  const elapsedMs = isPending && startedAt ? Math.max(0, now - startedAt) : 0;
 
   return formatElapsedTime(!isPending && outputDuration ? outputDuration : elapsedMs);
 }

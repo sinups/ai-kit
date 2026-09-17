@@ -28,7 +28,7 @@ import { cx } from '../utils/cx';
 import { normalizeAssistantToolParts } from '../utils/tool-part-normalizer';
 import { isErrorPart, isRecord, isTextPart, isV5ToolPart } from '../utils/parts';
 import { UserMessage } from '../UserMessage/UserMessage';
-import { Markdown } from '../Markdown/Markdown';
+import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { SpiralLoader } from '../SpiralLoader/SpiralLoader';
@@ -50,8 +50,12 @@ import { HookActivity } from '../HookActivity/HookActivity';
 import type { LongTextThreshold } from '../UserMessage/long-text';
 import {
   countNewMessages,
+  createFollowState,
   findStickyPromptTurn,
-  getStickToBottom,
+  followAfterResize,
+  followAfterScroll,
+  readMetrics,
+  type FollowState,
   type TurnBounds,
 } from './scroll-follow';
 import { TranscriptSearch, type TranscriptSearchLabels } from './TranscriptSearch';
@@ -142,6 +146,13 @@ export type MessageListProps = {
   wrapLines?: boolean;
   /** Shows answer tables with too many columns for the width as one card per row, `false` by default */
   responsiveTables?: boolean;
+  /**
+   * Commits the streaming answer at most once per animation frame, `false` by default.
+   * A finished stream, a hidden tab and `prefers-reduced-motion` commit right away.
+   */
+  frameBatched?: boolean;
+  /** Reveals the growing tail of the streaming answer by character (`'char'`, the default) or by finished line (`'line'`) */
+  tailGranularity?: MarkdownTailGranularity;
   /** Called with the width in px of the vertical scrollbar whenever it appears, disappears or resizes */
   onScrollbarWidthChange?: (width: number) => void;
   /** Syntax highlighter for code blocks in answers and compaction summaries; plain code blocks when omitted */
@@ -378,6 +389,8 @@ export const MessageList = memo(function MessageList({
   topFade = false,
   wrapLines,
   responsiveTables,
+  frameBatched,
+  tailGranularity,
   onScrollbarWidthChange,
   labels: labelsProp,
 }: MessageListProps) {
@@ -385,9 +398,10 @@ export const MessageList = memo(function MessageList({
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const chatContainerObserverRef = useRef<ResizeObserver | null>(null);
-  const shouldAutoScrollRef = useRef(true);
+  const followRef = useRef<FollowState>(
+    createFollowState({ scrollTop: 0, scrollHeight: 0, clientHeight: 0 }, true)
+  );
   const messagesRef = useRef<ChatMessage[]>(messages);
-  const prevScrollTopRef = useRef(0);
   const lastMessageIdRef = useRef<string | null>(messages[messages.length - 1]?.id ?? null);
   const assistantSpaceActiveRef = useRef(false);
   const [activeCopyId, setActiveCopyId] = useState<string | null>(null);
@@ -418,6 +432,26 @@ export const MessageList = memo(function MessageList({
   const toolRunOptions = useMemo(
     () => resolveToolRunOptions(collapseToolRuns, toolRunLabels),
     [collapseToolRuns, toolRunLabels]
+  );
+
+  // Consumers pass these inline, so the identity changes on every token; the memoized rows compare
+  // props by identity and would re-render the whole transcript without a stable wrapper.
+  const onToolActionRef = useRef(onToolAction);
+  onToolActionRef.current = onToolAction;
+  const hasToolAction = Boolean(onToolAction);
+  const stableToolAction = useMemo<ToolActionHandler | undefined>(
+    () =>
+      hasToolAction
+        ? (toolCallId, action, payload) => onToolActionRef.current?.(toolCallId, action, payload)
+        : undefined,
+    [hasToolAction]
+  );
+  const onRetryRef = useRef(onRetry);
+  onRetryRef.current = onRetry;
+  const hasRetry = Boolean(onRetry);
+  const stableRetry = useMemo<(() => void) | undefined>(
+    () => (hasRetry ? () => onRetryRef.current?.() : undefined),
+    [hasRetry]
   );
 
   const markCopied = useCallback((id: string) => {
@@ -537,21 +571,29 @@ export const MessageList = memo(function MessageList({
     if (!container) {
       return;
     }
-    const previousScrollTop = prevScrollTopRef.current;
-    prevScrollTopRef.current = container.scrollTop;
     if (topFade) {
       setIsScrolled(container.scrollTop > 0);
     }
-    shouldAutoScrollRef.current = getStickToBottom(
-      shouldAutoScrollRef.current,
-      previousScrollTop,
-      container
-    );
-    if (shouldAutoScrollRef.current) {
+    followRef.current = followAfterScroll(followRef.current, readMetrics(container));
+    if (followRef.current.following) {
       markAllSeen();
     }
     updateStickyPrompt();
   }, [markAllSeen, updateStickyPrompt, topFade]);
+
+  const pinIfGrown = useCallback(() => {
+    const container = chatContainerRef.current;
+    if (!container) {
+      return;
+    }
+    const { state, pin } = followAfterResize(followRef.current, readMetrics(container));
+    if (!pin) {
+      followRef.current = state;
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+    followRef.current = createFollowState(readMetrics(container), true);
+  }, []);
 
   useLayoutEffect(() => {
     const container = chatContainerRef.current;
@@ -562,11 +604,10 @@ export const MessageList = memo(function MessageList({
 
     if (initialScrollBehavior === 'top') {
       container.scrollTop = 0;
-      shouldAutoScrollRef.current = false;
     } else {
       container.scrollTop = container.scrollHeight;
-      shouldAutoScrollRef.current = true;
     }
+    followRef.current = createFollowState(readMetrics(container), initialScrollBehavior !== 'top');
 
     let lastContentHeight = contentWrapper.getBoundingClientRect().height;
     reportScrollbarWidth();
@@ -579,10 +620,7 @@ export const MessageList = memo(function MessageList({
       }
       lastContentHeight = newContentHeight;
       reportScrollbarWidth();
-      if (shouldAutoScrollRef.current) {
-        container.scrollTop = container.scrollHeight;
-        prevScrollTopRef.current = container.scrollTop;
-      }
+      pinIfGrown();
     });
 
     resizeObserver.observe(contentWrapper);
@@ -592,10 +630,14 @@ export const MessageList = memo(function MessageList({
 
   const normalizedMessages = useMemo(() => normalizeMessages(messages), [messages]);
 
+  useLayoutEffect(() => {
+    pinIfGrown();
+  }, [normalizedMessages, pinIfGrown]);
+
   useEffect(() => {
     messagesRef.current = normalizedMessages;
     const ids = normalizedMessages.map((message) => message.id);
-    if (shouldAutoScrollRef.current) {
+    if (followRef.current.following) {
       seenIdsRef.current = new Set(ids);
       setUnseenCount(0);
     } else {
@@ -643,7 +685,7 @@ export const MessageList = memo(function MessageList({
     if (!container) {
       return;
     }
-    shouldAutoScrollRef.current = true;
+    followRef.current = createFollowState(readMetrics(container), true);
     container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     markAllSeen();
   };
@@ -659,7 +701,7 @@ export const MessageList = memo(function MessageList({
   const pendingPlanningScrollUserIdRef = useRef<string | null>(null);
   useLayoutEffect(() => {
     if (lastUserMessageId && lastUserMessageId !== lastUserMessageIdRef.current) {
-      shouldAutoScrollRef.current = true;
+      followRef.current = { ...followRef.current, following: true };
       pendingPlanningScrollUserIdRef.current = lastUserMessageId;
       const cancel = scrollToBottomSettled();
       lastUserMessageIdRef.current = lastUserMessageId;
@@ -774,7 +816,7 @@ export const MessageList = memo(function MessageList({
         <div ref={turnsRootRef} className={classes.turns}>
           {turns.map((turn, turnIndex) => {
             const isLastTurn = turnIndex === turns.length - 1;
-            const turnKey = turn.userMsg?.id ?? `turn-${turnIndex}`;
+            const turnKey = turn.userMsg?.id ?? turn.assistantMsgs[0]?.id ?? `turn-${turnIndex}`;
 
             return (
               <div key={turnKey} className={classes.turn} data-turn-key={turnKey}>
@@ -934,12 +976,14 @@ export const MessageList = memo(function MessageList({
                                 highlighter={highlighter}
                                 wrapLines={wrapLines}
                                 responsiveTables={responsiveTables}
+                                frameBatched={frameBatched}
+                                tailGranularity={tailGranularity}
                                 suppressQuestionTool={suppressQuestionTool}
                                 suppressQuestionToolCallId={suppressQuestionToolCallId}
                                 ToolRendererComponent={CustomToolRenderer}
                                 toolRenderers={toolRenderers}
-                                onToolAction={onToolAction}
-                                onRetry={onRetry}
+                                onToolAction={stableToolAction}
+                                onRetry={stableRetry}
                                 toolRunOptions={toolRunOptions}
                               />
                             );
@@ -996,22 +1040,7 @@ export const MessageList = memo(function MessageList({
 
 MessageList.displayName = 'MessageList';
 
-function AssistantParts({
-  msg,
-  isLast,
-  isStreaming,
-  isTextStreaming,
-  highlighter,
-  wrapLines,
-  responsiveTables,
-  suppressQuestionTool,
-  suppressQuestionToolCallId,
-  ToolRendererComponent,
-  toolRenderers,
-  onToolAction,
-  onRetry,
-  toolRunOptions,
-}: {
+type AssistantPartsProps = {
   msg: ChatMessage;
   isLast: boolean;
   isStreaming: boolean;
@@ -1019,6 +1048,8 @@ function AssistantParts({
   highlighter?: SyntaxHighlighter;
   wrapLines?: boolean;
   responsiveTables?: boolean;
+  frameBatched?: boolean;
+  tailGranularity?: MarkdownTailGranularity;
   suppressQuestionTool: boolean;
   suppressQuestionToolCallId?: string;
   ToolRendererComponent: React.ComponentType<ToolRendererSlotProps>;
@@ -1026,7 +1057,81 @@ function AssistantParts({
   onToolAction?: ToolActionHandler;
   onRetry?: () => void;
   toolRunOptions?: ResolvedToolRunOptions | null;
-}) {
+};
+
+function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
+  if (previous === next) {
+    return true;
+  }
+  if (previous.length !== next.length) {
+    return false;
+  }
+  return previous.every((part, index) => part === next[index]);
+}
+
+function sameToolRenderers(
+  previous: AssistantPartsProps['toolRenderers'],
+  next: AssistantPartsProps['toolRenderers']
+): boolean {
+  if (previous === next) {
+    return true;
+  }
+  if (!previous || !next) {
+    return false;
+  }
+  const keys = Object.keys(previous);
+  return (
+    keys.length === Object.keys(next).length && keys.every((key) => previous[key] === next[key])
+  );
+}
+
+/** A finished message keeps its element tree while the streaming one grows a part per token. */
+function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPartsProps): boolean {
+  if (previous.msg !== next.msg) {
+    if (previous.msg.id !== next.msg.id || previous.msg.role !== next.msg.role) {
+      return false;
+    }
+    if (!samePartList(previous.msg.parts, next.msg.parts)) {
+      return false;
+    }
+  }
+  return (
+    previous.isLast === next.isLast &&
+    previous.isStreaming === next.isStreaming &&
+    previous.isTextStreaming === next.isTextStreaming &&
+    previous.highlighter === next.highlighter &&
+    previous.wrapLines === next.wrapLines &&
+    previous.responsiveTables === next.responsiveTables &&
+    previous.frameBatched === next.frameBatched &&
+    previous.tailGranularity === next.tailGranularity &&
+    previous.suppressQuestionTool === next.suppressQuestionTool &&
+    previous.suppressQuestionToolCallId === next.suppressQuestionToolCallId &&
+    previous.ToolRendererComponent === next.ToolRendererComponent &&
+    previous.onToolAction === next.onToolAction &&
+    previous.onRetry === next.onRetry &&
+    previous.toolRunOptions === next.toolRunOptions &&
+    sameToolRenderers(previous.toolRenderers, next.toolRenderers)
+  );
+}
+
+const AssistantParts = memo(function AssistantParts({
+  msg,
+  isLast,
+  isStreaming,
+  isTextStreaming,
+  highlighter,
+  wrapLines,
+  responsiveTables,
+  frameBatched,
+  tailGranularity,
+  suppressQuestionTool,
+  suppressQuestionToolCallId,
+  ToolRendererComponent,
+  toolRenderers,
+  onToolAction,
+  onRetry,
+  toolRunOptions,
+}: AssistantPartsProps) {
   const parts = useMemo(
     () => normalizeAssistantToolParts(msg.parts ?? []) as unknown[],
     [msg.parts]
@@ -1113,6 +1218,8 @@ function AssistantParts({
               highlighter={highlighter}
               wrapLines={wrapLines}
               responsiveTables={responsiveTables}
+              frameBatched={frameBatched}
+              tailGranularity={tailGranularity}
               streaming={isLast && isTextStreaming && index === lastTextIndex ? true : undefined}
             />
           </div>
@@ -1229,6 +1336,8 @@ function AssistantParts({
     highlighter,
     wrapLines,
     responsiveTables,
+    frameBatched,
+    tailGranularity,
     suppressQuestionTool,
     suppressQuestionToolCallId,
     ToolRendererComponent,
@@ -1243,4 +1352,6 @@ function AssistantParts({
       {elements}
     </div>
   );
-}
+}, areAssistantPartsEqual);
+
+AssistantParts.displayName = 'AssistantParts';
