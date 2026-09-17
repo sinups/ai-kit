@@ -54,12 +54,13 @@ import {
 import { MCP_TRANSPORT_LABELS, McpTransportIcon } from './McpTransportIcon';
 import type {
   McpServer,
+  McpServerAction,
   McpServerScope,
   McpServerStatus,
   McpToolDefinition,
   McpTransport,
 } from './types';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export type McpServerDetailTab = 'tools' | 'resources' | 'prompts' | 'configuration';
 
@@ -156,8 +157,6 @@ export const DEFAULT_MCP_SERVER_DETAIL_LABELS: McpServerDetailLabels = {
   annotations: DEFAULT_MCP_TOOL_ANNOTATION_LABELS,
 };
 
-type ServerAction = (server: McpServer) => void | Promise<void>;
-
 export interface McpServerDetailProps {
   /** Server to show */
   server: McpServer;
@@ -170,17 +169,17 @@ export interface McpServerDetailProps {
   /** Called when a tool row is clicked */
   onSelectTool?: (tool: McpToolDefinition) => void;
   /** Renders the "Reconnect" button for servers that are not disabled */
-  onReconnect?: ServerAction;
+  onReconnect?: McpServerAction;
   /** Renders the "Authenticate" button for servers that need auth */
-  onAuthenticate?: ServerAction;
+  onAuthenticate?: McpServerAction;
   /** Renders the "Enable" button for disabled servers */
-  onEnable?: ServerAction;
+  onEnable?: McpServerAction;
   /** Renders the "Disable" button for enabled servers */
-  onDisable?: ServerAction;
+  onDisable?: McpServerAction;
   /** Renders the "Edit" button in the configuration tab */
   onEdit?: (server: McpServer) => void;
   /** Renders the "Remove" button in the configuration tab, the removal is confirmed in a dialog */
-  onRemove?: ServerAction;
+  onRemove?: McpServerAction;
   /** Button, tab and field overrides */
   labels?: Partial<McpServerDetailLabels>;
   /** Class name added to the root element */
@@ -298,7 +297,7 @@ export const McpServerDetail = memo(function McpServerDetail({
     key: string,
     label: string,
     icon: React.ReactNode,
-    callback: ServerAction | undefined,
+    callback: McpServerAction | undefined,
     variant: 'filled' | 'default' | 'light' = 'default',
     color?: string
   ) =>
@@ -660,7 +659,7 @@ export const McpServerDetail = memo(function McpServerDetail({
           opened={confirmRemove}
           danger
           title={labels.removeTitle}
-          message={formatTemplate(labels.removeMessage, { name: server.name })}
+          message={fillTemplate(labels.removeMessage, { name: server.name })}
           labels={{ confirm: labels.remove, cancel: labels.cancel, error: labels.actionFailed }}
           onConfirm={() => onRemove(server)}
           onClose={() => setConfirmRemove(false)}

@@ -17,7 +17,7 @@ import {
 import { AgentList, type AgentListLabels } from '../AgentList/AgentList';
 import type { AgentDefinition, AgentDraft, ToolCatalogItem } from '../types';
 import { createAgentDraft, getCopyName } from '../validate-agent';
-import { formatTemplate } from '../../utils/format-template';
+import { fillTemplate } from '../../utils/fill-template';
 
 export interface AgentsSettingsPanelLabels {
   back: string;
@@ -168,7 +168,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
           ...createAgentDraft(agent),
           name: getCopyName(agent.name, names),
           displayName: agent.displayName
-            ? formatTemplate(labels.copyName, { name: agent.displayName })
+            ? fillTemplate(labels.copyName, { name: agent.displayName })
             : '',
         },
       })
@@ -314,7 +314,7 @@ export const AgentsSettingsPanel = memo(function AgentsSettingsPanel({
       <ConfirmDialog
         opened={deleteOpen}
         title={labels.deleteTitle}
-        message={formatTemplate(labels.deleteMessage, {
+        message={fillTemplate(labels.deleteMessage, {
           name: pendingDelete?.displayName || pendingDelete?.name || '',
         })}
         labels={{ confirm: labels.deleteConfirm, cancel: labels.cancel, error: labels.deleteError }}

@@ -55,7 +55,7 @@ export type TodoChange = {
   index: number;
 };
 
-type ChangeType = 'creation' | 'single' | 'multiple';
+export type ChangeType = 'creation' | 'single' | 'multiple';
 
 export type DetectedChanges = {
   type: ChangeType;

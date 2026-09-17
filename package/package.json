@@ -2,13 +2,11 @@
   "name": "@sinups/ai-kit",
   "version": "0.2.0",
   "description": "Mantine UI kit for agent products: chat, tool calls, diff review, sessions, MCP, agents, skills, permissions, wizards and settings",
-  "homepage": "https://github.com/sinups/ai-kit#readme",
-  "packageManager": "yarn@4.0.1",
+  "homepage": "https://sinups.github.io/ai-kit",
   "license": "MIT",
   "author": "Sinups",
   "keywords": [
     "mantine",
-    "extension",
     "ai",
     "agent",
     "chat",
@@ -20,15 +18,25 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/cjs/index.cjs"
+      "import": {
+        "types": "./dist/types/index.d.mts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      }
     },
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
-    "./styles/*": "./dist/styles/*"
+    "./styles/*": "./dist/styles/*",
+    "./package.json": "./package.json"
   },
-  "repository": "https://github.com/sinups/ai-kit.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinups/ai-kit.git",
+    "directory": "package"
+  },
   "peerDependencies": {
     "@mantine/core": "^9.4.0",
     "@mantine/hooks": "^9.4.0",
@@ -36,7 +44,9 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
-  "bugs": "https://github.com/sinups/ai-kit/issues",
+  "bugs": {
+    "url": "https://github.com/sinups/ai-kit/issues"
+  },
   "dependencies": {
     "markdown-to-jsx": "^7.7.13"
   },

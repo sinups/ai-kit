@@ -171,7 +171,7 @@ export function useHighlightedLines(
   return { lines: null, pending: true };
 }
 
-type ShikiFontStyle = number | undefined;
+export type ShikiFontStyle = number | undefined;
 
 /** Structural subset of a shiki highlighter, so the package does not depend on shiki */
 export interface ShikiHighlighterLike<Lang extends string = string, Theme = string> {

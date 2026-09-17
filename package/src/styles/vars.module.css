@@ -33,7 +33,10 @@
   --ae-panel-header-height: auto;
   --ae-context-padding: rem(10px);
   --ae-user-message-x: rem(14px);
-  --ae-user-message-y: rem(10px);
+  --ae-user-message-y: rem(6px);
+  --ae-column-inset: rem(16px);
+  --ae-top-fade-size: rem(24px);
+  --ae-input-focus-outline: transparent;
 
   --ae-font-size-2xs: rem(10px);
   --ae-font-size-xxs: rem(11px);

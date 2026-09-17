@@ -11,6 +11,8 @@
     "**/_demo/**",
     "**/_layouts/**",
     "**/_testing/**",
+    "**/fixtures.ts",
+    "**/*-fixtures.ts",
     "package/dist"
   ],
   "compilerOptions": {

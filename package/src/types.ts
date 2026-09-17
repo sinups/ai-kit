@@ -3,7 +3,7 @@ import type { QuestionAnswer, QuestionConfig } from './question/QuestionPrompt';
 import type { SuggestionItem } from './input/Suggestions';
 import type { MessageListActions, SlashCommandInfo } from './message-actions/types';
 import type { InputBarProps } from './input/InputBar';
-import type { ChatWelcomeAction } from './AgentChat/ChatWelcome';
+import type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
 import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 
@@ -237,6 +237,8 @@ export type AgentChatEmptyState = {
    * `welcome` layout: listed as actions when `actions` is omitted, never shown as pills under the composer.
    */
   suggestions?: SuggestionItem[];
+  /** Overrides of the default English labels of the `welcome` layout */
+  labels?: Partial<ChatWelcomeLabels>;
 };
 
 /** Props for the `<AgentChat>` drop-in component */

@@ -261,6 +261,7 @@ export function AgentChat({
           description={emptyState.description}
           actions={welcomeActions}
           onAction={handleWelcomeAction}
+          labels={emptyState.labels}
         />
       ) : (
         <MessageList

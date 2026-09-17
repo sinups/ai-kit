@@ -22,10 +22,37 @@ type PlanToolInput = {
   plan?: Plan;
   /** Called once when the approve button is clicked */
   onApprove?: () => void;
-  /** Approve button label, `Approve` by default */
+  /** Approve button label, `labels.approve` by default */
   approveLabel?: string;
   /** Marks the plan as already approved, hides the button */
   approved?: boolean;
+};
+
+export interface PlanToolLabels {
+  /** Approve button, `Approve` by default */
+  approve: string;
+  /** Approve button once the plan is approved, `Approved` by default */
+  approved: string;
+  /** Accessible label of the collapse toggle, `Collapse plan` by default */
+  collapse: string;
+  /** Accessible label of the expand toggle, `Expand plan` by default */
+  expand: string;
+  /** Button that expands the summary, `Read detailed plan` by default */
+  readMore: string;
+  /** Button that collapses the summary, `Hide detailed plan` by default */
+  readLess: string;
+  /** Shown instead of the summary when the plan has none, `No plan summary provided.` by default */
+  noSummary: string;
+}
+
+export const DEFAULT_PLAN_TOOL_LABELS: PlanToolLabels = {
+  approve: 'Approve',
+  approved: 'Approved',
+  collapse: 'Collapse plan',
+  expand: 'Expand plan',
+  readMore: 'Read detailed plan',
+  readLess: 'Hide detailed plan',
+  noSummary: 'No plan summary provided.',
 };
 
 export interface PlanToolProps {
@@ -33,6 +60,8 @@ export interface PlanToolProps {
   part: ToolPart;
   /** Chat status from `useChat()`, used to tell a pending tool from an interrupted one */
   chatStatus?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<PlanToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -54,9 +83,11 @@ function getPlanFileName(plan: Plan) {
 export const PlanTool = memo(function PlanTool({
   part,
   chatStatus,
+  labels: labelsProp,
   className,
   style,
 }: PlanToolProps) {
+  const labels = { ...DEFAULT_PLAN_TOOL_LABELS, ...labelsProp };
   const { isPending } = getToolStatus(part, chatStatus);
   const input = getPartInput(part) as PlanToolInput;
   const plan = input.plan;
@@ -71,9 +102,9 @@ export const PlanTool = memo(function PlanTool({
   const summary = plan.summary?.trim() ?? '';
   const hasSummary = summary.length > 0;
 
-  const approveLabel = input.approveLabel ?? 'Approve';
+  const approveLabel = input.approveLabel ?? labels.approve;
   const isAlreadyApproved = input.approved || isApproved;
-  const approveText = isAlreadyApproved ? 'Approved' : approveLabel;
+  const approveText = isAlreadyApproved ? labels.approved : approveLabel;
 
   const handleApprove = () => {
     if (isAlreadyApproved) {
@@ -105,7 +136,7 @@ export const PlanTool = memo(function PlanTool({
         <UnstyledButton
           className={classes.toggle}
           onClick={() => setIsExpanded((prev) => !prev)}
-          aria-label={isExpanded ? 'Collapse plan' : 'Expand plan'}
+          aria-label={isExpanded ? labels.collapse : labels.expand}
         >
           {isExpanded ? <IconChevronsUp size={14} /> : <IconChevronsDown size={14} />}
         </UnstyledButton>
@@ -129,7 +160,7 @@ export const PlanTool = memo(function PlanTool({
                       className={cx(classes.readMore, classes.readMoreInset)}
                       onClick={() => setIsExpanded(true)}
                     >
-                      Read detailed plan
+                      {labels.readMore}
                     </UnstyledButton>
                     {approveButton}
                   </div>
@@ -137,7 +168,7 @@ export const PlanTool = memo(function PlanTool({
               )}
             </div>
           ) : (
-            <div className={classes.noSummary}>No plan summary provided.</div>
+            <div className={classes.noSummary}>{labels.noSummary}</div>
           )}
         </div>
 
@@ -147,7 +178,7 @@ export const PlanTool = memo(function PlanTool({
               className={cx(classes.readMore, classes.readMoreInset)}
               onClick={() => setIsExpanded((prev) => !prev)}
             >
-              {isExpanded ? 'Hide detailed plan' : 'Read detailed plan'}
+              {isExpanded ? labels.readLess : labels.readMore}
             </UnstyledButton>
             {approveButton}
           </div>

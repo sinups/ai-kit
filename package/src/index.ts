@@ -39,6 +39,12 @@ export type {
   ToolPart,
   ToolPartState,
   CompactionPart,
+  TurnSummaryPart,
+  ContextEventPart,
+  ContextEventKind,
+  HookActivityPart,
+  HookActivityStatus,
+  HookRun,
   CollapseToolRunsOptions,
   ChatClassNames,
   ChatSlots,
@@ -50,13 +56,16 @@ export type {
   InputSuggestions,
   AttachedImage,
   AttachedFile,
+  ToolActionHandler,
 } from './types';
 export type { TimelineStep, ToolCallStep, StepState, DiffLine, Turn } from './types/timeline';
 
 export { AgentChat } from './AgentChat/AgentChat';
-export type { ChatWelcomeAction } from './AgentChat/ChatWelcome';
+export { DEFAULT_CHAT_WELCOME_LABELS } from './AgentChat/ChatWelcome';
+export type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
 export { MessageList, DEFAULT_MESSAGE_LIST_LABELS } from './MessageList/MessageList';
 export type { MessageListProps, MessageListLabels } from './MessageList/MessageList';
+export type { ToolRunLabels } from './MessageList/tool-runs';
 export { UserMessage, DEFAULT_USER_MESSAGE_LABELS } from './UserMessage/UserMessage';
 export type { UserMessageProps, UserMessageLabels } from './UserMessage/UserMessage';
 export { ErrorMessage, DEFAULT_ERROR_MESSAGE_LABELS } from './ErrorMessage/ErrorMessage';
@@ -67,37 +76,53 @@ export type {
 } from './ErrorMessage/ErrorMessage';
 export { Markdown } from './Markdown/Markdown';
 export type { MarkdownProps } from './Markdown/Markdown';
-export { ImageLightbox } from './ImageLightbox/ImageLightbox';
-export type { ImageLightboxProps, LightboxImage } from './ImageLightbox/ImageLightbox';
+export { ImageLightbox, DEFAULT_IMAGE_LIGHTBOX_LABELS } from './ImageLightbox/ImageLightbox';
+export type {
+  ImageLightboxProps,
+  ImageLightboxLabels,
+  LightboxImage,
+} from './ImageLightbox/ImageLightbox';
 
 export { InputBar, DEFAULT_INPUT_BAR_LABELS } from './input/InputBar';
 export type { InputBarProps, QueuedMessage, InputBarLabels } from './input/InputBar';
 export type { CompletionItem, CompletionSource } from './input/use-completion-items';
 
 export type { CompletionToken } from './input/completion-token';
-export { AttachmentButton } from './input/AttachmentButton';
-export type { AttachmentButtonProps, AttachmentButtonIcon } from './input/AttachmentButton';
-export { FileAttachment } from './input/FileAttachment';
-export type { FileAttachmentProps } from './input/FileAttachment';
+export { AttachmentButton, DEFAULT_ATTACHMENT_BUTTON_LABELS } from './input/AttachmentButton';
+export type {
+  AttachmentButtonProps,
+  AttachmentButtonIcon,
+  AttachmentButtonLabels,
+} from './input/AttachmentButton';
+export { FileAttachment, DEFAULT_FILE_ATTACHMENT_LABELS } from './input/FileAttachment';
+export type { FileAttachmentProps, FileAttachmentLabels } from './input/FileAttachment';
 export { SendButton } from './input/SendButton';
 export type { SendButtonProps } from './input/SendButton';
 export { Suggestions } from './input/Suggestions';
 export type { SuggestionsProps, SuggestionItem } from './input/Suggestions';
-export { ModelPicker, ModelBadge } from './input/ModelPicker';
-export type { ModelPickerProps, ModelBadgeProps } from './input/ModelPicker';
-export { ModeSelector } from './input/ModeSelector';
-export type { ModeSelectorProps, ModeOption } from './input/ModeSelector';
+export { ModelPicker, ModelBadge, DEFAULT_MODEL_PICKER_LABELS } from './input/ModelPicker';
+export type { ModelPickerProps, ModelBadgeProps, ModelPickerLabels } from './input/ModelPicker';
+export { ModeSelector, DEFAULT_MODE_SELECTOR_LABELS } from './input/ModeSelector';
+export type { ModeSelectorProps, ModeOption, ModeSelectorLabels } from './input/ModeSelector';
 export { InputPopover } from './input/InputPopover';
 export type { InputPopoverProps, PopoverSide, PopoverAlign } from './input/InputPopover';
-export { QuestionPrompt } from './question/QuestionPrompt';
+export { QuestionPrompt, DEFAULT_QUESTION_PROMPT_LABELS } from './question/QuestionPrompt';
+export { QuestionHeader, DEFAULT_QUESTION_HEADER_LABELS } from './question/QuestionHeader';
+export type { QuestionHeaderProps, QuestionHeaderLabels } from './question/QuestionHeader';
 export type {
   QuestionPromptProps,
+  QuestionPromptLabels,
   QuestionConfig,
   QuestionOption,
+  QuestionOptionPreview,
   QuestionAnswer,
 } from './question/QuestionPrompt';
-export { QuestionTool } from './question/QuestionTool';
-export type { QuestionToolProps, QuestionToolPart } from './question/QuestionTool';
+export { QuestionTool, DEFAULT_QUESTION_TOOL_LABELS } from './question/QuestionTool';
+export type {
+  QuestionToolProps,
+  QuestionToolPart,
+  QuestionToolLabels,
+} from './question/QuestionTool';
 
 export { ToolRenderer } from './tools/ToolRenderer';
 export type { ToolRendererProps } from './tools/ToolRenderer';
@@ -107,14 +132,25 @@ export { EditTool, EditToolDiffCard } from './tools/EditTool';
 export type { EditToolProps, EditToolDiffCardProps } from './tools/EditTool';
 export { DiffView } from './tools/DiffView';
 export type { DiffViewProps } from './tools/DiffView';
-export { SearchTool, SearchGroupRich } from './tools/SearchTool';
-export type { SearchToolProps, SearchGroupRichProps, SearchResult } from './tools/SearchTool';
+export { SearchTool, SearchGroupRich, DEFAULT_SEARCH_TOOL_LABELS } from './tools/SearchTool';
+export type {
+  SearchToolProps,
+  SearchGroupRichProps,
+  SearchToolLabels,
+  SearchResult,
+} from './tools/SearchTool';
 export { TodoTool } from './tools/TodoTool';
-export type { TodoToolProps, TodoItem, TodoChange, DetectedChanges } from './tools/TodoTool';
-export { PlanTool } from './tools/PlanTool';
-export type { PlanToolProps, Plan } from './tools/PlanTool';
-export { ToolGroup } from './tools/ToolGroup';
-export type { ToolGroupProps } from './tools/ToolGroup';
+export type {
+  TodoToolProps,
+  TodoItem,
+  TodoChange,
+  ChangeType,
+  DetectedChanges,
+} from './tools/TodoTool';
+export { PlanTool, DEFAULT_PLAN_TOOL_LABELS } from './tools/PlanTool';
+export type { PlanToolProps, PlanToolLabels, Plan } from './tools/PlanTool';
+export { ToolGroup, DEFAULT_TOOL_GROUP_LABELS } from './tools/ToolGroup';
+export type { ToolGroupProps, ToolGroupLabels } from './tools/ToolGroup';
 export { SubagentTool } from './tools/SubagentTool';
 export type { SubagentToolProps } from './tools/SubagentTool';
 export { McpTool, unwrapMcpOutput } from './tools/McpTool';
@@ -131,6 +167,10 @@ export type {
   ToolApprovalFooterProps,
   ToolApprovalOption,
   ToolApprovalLabels,
+  ToolApprovalRisk,
+  ToolApprovalExplanation,
+  ToolApprovalRuleSuggestion,
+  ToolApprovalRequester,
 } from './tools/ToolApprovalFooter';
 export { toolRegistry, parseMcpToolType } from './tools/tool-registry';
 export type { ToolMeta, ToolVariant, McpToolInfo } from './tools/tool-registry';
@@ -157,6 +197,11 @@ export type {
   ElicitationContent,
   ElicitationValue,
   ElicitationField,
+  ElicitationFieldBase,
+  ElicitationEnumOption,
+  ElicitationOption,
+  ElicitationDraft,
+  ElicitationDraftValue,
 } from './elicitation/elicitation-schema';
 
 export { AgentStatus, DEFAULT_AGENT_STATUS_LABELS } from './AgentStatus/AgentStatus';
@@ -281,7 +326,12 @@ export {
   envKeyValidator,
   headerKeyValidator,
 } from './primitives/KeyValueEditor/key-value';
-export type { KeyValuePair, KeyValidator } from './primitives/KeyValueEditor/key-value';
+export type {
+  KeyValuePair,
+  KeyValidator,
+  KeyValueEntry,
+  KeyValueErrorLabels,
+} from './primitives/KeyValueEditor/key-value';
 
 export { SchemaView, DEFAULT_SCHEMA_VIEW_LABELS } from './primitives/SchemaView/SchemaView';
 export type { SchemaViewProps, SchemaViewLabels } from './primitives/SchemaView/SchemaView';
@@ -296,7 +346,13 @@ export type {
   ConfirmDialogLabels,
   ConfirmDialogProps,
 } from './primitives/ConfirmDialog/ConfirmDialog';
-export type { PendingActionOptions, UsePendingActionsReturn } from './hooks/use-pending-actions';
+export type {
+  PendingAction,
+  PendingActionOptions,
+  RunPendingAction,
+  TryRunPendingAction,
+  UsePendingActionsReturn,
+} from './hooks/use-pending-actions';
 
 export { DEFAULT_MCP_SERVER_DETAIL_LABELS, McpServerDetail } from './mcp/McpServerDetail';
 export type {
@@ -315,6 +371,7 @@ export type {
   McpServerWizardLabels,
   McpServerWizardModalProps,
   McpServerWizardProps,
+  McpServerWizardSubmitHandler,
 } from './mcp/McpServerWizard';
 export { DEFAULT_MCP_SETTINGS_PANEL_LABELS, McpSettingsPanel } from './mcp/McpSettingsPanel';
 export type { McpSettingsPanelLabels, McpSettingsPanelProps } from './mcp/McpSettingsPanel';
@@ -355,6 +412,7 @@ export type {
   McpPromptArgument,
   McpResource,
   McpServer,
+  McpServerAction,
   McpServerCandidate,
   McpServerCapabilities,
   McpServerDraft,
@@ -527,6 +585,7 @@ export type {
   AgentIdentityFieldsProps,
   AgentModelFieldsProps,
   AgentPromptFieldProps,
+  AgentDraftPatchHandler,
 } from './agents/AgentFields/AgentFields';
 export { AgentList, DEFAULT_AGENT_LIST_LABELS } from './agents/AgentList/AgentList';
 export type { AgentListLabels, AgentListProps } from './agents/AgentList/AgentList';
@@ -784,6 +843,8 @@ export {
 } from './diff/file-tree';
 export type { FileTreeNode } from './diff/file-tree';
 
+export { DEFAULT_DIFF_LABELS } from './diff/labels';
+
 export type {
   DiffLabels,
   DiffSource,
@@ -981,6 +1042,7 @@ export type {
   SyntaxHighlighter,
   HighlightedLinesState,
   ShikiHighlighterLike,
+  ShikiFontStyle,
 } from './utils/highlighter';
 export {
   byteLength,

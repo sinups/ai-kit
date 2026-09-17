@@ -16,9 +16,10 @@ yarn install
 | `yarn jest` | Unit and component tests (jsdom) |
 | `yarn jest package/src/mcp` | Tests whose path matches |
 | `yarn typecheck` | TypeScript for the package and the site |
+| `yarn check:examples` | Type-check the code shown on the docs site: every `code` block and every generated example file |
 | `yarn lint` | oxlint and stylelint |
 | `yarn format:write` | Format the package, scripts and Storybook config |
-| `yarn test` | Dependency check, format check, typecheck, lint, site lint and jest |
+| `yarn test` | Dependency check, format check, typecheck, lint, site lint, docs example check and jest |
 | `yarn build` | Build `package/dist`; the site reads the built package |
 | `yarn pack:preview` | Build and pack exactly what `npm publish` uploads into `.pack/`: the tarball, its unpacked contents and a size summary |
 | `yarn size` | JS and CSS gzip of the main entries (`AgentChat`, `MessageList`, `InputBar`, settings panels, primitives, launcher, provider) and `import *` against budgets; run after `yarn build`. `yarn size --json` also rewrites `site/app/data/bundle-size.json` for the Bundle size page |
@@ -108,6 +109,7 @@ component needs a docs entry and a sidebar item. Check the site with:
 yarn build
 yarn workspace ai-kit-site typecheck
 yarn site:lint
+yarn check:examples
 yarn site:build
 ```
 
@@ -143,7 +145,8 @@ VISUAL_FILTER='^(inputbar|tools-edittool)--' yarn test:visual package/src/input/
 `test:visual:baseline` clears `package/__visual__/` first and runs the test runner of the current checkout against the base Storybook (`STORYBOOK_URL`, default `http://127.0.0.1:8272`), so the base branch needs no test runner configuration. Refresh the baselines after `main` moves.
 
 - CI (`.github/workflows/visual.yml`, pull requests only) checks out the base branch next to the pull request, builds both Storybooks, records baselines from the base build and compares the pull request build with them. Nothing is committed; baseline failures in the base branch do not block the pull request.
-- Run visual checks on macOS: CI uses a macOS runner, and Linux renders text differently.
+- Run visual checks on macOS: the screenshot job uses a macOS runner, and Linux renders text differently. Both Storybooks are built on Linux in separate jobs, which is platform-independent; only the comparison itself is pinned to macOS.
+- In a `git worktree` the checkout has a `.git` file instead of a directory, so Storybook infers the main checkout as the project root and the test runner finds no stories. Export `STORYBOOK_PROJECT_ROOT=$PWD` for `storybook:build`, `test:storybook` and the visual scripts there.
 - An intended visual change fails the check. Add the `visual-change` label to the pull request: the comparison no longer blocks it, the job summary lists the stories that differ and the diffs are still uploaded. Describe the change in the pull request and review the diff images before merging. The label also accepts every other failure of that step, so remove it once the intended change is merged.
 - A failing visual test writes `storybook-visual-diff/<story>--<theme>-diff.png` and the received image to `storybook-visual-diff/received/`; CI uploads the folder as an artifact.
 - Play functions live only in dedicated stories whose name ends with `Flow` (`CompletionsFlow`, `ValidationFlow`); base stories such as `Usage`, `Narrow` and `Wide` have no `play` and open untouched.

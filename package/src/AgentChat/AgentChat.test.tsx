@@ -505,4 +505,22 @@ describe('AgentChat/AgentChat', () => {
       expect(screen.getByRole('textbox', { name: 'composer' })).toHaveValue('Run the tests');
     });
   });
+
+  it('passes the empty state labels to the welcome screen', () => {
+    render(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+        emptyState={{
+          title: 'Hello',
+          actions: [{ id: 'a', label: 'Summarize the thread' }],
+          labels: { actions: 'Vorschläge' },
+        }}
+      />
+    );
+    expect(screen.getByRole('group', { name: 'Vorschläge' })).toBeInTheDocument();
+  });
 });

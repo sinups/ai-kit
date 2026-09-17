@@ -6,13 +6,13 @@ on:
     paths:
       - 'package/**'
       - 'site/**'
+      - 'scripts/**'
+      - 'rollup.config.mjs'
+      - 'yarn.lock'
       - '.github/workflows/site.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: pages
@@ -21,9 +21,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -32,6 +35,14 @@ jobs:
         run: yarn install --immutable
       - name: Build package
         run: yarn build
+      - name: Cache Next.js build cache
+        uses: actions/cache@v6
+        with:
+          path: site/.next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-
+            next-${{ runner.os }}-
       - name: Export site
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
@@ -39,16 +50,22 @@ jobs:
         run: yarn workspace ai-kit-site build
       - name: Disable Jekyll
         run: touch site/out/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site/out
+          # .nojekyll is a dotfile, and the action drops hidden files by default.
+          include-hidden-files: true
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

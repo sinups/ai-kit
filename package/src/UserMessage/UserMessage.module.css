@@ -37,7 +37,7 @@
 }
 
 .bubble {
-  padding: rem(6px) rem(14px);
+  padding: var(--ae-user-message-y) var(--ae-user-message-x);
   font-size: var(--ae-font-size-sm);
   line-height: var(--ae-line-height-sm);
   border-radius: var(--ae-message-radius);

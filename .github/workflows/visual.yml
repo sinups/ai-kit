@@ -12,32 +12,78 @@ permissions:
   contents: read
 
 jobs:
-  visual:
-    # Screenshots are compared on macOS; Linux renders fonts differently.
-    runs-on: macos-14
-    timeout-minutes: 45
+  storybook:
+    name: Storybook and interaction tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      built: ${{ steps.upload.outcome == 'success' }}
     steps:
-      - name: Checkout pull request
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Checkout base branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.base_ref }}
-          path: base
-
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
           cache-dependency-path: '**/yarn.lock'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Read the Playwright version
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Chromium
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        run: node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Build Storybook
+        run: yarn storybook:build
+
+      - name: Upload Storybook
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: storybook-static
+          path: storybook-static
+          include-hidden-files: true
+          retention-days: 1
+
+      - name: Interaction tests
+        run: yarn test:storybook:ci
+
+  base-storybook:
+    name: Base branch Storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      available: ${{ steps.build.outputs.available }}
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: 'base/.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: 'base/yarn.lock'
 
       - name: Install base dependencies
         working-directory: base
         run: yarn install --immutable
 
       - name: Build base Storybook
-        id: base-storybook
+        id: build
         working-directory: base
         run: |
           if [ ! -x node_modules/.bin/storybook ]; then
@@ -48,21 +94,67 @@ jobs:
           node_modules/.bin/storybook build -o ../storybook-static-base --quiet
           echo "available=true" >> "$GITHUB_OUTPUT"
 
+      - name: Upload base Storybook
+        if: steps.build.outputs.available == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: storybook-static-base
+          path: storybook-static-base
+          include-hidden-files: true
+          retention-days: 1
+
+  visual:
+    # Both Storybooks are built on Linux, but every screenshot of this pull
+    # request and of its base is taken here, on one macOS runner, so the two
+    # sides of the comparison always render text the same way.
+    runs-on: macos-14
+    needs: [storybook, base-storybook]
+    if: ${{ !cancelled() && needs.storybook.outputs.built == 'true' && needs.base-storybook.outputs.available == 'true' }}
+    timeout-minutes: 45
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+
       - name: Install dependencies
-        if: steps.base-storybook.outputs.available == 'true'
         run: yarn install --immutable
 
+      - name: Read the Playwright version
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Chromium
+        uses: actions/cache@v6
+        with:
+          path: ~/Library/Caches/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
       - name: Install Chromium
-        if: steps.base-storybook.outputs.available == 'true'
         run: node_modules/.bin/playwright install chromium
 
+      - name: Download the base Storybook
+        uses: actions/download-artifact@v8
+        with:
+          name: storybook-static-base
+          path: storybook-static-base
+
+      - name: Download the pull request Storybook
+        uses: actions/download-artifact@v8
+        with:
+          name: storybook-static
+          path: storybook-static
+
       - name: Record baselines from the base Storybook
-        if: steps.base-storybook.outputs.available == 'true'
         continue-on-error: true
         run: yarn test:visual:baseline:ci
 
       - name: Count baselines
-        if: steps.base-storybook.outputs.available == 'true'
         run: |
           count=$(find package/__visual__ -name '*.png' 2>/dev/null | wc -l | tr -d ' ')
           echo "Baseline images: $count"
@@ -70,17 +162,12 @@ jobs:
             echo "::warning::No baselines were recorded from the base Storybook; nothing is compared."
           fi
 
-      - name: Build Storybook
-        if: steps.base-storybook.outputs.available == 'true'
-        run: yarn storybook:build
-
       - name: Compare with the base branch
-        if: steps.base-storybook.outputs.available == 'true'
         continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'visual-change') }}
         run: yarn test:visual:ci
 
       - name: List changed stories
-        if: always() && steps.base-storybook.outputs.available == 'true'
+        if: always()
         env:
           ACCEPTED: ${{ contains(github.event.pull_request.labels.*.name, 'visual-change') }}
         run: |
@@ -105,8 +192,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload visual diffs
-        if: always() && steps.base-storybook.outputs.available == 'true'
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
           name: storybook-visual-diff
           path: storybook-visual-diff/

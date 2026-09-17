@@ -113,11 +113,11 @@ export const DEFAULT_MCP_SERVER_WIZARD_LABELS: McpServerWizardLabels = {
   wizard: {},
 };
 
-type SubmitHandler = (draft: McpServerDraft) => void | Promise<void>;
+export type McpServerWizardSubmitHandler = (draft: McpServerDraft) => void | Promise<void>;
 
 export interface McpServerWizardProps {
   /** Called with the normalized draft after the review step, a rejected promise is shown in an alert */
-  onSubmit: SubmitHandler;
+  onSubmit: McpServerWizardSubmitHandler;
   /** Called by the cancel button */
   onCancel?: () => void;
   /** Server to edit, the wizard adds a new server when omitted */

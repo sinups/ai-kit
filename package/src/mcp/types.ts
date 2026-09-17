@@ -13,6 +13,9 @@ export type McpServerStatus =
 
 export type McpServerScope = 'user' | 'project' | 'local';
 
+/** Called with the server when the user triggers a row or detail action */
+export type McpServerAction = (server: McpServer) => void | Promise<void>;
+
 export interface McpToolAnnotations {
   /** The tool does not modify its environment */
   readOnlyHint?: boolean;

@@ -13,6 +13,30 @@ export type LightboxImage = {
   filename?: string;
 };
 
+export interface ImageLightboxLabels {
+  /** Accessible label of the close button, `Close fullscreen (Esc)` by default */
+  close: string;
+  /** Accessible label of the previous button, `Previous image (←)` by default */
+  previous: string;
+  /** Accessible label of the next button, `Next image (→)` by default */
+  next: string;
+  /** Alt text of an image without a filename, `Image preview` by default */
+  imageAlt: string;
+  /** Accessible label of a dot, `Go to image 2` by default */
+  goToImage: (position: number) => string;
+  /** Position of the active image, `2 / 5` by default */
+  counter: (position: number, total: number) => string;
+}
+
+export const DEFAULT_IMAGE_LIGHTBOX_LABELS: ImageLightboxLabels = {
+  close: 'Close fullscreen (Esc)',
+  previous: 'Previous image (←)',
+  next: 'Next image (→)',
+  imageAlt: 'Image preview',
+  goToImage: (position) => `Go to image ${position}`,
+  counter: (position, total) => `${position} / ${total}`,
+};
+
 export interface ImageLightboxProps {
   /** Whether the overlay is open */
   open: boolean;
@@ -22,6 +46,8 @@ export interface ImageLightboxProps {
   images: LightboxImage[];
   /** Index in `images` to start on, `0` by default */
   initialIndex?: number;
+  /** Overrides of the default English labels */
+  labels?: Partial<ImageLightboxLabels>;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -32,9 +58,11 @@ export function ImageLightbox({
   onClose,
   images,
   initialIndex = 0,
+  labels: labelsProp,
   className,
   style,
 }: ImageLightboxProps) {
+  const labels = { ...DEFAULT_IMAGE_LIGHTBOX_LABELS, ...labelsProp };
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const hasMultipleImages = images.length > 1;
   const lastIndex = Math.max(images.length - 1, 0);
@@ -133,7 +161,7 @@ export function ImageLightbox({
         >
           <UnstyledButton
             onClick={onClose}
-            aria-label="Close fullscreen (Esc)"
+            aria-label={labels.close}
             className={cx(classes.control, classes.close)}
           >
             <IconX size={20} />
@@ -142,7 +170,7 @@ export function ImageLightbox({
           {hasMultipleImages && (
             <UnstyledButton
               onClick={goToPrevious}
-              aria-label="Previous image (←)"
+              aria-label={labels.previous}
               className={cx(classes.control, classes.nav, classes.prev)}
             >
               <IconChevronLeft size={24} />
@@ -156,7 +184,7 @@ export function ImageLightbox({
           >
             <img
               src={currentImage.url}
-              alt={currentImage.filename ?? 'Image preview'}
+              alt={currentImage.filename ?? labels.imageAlt}
               className={classes.image}
               draggable={false}
             />
@@ -165,7 +193,7 @@ export function ImageLightbox({
           {hasMultipleImages && (
             <UnstyledButton
               onClick={goToNext}
-              aria-label="Next image (→)"
+              aria-label={labels.next}
               className={cx(classes.control, classes.nav, classes.next)}
             >
               <IconChevronRight size={24} />
@@ -182,14 +210,14 @@ export function ImageLightbox({
                       event.stopPropagation();
                       setCurrentIndex(idx);
                     }}
-                    aria-label={`Go to image ${idx + 1}`}
+                    aria-label={labels.goToImage(idx + 1)}
                     className={classes.dot}
                     data-active={idx === activeIndex || undefined}
                   />
                 ))}
               </div>
               <span className={classes.counter}>
-                {activeIndex + 1} / {images.length}
+                {labels.counter(activeIndex + 1, images.length)}
               </span>
             </div>
           )}

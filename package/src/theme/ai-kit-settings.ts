@@ -113,12 +113,12 @@ const DENSITY: Record<AiKitDensity, DensityValues> = {
   default: {
     controlHeights: { xs: px(20), sm: px(24), md: px(28), row: px(28) },
     contextPadding: px(10),
-    userMessagePadding: { x: px(14), y: px(10) },
+    userMessagePadding: { x: px(14), y: px(6) },
   },
   compact: {
     controlHeights: { xs: px(20), sm: px(22), md: px(24), row: px(24) },
     contextPadding: px(8),
-    userMessagePadding: { x: px(12), y: px(8) },
+    userMessagePadding: { x: px(12), y: px(4) },
   },
 };
 

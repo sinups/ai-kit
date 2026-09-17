@@ -12,6 +12,24 @@ import classes from './SearchTool.module.css';
 
 export type SearchResult = { source: SourceType; title: string; date?: string };
 
+export interface SearchToolLabels {
+  /** Shimmer label while the search runs, `Searching...` by default */
+  searching: string;
+  /** Row label once the search has finished, `Found 3 results` by default */
+  found: (count: number) => string;
+  /** Caption before the query in the results panel, `Searched for` by default */
+  searchedFor: string;
+  /** Query shown when no step carries one, `searching...` by default */
+  unknownQuery: string;
+}
+
+export const DEFAULT_SEARCH_TOOL_LABELS: SearchToolLabels = {
+  searching: 'Searching...',
+  found: (count) => `Found ${count} results`,
+  searchedFor: 'Searched for',
+  unknownQuery: 'searching...',
+};
+
 export interface SearchGroupRichProps {
   /** Search steps rendered as one row, the first `searchQuery` is shown in the header */
   toolSteps: ToolCallStep[];
@@ -23,8 +41,10 @@ export interface SearchGroupRichProps {
   results?: SearchResult[];
   /** Initial expanded state of the results panel */
   defaultOpen?: boolean;
-  /** Row label once the search has finished, `Found N results` by default */
+  /** Row label once the search has finished, `labels.found` by default */
   completeLabel?: string;
+  /** Overrides of the default English labels */
+  labels?: Partial<SearchToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -52,11 +72,13 @@ export function SearchGroupRich({
   results = [],
   defaultOpen,
   completeLabel,
+  labels: labelsProp,
   className,
   style,
 }: SearchGroupRichProps) {
+  const labels = { ...DEFAULT_SEARCH_TOOL_LABELS, ...labelsProp };
   const anyAnimating = toolSteps.some((s) => stepStates[s.id] === 'animating');
-  const searchQuery = toolSteps.find((s) => s.searchQuery)?.searchQuery ?? 'searching...';
+  const searchQuery = toolSteps.find((s) => s.searchQuery)?.searchQuery ?? labels.unknownQuery;
   const totalResults = results.length;
   const hasExpandableContent = totalResults > 0;
 
@@ -71,8 +93,8 @@ export function SearchGroupRich({
         />
       ))}
       <ToolRowBase
-        shimmerLabel="Searching..."
-        completeLabel={completeLabel ?? `Found ${totalResults} results`}
+        shimmerLabel={labels.searching}
+        completeLabel={completeLabel ?? labels.found(totalResults)}
         isAnimating={anyAnimating}
         expandable={hasExpandableContent}
         defaultOpen={defaultOpen}
@@ -81,7 +103,7 @@ export function SearchGroupRich({
       >
         <div className={classes.panel}>
           <div className={classes.header}>
-            <span className={classes.headerLabel}>Searched for</span>{' '}
+            <span className={classes.headerLabel}>{labels.searchedFor}</span>{' '}
             <span className={classes.query}>&ldquo;{searchQuery}&rdquo;</span>
           </div>
           <div className={classes.list}>
@@ -110,6 +132,8 @@ export interface SearchToolProps {
   results?: SearchResult[];
   /** Initial expanded state of the results panel */
   defaultOpen?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<SearchToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -144,6 +168,7 @@ export const SearchTool = memo(function SearchTool({
   part,
   results,
   defaultOpen,
+  labels,
   className,
   style,
 }: SearchToolProps) {
@@ -165,6 +190,7 @@ export const SearchTool = memo(function SearchTool({
       onStepComplete={noopComplete}
       results={results ?? normalizeResults(output?.results)}
       completeLabel={registryMeta?.title(part)}
+      labels={labels}
       defaultOpen={defaultOpen}
       className={className}
       style={style}

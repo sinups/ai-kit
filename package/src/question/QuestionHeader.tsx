@@ -4,6 +4,24 @@ import { IconChevronDown, IconChevronUp, IconMessageCircleQuestion } from '@tabl
 import { cx } from '../utils/cx';
 import classes from './QuestionHeader.module.css';
 
+export interface QuestionHeaderLabels {
+  /** Caption before the navigation, `Question` by default */
+  caption: string;
+  /** Accessible label of the previous button, `Previous question` by default */
+  previous: string;
+  /** Accessible label of the next button, `Next question` by default */
+  next: string;
+  /** Position of the active question, `2 of 5` by default */
+  position: (index: number, total: number) => string;
+}
+
+export const DEFAULT_QUESTION_HEADER_LABELS: QuestionHeaderLabels = {
+  caption: 'Question',
+  previous: 'Previous question',
+  next: 'Next question',
+  position: (index, total) => `${index} of ${total}`,
+};
+
 export interface QuestionHeaderProps {
   /** 1-based index of the active question */
   index: number;
@@ -12,6 +30,8 @@ export interface QuestionHeaderProps {
   showNavigation: boolean;
   onPrevious: () => void;
   onNext: () => void;
+  /** Overrides of the default English labels */
+  labels?: Partial<QuestionHeaderLabels>;
   className?: string;
 }
 
@@ -22,8 +42,10 @@ export function QuestionHeader({
   showNavigation,
   onPrevious,
   onNext,
+  labels: labelsProp,
   className,
 }: QuestionHeaderProps) {
+  const labels = { ...DEFAULT_QUESTION_HEADER_LABELS, ...labelsProp };
   const canGoPrev = index > 1;
   const canGoNext = index < total;
 
@@ -31,7 +53,7 @@ export function QuestionHeader({
     <div className={cx(classes.root, className)}>
       <div className={classes.caption}>
         <IconMessageCircleQuestion size={14} />
-        Question
+        {labels.caption}
       </div>
       {showNavigation && (
         <div className={classes.nav}>
@@ -39,18 +61,16 @@ export function QuestionHeader({
             onClick={onPrevious}
             disabled={!canGoPrev}
             className={classes.navButton}
-            aria-label="Previous question"
+            aria-label={labels.previous}
           >
             <IconChevronUp size={14} />
           </UnstyledButton>
-          <span>
-            {index} of {total}
-          </span>
+          <span>{labels.position(index, total)}</span>
           <UnstyledButton
             onClick={onNext}
             disabled={!canGoNext}
             className={classes.navButton}
-            aria-label="Next question"
+            aria-label={labels.next}
           >
             <IconChevronDown size={14} />
           </UnstyledButton>

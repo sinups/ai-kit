@@ -6,6 +6,13 @@ describe('utils/format-elapsed', () => {
     expect(formatElapsedTime(65_000)).toBe('1m 5s');
   });
 
+  it('formats a live elapsed time exactly like a duration from a second on', () => {
+    for (const ms of [1000, 45_000, 123_000, 3_725_000, 7_200_000]) {
+      expect(formatElapsedTime(ms)).toBe(formatDuration(ms));
+    }
+    expect(formatElapsedTime(3_725_000)).toBe('1h 2m');
+  });
+
   it('formats a duration with hours and milliseconds', () => {
     expect(formatDuration(400)).toBe('400ms');
     expect(formatDuration(-5)).toBe('0ms');

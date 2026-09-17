@@ -13,6 +13,15 @@ export type ModeOption = {
   description?: string;
 };
 
+export interface ModeSelectorLabels {
+  /** Accessible label of the trigger, `Select mode` by default */
+  trigger: string;
+}
+
+export const DEFAULT_MODE_SELECTOR_LABELS: ModeSelectorLabels = {
+  trigger: 'Select mode',
+};
+
 export interface ModeSelectorProps {
   modes: ModeOption[];
   /** Controlled selected mode id */
@@ -20,6 +29,8 @@ export interface ModeSelectorProps {
   /** Initial selected mode id in uncontrolled mode */
   defaultValue?: string;
   onChange?: (modeId: string) => void;
+  /** Overrides of the default English labels */
+  labels?: Partial<ModeSelectorLabels>;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -30,9 +41,11 @@ export const ModeSelector = memo(function ModeSelector({
   value,
   defaultValue,
   onChange,
+  labels: labelsProp,
   className,
   style,
 }: ModeSelectorProps) {
+  const labels = { ...DEFAULT_MODE_SELECTOR_LABELS, ...labelsProp };
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue);
   const activeId = isControlled ? value : internalValue;
@@ -62,7 +75,7 @@ export const ModeSelector = memo(function ModeSelector({
       className={cx(classes.trigger, className)}
       style={style}
       data-static={!hasMultiple || undefined}
-      aria-label={hasMultiple ? 'Select mode' : undefined}
+      aria-label={hasMultiple ? labels.trigger : undefined}
     >
       {ActiveIcon && <ActiveIcon className={classes.triggerIcon} />}
       <span className={classes.label}>{activeMode?.label}</span>

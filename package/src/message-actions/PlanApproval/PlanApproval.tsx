@@ -29,7 +29,7 @@ import {
   type PlanApproveOption,
 } from '../plan-approval';
 import type { PlanDecision } from '../types';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 import classes from './PlanApproval.module.css';
 
 export interface PlanApprovalLabels {
@@ -114,14 +114,14 @@ export const PlanApproval = memo(function PlanApproval({
   const [mode, setMode] = useState<Mode>('idle');
   const [note, setNote] = useState('');
   const [internalDecision, setInternalDecision] = useState<PlanDecision | null>(null);
-  const { pendingKey, error, run, clearError } = useAsyncAction(labels.error);
+  const { isPending: actionPending, error, tryRun, clearError } = usePendingActions(labels.error);
   const decision = decisionProp === undefined ? internalDecision : decisionProp;
-  const isPending = pendingKey !== null;
+  const isPending = actionPending();
   const summary = plan.summary?.trim() ?? '';
   const trimmedNote = note.trim();
 
   const decide = async (next: PlanDecision, action: () => void | Promise<void>) => {
-    const ok = await run(next.kind, action);
+    const ok = await tryRun(next.kind, action, { exclusive: true });
     if (ok) {
       setInternalDecision(next);
       setMode('idle');
@@ -144,7 +144,7 @@ export const PlanApproval = memo(function PlanApproval({
     <Button
       size="xs"
       leftSection={<IconCheck size={14} />}
-      loading={pendingKey === 'approved'}
+      loading={actionPending('approved')}
       disabled={isPending}
       onClick={() => approve(approveOptions?.[0]?.value)}
     >

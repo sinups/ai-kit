@@ -16,7 +16,7 @@ import { cx } from '../../utils/cx';
 import { getErrorMessage } from '../../utils/error-message';
 import { FeedbackForm, type FeedbackFormLabels } from '../FeedbackForm/FeedbackForm';
 import type { FeedbackDetails, FeedbackReason, MessageFeedbackValue } from '../types';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 import classes from './MessageActions.module.css';
 
 export interface MessageActionsLabels {
@@ -141,7 +141,7 @@ export const MessageActions = memo(function MessageActions({
   style,
 }: MessageActionsProps) {
   const labels = { ...DEFAULT_MESSAGE_ACTIONS_LABELS, ...labelsProp };
-  const { pendingKey, run } = useAsyncAction(labels.error);
+  const { isPending: actionPending, run } = usePendingActions(labels.error);
   const [internalFeedback, setInternalFeedback] = useState<MessageFeedbackValue | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
@@ -149,7 +149,7 @@ export const MessageActions = memo(function MessageActions({
   const rating =
     feedback === undefined || (feedbackOpen && internalFeedback) ? internalFeedback : feedback;
   const isUser = messageRole === 'user';
-  const locked = disabled || pendingKey !== null;
+  const locked = disabled || actionPending();
 
   const rate = async (value: MessageFeedbackValue) => {
     if (!onFeedback) {
@@ -257,7 +257,7 @@ export const MessageActions = memo(function MessageActions({
       className={cx(classes.root, className)}
       style={style}
       data-visibility={visibility}
-      data-active={feedbackOpen || pendingKey !== null || undefined}
+      data-active={feedbackOpen || actionPending() || undefined}
     >
       {timestamp && (
         <Text component="span" size="xs" c="dimmed" px={4}>
@@ -268,8 +268,8 @@ export const MessageActions = memo(function MessageActions({
         <ActionButton
           label={labels.rewind}
           disabled={locked}
-          loading={pendingKey === 'rewind'}
-          onClick={() => run('rewind', onRewind)}
+          loading={actionPending('rewind')}
+          onClick={() => run('rewind', onRewind, { exclusive: true })}
         >
           <IconArrowBackUp size={ICON_SIZE} />
         </ActionButton>
@@ -284,8 +284,8 @@ export const MessageActions = memo(function MessageActions({
         <ActionButton
           label={labels.retry}
           disabled={locked}
-          loading={pendingKey === 'retry'}
-          onClick={() => run('retry', onRetry)}
+          loading={actionPending('retry')}
+          onClick={() => run('retry', onRetry, { exclusive: true })}
         >
           <IconRefresh size={ICON_SIZE} />
         </ActionButton>
@@ -295,8 +295,8 @@ export const MessageActions = memo(function MessageActions({
         <ActionButton
           label={labels.branch}
           disabled={locked}
-          loading={pendingKey === 'branch'}
-          onClick={() => run('branch', onBranch)}
+          loading={actionPending('branch')}
+          onClick={() => run('branch', onBranch, { exclusive: true })}
         >
           <IconGitBranch size={ICON_SIZE} />
         </ActionButton>
