@@ -1,0 +1,82 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: rem(6px) rem(12px);
+  padding: rem(6px) rem(6px) rem(6px) rem(12px);
+  border-radius: var(--ae-input-radius);
+  background-color: var(--ae-bg-tertiary);
+}
+
+.text {
+  flex: 1 1 rem(240px);
+  min-width: 0;
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg);
+}
+
+.title {
+  font-weight: 500;
+}
+
+.description {
+  color: alpha(var(--ae-fg-muted), 0.8);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: rem(4px);
+}
+
+.action {
+  height: rem(24px);
+  padding: 0 rem(8px);
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--ae-font-size-xs);
+  font-weight: 500;
+  color: var(--ae-fg);
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
+
+  @mixin hover {
+    background-color: var(--ae-bg-secondary);
+  }
+
+  &[data-primary] {
+    background-color: var(--ae-primary);
+    color: var(--ae-send-button-color);
+
+    @mixin hover {
+      background-color: alpha(var(--ae-primary), 0.9);
+    }
+  }
+
+  &[data-muted] {
+    color: var(--ae-fg-muted);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(24px);
+  height: rem(24px);
+  flex-shrink: 0;
+  border-radius: rem(6px);
+  color: alpha(var(--ae-fg-muted), 0.7);
+
+  @mixin hover {
+    background-color: var(--ae-bg-secondary);
+    color: var(--ae-fg);
+  }
+}

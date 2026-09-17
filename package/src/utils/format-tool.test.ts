@@ -9,7 +9,7 @@ const part = (overrides: Partial<ToolPart> = {}): ToolPart => ({
   ...overrides,
 });
 
-describe('format-tool', () => {
+describe('utils/format-tool', () => {
   it('treats output-error as a finished tool', () => {
     expect(getLegacyToolState(part({ state: 'output-error' }))).toBe('result');
     expect(getToolStatus(part({ state: 'output-error' }), 'streaming')).toMatchObject({

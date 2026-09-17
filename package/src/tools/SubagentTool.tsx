@@ -120,3 +120,5 @@ export const SubagentTool = memo(function SubagentTool({
     </Box>
   );
 });
+
+SubagentTool.displayName = 'SubagentTool';

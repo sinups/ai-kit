@@ -1,0 +1,20 @@
+.details {
+  padding-inline-start: rem(20px);
+}
+
+.code {
+  max-height: rem(240px);
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--ae-font-size-xs);
+}
+
+.quote {
+  white-space: pre-wrap;
+}
+
+.note {
+  padding-inline-start: rem(10px);
+  border-inline-start: rem(2px) solid var(--ae-warning);
+}

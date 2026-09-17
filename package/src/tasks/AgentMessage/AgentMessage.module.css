@@ -1,0 +1,35 @@
+.root {
+  min-width: 0;
+}
+
+.agent {
+  max-width: 100%;
+  border-color: transparent;
+  background-color: var(--ae-bg-secondary);
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.toggle {
+  align-self: flex-start;
+}
+
+.chevron {
+  transition: transform 150ms ease;
+
+  &[data-expanded] {
+    transform: rotate(180deg);
+  }
+}

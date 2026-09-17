@@ -145,3 +145,13 @@ package/README.md
 
 site/next-env.d.ts
 ref/
+
+# Storybook
+storybook-static/
+storybook-static-base/
+storybook-visual-diff/
+package/__visual__/
+__diff_output__/
+__received_output__/
+
+.pack/

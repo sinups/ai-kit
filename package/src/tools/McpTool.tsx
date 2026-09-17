@@ -265,3 +265,5 @@ export const McpTool = memo(function McpTool({
     </Box>
   );
 }, areToolPropsEqual);
+
+McpTool.displayName = 'McpTool';

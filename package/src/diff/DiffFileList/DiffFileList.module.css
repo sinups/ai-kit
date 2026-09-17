@@ -1,0 +1,42 @@
+.node {
+  padding: rem(4px) var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  cursor: pointer;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &[data-selected] {
+    background-color: var(--mantine-primary-color-light);
+  }
+}
+
+.chevron {
+  & svg {
+    transition: transform 150ms ease;
+  }
+
+  &[data-expanded] svg {
+    transform: rotate(90deg);
+  }
+}
+
+.folderIcon {
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.viewed {
+  flex-shrink: 0;
+  color: var(--mantine-color-green-filled);
+}
+
+.ghostSelect {
+  color: var(--mantine-color-dimmed);
+  text-align: right;
+}
+
+.focusTarget:focus {
+  outline: none;
+}

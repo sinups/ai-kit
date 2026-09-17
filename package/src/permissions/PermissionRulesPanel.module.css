@@ -1,0 +1,40 @@
+.root {
+  min-width: 0;
+}
+
+.noShrink {
+  flex-shrink: 0;
+}
+
+.rule {
+  overflow-wrap: anywhere;
+}
+
+.denialTitle {
+  display: flex;
+  min-width: 0;
+}
+
+.input {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path {
+  overflow-wrap: anywhere;
+}
+
+.pathInput {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.scopeSelect {
+  width: rem(130px);
+  flex-shrink: 0;
+}
+
+.measured[data-measuring] {
+  visibility: hidden;
+}

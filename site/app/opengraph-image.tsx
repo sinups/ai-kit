@@ -10,7 +10,7 @@ export default async function Image() {
   return generateAgentElementsOg({
     title: "Build agent UIs faster",
     description:
-      "Open-source React components for Claude Code-style agent UIs. Chat, tool calls, plans, approvals, and live terminal output.",
+      "Open-source React components for coding-agent-style agent UIs. Chat, tool calls, plans, approvals, and live terminal output.",
     eyebrow: "DOCUMENTATION",
   });
 }

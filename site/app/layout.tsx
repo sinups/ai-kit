@@ -23,7 +23,7 @@ import { SITE_URL } from "@/app/lib/site";
 const SITE_NAME = "AI UI Kit";
 const SITE_TITLE = "AI UI Kit - Agent chat UI for Mantine apps";
 const SITE_DESCRIPTION =
-  "Open-source React components for Claude Code-style agent UIs, built on Mantine. Chat, tool calls, diffs, plans, approvals, clarifying questions and streaming states - drop-in for the Vercel AI SDK, MCP and any LLM app.";
+  "Open-source React components for coding-agent-style agent UIs, built on Mantine. Chat, tool calls, diffs, plans, approvals, clarifying questions and streaming states - drop-in for the Vercel AI SDK, MCP and any LLM app.";
 
 const KEYWORDS = [
   "agent UI",
@@ -41,8 +41,8 @@ const KEYWORDS = [
   "Next.js agent UI",
   "Vercel AI SDK",
   "AI SDK UIMessage",
-  "Claude Code UI",
-  "Claude tool call UI",
+  "Agent CLI UI",
+  "agent tool call UI",
   "tool approval UI",
   "clarifying question UI",
   "agent plan UI",

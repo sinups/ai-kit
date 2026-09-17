@@ -1,5 +1,5 @@
 import { COMPONENT_DOCS, componentIdFromName } from "@/app/data/component-docs";
-import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
+import { COMPONENT_GROUPS, SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 
 export interface SearchRecord {
   title: string;
@@ -21,7 +21,7 @@ export function buildSearchIndex(): SearchRecord[] {
 
   // Non-component pages (Home, Getting Started) — indexed with label only
   for (const section of SIDEBAR_SECTIONS) {
-    if (section.title === "Components") continue;
+    if (section.components) continue;
     for (const item of section.items) {
       records.push({
         title: item.label,
@@ -48,7 +48,9 @@ export function buildSearchIndex(): SearchRecord[] {
       title: label,
       description: `${label} component`,
       href: `/docs/${id}`,
-      section: "Components",
+      section:
+        COMPONENT_GROUPS.find((group) => group.components.includes(doc.name))?.title ??
+        "Components",
       content: `${label}\n${doc.name}\n${blockText}`,
     });
   }

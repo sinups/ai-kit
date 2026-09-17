@@ -1,0 +1,196 @@
+.viewport {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--ae-bg);
+  color: var(--ae-fg);
+}
+
+.mobileViewport {
+  max-width: rem(390px);
+  margin-inline: auto;
+  transform: translateZ(0);
+  box-shadow: 0 0 0 rem(1px) var(--ae-border);
+}
+
+.header {
+  flex-shrink: 0;
+  height: rem(48px);
+  padding-inline: rem(16px) rem(8px);
+
+  &[data-column] {
+    width: 100%;
+    max-width: var(--layout-column-width);
+    margin-inline: auto;
+    padding-inline: rem(16px) rem(8px);
+  }
+}
+
+.headerTitle {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  font-weight: 500;
+}
+
+.headerAction {
+  flex-shrink: 0;
+  color: var(--ae-fg-muted);
+}
+
+.chatColumn {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat {
+  flex: 1;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex: 0 0 rem(272px);
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--ae-bg-tertiary);
+  border-inline-end: rem(1px) solid var(--ae-border);
+}
+
+.sidebarTop {
+  display: flex;
+  flex-direction: column;
+  gap: rem(8px);
+  padding: rem(12px) rem(8px) rem(8px);
+}
+
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: rem(8px);
+  height: rem(28px);
+  padding-inline: rem(8px);
+  font-size: var(--ae-font-size-sm);
+  font-weight: 500;
+}
+
+.sidebarList {
+  flex: 1;
+  min-height: 0;
+  padding-inline: rem(8px);
+}
+
+.inspector {
+  --ae-panel-header-height: rem(48px);
+  --ae-panel-inset: var(--ae-column-pad-x);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background-color: var(--ae-bg);
+}
+
+.settingsSelect {
+  width: rem(160px);
+}
+
+.splitter {
+  flex: 1;
+  min-height: 0;
+}
+
+.splitterPane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: rem(32px);
+  background-color: var(--ae-bg-tertiary);
+}
+
+.hostPage {
+  display: flex;
+  flex-direction: column;
+  gap: rem(12px);
+  max-width: rem(640px);
+}
+
+.hostLine {
+  height: rem(10px);
+  border-radius: rem(5px);
+  background-color: var(--ae-muted);
+}
+
+.mobileViewport .settingsPage {
+  flex: 1;
+  min-height: 0;
+}
+
+.settingsStack {
+  display: flex;
+  flex-direction: column;
+  gap: rem(32px);
+  max-width: rem(720px);
+}
+
+.settingsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: rem(12px);
+}
+
+.settingsGroupHeading {
+  display: flex;
+  flex-direction: column;
+  gap: rem(4px);
+}
+
+.settingsGroupTitle {
+  margin: 0;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  font-weight: 500;
+}
+
+.settingsGroupDescription {
+  margin: 0;
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ae-bg-tertiary);
+}
+
+.drawerBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}

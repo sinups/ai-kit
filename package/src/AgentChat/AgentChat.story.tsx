@@ -1,7 +1,14 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Paper } from '@mantine/core';
+import { Box, Paper, Stack, Text } from '@mantine/core';
+import {
+  IconBug,
+  IconFileText,
+  IconGitPullRequest,
+  IconSparkles,
+  IconTestPipe,
+} from '@tabler/icons-react';
 import type { ChatMessage, ChatStatus } from '../types';
-import { conversation } from '../MessageList/fixtures';
+import { conversation, toolRunConversation } from '../MessageList/fixtures';
 import { AgentChat } from './AgentChat';
 
 export default { title: 'AgentChat' };
@@ -92,21 +99,6 @@ export function EmptyCentered() {
   );
 }
 
-export function EmptyCenteredSuggestionsBottom() {
-  const chat = useLocalChat([]);
-  return (
-    <Frame>
-      <AgentChat
-        {...chat}
-        emptyStatePosition="center"
-        emptySuggestionsPlacement="both"
-        emptySuggestionsPosition="bottom"
-        suggestions={SUGGESTIONS}
-      />
-    </Frame>
-  );
-}
-
 export function WithError() {
   const chat = useLocalChat(conversation.slice(0, 1));
   return (
@@ -115,3 +107,121 @@ export function WithError() {
     </Frame>
   );
 }
+
+export function FullPage() {
+  const chat = useLocalChat([...toolRunConversation, ...conversation]);
+  return (
+    <Paper withBorder radius={0} h="95vh">
+      <AgentChat {...chat} contentWidth={760} collapseToolRuns suggestions={SUGGESTIONS} />
+    </Paper>
+  );
+}
+
+export function FullWidth() {
+  const chat = useLocalChat(conversation);
+  return (
+    <Paper withBorder radius={0} h="95vh">
+      <AgentChat {...chat} contentWidth="100%" />
+    </Paper>
+  );
+}
+
+const WELCOME_ACTIONS = [
+  {
+    id: 'review',
+    label: 'Review my pull request',
+    value: 'Review the changes in my current branch.',
+    icon: <IconGitPullRequest />,
+    badge: 'New',
+  },
+  {
+    id: 'bug',
+    label: 'Find the cause of a bug',
+    value: 'Help me find why ',
+    icon: <IconBug />,
+  },
+  {
+    id: 'tests',
+    label: 'Write tests for a file',
+    value: 'Write tests for ',
+    icon: <IconTestPipe />,
+  },
+  {
+    id: 'docs',
+    label: 'Explain this repository',
+    value: 'Explain what this repository does.',
+    icon: <IconFileText />,
+  },
+];
+
+function WelcomeChat({ width, withInfoBar }: { width: number | string; withInfoBar?: boolean }) {
+  const chat = useLocalChat([]);
+  const [infoBarOpen, setInfoBarOpen] = useState(true);
+  return (
+    <AgentChat
+      {...chat}
+      contentWidth={width}
+      alignComposer
+      hideSuggestionsWhenNotEmpty
+      emptyState={{
+        avatar: <IconSparkles size={22} />,
+        title: 'How can I help you today?',
+        description: 'Ask about the code, fix a bug or plan a change.',
+        actions: WELCOME_ACTIONS,
+      }}
+      inputBarProps={
+        withInfoBar && infoBarOpen
+          ? {
+              infoBar: {
+                title: 'Qwen 2.5 Coder 32B is available',
+                description: 'Switch models in settings',
+                onClose: () => setInfoBarOpen(false),
+              },
+            }
+          : undefined
+      }
+    />
+  );
+}
+
+export function Welcome() {
+  return (
+    <Stack p="xl" gap="xs">
+      <Text size="xs" c="dimmed">
+        760px column
+      </Text>
+      <Paper withBorder radius={0} h="85vh">
+        <WelcomeChat width={760} withInfoBar />
+      </Paper>
+    </Stack>
+  );
+}
+
+Welcome.parameters = { docs: { source: { type: 'code' } } };
+
+export function WelcomeNarrow() {
+  return (
+    <Stack p="xl" gap="xs">
+      <Text size="xs" c="dimmed">
+        390px
+      </Text>
+      <Paper withBorder radius={0} h="85vh" w={390}>
+        <WelcomeChat width="100%" />
+      </Paper>
+    </Stack>
+  );
+}
+
+WelcomeNarrow.parameters = { docs: { source: { type: 'code' } } };
+
+export function WelcomeInWidget() {
+  return (
+    <Box p="xl">
+      <Paper withBorder radius="lg" shadow="md" w={380} h={620} style={{ overflow: 'hidden' }}>
+        <WelcomeChat width="100%" withInfoBar />
+      </Paper>
+    </Box>
+  );
+}
+
+WelcomeInWidget.parameters = { docs: { source: { type: 'code' } } };

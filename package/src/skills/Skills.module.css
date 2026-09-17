@@ -1,0 +1,145 @@
+.root {
+  width: 100%;
+  min-width: 0;
+}
+
+.tag {
+  flex-shrink: 0;
+  text-transform: none;
+}
+
+.card {
+  position: relative;
+  cursor: pointer;
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+
+  &:hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  &:has(.cardTitle:focus-visible) {
+    outline: rem(2px) solid var(--mantine-primary-color-filled);
+    outline-offset: rem(-2px);
+  }
+
+  &[data-selected] {
+    border-color: var(--ae-fg-subtle);
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+}
+
+.cardTitle {
+  min-width: 0;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+}
+
+.cardControl {
+  position: relative;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+}
+
+.cardIcon {
+  flex-shrink: 0;
+  color: var(--ae-fg-muted);
+}
+
+.cardDescription {
+  flex: 1;
+}
+
+.content {
+  min-width: 0;
+}
+
+.preview {
+  min-height: rem(160px);
+}
+
+.title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.path {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.editorInput {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.pickerCheck {
+  flex-shrink: 0;
+  margin-top: rem(4px);
+  opacity: 0;
+
+  &[data-visible] {
+    opacity: 1;
+  }
+}
+
+.panelCatalog {
+  padding: var(--mantine-spacing-sm);
+}
+
+.headerContainer {
+  container-type: inline-size;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'search'
+    'source';
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+
+  &[data-with-create] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'search create'
+      'source source';
+  }
+
+  @container (min-width: 35rem) {
+    grid-template-columns: minmax(0, 1fr) rem(180px);
+    grid-template-areas: 'search source';
+
+    &[data-with-create] {
+      grid-template-columns: minmax(0, 1fr) rem(180px) auto;
+      grid-template-areas: 'search source create';
+    }
+  }
+}
+
+.headerSearch {
+  grid-area: search;
+  min-width: 0;
+}
+
+.headerSource {
+  grid-area: source;
+}
+
+.headerCreate {
+  grid-area: create;
+}

@@ -1,0 +1,62 @@
+.root {
+  width: 100%;
+  min-width: 0;
+}
+
+.option {
+  border-radius: var(--mantine-radius-md);
+  outline: none;
+
+  &:focus-visible {
+    outline: rem(2px) solid var(--mantine-primary-color-filled);
+    outline-offset: rem(-2px);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+}
+
+.item {
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+}
+
+.itemBody {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.labelRow {
+  min-width: 0;
+  row-gap: var(--ae-space-3xs);
+
+  @container (max-width: 20rem) {
+    flex-wrap: wrap;
+  }
+}
+
+.title {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.badges {
+  flex-shrink: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.itemLabel {
+  min-width: 0;
+}
+
+.meta {
+  white-space: nowrap;
+}
+
+.measured[data-measuring] {
+  visibility: hidden;
+}

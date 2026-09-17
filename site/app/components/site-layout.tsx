@@ -19,7 +19,7 @@ function getPageTitle(pathname: string): string {
   for (const section of SIDEBAR_SECTIONS) {
     for (const item of section.items) {
       if (item.href === pathname) {
-        return section.title === "Components"
+        return section.components
           ? formatComponentLabel(item.label)
           : item.label;
       }
@@ -29,7 +29,7 @@ function getPageTitle(pathname: string): string {
   if (componentMatch) {
     const slug = componentMatch[1];
     for (const section of SIDEBAR_SECTIONS) {
-      if (section.title !== "Components") continue;
+      if (!section.components) continue;
       for (const item of section.items) {
         if (componentIdFromName(item.label) === slug) {
           return formatComponentLabel(item.label);

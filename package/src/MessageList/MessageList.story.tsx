@@ -1,10 +1,12 @@
 import React from 'react';
 import { Paper } from '@mantine/core';
 import {
+  compactedConversation,
   conversation,
   errorConversation,
   pendingConversation,
   streamingConversation,
+  toolRunConversation,
 } from './fixtures';
 import { MessageList } from './MessageList';
 
@@ -70,5 +72,76 @@ export function WithoutCopyToolbar() {
         initialScrollBehavior="top"
       />
     </Frame>
+  );
+}
+
+function WidthFrame({ width, children }: { width: number; children: React.ReactNode }) {
+  return (
+    <Paper
+      withBorder
+      radius={0}
+      style={{ height: '80vh', width, margin: '0 auto', display: 'flex', flexDirection: 'column' }}
+    >
+      {children}
+    </Paper>
+  );
+}
+
+export function CollapsedToolRunsNarrow() {
+  return (
+    <WidthFrame width={360}>
+      <MessageList
+        messages={toolRunConversation}
+        status="ready"
+        collapseToolRuns
+        initialScrollBehavior="top"
+      />
+    </WidthFrame>
+  );
+}
+
+export function CollapsedToolRunsWide() {
+  return (
+    <WidthFrame width={900}>
+      <MessageList
+        messages={toolRunConversation}
+        status="ready"
+        collapseToolRuns
+        initialScrollBehavior="top"
+      />
+    </WidthFrame>
+  );
+}
+
+export function CollapsedToolRunStreaming() {
+  const [first] = toolRunConversation;
+  const assistant = toolRunConversation[1];
+  const parts = assistant.parts
+    .slice(0, 4)
+    .map((part, index) => (index === 3 ? { ...part, state: 'input-available' } : part));
+  return (
+    <WidthFrame width={520}>
+      <MessageList
+        messages={[first, { ...assistant, parts }]}
+        status="streaming"
+        collapseToolRuns
+      />
+    </WidthFrame>
+  );
+}
+
+export function CompactionNarrow() {
+  return (
+    <WidthFrame width={360}>
+      <MessageList messages={compactedConversation} status="ready" initialScrollBehavior="top" />
+    </WidthFrame>
+  );
+}
+
+export function CompactionWide() {
+  return (
+    <WidthFrame width={900}>
+      <MessageList messages={compactedConversation} status="ready" initialScrollBehavior="top" />
+    </WidthFrame>
   );
 }

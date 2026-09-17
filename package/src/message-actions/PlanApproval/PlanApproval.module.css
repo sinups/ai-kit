@@ -1,0 +1,17 @@
+.spoilerControl {
+  font-size: var(--ae-font-size-sm);
+}
+
+.note {
+  padding-inline-start: rem(10px);
+  border-inline-start: rem(2px) solid var(--ae-info);
+
+  &[data-tone='danger'] {
+    border-inline-start-color: var(--ae-danger);
+  }
+}
+
+.noteText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

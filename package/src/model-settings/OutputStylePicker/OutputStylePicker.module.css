@@ -1,0 +1,17 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  padding: var(--mantine-spacing-sm);
+
+  &[data-checked] {
+    border-color: var(--mantine-primary-color-filled);
+  }
+}
+
+.example {
+  white-space: pre-wrap;
+  border-inline-start: rem(2px) solid var(--mantine-color-default-border);
+  padding-inline-start: var(--mantine-spacing-xs);
+}

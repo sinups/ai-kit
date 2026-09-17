@@ -78,3 +78,15 @@
     background-color: var(--ae-diff-removed-highlight);
   }
 }
+
+.root[data-wrap] {
+  overflow-x: visible;
+
+  & .line {
+    white-space: pre-wrap;
+  }
+
+  & .content {
+    overflow-wrap: anywhere;
+  }
+}

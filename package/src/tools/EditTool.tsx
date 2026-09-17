@@ -5,6 +5,7 @@ import { useToolComplete } from '../hooks/use-tool-complete';
 import { FileExtIcon } from '../icons/FileExtIcon';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
+import type { SyntaxHighlighter } from '../utils/highlighter';
 import type { StepState, ToolCallStep } from '../types/timeline';
 import { cx } from '../utils/cx';
 import { getPartInput, getPartOutput } from '../utils/format-tool';
@@ -26,6 +27,12 @@ export interface EditToolDiffCardProps {
   output?: Record<string, unknown>;
   /** Clamp the diff to 260px with a "Show more" toggle */
   isCollapsible?: boolean;
+  /** Highlights the changed words inside replaced lines, `false` by default */
+  wordHighlight?: boolean;
+  /** Wraps long diff lines instead of scrolling horizontally, `false` by default */
+  wrapLines?: boolean;
+  /** Colors the diff with this highlighter, the language comes from the file extension */
+  highlighter?: SyntaxHighlighter;
   /** When set, renders `ToolApprovalFooter` with approve/reject buttons under the card */
   approval?: ToolApproval;
   /** Class name added to the root element */
@@ -42,6 +49,9 @@ export function EditToolDiffCard({
   input,
   output,
   isCollapsible = false,
+  wordHighlight = false,
+  wrapLines = false,
+  highlighter,
   approval,
   className,
   style,
@@ -123,7 +133,14 @@ export function EditToolDiffCard({
       {diffContents ? (
         <div className={classes.diffWrap}>
           <div className={classes.clamp} data-collapsed={collapsed || undefined}>
-            <DiffView oldText={diffContents.oldContents} newText={diffContents.newContents} />
+            <DiffView
+              oldText={diffContents.oldContents}
+              newText={diffContents.newContents}
+              wordHighlight={wordHighlight}
+              wrapLines={wrapLines}
+              highlighter={highlighter}
+              language={fileName?.split('.').pop()}
+            />
           </div>
           {isCollapsible && (
             <UnstyledButton
@@ -141,7 +158,13 @@ export function EditToolDiffCard({
           )}
         </div>
       ) : null}
-      {approval && <ToolApprovalFooter isPending={isPending} {...approval} />}
+      {approval && (
+        <ToolApprovalFooter
+          isPending={isPending}
+          isComplete={Boolean(approval.hideWhenComplete) && state === 'complete'}
+          {...approval}
+        />
+      )}
     </Box>
   );
 }
@@ -151,6 +174,12 @@ export interface EditToolProps {
   part: ToolPart;
   /** Clamp the diff to 260px with a "Show more" toggle, `false` by default */
   isCollapsible?: boolean;
+  /** Highlights the changed words inside replaced lines, `false` by default */
+  wordHighlight?: boolean;
+  /** Wraps long diff lines instead of scrolling horizontally, `false` by default */
+  wrapLines?: boolean;
+  /** Colors the diff with this highlighter, the language comes from the file extension */
+  highlighter?: SyntaxHighlighter;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -161,6 +190,9 @@ export interface EditToolProps {
 export const EditTool = memo(function EditTool({
   part,
   isCollapsible = false,
+  wordHighlight = false,
+  wrapLines = false,
+  highlighter,
   className,
   style,
 }: EditToolProps) {
@@ -183,9 +215,14 @@ export const EditTool = memo(function EditTool({
       input={isStreaming ? undefined : input}
       output={!isStreaming && output && typeof output === 'object' ? output : undefined}
       isCollapsible={isCollapsible}
+      wordHighlight={wordHighlight}
+      wrapLines={wrapLines}
+      highlighter={highlighter}
       approval={approval}
       className={className}
       style={style}
     />
   );
 });
+
+EditTool.displayName = 'EditTool';

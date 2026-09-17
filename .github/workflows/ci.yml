@@ -23,6 +23,8 @@ jobs:
         run: yarn install --immutable
       - name: Build package
         run: yarn build
+      - name: Check bundle size
+        run: yarn size
       - name: Test
         run: yarn test
       - name: Export docs site

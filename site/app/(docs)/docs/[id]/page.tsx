@@ -8,6 +8,8 @@ import {
 } from "@/app/data/component-docs";
 import { DocCodeBlock } from "@/app/components/doc-code-block";
 import { ComponentPreview } from "@/app/components/component-preview";
+import { COMPONENT_NAV_ITEMS, SIDEBAR_SECTIONS } from "@/app/data/sidebar";
+import Link from "next/link";
 
 /**
  * Per-component overrides for the detail preview pane height.
@@ -21,7 +23,117 @@ const PREVIEW_HEIGHTS: Record<string, string> = {
   "attachment-button": "140px",
   "spiral-loader": "140px",
   "text-shimmer": "140px",
+  wizard: "560px",
+  "confirm-dialog": "200px",
+  "settings-layout": "600px",
+  "master-detail": "540px",
+  "entity-list": "560px",
+  "command-palette": "220px",
+  "status-badge": "220px",
+  "shortcut-hint": "240px",
+  "key-value-editor": "520px",
+  "schema-view": "620px",
+  "mcp-settings-panel": "680px",
+  "mcp-server-list": "620px",
+  "mcp-server-detail": "660px",
+  "mcp-tool-detail": "660px",
+  "mcp-server-wizard": "640px",
+  "permission-rules-panel": "680px",
+  "add-permission-rule-wizard": "220px",
+  "permission-rule-input": "520px",
+  "permission-mode-selector": "260px",
+  "hooks-panel": "680px",
+  "hook-wizard": "220px",
+  "agents-settings-panel": "680px",
+  "agent-list": "560px",
+  "agent-detail": "640px",
+  "agent-editor": "680px",
+  "agent-create-wizard": "220px",
+  "tool-selector": "560px",
+  "agent-avatar": "240px",
+  "skills-settings-panel": "680px",
+  "skill-catalog": "560px",
+  "skill-detail": "620px",
+  "skill-editor": "640px",
+  "skill-picker": "320px",
+  "session-list": "620px",
+  "session-preview": "600px",
+  "export-dialog": "200px",
+  "message-actions": "300px",
+  "edit-message-composer": "240px",
+  "feedback-form": "400px",
+  "plan-approval": "520px",
+  "rewind-dialog": "200px",
+  "tool-result-notice": "360px",
+  "memory-notice": "300px",
+  "command-chip": "200px",
+  "commands-help": "560px",
+  "model-settings-panel": "680px",
+  "effort-selector": "360px",
+  "output-style-picker": "520px",
+  "usage-panel": "720px",
+  "status-panel": "640px",
+  "background-tasks-panel": "680px",
+  "task-list": "640px",
+  "task-detail": "640px",
+  "agent-tree": "360px",
+  "task-status-pill": "200px",
+  "diff-review": "720px",
+  "chat-launcher": "660px",
+  "diff-file-list": "560px",
+  "diff-file-view": "720px",
 };
+
+/**
+ * Component ids whose previews are taller panels: centered while they fit,
+ * scrolled from the top when they grow (wizard steps, opened sections).
+ */
+const PANEL_PREVIEW_IDS = new Set<string>([
+  "wizard",
+  "settings-layout",
+  "master-detail",
+  "entity-list",
+  "key-value-editor",
+  "schema-view",
+  "mcp-settings-panel",
+  "mcp-server-list",
+  "mcp-server-detail",
+  "mcp-tool-detail",
+  "mcp-server-wizard",
+  "permission-rules-panel",
+  "permission-rule-input",
+  "hooks-panel",
+  "agents-settings-panel",
+  "agent-list",
+  "agent-detail",
+  "agent-editor",
+  "tool-selector",
+  "skills-settings-panel",
+  "skill-catalog",
+  "skill-detail",
+  "skill-editor",
+  "session-list",
+  "session-preview",
+  "message-actions",
+  "feedback-form",
+  "plan-approval",
+  "tool-result-notice",
+  "memory-notice",
+  "commands-help",
+  "model-settings-panel",
+  "effort-selector",
+  "output-style-picker",
+  "usage-panel",
+  "status-panel",
+  "background-tasks-panel",
+  "task-list",
+  "task-detail",
+  "agent-tree",
+  "diff-review",
+  "diff-file-list",
+  "diff-file-view",
+  "chat-launcher",
+]);
 
 /**
  * Component ids whose preview should be horizontally centered rather than
@@ -61,6 +173,40 @@ const EXAMPLE_HEIGHTS: Record<string, string> = {
   "FileAttachment/basic": "220px",
   "FileAttachment/image": "220px",
   "FileAttachment/removable": "220px",
+  "InputBar/full-width": "220px",
+  "ContextUsage/in-input-bar": "320px",
+  "ErrorMessage/basic": "220px",
+  "ErrorMessage/retry": "220px",
+  "ErrorMessage/limit": "220px",
+  "AgentStatus/paused": "160px",
+  "CompactBoundary/plain": "220px",
+  "Wizard/modal": "200px",
+  "SettingsLayout/rows": "520px",
+  "McpServerList/states": "380px",
+  "McpServerWizard/modal": "200px",
+  "KeyValueEditor/headers": "440px",
+  "PermissionModeSelector/select": "300px",
+  "ConfirmDialog/rejected": "200px",
+  "CommandPalette/recent": "220px",
+  "AgentList/states": "380px",
+  "SkillCatalog/states": "380px",
+  "AgentCreateWizard/manual": "220px",
+  "AgentEditor/narrow": "680px",
+  "SkillCatalog/grid": "520px",
+  "SessionList/states": "380px",
+  "SessionList/history": "680px",
+  "SessionList/history-narrow": "680px",
+  "MessageActions/message-list": "600px",
+  "MessageActions/message-list-narrow": "600px",
+  "CommandsHelp/narrow": "560px",
+  "CommandsHelp/palette": "200px",
+  "EffortSelector/inline": "160px",
+  "OutputStylePicker/narrow": "560px",
+  "UsagePanel/states": "420px",
+  "BackgroundTasksPanel/drawer": "160px",
+  "TaskList/states": "420px",
+  "DiffReview/modal": "200px",
+  "DiffFileView/stubs": "560px",
 };
 
 /**
@@ -71,6 +217,7 @@ const EXAMPLE_HEIGHTS: Record<string, string> = {
 const FULLWIDTH_EXAMPLE_IDS = new Set<string>([
   "ModelPicker/in-input-bar",
   "ModeSelector/in-input-bar",
+  "ContextUsage/in-input-bar",
 ]);
 
 /**
@@ -92,6 +239,9 @@ const CHAT_WIDTH_PREVIEW_IDS = new Set<string>([
   "generic-tool",
   "error-message",
   "user-message",
+  "tool-approval-footer",
+  "agent-status",
+  "compact-boundary",
 ]);
 import { ComponentExamplePreview } from "@/app/components/component-example-preview";
 import { DocNavButton } from "@/app/components/doc-nav-button";
@@ -181,10 +331,7 @@ export default async function ComponentPage({
   }
 
   const apiProps = getComponentProps(component.name);
-  const docItems = COMPONENT_DOCS.map((item) => ({
-    label: item.name,
-    href: `/docs/${componentIdFromName(item.name)}`,
-  }));
+  const docItems = COMPONENT_NAV_ITEMS;
   const currentHref = `/docs/${componentIdFromName(component.name)}`;
   const currentIndex = docItems.findIndex((item) => item.href === currentHref);
   const previousHref =
@@ -197,6 +344,10 @@ export default async function ComponentPage({
     usageBlock?.content,
   );
   const hasSource = Boolean(getPrimarySourcePath(normalizedId));
+  const group = SIDEBAR_SECTIONS.find(
+    (section) => section.components && section.items.some((item) => item.href === currentHref),
+  );
+  const related = (group?.items ?? []).filter((item) => item.href !== currentHref);
   const sections = [
     { id: "overview", label: component.name },
     { id: "installation", label: "Getting Started" },
@@ -207,6 +358,7 @@ export default async function ComponentPage({
     ...(apiProps && apiProps.length > 0
       ? [{ id: "api", label: "API reference" }]
       : []),
+    ...(related.length > 0 ? [{ id: "related", label: "Related components" }] : []),
   ];
 
   return (
@@ -227,7 +379,7 @@ export default async function ComponentPage({
                 code: block.code,
               }))}
               apiProps={apiProps}
-              installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks"
+              installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react"
               previousHref={resolvedPreviousHref}
               nextHref={nextHref}
             />
@@ -256,8 +408,10 @@ export default async function ComponentPage({
               : FULLBLEED_PREVIEW_IDS.has(normalizedId)
                 ? "!p-0 !items-stretch [&_[data-slot=preview]]:h-full"
                 : CHAT_WIDTH_PREVIEW_IDS.has(normalizedId)
-                  ? "[align-items:safe_center] [&_[data-slot=preview]]:!max-w-an [&_[data-slot=preview]]:!mx-auto"
-                  : undefined
+                  ? "[align-items:safe_center]! [&_[data-slot=preview]]:!max-w-an [&_[data-slot=preview]]:!mx-auto"
+                  : PANEL_PREVIEW_IDS.has(normalizedId)
+                    ? "[align-items:safe_center]! !p-4"
+                    : undefined
           }
         />
         <div id="installation" className="space-y-3 scroll-mt-8">
@@ -312,8 +466,10 @@ export default async function ComponentPage({
                             : FULLBLEED_PREVIEW_IDS.has(normalizedId)
                               ? "!p-0 !items-stretch [&_[data-slot=preview]]:h-full"
                               : CHAT_WIDTH_PREVIEW_IDS.has(normalizedId)
-                                ? "[align-items:safe_center] [&_[data-slot=preview]]:!max-w-an [&_[data-slot=preview]]:!mx-auto"
-                                : undefined
+                                ? "[align-items:safe_center]! [&_[data-slot=preview]]:!max-w-an [&_[data-slot=preview]]:!mx-auto"
+                                : PANEL_PREVIEW_IDS.has(normalizedId)
+                                  ? "[align-items:safe_center]! !p-4"
+                                  : undefined
                       }
                     />
                   );
@@ -366,10 +522,37 @@ export default async function ComponentPage({
                     <div className="text-muted-foreground">
                       {prop.required ? "Yes" : "No"}
                     </div>
+                    {prop.description && (
+                      <div className="col-span-3 -mt-2 text-muted-foreground text-pretty">
+                        {prop.description}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
+          </div>
+        )}
+        {related.length > 0 && group && (
+          <div id="related" className="space-y-3 scroll-mt-8">
+            <div className="text-base font-medium text-an-foreground">
+              Related components
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Other components in the {group.title} group.
+            </p>
+            <ul className="flex flex-wrap gap-2">
+              {related.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="inline-flex h-7 items-center rounded-md border border-border px-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

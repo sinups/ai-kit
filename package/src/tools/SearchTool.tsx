@@ -171,3 +171,5 @@ export const SearchTool = memo(function SearchTool({
     />
   );
 });
+
+SearchTool.displayName = 'SearchTool';

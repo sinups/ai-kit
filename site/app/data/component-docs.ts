@@ -1,3 +1,26 @@
+import {
+  AGENTS_COMPONENT_DOCS,
+  SKILLS_COMPONENT_DOCS,
+} from "@/app/data/component-docs-agents";
+import {
+  CHAT_ACTIONS_COMPONENT_DOCS,
+  HELP_COMPONENT_DOCS,
+  SESSIONS_COMPONENT_DOCS,
+} from "@/app/data/component-docs-sessions";
+import {
+  DIFF_COMPONENT_DOCS,
+  SETTINGS_COMPONENT_DOCS,
+  TASKS_COMPONENT_DOCS,
+} from "@/app/data/component-docs-workspace";
+import { CHAT_EXTRA_COMPONENT_DOCS } from "@/app/data/component-docs-chat";
+import { CONFIG_EXTRA_COMPONENT_DOCS } from "@/app/data/component-docs-config";
+import { PRIMITIVE_COMPONENT_DOCS } from "@/app/data/component-docs-primitives";
+import {
+  HOOKS_COMPONENT_DOCS,
+  MCP_COMPONENT_DOCS,
+  PERMISSIONS_COMPONENT_DOCS,
+} from "@/app/data/component-docs-settings";
+
 export type ComponentBlockType = "code" | "usage" | "example";
 
 export type ComponentTextBlock = {
@@ -60,10 +83,15 @@ export const COMPONENT_IMPORT_PATH: Record<string, string> = {
   GenericTool: "@sinups/ai-kit",
   QuestionTool:
     "@sinups/ai-kit",
+  ElicitationForm: "@sinups/ai-kit",
+  ToolApprovalFooter: "@sinups/ai-kit",
+  AgentStatus: "@sinups/ai-kit",
+  ContextUsage: "@sinups/ai-kit",
+  CompactBoundary: "@sinups/ai-kit",
 };
 
 const defaultCodeSnippet = (name: string) => {
-  const path = COMPONENT_IMPORT_PATH[name] ?? `@/components/agent-elements/${componentIdFromName(name)}`;
+  const path = COMPONENT_IMPORT_PATH[name] ?? "@sinups/ai-kit";
   return `import { ${name} } from "${path}";\n\nexport function Example() {\n  return (\n    <${name} />\n  );\n}`;
 };
 
@@ -97,6 +125,7 @@ export const COMPONENT_DOCS: ComponentDoc[] = [
         type: "code",
         title: "Code",
         content: `import { AgentChat } from "@sinups/ai-kit";
+import { IconGitPullRequest, IconTestPipe } from "@tabler/icons-react";
 
 const messages = [
   {
@@ -106,9 +135,9 @@ const messages = [
   },
 ];
 
-const promptSuggestions = [
-  { id: "write", label: "Write", value: "Write release notes for this change." },
-  { id: "plan", label: "Plan", value: "Create a rollout plan in 5 steps." },
+const welcomeActions = [
+  { id: "review", label: "Review my pull request", value: "Review the changes in my branch.", icon: <IconGitPullRequest /> },
+  { id: "tests", label: "Write tests for a file", value: "Write tests for ", icon: <IconTestPipe /> },
 ];
 
 export function Example() {
@@ -120,76 +149,21 @@ export function Example() {
         onSend={() => {}}
         onStop={() => {}}
         showCopyToolbar
-        emptyStatePosition="center"
-        emptySuggestionsPlacement="empty"
-        emptySuggestionsPosition="bottom"
-        suggestions={{ items: promptSuggestions }}
+        emptyState={{
+          layout: "welcome",
+          title: "How can I help you today?",
+          actions: welcomeActions,
+        }}
       />
     </div>
   );
 }`,
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type AgentChatProps = {
-  messages: ChatMessage[];
-  onSend: (message: { role: "user"; content: string }) => void;
-  status: ChatStatus;
-  onStop: () => void;
-  error?: Error;
-
-  classNames?: Partial<{
-    root: string;
-    inputBar: string;
-    userMessage: string;
-  }>;
-  slots?: Partial<{
-    InputBar: React.ComponentType<any>;
-    UserMessage: React.ComponentType<any>;
-    ToolRenderer: React.ComponentType<any>;
-  }>;
-  toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
-  showCopyToolbar?: boolean;
-
-  attachments?: {
-    onAttach?: () => void;
-    images?: { id: string; filename: string; url: string; size?: number }[];
-    files?: { id: string; filename: string; size?: number }[];
-    onRemoveImage?: (id: string) => void;
-    onRemoveFile?: (id: string) => void;
-    onPaste?: (e: React.ClipboardEvent) => void;
-    isDragOver?: boolean;
-  };
-
-  suggestions?:
-    | SuggestionItem[]
-    | { items: SuggestionItem[]; className?: string; itemClassName?: string };
-
-  emptyStatePosition?: "default" | "center";
-  emptySuggestionsPlacement?: "input" | "empty" | "both";
-  emptySuggestionsPosition?: "top" | "bottom";
-
-  questionTool?: {
-    submitLabel?: string;
-    skipLabel?: string;
-    allowSkip?: boolean;
-    onAnswer?: (payload: {
-      toolCallId?: string;
-      question: QuestionConfig;
-      answer: QuestionAnswer;
-    }) => void;
-  };
-
-  className?: string;
-  style?: React.CSSProperties;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
-          "Create a full chat surface with messages, status, and send/stop handlers. Add `attachments` to wire file/image context, `questionTool` to handle Question tool answers, and `showCopyToolbar` for text copy actions. Use `emptyStatePosition`, `emptySuggestionsPlacement`, and `emptySuggestionsPosition` to shape empty-state behavior. Get started at [21st.dev/agents/docs/get-started](https://21st.dev/agents/docs/get-started).",
+          "Create a full chat surface with messages, status, and send/stop handlers. Add `attachments` to wire file/image context, `questionTool` to handle Question tool answers, and `showCopyToolbar` for text copy actions. The same component works as a narrow side widget and as a full-page chat: set `contentWidth` (for example `760` or `'100%'`) so the transcript and composer use the available width, and `collapseToolRuns` to keep long tool sequences compact. Use `emptyState` with `layout: 'welcome'` for an empty chat: avatar, greeting and starter actions placed in the free space above the composer, a little below the middle, and close to the composer in containers narrower than 600px. Suggestions always sit above the composer (`emptySuggestionsPosition='bottom'` is deprecated and behaves as `'top'`).",
       },
       {
         type: "example",
@@ -216,17 +190,29 @@ export function Example() {
       },
       {
         type: "example",
-        title: "Empty centered + suggestions",
-        previewId: "AgentChat/empty-centered-suggestions",
-        code: `<AgentChat
-  messages={[]}
-  status="ready"
-  onSend={() => {}}
-  onStop={() => {}}
-  emptyStatePosition="center"
-  emptySuggestionsPlacement="empty"
-  emptySuggestionsPosition="bottom"
-  suggestions={{ items: promptSuggestions }}
+        title: "Welcome empty state",
+        previewId: "AgentChat/welcome",
+        code: `const actions = [
+  { id: "review", label: "Review my pull request", value: "Review the changes in my current branch.", icon: <IconGitPullRequest />, badge: "New" },
+  { id: "bug", label: "Find the cause of a bug", value: "Help me find why ", icon: <IconBug /> },
+  { id: "tests", label: "Write tests for a file", value: "Write tests for ", icon: <IconTestPipe /> },
+];
+
+<AgentChat
+  messages={messages}
+  status={status}
+  onSend={send}
+  onStop={stop}
+  contentWidth="100%"
+  alignComposer
+  hideSuggestionsWhenNotEmpty
+  emptyState={{
+    layout: "welcome",
+    avatar: <IconSparkles size={22} />,
+    title: "How can I help you today?",
+    description: "Ask about the code, fix a bug or plan a change.",
+    actions,
+  }}
 />`,
       },
       {
@@ -259,6 +245,19 @@ export function Example() {
   showCopyToolbar
 />`,
       },
+      {
+        type: "example",
+        title: "Full-page chat",
+        previewId: "AgentChat/full-page",
+        code: `<AgentChat
+  messages={messages}
+  status={status}
+  onSend={handleSend}
+  onStop={handleStop}
+  contentWidth={760}
+  collapseToolRuns
+/>`,
+      },
     ],
   },
   {
@@ -289,28 +288,10 @@ export function Example() {
 }`,
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type MessageListProps = {
-  messages: ChatMessage[];
-  status: ChatStatus;
-  className?: string;
-  showCopyToolbar?: boolean;
-  slots?: {
-    UserMessage?: React.ComponentType<{ message: ChatMessage; className?: string }>;
-    ToolRenderer?: React.ComponentType<ToolRendererProps>;
-  };
-  classNames?: {
-    userMessage?: string;
-  };
-  toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
-          "Render the full transcript from ChatMessage[]. Use showCopyToolbar for user/assistant text copy, className for container sizing, and slots/classNames/toolRenderers for custom rendering.",
+          "Render the full transcript from ChatMessage[]. Use showCopyToolbar for user/assistant text copy, className for container sizing, and slots/classNames/toolRenderers for custom rendering. contentWidth sets the column width: keep the 420px default in a side widget, pass 720 or \"100%\" in a full-page chat. collapseToolRuns folds three or more consecutive read and search calls into one summary row, and a compaction part renders a CompactBoundary divider.",
       },
       {
         type: "example",
@@ -376,6 +357,39 @@ export function Example() {
 
 <MessageList messages={messages} status="ready" />`,
       },
+      {
+        type: "example",
+        title: "Collapsed tool runs",
+        previewId: "MessageList/tool-runs",
+        code: `<MessageList
+  messages={messages}
+  status="ready"
+  collapseToolRuns
+  contentWidth={720}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Compacted history",
+        previewId: "MessageList/compaction",
+        code: `const messages: ChatMessage[] = [
+  {
+    id: "cmp-s1",
+    role: "system",
+    parts: [
+      {
+        type: "compaction",
+        tokensBefore: 182_400,
+        tokensAfter: 12_300,
+        summary: "- Migrated the upload client\\n- Tests for backoff are green",
+      },
+    ],
+  },
+  { id: "cmp-u1", role: "user", parts: [{ type: "text", text: "Keep 5 attempts and ship it." }] },
+];
+
+<MessageList messages={messages} status="ready" contentWidth={720} />`,
+      },
     ],
   },
   {
@@ -385,65 +399,6 @@ export function Example() {
         type: "code",
         title: "Code",
         content: `import { InputBar } from "@sinups/ai-kit";\n\nexport function Example() {\n  return (\n    <InputBar\n      onSend={({ content }) => console.log(content)}\n      status=\"ready\"\n      onStop={() => {}}\n    />\n  );\n}`,
-      },
-      {
-        type: "code",
-        title: "API Reference",
-        content: `type InputBarProps = {
-  onSend: (message: { role: "user"; content: string }) => void;
-  status: ChatStatus;
-  onStop: () => void;
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-  autoFocus?: boolean;
-
-  value?: string;
-  onChange?: (value: string) => void;
-
-  onAttach?: () => void;
-  attachedImages?: AttachedImage[];
-  attachedFiles?: AttachedFile[];
-  onRemoveImage?: (id: string) => void;
-  onRemoveFile?: (id: string) => void;
-  onPaste?: (e: React.ClipboardEvent) => void;
-  isDragOver?: boolean;
-
-  suggestions?: InputSuggestions;
-
-  typingAnimation?: {
-    text: string;
-    duration: number;
-    image?: string;
-    isActive: boolean;
-    onComplete: () => void;
-  };
-
-  infoBar?: {
-    title?: string;
-    description?: string;
-    onClose?: () => void;
-    position?: "top" | "bottom";
-  };
-
-  questionBar?: {
-    id: string;
-    questions: QuestionConfig[];
-    questionIndex?: number;
-    totalQuestions?: number;
-    onPreviousQuestion?: () => void;
-    onNextQuestion?: () => void;
-    submitLabel?: string;
-    skipLabel?: string;
-    allowSkip?: boolean;
-    onSubmit: (answer: QuestionAnswer) => void;
-    onSkip?: () => void;
-  };
-
-  // Toolbar composition slots. Drop any ReactNode (model picker, mode selector, custom toggles, …)
-  leftActions?: React.ReactNode;
-  rightActions?: React.ReactNode;
-};`,
       },
       {
         type: "usage",
@@ -467,7 +422,7 @@ export function Example() {
         type: "example",
         title: "Focus outline",
         previewId: "InputBar/outline",
-        code: `<div style={{ "--an-input-focus-outline": "#0ea5e9" } as React.CSSProperties }>\n  <InputBar\n    onSend={handleSend}\n    status=\"ready\"\n    onStop={handleStop}\n    autoFocus\n  />\n</div>`,
+        code: `<div style={{ "--ae-input-focus-outline": "var(--mantine-color-cyan-5)" } as React.CSSProperties }>\n  <InputBar\n    onSend={handleSend}\n    status=\"ready\"\n    onStop={handleStop}\n    autoFocus\n  />\n</div>`,
       },
       {
         type: "example",
@@ -491,7 +446,53 @@ export function Example() {
         type: "example",
         title: "Toolbar actions (model + mode)",
         previewId: "InputBar/toolbar-actions",
-        code: `import { InputBar } from "@sinups/ai-kit";\nimport { ModelPicker } from "@sinups/ai-kit";\nimport { ModeSelector } from "@sinups/ai-kit";\nimport { IconCursor, IconBulb } from "@tabler/icons-react";\n\nconst models = [\n  { id: "sonnet", name: "Sonnet", version: "4.6" },\n  { id: "opus", name: "Opus", version: "4.7" },\n];\n\nconst modes = [\n  { id: "agent", label: "Agent", icon: IconCursor },\n  { id: "plan", label: "Plan", icon: IconBulb },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  leftActions={\n    <>\n      <ModeSelector modes={modes} defaultValue=\"agent\" />\n      <ModelPicker models={models} defaultValue=\"sonnet\" />\n    </>\n  }\n/>`,
+        code: `import { InputBar } from "@sinups/ai-kit";\nimport { ModelPicker } from "@sinups/ai-kit";\nimport { ModeSelector } from "@sinups/ai-kit";\nimport { IconCursor, IconBulb } from "@tabler/icons-react";\n\nconst models = [\n  { id: "llama-3.3-70b", name: "Llama 3.3", version: "70B" },\n  { id: "qwen-2.5-coder-32b", name: "Qwen 2.5 Coder", version: "32B" },\n];\n\nconst modes = [\n  { id: "agent", label: "Agent", icon: IconCursor },\n  { id: "plan", label: "Plan", icon: IconBulb },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  leftActions={\n    <>\n      <ModeSelector modes={modes} defaultValue=\"agent\" />\n      <ModelPicker models={models} defaultValue=\"llama-3.3-70b\" />\n    </>\n  }\n/>`,
+      },
+      {
+        type: "example",
+        title: "Commands and mentions",
+        previewId: "InputBar/completions",
+        code: `const completions: CompletionSource[] = [
+  {
+    trigger: "/",
+    items: [
+      { value: "review", label: "/review", description: "Review the current diff", group: "Commands" },
+      { value: "compact", label: "/compact", description: "Summarize the conversation", group: "Commands" },
+    ],
+  },
+  { trigger: "@", items: async (query) => searchPeople(query) },
+];
+
+<InputBar
+  onSend={handleSend}
+  status="ready"
+  onStop={handleStop}
+  completions={completions}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Message queue",
+        previewId: "InputBar/queue",
+        code: `<InputBar
+  status="streaming"
+  onSend={handleSend}
+  onStop={handleStop}
+  onQueue={({ content }) => setQueue((prev) => [...prev, { id: crypto.randomUUID(), content }])}
+  queuedMessages={queue}
+  onRemoveQueued={(id) => setQueue((prev) => prev.filter((item) => item.id !== id))}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Full-width composer",
+        previewId: "InputBar/full-width",
+        code: `<InputBar
+  onSend={handleSend}
+  status="ready"
+  onStop={handleStop}
+  contentWidth="100%"
+/>`,
       },
     ],
   },
@@ -552,25 +553,6 @@ export function Example() {
 }`,
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type SuggestionItem = {
-  id: string;
-  label: string;
-  value?: string;
-  icon?: ReactNode;
-  className?: string;
-};
-
-type SuggestionsProps = {
-  items: SuggestionItem[];
-  onSelect: (item: SuggestionItem) => void;
-  disabled?: boolean;
-  className?: string;
-  itemClassName?: string;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
@@ -627,13 +609,13 @@ const items = [
 import { useState } from "react";
 
 const models = [
-  { id: "sonnet", name: "Sonnet", version: "4.6" },
-  { id: "opus", name: "Opus", version: "4.7" },
-  { id: "haiku", name: "Haiku", version: "4.5" },
+  { id: "llama-3.3-70b", name: "Llama 3.3", version: "70B" },
+  { id: "qwen-2.5-coder-32b", name: "Qwen 2.5 Coder", version: "32B" },
+  { id: "mistral-small-24b", name: "Mistral Small", version: "24B" },
 ];
 
 export function Example() {
-  const [model, setModel] = useState("sonnet");
+  const [model, setModel] = useState("llama-3.3-70b");
   return (
     <ModelPicker
       models={models}
@@ -642,31 +624,6 @@ export function Example() {
     />
   );
 }`,
-      },
-      {
-        type: "code",
-        title: "API Reference",
-        content: `type ModelOption = {
-  id: string;
-  name: string;
-  version?: string;
-};
-
-type ModelPickerProps = {
-  models: ModelOption[];
-  value?: string;           // controlled
-  defaultValue?: string;    // uncontrolled
-  onChange?: (modelId: string) => void;
-  placeholder?: string;     // shown when no model matches, default "Auto"
-  className?: string;
-};
-
-type ModelBadgeProps = {
-  models: ModelOption[];
-  value?: string;
-  placeholder?: string;
-  className?: string;
-};`,
       },
       {
         type: "usage",
@@ -678,7 +635,7 @@ type ModelBadgeProps = {
         type: "example",
         title: "Uncontrolled",
         previewId: "ModelPicker/basic",
-        code: `<ModelPicker models={models} defaultValue="sonnet" />`,
+        code: `<ModelPicker models={models} defaultValue="llama-3.3-70b" />`,
       },
       {
         type: "example",
@@ -689,7 +646,7 @@ type ModelBadgeProps = {
   status="ready"
   onStop={handleStop}
   leftActions={
-    <ModelPicker models={models} defaultValue="sonnet" />
+    <ModelPicker models={models} defaultValue="llama-3.3-70b" />
   }
 />`,
       },
@@ -697,7 +654,7 @@ type ModelBadgeProps = {
         type: "example",
         title: "Read-only badge",
         previewId: "ModelPicker/badge",
-        code: `<ModelBadge models={models} value="opus" />`,
+        code: `<ModelBadge models={models} value="qwen-2.5-coder-32b" />`,
       },
     ],
   },
@@ -720,24 +677,6 @@ export function Example() {
   const [mode, setMode] = useState("agent");
   return <ModeSelector modes={modes} value={mode} onChange={setMode} />;
 }`,
-      },
-      {
-        type: "code",
-        title: "API Reference",
-        content: `type ModeOption = {
-  id: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  description?: string;
-};
-
-type ModeSelectorProps = {
-  modes: ModeOption[];
-  value?: string;           // controlled
-  defaultValue?: string;    // uncontrolled
-  onChange?: (modeId: string) => void;
-  className?: string;
-};`,
       },
       {
         type: "usage",
@@ -1238,7 +1177,7 @@ export function Example() {
           '  state: "input-available",\n' +
           "  input: {\n" +
           '    command: "pnpm test --filter ./apps/web -- --runInBand",\n' +
-          '    approval: { approveLabel: "Run", rejectLabel: "Skip" },\n' +
+          '    approval: { labels: { approve: "Run", reject: "Skip" } },\n' +
           "  },\n" +
           "};\n\n" +
           "<BashTool part={approvalPart} />",
@@ -1292,7 +1231,7 @@ export function Example() {
           '  state: "output-available",\n' +
           "  input: {\n" +
           '    file_path: "/app/page.tsx",\n' +
-          '    approval: { approveLabel: "Apply", rejectLabel: "Skip" },\n' +
+          '    approval: { labels: { approve: "Apply", reject: "Skip" } },\n' +
           "  },\n" +
           "  output: {\n" +
           "    old_content: \"export const metadata = { title: 'Old' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n\",\n" +
@@ -1424,15 +1363,6 @@ export function Example() {
           "export function Example() {\n" +
           "  return <SearchTool part={part} />;\n" +
           "}",
-      },
-      {
-        type: "code",
-        title: "API Reference",
-        content: `type SearchToolProps = {
-  part: any;
-  results?: SearchResult[];
-  defaultOpen?: boolean;
-};`,
       },
       {
         type: "usage",
@@ -1704,21 +1634,6 @@ export function Example() {
           "}",
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type ToolGroupProps = {
-  part: any;
-  nestedTools?: any[];
-  chatStatus?: string;
-  completeLabel: string;
-  shimmerLabel?: string;
-  interruptedLabel: string;
-  maxVisibleTools?: number;
-  defaultOpen?: boolean;
-  showElapsed?: boolean;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
@@ -1847,16 +1762,6 @@ export function Example() {
           "}",
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type McpToolProps = {
-  part: any;
-  mcpInfo: McpToolInfo;
-  chatStatus?: string;
-  defaultOpen?: boolean;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
@@ -1918,19 +1823,6 @@ export function Example() {
           "}",
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type ThinkingToolProps = {
-  part?: any;
-  step?: Extract<TimelineStep, { type: "tool-call" }>;
-  state?: StepState;
-  onComplete?: () => void;
-  defaultOpen?: boolean;
-  expanded?: boolean;
-  onToggleExpand?: () => void;
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
@@ -1982,17 +1874,6 @@ export function Example() {
           "}",
       },
       {
-        type: "code",
-        title: "API Reference",
-        content: `type GenericToolProps = {
-  icon?: React.ComponentType<{ className?: string }>;
-  title: string;
-  subtitle?: string;
-  isPending: boolean;
-  isError?: boolean; // reserved for compatibility
-};`,
-      },
-      {
         type: "usage",
         title: "Usage",
         content:
@@ -2024,7 +1905,7 @@ export function Example() {
         previewId: "GenericTool/error",
         code: `<GenericTool
   title="Webhook dispatch"
-  subtitle="events/github"
+  subtitle="events/git"
   isPending={false}
   isError={true}
 />`,
@@ -2115,4 +1996,364 @@ export function Example() {
       },
     ],
   },
+  {
+    name: "ElicitationForm",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { ElicitationForm } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <ElicitationForm
+      serverName="deploy-server"
+      message="Choose where to deploy the new build."
+      requestedSchema={{
+        type: "object",
+        properties: {
+          environment: {
+            type: "string",
+            title: "Environment",
+            oneOf: [
+              { const: "staging", title: "Staging" },
+              { const: "production", title: "Production" },
+            ],
+          },
+          replicas: { type: "integer", title: "Replicas", minimum: 1, maximum: 10, default: 2 },
+          notify: { type: "string", title: "Notify email", format: "email" },
+          dryRun: { type: "boolean", title: "Dry run", default: true },
+        },
+        required: ["environment"],
+      }}
+      onAccept={(content) => respond({ action: "accept", content })}
+      onDecline={() => respond({ action: "decline" })}
+      onCancel={() => respond({ action: "cancel" })}
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Answer MCP elicitation requests. Pass the server's requestedSchema and the form builds Mantine fields for strings (email, uri, date, date-time), numbers, booleans, single and multi-select enums, validates required fields and bounds, and calls onAccept with only the filled values. Use mode=\"url\" when the server asks the user to open a link. Short fields go into two columns once the form itself is wider than 520px, so the same component fits a narrow widget and a full-page chat.",
+      },
+      {
+        type: "example",
+        title: "Form request",
+        previewId: "ElicitationForm/form",
+        code: `<ElicitationForm
+  serverName="deploy-server"
+  message="Choose where to deploy the new build."
+  requestedSchema={deploySchema}
+  onAccept={(content) => respond({ action: "accept", content })}
+  onDecline={() => respond({ action: "decline" })}
+  onCancel={() => respond({ action: "cancel" })}
+/>`,
+      },
+      {
+        type: "example",
+        title: "URL request",
+        previewId: "ElicitationForm/url",
+        code: `<ElicitationForm
+  mode="url"
+  serverName="git"
+  message="Authorize access to your repositories to continue."
+  url="https://git.example.com/login/oauth/authorize"
+  onAccept={() => respond({ action: "accept" })}
+  onDecline={() => respond({ action: "decline" })}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Disabled",
+        previewId: "ElicitationForm/disabled",
+        code: `<ElicitationForm
+  disabled
+  message="Waiting for the previous request."
+  requestedSchema={deploySchema}
+/>`,
+      },
+    ],
+  },
+  {
+    name: "ToolApprovalFooter",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { ToolApprovalFooter } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <ToolApprovalFooter
+      labels={{ approve: "Allow", reject: "Deny" }}
+      reason="Runs a shell command"
+      approveOptions={[
+        { value: "once", label: "Allow once" },
+        { value: "session", label: "Allow for this session" },
+        { value: "always", label: "Always allow", description: "Saved to project settings" },
+      ]}
+      onApprove={(scope) => approve(scope)}
+      onReject={() => reject()}
+      onRejectWithFeedback={(feedback) => reject(feedback)}
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Ask the user to confirm a tool call. approveOptions adds a menu next to the approve button so the user can pick a scope (once, session, always) that arrives in onApprove(scope); the main button still calls onApprove() without a scope. reason explains why confirmation is needed, and onRejectWithFeedback lets the user reject with instructions for the agent. BashTool and EditTool accept the same fields through their approval prop.",
+      },
+      {
+        type: "example",
+        title: "Approval scopes and feedback",
+        previewId: "ToolApprovalFooter/scopes",
+        code: `<ToolApprovalFooter
+  labels={{ approve: "Allow", reject: "Deny" }}
+  reason="Runs a shell command"
+  approveOptions={[
+    { value: "once", label: "Allow once" },
+    { value: "session", label: "Allow for this session" },
+    { value: "always", label: "Always allow", description: "Saved to project settings" },
+  ]}
+  onApprove={(scope) => approve(scope)}
+  onRejectWithFeedback={(feedback) => reject(feedback)}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Basic and pending",
+        previewId: "ToolApprovalFooter/basic",
+        code: `<>
+  <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={approve} />
+  <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
+</>`,
+      },
+    ],
+  },
+  {
+    name: "ErrorMessage",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { ErrorMessage } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <ErrorMessage
+      title="API overloaded"
+      message="The provider is temporarily overloaded."
+      retry={{ attempt: 2, maxAttempts: 10, retryAt: nextRetryAt }}
+      onRetry={retryNow}
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Render a failed assistant turn. retry shows a live countdown to the next automatic attempt, onRetry adds a button to retry right away, and variant=\"warning\" with resetsAt fits usage limits that lift at a known time.",
+      },
+      {
+        type: "example",
+        title: "Basic",
+        previewId: "ErrorMessage/basic",
+        code: `<ErrorMessage
+  title="Request failed"
+  message="Network error: failed to fetch (status 502 Bad Gateway)"
+/>`,
+      },
+      {
+        type: "example",
+        title: "Retry countdown",
+        previewId: "ErrorMessage/retry",
+        code: `<ErrorMessage
+  title="API overloaded"
+  message="The provider is temporarily overloaded."
+  retry={{ attempt: 2, maxAttempts: 10, retryAt: Date.now() + 8000 }}
+  onRetry={retryNow}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Usage limit",
+        previewId: "ErrorMessage/limit",
+        code: `<ErrorMessage
+  variant="warning"
+  title="Usage limit reached"
+  message="You have used all requests available on your plan."
+  resetsAt={Date.now() + 45 * 60 * 1000}
+/>`,
+      },
+    ],
+  },
+  {
+    name: "AgentStatus",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { AgentStatus } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <AgentStatus
+      startedAt={turnStartedAt}
+      tokens={receivedTokens}
+      lastActivityAt={lastChunkAt}
+      labels={{ stalled: "Waiting for response" }}
+      onStop={stop}
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Show that the agent is working: a shimmering label, live elapsed time and received tokens. Update lastActivityAt on every streamed chunk; when nothing arrives for stallAfterMs (3 seconds by default) the line fades to the error color so the user knows the response is stuck. Set paused while tools run, since silence is expected then.",
+      },
+      {
+        type: "example",
+        title: "Live and stalled",
+        previewId: "AgentStatus/live",
+        code: `<AgentStatus
+  startedAt={startedAt}
+  tokens={tokens}
+  lastActivityAt={lastActivityAt}
+  labels={{ stalled: "Waiting for response" }}
+  onStop={stop}
+/>`,
+      },
+      {
+        type: "example",
+        title: "Paused while tools run",
+        previewId: "AgentStatus/paused",
+        code: `<AgentStatus label="Running tools" startedAt={startedAt} paused />`,
+      },
+    ],
+  },
+  {
+    name: "ContextUsage",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { ContextUsage, InputBar } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <InputBar
+      status="ready"
+      onSend={send}
+      onStop={stop}
+      rightActions={
+        <ContextUsage
+          used={168_000}
+          total={200_000}
+          segments={[
+            { label: "System prompt", value: 4200 },
+            { label: "Tools", value: 18_600 },
+            { label: "Messages", value: 145_200 },
+          ]}
+          onCompact={compact}
+        />
+      }
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Show how full the context window is. The ring is split by segments below warnAt (80%), turns yellow at warnAt and red at dangerAt (95%). Hover or click opens the breakdown; with onCompact the details offer to compact the conversation once usage is high. Sized to sit in InputBar rightActions.",
+      },
+      {
+        type: "example",
+        title: "Usage levels",
+        previewId: "ContextUsage/levels",
+        code: `<>
+  <ContextUsage used={45_200} total={200_000} segments={segments} withLabel />
+  <ContextUsage used={168_000} total={200_000} withLabel onCompact={compact} />
+  <ContextUsage used={194_000} total={200_000} withLabel onCompact={compact} />
+</>`,
+      },
+      {
+        type: "example",
+        title: "Inside InputBar",
+        previewId: "ContextUsage/in-input-bar",
+        code: `<InputBar
+  status="ready"
+  onSend={handleSend}
+  onStop={handleStop}
+  contentWidth="100%"
+  rightActions={
+    <ContextUsage used={used} total={200_000} segments={segments} onCompact={compact} />
+  }
+/>`,
+      },
+    ],
+  },
+  {
+    name: "CompactBoundary",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { CompactBoundary } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <CompactBoundary
+      tokensBefore={182_400}
+      tokensAfter={12_300}
+      summary={"- Migrated the upload client\\n- Tests for backoff are green"}
+    />
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Mark the place where earlier history was replaced by a summary. MessageList renders it automatically for a { type: \"compaction\", summary, tokensBefore, tokensAfter } part, including inside a system message; the summary opens on click.",
+      },
+      {
+        type: "example",
+        title: "With summary",
+        previewId: "CompactBoundary/summary",
+        code: `<CompactBoundary tokensBefore={182_400} tokensAfter={12_300} summary={summary} />`,
+      },
+      {
+        type: "example",
+        title: "Without summary",
+        previewId: "CompactBoundary/plain",
+        code: `<>
+  <CompactBoundary tokensAfter={9_800} />
+  <CompactBoundary label="History trimmed" />
+</>`,
+      },
+    ],
+  },
+  ...PRIMITIVE_COMPONENT_DOCS,
+  ...MCP_COMPONENT_DOCS,
+  ...PERMISSIONS_COMPONENT_DOCS,
+  ...HOOKS_COMPONENT_DOCS,
+  ...CHAT_ACTIONS_COMPONENT_DOCS,
+  ...AGENTS_COMPONENT_DOCS,
+  ...SKILLS_COMPONENT_DOCS,
+  ...SESSIONS_COMPONENT_DOCS,
+  ...TASKS_COMPONENT_DOCS,
+  ...DIFF_COMPONENT_DOCS,
+  ...SETTINGS_COMPONENT_DOCS,
+  ...HELP_COMPONENT_DOCS,
+  ...CHAT_EXTRA_COMPONENT_DOCS,
+  ...CONFIG_EXTRA_COMPONENT_DOCS,
 ];

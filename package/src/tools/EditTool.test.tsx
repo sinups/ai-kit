@@ -3,7 +3,7 @@ import { render, screen } from '@mantine-tests/core';
 import { EditTool } from './EditTool';
 import { DiffView } from './DiffView';
 
-describe('tools/EditTool', () => {
+describe('tools/DiffView on very large inputs', () => {
   it('renders the file name and diff lines', () => {
     render(
       <EditTool
@@ -71,7 +71,7 @@ describe('tools/EditTool', () => {
   });
 });
 
-describe('DiffView on very large inputs', () => {
+describe('tools/EditTool', () => {
   it('renders without exceeding the call stack', () => {
     const newText = Array.from({ length: 120000 }, (_, i) => `line ${i}`).join('\n');
     expect(() => render(<DiffView oldText="" newText={newText} />)).not.toThrow();

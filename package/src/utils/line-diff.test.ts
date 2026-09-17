@@ -1,6 +1,6 @@
 import { countDiffStats, diffLines } from './line-diff';
 
-describe('diffLines', () => {
+describe('utils/diffLines', () => {
   it('marks unchanged lines as context', () => {
     expect(diffLines('a\nb', 'a\nb')).toEqual([
       { type: 'context', content: 'a' },
@@ -25,7 +25,7 @@ describe('diffLines', () => {
   });
 });
 
-describe('diffLines on large inputs', () => {
+describe('utils/line-diff diffLines on large inputs', () => {
   it('keeps shared head and tail as context', () => {
     const head = Array.from({ length: 50 }, (_, i) => `head ${i}`);
     const tail = Array.from({ length: 50 }, (_, i) => `tail ${i}`);

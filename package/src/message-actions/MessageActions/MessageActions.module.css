@@ -1,0 +1,26 @@
+.root {
+  min-height: rem(28px);
+  color: var(--ae-fg-muted);
+  font-size: var(--ae-font-size-xs);
+  transition: opacity 120ms ease;
+
+  &[data-visibility='hover'] {
+    opacity: 0;
+  }
+
+  &[data-visibility='hover']:hover,
+  &[data-visibility='hover']:focus-within,
+  &[data-visibility='hover'][data-active] {
+    opacity: 1;
+  }
+
+  @media (pointer: coarse) {
+    &[data-visibility='hover'] {
+      opacity: 1;
+    }
+  }
+}
+
+:global([data-message-actions-host]):hover .root {
+  opacity: 1;
+}

@@ -63,3 +63,23 @@
     text-decoration: line-through;
   }
 }
+
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: rem(6px);
+  min-width: 0;
+}
+
+.owner {
+  align-self: center;
+}
+
+.blocked {
+  flex-basis: 100%;
+}
+
+.hidden {
+  padding-left: rem(22px);
+}

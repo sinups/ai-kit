@@ -1,227 +1,312 @@
+import { getComponentProps } from "@/app/components/[id]/api-reference";
+import { COMPONENT_DOCS, componentIdFromName, type ComponentBlock } from "@/app/data/component-docs";
+import { RECIPES } from "@/app/data/recipes";
+import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
+import { DOC_PAGE_DESCRIPTIONS, INTRODUCTION_DESCRIPTION } from "@/app/lib/doc-pages";
 import {
-  COMPONENT_DOCS,
-  componentIdFromName,
-  type ComponentBlock,
-} from "@/app/data/component-docs";
+  CONTEXT7_NOTE,
+  EXAMPLE_PROMPTS,
+  FETCH_SERVER_CONFIG,
+  LLMS_FULL_URL,
+  LLMS_URL,
+  PROJECT_INSTRUCTIONS,
+} from "@/app/lib/mcp-setup";
+import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
+import { PACKAGE_NAME, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
+import { getUtilityGroups } from "@/app/lib/utility-exports";
 
-import { SITE_URL } from "@/app/lib/site";
+export const dynamic = "force-static";
 
 function codeFence(code: string, lang = "tsx") {
   return ["```" + lang, code.trim(), "```"].join("\n");
 }
 
+function page(href: string, title: string, body: string[]): string {
+  const description = DOC_PAGE_DESCRIPTIONS[href];
+  return [`# ${title}`, "", `URL: ${SITE_URL}${href}`, "", ...(description ? [description, ""] : []), ...body].join(
+    "\n",
+  );
+}
+
 function blockToMarkdown(block: ComponentBlock): string {
   if (block.type === "example") {
-    return [`### Example: ${block.title}`, "", codeFence(block.code, "tsx")].join(
-      "\n",
-    );
+    return [`### Example: ${block.title}`, "", codeFence(block.code)].join("\n");
   }
   if (block.type === "code") {
-    const lang = /^\s*type\s|^type\s/.test(block.content) ? "ts" : "tsx";
-    return [`### ${block.title}`, "", codeFence(block.content, lang)].join(
-      "\n",
-    );
+    return [`### ${block.title}`, "", codeFence(block.content)].join("\n");
   }
   return [`### ${block.title}`, "", block.content.trim()].join("\n");
 }
 
+const escapeCell = (value: string) => value.replace(/\|/g, "\\|").replace(/\n/g, " ");
+
 function renderIntroduction(): string {
-  return [
-    "# Introduction",
-    "",
-    `URL: ${SITE_URL}/docs`,
-    "",
-    "AI UI Kit is an open-source collection of chat and agent UI components (messages, tool cards, streaming states, and input controls), built on top of Mantine. Install one npm package and use the components like any other Mantine extension: they follow your theme, color scheme and fonts.",
-    "",
-    "Messages are structurally compatible with `UIMessage` from the Vercel AI SDK (`ChatMessage` in this package) and status is `ChatStatus`, so `useChat` plugs in directly. The project is a fork of Agent Elements by 21st.dev (MIT): same design and behavior, Mantine instead of Tailwind and shadcn, an npm package instead of a component registry.",
+  return page("/docs", "Introduction", [
+    `Messages are structurally compatible with \`UIMessage\` from the AI SDK (\`ChatMessage\` in this package) and status is \`ChatStatus\`, so \`useChat\` output plugs in without importing \`ai\`. The project is a fork of ${UPSTREAM_NAME} by 21st.dev (MIT), rebuilt on Mantine as one npm package.`,
     "",
     "## Component groups",
     "",
-    "- **Chat surface**: AgentChat, MessageList, UserMessage, ErrorMessage, Markdown",
-    "- **Input**: InputBar, Suggestions, ModelPicker, ModeSelector, SendButton, AttachmentButton, FileAttachment",
-    "- **Tool cards**: BashTool, EditTool, SearchTool, TodoTool, PlanTool, ToolGroup, SubagentTool, McpTool, QuestionTool, GenericTool",
-    "- **Streaming states**: ThinkingTool, TextShimmer, SpiralLoader",
-    "",
-    "## Quick start",
-    "",
-    codeFence("npm install @sinups/ai-kit @mantine/core @mantine/hooks", "bash"),
-  ].join("\n");
+    ...SIDEBAR_SECTIONS.filter((section) => section.components).map(
+      (section) => `- **${section.title}**: ${section.items.map((item) => item.label).join(", ")}`,
+    ),
+  ]);
 }
 
 function renderInstallation(): string {
-  return [
-    "# Installation",
+  return page("/docs/installation", "Installation", [
+    `## Package`,
     "",
-    `URL: ${SITE_URL}/docs/installation`,
-    "",
-    "## Prerequisites",
-    "",
-    "- Node 18+",
-    "- React 18 or 19",
-    "- Mantine 7+ (`@mantine/core` and `@mantine/hooks`)",
-    "",
-    "## Install the package",
-    "",
-    codeFence("npm install @sinups/ai-kit @mantine/core @mantine/hooks", "bash"),
-    "",
-    "## Styles and provider",
-    "",
-    codeFence(
-      `import "@mantine/core/styles.css";
-import "@sinups/ai-kit/styles.css";`,
-      "tsx",
-    ),
-    "",
-    "Render the app inside `MantineProvider`; light and dark mode follow its color scheme. Override `--ae-*` custom properties on any ancestor to restyle a chat instance.",
-    "",
-    "## Usage",
-    "",
-    codeFence(
-      `"use client";
-
-import { AgentChat } from "@sinups/ai-kit";
-import type { ChatMessage } from "@sinups/ai-kit";
-
-const messages: ChatMessage[] = [
-  {
-    id: "msg-1",
-    role: "assistant",
-    parts: [{ type: "text", text: "Welcome to AI UI Kit." }],
-  },
-];
-
-export default function App() {
-  return (
-    <AgentChat
-      messages={messages}
-      status="ready"
-      onSend={() => {}}
-      onStop={() => {}}
-    />
-  );
-}`,
-      "tsx",
-    ),
-  ].join("\n");
-}
-
-function renderMcp(): string {
-  return [
-    "# MCP",
-    "",
-    `URL: ${SITE_URL}/docs/mcp`,
-    "",
-    `This site publishes its documentation for AI assistants: ${SITE_URL}/llms.txt is the index and ${SITE_URL}/llms-full.txt contains every page. Point any Model Context Protocol client (Cursor, Claude Code, Windsurf) at them through a documentation MCP server such as Context7 or a plain fetch server.`,
-    "",
-    "## Cursor setup",
-    "",
-    "Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per project):",
-    "",
-    codeFence(
-      `{
-  "mcpServers": {
-    "@sinups/ai-kit": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.context7.com/mcp"]
-    }
-  }
-}`,
-      "json",
-    ),
-    "",
-    "## Claude Code setup",
-    "",
-    codeFence(
-      "claude mcp add --transport http context7 https://mcp.context7.com/mcp",
-      "bash",
-    ),
-    "",
-    "## Example prompts",
-    "",
-    "- Show me all available AI UI Kit components.",
-    "- Add AgentChat to my Mantine app and wire it to the Vercel AI SDK.",
-    "- Show me the API reference and a preview of InputBar.",
-    "- Build a chat page using AgentChat with BashTool and EditTool renderers.",
-  ].join("\n");
-}
-
-function renderSkills(): string {
-  return [
-    "# Skills",
-    "",
-    `URL: ${SITE_URL}/docs/skills`,
-    "",
-    "Skills give AI assistants like Claude Code and Cursor project-aware context about AI UI Kit. When installed, your assistant knows how to install, compose, and customise components using the correct APIs, prop shapes, and theming patterns.",
+    `- \`${PACKAGE_NAME}\` ${PACKAGE_VERSION}`,
+    ...PEER_DEPENDENCIES.map((peer) => `- Peer dependency: \`${peer.name}\` ${peer.range}`),
     "",
     "## Install",
     "",
-    codeFence("npx skills add sinups/ai-kit", "bash"),
+    codeFence(INSTALL_COMMAND, "bash"),
     "",
-    "## What's included",
+    "## Styles and provider",
     "",
-    "- Project detection (reads `package.json` and imports)",
-    "- Component catalog with API shapes and prop defaults",
-    "- Composition patterns (AgentChat + tool renderers, InputBar + AI SDK, etc.)",
-    "- Theming guardrails (Mantine theme and `--ae-*` tokens)",
-    "- Docs access through llms-full.txt",
+    codeFence(`import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles.css";`),
+    "",
+    "Or import styles per component, like `@mantine/core/styles/Button.css`: `styles/base.css` (the `--ae-*` tokens) once, then one file per component you use. Each file includes the styles of the components it renders.",
+    "",
+    codeFence(`import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles/base.css";
+import "@sinups/ai-kit/styles/Wizard.css";`),
+    "",
+    "Render the app inside `MantineProvider`; light and dark schemes follow its color scheme. Wrap kit screens in `AiKitProvider` to give stock Mantine components inside them the kit look and to expose accent, radius and density settings.",
+    "",
+    "## Usage",
+    "",
+    codeFence(`"use client";
+
+import { AgentChat } from "@sinups/ai-kit";
+import { useChat } from "@ai-sdk/react";
+import { IconBook2, IconBug, IconSparkles } from "@tabler/icons-react";
+
+export function Chat() {
+  const { messages, status, sendMessage, stop } = useChat();
+  return (
+    <AgentChat
+      messages={messages}
+      status={status}
+      onSend={({ content }) => sendMessage({ text: content })}
+      onStop={stop}
+      contentWidth={760}
+      emptyState={{
+        avatar: <IconSparkles size={22} />,
+        title: "How can I help you today?",
+        actions: [
+          { id: "explain", label: "Explain this repository", icon: <IconBook2 /> },
+          { id: "bug", label: "Find the cause of a bug", icon: <IconBug /> },
+        ],
+      }}
+    />
+  );
+}`),
+  ]);
+}
+
+function renderEssentials(): string {
+  return [
+    "# Essentials",
+    "",
+    "Rules that apply across the kit. Component pages below give the details.",
+    "",
+    "- Components are controlled: data comes in through props, intent goes out through callbacks. Async callbacks may return a promise; the component shows a pending state and the rejection message.",
+    "- Everything is exported from the package root. Pure helpers are listed under Hooks and utilities.",
+    "- Built-in tool cards render automatically for tool parts: `tool-Bash`, `tool-Edit`, `tool-Write`, `tool-Grep`, `tool-Glob`, `tool-WebSearch`, `tool-TodoWrite`, `tool-PlanWrite`, `tool-Question`, `tool-Task`, `tool-Agent`, `tool-Thinking`, `tool-mcp__<server>__<tool>`.",
+    "- `toolRenderers` on `AgentChat`, `MessageList` and `ToolRenderer` adds or replaces cards. Keys are full part types, `tool-<Name>`, such as `tool-Deploy` or `tool-mcp__git__search`; a bare name only matches `mcp__user-tools__<name>`. Renderers receive `CustomToolRendererProps`: `name`, `input`, `output`, `status`, `toolCallId`, `part`, `onAction`. `onAction` reports to `onToolAction`.",
+    "- Empty chat: `emptyState` with the default `welcome` layout shows `avatar`, `title`, `description` and starter `actions` (`id`, `label`, `icon`, `badge`) above the composer at the bottom. `layout: \"center\"` centers the greeting and the composer, with suggestion pills above the composer.",
+    "- `AgentChat` `emptySuggestionsPosition` is deprecated: suggestions always render above the composer and `\"bottom\"` behaves as `\"top\"`. Remove the prop.",
+    "- `contentWidth` sets the message column and composer width: `420px` by default, a number such as `760` on full pages, `\"100%\"` in panels and widgets. Pass `wrapLines` in narrow containers.",
+    "- Layout adapts to the component's own width, from a 360px widget to a 900px page. Data views handle loading, error and empty states.",
+    "- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds them); labels of nested parts sit under a key, for example `labels.wizard`.",
   ].join("\n");
 }
 
-function renderComponent(doc: (typeof COMPONENT_DOCS)[number]): string {
-  const id = componentIdFromName(doc.name);
-  const blocks = doc.blocks ?? [];
-  const parts: string[] = [
-    `## ${doc.name}`,
+function renderRecipes(): string {
+  return page(
+    "/docs/what-you-can-build",
+    "What you can build",
+    RECIPES.flatMap((recipe) => [
+      `## ${recipe.title}`,
+      "",
+      recipe.summary,
+      "",
+      `Uses: ${recipe.components.join(", ")}`,
+      "",
+      codeFence(recipe.code),
+      "",
+    ]),
+  );
+}
+
+function renderTheming(): string {
+  return page("/docs/theming", "Theming", [
+    codeFence(`<MantineProvider theme={appTheme}>
+  <AiKitProvider accent="violet" radius="default" density="compact" persistKey="workspace-kit-theme">
+    <McpSettingsPanel servers={servers} />
+    <AiKitThemeCustomizer sections={{ mode: false }} />
+  </AiKitProvider>
+</MantineProvider>`),
     "",
-    `URL: ${SITE_URL}/docs/${id}`,
+    "- Without a provider the kit follows the host primary color, fonts and color scheme through Mantine CSS variables and `--ae-*` tokens.",
+    "- `AiKitProvider` goes inside the host `MantineProvider` and themes only its subtree and its portals.",
+    "- `accent`: `gray`, `blue`, `indigo`, `violet`, `grape`, `pink`. `radius`: `sharp`, `default`, `round`. `density`: `default`, `compact`. `colorScheme`: `light`, `dark`, `auto` (changes the whole app).",
+    "- `theme`: a `MantineThemeOverride` merged last. `tokens`: `--ae-*` values without the prefix (`AeTokenOverrides`, names in `AE_TOKENS`). `persistKey`: stores changes in localStorage.",
+    "- `useAiKitTheme()` returns `settings`, `defaults`, `setSettings`, `reset`, `hostTheme`, `aiKit`; `useOptionalAiKitTheme()` returns `null` outside a provider. `AiKitHostScope` renders host UI with the host theme inside a kit subtree.",
+    "- Global setup: `<MantineProvider theme={mergeAiKitTheme(appTheme)}>` with the `ae-kit` class (`AI_KIT_SCOPE_CLASS`) on the app root.",
+    "- Opt a stock component out of kit styles with `unstyled`, `variant=\"unstyled\"` or `data-ai-kit-unstyled`.",
+  ]);
+}
+
+function renderLayouts(): string {
+  return page("/docs/layouts", "Layouts", [
+    "- Give the chat a bounded height: a flex column with `minHeight: 0` on every level down to `AgentChat`.",
+    "- Measure the container, not the viewport. Below about 720px pass `wrapLines` and move side panes into a `Drawer`.",
+    "- Full-page chat: a header aligned with the column, `AgentChat` with `contentWidth={760}`, `alignComposer`, `topFade`, `collapseToolRuns`, `withSearch`, `stickyPrompt`.",
+    "- Chat with a sidebar: a 272px `SessionList` column on `--ae-bg-tertiary`; a drawer when narrow.",
+    "- Chat with an inspector: Mantine `Splitter` with a collapsible pane for `DiffReview` or `BackgroundTasksPanel`; a bottom drawer on phones.",
+    "- Settings page: `SettingsLayout` with `SettingsSection` and `SettingRow`; `fill: true` sections for panels that scroll themselves such as `McpSettingsPanel`.",
+    "- Widget: `ChatLauncher` around `AgentChat` with `contentWidth=\"100%\"`.",
+  ]);
+}
+
+function renderLauncher(): string {
+  return page("/docs/launcher", "Embedding the launcher", [
+    codeFence(`<ChatLauncher title="Assistant" unreadCount={unread}>
+  <AgentChat {...chat} contentWidth="100%" wrapLines alignComposer emptyState={welcome} />
+</ChatLauncher>`),
     "",
-    "Install: `npm install @sinups/ai-kit @mantine/core @mantine/hooks`",
+    "- `ChatLauncher` is a floating button that opens a non-modal chat panel. Escape and the close button return focus to the button; `keepMounted` (default `true`) keeps the chat state while closed; the panel opens full screen below `fullScreenBreakpoint` (520px). `withinPortal={false}` positions it inside a transformed container.",
+    "- `mountChatLauncher(target, element, options)` renders into an open shadow root with its own `MantineProvider` and returns `{ container, unmount }`. Options: `shadow` (default `true`), `styles` (CSS text; `:root`, `html`, `body` are scoped to the widget), `styleUrls`, `adoptDocumentStyles` (development), `theme`, `colorScheme` (default `light`), `wrap`.",
     "",
-  ];
-  for (const block of blocks) {
-    parts.push(blockToMarkdown(block));
+    codeFence(`import mantineCss from "@mantine/core/styles.css?inline";
+import baseCss from "@sinups/ai-kit/styles/base.css?inline";
+import launcherCss from "@sinups/ai-kit/styles/ChatLauncher.css?inline";
+import chatCss from "@sinups/ai-kit/styles/AgentChat.css?inline";
+import providerCss from "@sinups/ai-kit/styles/AiKitProvider.css?inline";
+
+const widget = mountChatLauncher(host, <SupportLauncher />, {
+  styles: [mantineCss, baseCss, launcherCss, chatCss, providerCss],
+  wrap: (element) => <AiKitProvider>{element}</AiKitProvider>,
+});
+widget.unmount();`),
+  ]);
+}
+
+function renderWhatsNew(): string {
+  return page("/docs/whats-new", "What's new", [
+    "- New modules: primitives, MCP, agents, skills, permissions, hooks configuration, memory, sessions, message actions, background tasks, diff review, model settings, help, elicitation.",
+    "- New chat components: AgentStatus, ContextUsage, ContextBreakdown, CompactBoundary, TurnSummary, ContextEventRow, HookActivity, IdleReturnPrompt, SpendThresholdNotice, TranscriptSearch, PromptHistorySearch, PastedTextAttachment, CodeBlock, ShellOutput.",
+    "- AgentChat gained `emptyState`, `statusBar`, `messageActions`, `withSearch`, `stickyPrompt`, `collapseToolRuns`, `alignComposer`, `topFade`, `wrapLines`, `inputBarProps` and more; InputBar gained completions, a message queue, collapsed pastes and prompt history.",
+    "- Theming: AiKitProvider, AiKitThemeCustomizer, createAiKitTheme, mergeAiKitTheme. Launcher: ChatLauncher, mountChatLauncher.",
+    "- Deprecated: `emptySuggestionsPosition` (suggestions always render above the composer).",
+  ]);
+}
+
+function renderUtilities(): string {
+  const parts: string[] = [];
+  for (const group of getUtilityGroups()) {
+    parts.push(`## ${group.title}`, "");
+    for (const item of group.items) {
+      parts.push(`- \`${item.signature}\`${item.description ? `: ${item.description}` : ""}`);
+    }
+    parts.push("");
+  }
+  return page("/docs/utilities", "Hooks and utilities", parts);
+}
+
+function renderMcp(): string {
+  return page("/docs/mcp", "MCP", [
+    `- Index: ${LLMS_URL}`,
+    `- Full docs: ${LLMS_FULL_URL}`,
+    "",
+    "## With a fetch server",
+    "",
+    codeFence(FETCH_SERVER_CONFIG, "json"),
+    "",
+    "## Without MCP",
+    "",
+    codeFence(PROJECT_INSTRUCTIONS, "markdown"),
+    "",
+    "## Context7",
+    "",
+    CONTEXT7_NOTE,
+    "",
+    "## Example prompts",
+    "",
+    ...EXAMPLE_PROMPTS.map((prompt) => `- ${prompt}`),
+  ]);
+}
+
+function renderSkills(): string {
+  return page("/docs/skills", "Skills", [codeFence("npx skills add sinups/ai-kit", "bash")]);
+}
+
+function renderComponent(name: string): string {
+  const doc = COMPONENT_DOCS.find((item) => item.name === name);
+  const parts: string[] = [`## ${name}`, "", `URL: ${SITE_URL}/docs/${componentIdFromName(name)}`, ""];
+  for (const block of doc?.blocks ?? []) {
+    parts.push(blockToMarkdown(block), "");
+  }
+  const apiProps = getComponentProps(name);
+  if (apiProps?.length) {
+    parts.push("### API reference", "", "| Prop | Type | Required | Description |", "| --- | --- | --- | --- |");
+    for (const prop of apiProps) {
+      parts.push(
+        `| ${prop.name} | \`${escapeCell(prop.type)}\` | ${prop.required ? "Yes" : "No"} | ${escapeCell(prop.description ?? "")} |`,
+      );
+    }
     parts.push("");
   }
   return parts.join("\n");
 }
 
-export const dynamic = "force-static";
+const GUIDE_RENDERERS: Record<string, () => string> = {
+  "/docs": renderIntroduction,
+  "/docs/installation": renderInstallation,
+  "/docs/mcp": renderMcp,
+  "/docs/skills": renderSkills,
+  "/docs/what-you-can-build": renderRecipes,
+  "/docs/theming": renderTheming,
+  "/docs/layouts": renderLayouts,
+  "/docs/launcher": renderLauncher,
+  "/docs/whats-new": renderWhatsNew,
+  "/docs/utilities": renderUtilities,
+};
 
 export function GET() {
-  const parts: string[] = [];
+  const sections: string[] = [
+    [
+      "# AI UI Kit: full docs",
+      "",
+      `> ${INTRODUCTION_DESCRIPTION}`,
+      "",
+      `Package \`${PACKAGE_NAME}\` ${PACKAGE_VERSION}. Install: \`${INSTALL_COMMAND}\`. Index: ${LLMS_URL}`,
+    ].join("\n"),
+    renderEssentials(),
+  ];
 
-  parts.push("# AI UI Kit: Full docs");
-  parts.push("");
-  parts.push(`Source: ${SITE_URL}/llms-full.txt`);
-  parts.push("");
-  parts.push("---");
-  parts.push("");
-
-  parts.push(renderIntroduction());
-  parts.push("");
-  parts.push("---");
-  parts.push("");
-  parts.push(renderInstallation());
-  parts.push("");
-  parts.push("---");
-  parts.push("");
-  parts.push(renderMcp());
-  parts.push("");
-  parts.push("---");
-  parts.push("");
-  parts.push(renderSkills());
-  parts.push("");
-  parts.push("---");
-  parts.push("");
-  parts.push("# Components");
-  parts.push("");
-  for (const doc of COMPONENT_DOCS) {
-    parts.push(renderComponent(doc));
-    parts.push("---");
-    parts.push("");
+  for (const section of SIDEBAR_SECTIONS) {
+    if (section.components) {
+      sections.push(
+        [`# ${section.title}`, "", ...section.items.map((item) => renderComponent(item.label))].join("\n"),
+      );
+      continue;
+    }
+    for (const item of section.items) {
+      const render = GUIDE_RENDERERS[item.href];
+      sections.push(
+        render
+          ? render()
+          : page(item.href, item.label, []),
+      );
+    }
   }
 
-  return new Response(parts.join("\n"), {
+  return new Response(sections.join("\n\n---\n\n") + "\n", {
     headers: {
       "content-type": "text/plain; charset=utf-8",
       "cache-control": "public, max-age=3600",

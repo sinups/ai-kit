@@ -5,7 +5,32 @@
   --ae-message-radius-inner: calc(var(--ae-message-radius) - var(--ae-message-radius-inner-offset));
   --ae-input-radius: var(--ae-radius);
   --ae-tool-radius: rem(10px);
+  --ae-notice-radius: rem(8px);
+  --ae-row-radius: rem(6px);
+  --ae-control-radius: var(--mantine-radius-sm);
+  --ae-control-height-xs: rem(20px);
+  --ae-control-height-sm: rem(24px);
+  --ae-control-height-md: rem(28px);
+  --ae-row-height: rem(28px);
+  --ae-space-3xs: rem(2px);
+  --ae-space-2xs: rem(4px);
+  --ae-space-xs: rem(6px);
+  --ae-space-sm: rem(8px);
+  --ae-space-md: rem(12px);
+  --ae-space-lg: rem(16px);
+  --ae-space-xl: rem(24px);
+  --ae-space-2xl: rem(32px);
+  --ae-inset-tool-x: rem(10px);
+  --ae-inset-bubble-x: rem(14px);
+  --ae-control-gap: var(--ae-space-2xs);
+  --ae-row-gap: var(--ae-space-2xs);
+  --ae-block-gap: var(--ae-space-md);
+  --ae-turn-gap: var(--ae-space-sm);
+  --ae-column-pad-x: var(--ae-space-lg);
+  --ae-column-pad-y: var(--ae-space-xl);
+  --ae-surface-pad: var(--ae-space-md);
   --ae-max-width: rem(420px);
+  --ae-panel-header-height: auto;
   --ae-context-padding: rem(10px);
   --ae-user-message-x: rem(14px);
   --ae-user-message-y: rem(10px);
@@ -33,6 +58,13 @@
   --ae-send-button-color: var(--ae-primary-contrast);
   --ae-error-border: alpha(var(--mantine-color-red-6), 0.3);
   --ae-error-bg: alpha(var(--mantine-color-red-6), 0.1);
+  --ae-warning-border: alpha(var(--mantine-color-yellow-6), 0.35);
+  --ae-warning-bg: alpha(var(--mantine-color-yellow-6), 0.1);
+  --ae-danger: var(--mantine-color-red-text);
+  --ae-danger-fill: var(--mantine-color-red-9);
+  --ae-success: var(--mantine-color-green-text);
+  --ae-warning: var(--mantine-color-orange-text);
+  --ae-info: var(--mantine-color-blue-text);
 
   /* Neutral palette mirrors the reference theme (agent-ui.css) so that both color modes match it exactly */
   @mixin light-root {
@@ -64,6 +96,8 @@
     --ae-diff-removed-bg: rgb(239, 68, 68, 0.1);
     --ae-diff-removed-border: rgb(239, 68, 68, 0.5);
     --ae-diff-removed-text: #dc2626;
+    --ae-diff-added-highlight: rgb(34, 197, 94, 0.3);
+    --ae-diff-removed-highlight: rgb(239, 68, 68, 0.25);
   }
 
   @mixin dark-root {
@@ -95,7 +129,13 @@
     --ae-diff-removed-bg: rgb(239, 68, 68, 0.15);
     --ae-diff-removed-border: rgb(239, 68, 68, 0.4);
     --ae-diff-removed-text: #f87171;
+    --ae-diff-added-highlight: rgb(34, 197, 94, 0.35);
+    --ae-diff-removed-highlight: rgb(239, 68, 68, 0.35);
   }
+}
+
+:global(.ae-overlay-inner) {
+  inset-inline-start: 0;
 }
 
 @keyframes :global(ae-shimmer) {

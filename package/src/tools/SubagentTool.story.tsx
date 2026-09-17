@@ -1,7 +1,7 @@
 import React from 'react';
 import { Stack } from '@mantine/core';
 import { SubagentTool } from './SubagentTool';
-import { NESTED_TOOLS } from './_stories-shared';
+import { NESTED_TOOLS } from './_story-helpers';
 
 export default { title: 'tools/SubagentTool' };
 

@@ -1,0 +1,118 @@
+.root {
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: rem(4px);
+  width: var(--ae-control-height-md);
+  height: var(--ae-control-height-md);
+  border-radius: 50%;
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: var(--ae-hover);
+  }
+
+  &[data-with-label] {
+    width: auto;
+    padding: 0 rem(8px) 0 rem(4px);
+    border-radius: calc(var(--ae-control-height-md) / 2);
+  }
+}
+
+.label {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ae-fg-muted);
+
+  .root[data-level='warning'] & {
+    color: var(--mantine-color-yellow-6);
+  }
+
+  .root[data-level='danger'] & {
+    color: var(--mantine-color-red-6);
+  }
+}
+
+.dropdown {
+  min-width: rem(180px);
+  padding: rem(4px);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: rem(10px);
+  background-color: var(--ae-bg);
+  color: var(--ae-fg);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+}
+
+.dropdownBreakdown {
+  width: min(rem(340px), calc(100vw - rem(32px)));
+}
+
+.total {
+  padding: rem(6px) rem(8px);
+  font-weight: 500;
+  color: var(--ae-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.rows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  column-gap: rem(12px);
+  padding: 0 rem(8px) rem(6px);
+  color: var(--ae-fg-muted);
+}
+
+.row {
+  display: contents;
+
+  & > * {
+    padding-block: rem(3px);
+  }
+}
+
+.swatch {
+  align-self: center;
+  margin-inline-end: rem(-4px);
+}
+
+.segmentLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.numeric {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.compact {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--ae-control-height-sm);
+  padding: 0 rem(8px);
+  border-radius: var(--ae-row-radius);
+  font-size: var(--ae-font-size-xs);
+  font-weight: 500;
+  color: var(--ae-fg);
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  .dropdown[data-level='warning'] & {
+    color: light-dark(var(--mantine-color-yellow-8), var(--mantine-color-yellow-5));
+  }
+
+  .dropdown[data-level='danger'] & {
+    color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-5));
+  }
+}

@@ -8,6 +8,11 @@ import { getDocNav } from "@/app/utils/doc-nav";
 const STYLES_EXAMPLE = `import "@mantine/core/styles.css";
 import "@sinups/ai-kit/styles.css";`;
 
+const PER_COMPONENT_STYLES_EXAMPLE = `import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles/base.css";
+import "@sinups/ai-kit/styles/Wizard.css";
+import "@sinups/ai-kit/styles/ChatLauncher.css";`;
+
 const PROVIDER_EXAMPLE = `import { MantineProvider } from "@mantine/core";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -84,7 +89,7 @@ export default function InstallationPage() {
           <DocNavButton
             title="Installation"
             description="Install AI UI Kit from npm."
-            installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks"
+            installCommand="npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react"
             previousHref={previousHref}
             nextHref={nextHref}
           />
@@ -103,10 +108,13 @@ export default function InstallationPage() {
         </div>
         <ul className="list-disc pl-5 space-y-1 text-base text-muted-foreground">
           <li>Node 18+</li>
-          <li>React 18 or 19</li>
+          <li>React 19.2+</li>
           <li>
-            Mantine 7+ (<code className="code-doc">@mantine/core</code> and{" "}
+            Mantine 9.4+ (<code className="code-doc">@mantine/core</code> and{" "}
             <code className="code-doc">@mantine/hooks</code>)
+          </li>
+          <li>
+            <code className="code-doc">@tabler/icons-react</code> 3
           </li>
         </ul>
         <p className="text-base text-muted-foreground">
@@ -136,6 +144,33 @@ export default function InstallationPage() {
         </p>
         <DocCodeBlock code={STYLES_EXAMPLE} language="tsx" />
         <p className="text-base text-muted-foreground">
+          If you use a few components, import only their styles instead, the
+          same way as <code className="code-doc">@mantine/core/styles/Button.css</code>.{" "}
+          <code className="code-doc">styles/base.css</code> holds the{" "}
+          <code className="code-doc">--ae-*</code> tokens and is required once.
+          Each component file already includes the styles of the components it
+          renders, so one import per component you use is enough:
+        </p>
+        <DocCodeBlock code={PER_COMPONENT_STYLES_EXAMPLE} language="tsx" />
+        <p className="text-base text-muted-foreground">
+          With cascade layers, import{" "}
+          <code className="code-doc">styles.layer.css</code>, which puts
+          everything inside <code className="code-doc">@layer mantine</code>,
+          or put per-component files into a layer yourself:{" "}
+          <code className="code-doc">
+            @import &quot;@sinups/ai-kit/styles/Wizard.css&quot; layer(ai-kit);
+          </code>
+          . Sizes of JavaScript
+          and styles per component are on{" "}
+          <Link
+            href="/docs/bundle-size"
+            className="text-an-primary-color hover:underline underline-offset-2"
+          >
+            Bundle size
+          </Link>
+          .
+        </p>
+        <p className="text-base text-muted-foreground">
           Components render inside{" "}
           <code className="code-doc">MantineProvider</code> and follow its
           color scheme. Light and dark mode work out of the box:
@@ -145,6 +180,19 @@ export default function InstallationPage() {
           All colors, radii and sizes derive from Mantine CSS variables.
           Override the <code className="code-doc">--ae-*</code> custom
           properties on any ancestor to restyle a chat instance.
+        </p>
+        <p className="text-base text-muted-foreground">
+          To give the stock Mantine components inside kit screens the kit
+          look, and to offer accent, radius and density settings, wrap those
+          screens in <code className="code-doc">AiKitProvider</code> inside
+          your <code className="code-doc">MantineProvider</code>. See{" "}
+          <Link
+            href="/docs/theming"
+            className="text-an-primary-color hover:underline underline-offset-2"
+          >
+            Theming
+          </Link>
+          .
         </p>
       </div>
 

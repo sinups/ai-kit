@@ -1,0 +1,155 @@
+import type { BackgroundTask } from './types';
+
+const MINUTE = 60_000;
+
+export function createTaskFixtures(now = Date.now()): BackgroundTask[] {
+  return [
+    {
+      id: 'review-agent',
+      kind: 'agent',
+      title: 'Review pull request #482',
+      description: 'Reads the diff, runs the test suite and drafts review comments.',
+      status: 'running',
+      startedAt: now - 4 * MINUTE - 12_000,
+      tokens: 48_230,
+      toolUses: 37,
+      owner: { name: 'reviewer', color: 'grape' },
+      messages: [
+        {
+          id: 'm1',
+          from: { name: 'tests', color: 'teal' },
+          to: { name: 'reviewer', color: 'grape' },
+          summary: '2 tests fail in invoice.test.ts',
+          content:
+            'calculateTotals › applies a percent discount before tax\nExpected total 129.6, received 132.\nThe discount is applied after tax in the new branch.',
+          timestamp: now - 50_000,
+        },
+        {
+          id: 'm2',
+          from: { name: 'reviewer', color: 'grape' },
+          to: { name: 'security', color: 'orange' },
+          summary: 'Also check the new fetch call for SSRF',
+          timestamp: now - 170_000,
+        },
+      ],
+      lastActivity: 'Reading src/billing/invoice.ts',
+      progress: { value: 5, max: 8, label: '5 of 8 files' },
+      output: [
+        '▶ Fetching pull request #482',
+        '  12 files changed, +340 −128',
+        '▶ Spawning subagents: tests, security',
+        '▶ Reading src/billing/invoice.ts',
+        '  Found 3 functions without tests',
+      ].join('\n'),
+      children: [
+        {
+          id: 'tests-agent',
+          kind: 'agent',
+          title: 'Run affected tests',
+          status: 'running',
+          owner: { name: 'tests', color: 'teal' },
+          startedAt: now - 3 * MINUTE,
+          tokens: 9_120,
+          toolUses: 11,
+          lastActivity: 'yarn jest src/billing --coverage',
+          output: 'PASS src/billing/tax.test.ts\nRUNS src/billing/invoice.test.ts',
+          children: [
+            {
+              id: 'tests-shell',
+              kind: 'shell',
+              title: 'yarn jest src/billing',
+              status: 'running',
+              startedAt: now - 2 * MINUTE - 5_000,
+              lastActivity: 'RUNS src/billing/invoice.test.ts',
+              output: 'PASS src/billing/tax.test.ts (2.1 s)\nRUNS src/billing/invoice.test.ts',
+            },
+          ],
+        },
+        {
+          id: 'security-agent',
+          kind: 'agent',
+          title: 'Security scan',
+          status: 'completed',
+          owner: { name: 'security', color: 'orange' },
+          startedAt: now - 3 * MINUTE,
+          endedAt: now - MINUTE - 20_000,
+          tokens: 12_400,
+          toolUses: 8,
+          lastActivity: 'No secrets or injection risks found',
+          output: 'Checked 12 files\nNo findings',
+        },
+      ],
+    },
+    {
+      id: 'dev-server',
+      kind: 'shell',
+      title: 'yarn dev',
+      description: 'Local development server on port 3000',
+      status: 'running',
+      startedAt: now - 42 * MINUTE,
+      lastActivity: 'GET /api/invoices 200 in 38ms',
+      output: Array.from(
+        { length: 60 },
+        (_, index) =>
+          `[${String(index).padStart(2, '0')}] GET /api/invoices 200 in ${30 + (index % 17)}ms`
+      ).join('\n'),
+    },
+    {
+      id: 'deploy',
+      kind: 'workflow',
+      title: 'Deploy preview',
+      status: 'queued',
+      blockedBy: ['review-agent', 'lint'],
+      lastActivity: 'Waiting for the review to finish',
+    },
+    {
+      id: 'migration',
+      kind: 'remote',
+      title: 'Backfill invoice totals',
+      description: 'Runs on the staging worker pool',
+      status: 'failed',
+      startedAt: now - 18 * MINUTE,
+      endedAt: now - 15 * MINUTE,
+      lastActivity: 'Batch 14 of 40 failed',
+      progress: { value: 14, max: 40, label: '14 of 40 batches' },
+      error: 'Connection to the staging database was reset after 3 attempts',
+      output:
+        'Batch 12 ok\nBatch 13 ok\nBatch 14: ECONNRESET\nRetrying (1/3)\nRetrying (2/3)\nRetrying (3/3)',
+    },
+    {
+      id: 'lint',
+      kind: 'shell',
+      title: 'yarn lint --fix',
+      status: 'completed',
+      startedAt: now - 25 * MINUTE,
+      endedAt: now - 24 * MINUTE - 38_000,
+      lastActivity: 'Fixed 4 problems in 3 files',
+      exitCode: 0,
+      output:
+        '\x1b[4msrc/app.tsx\x1b[24m\n  4:10  \x1b[32mfixed\x1b[39m  no-unused-vars\n\x1b[1mDone in 22.4s.\x1b[22m',
+    },
+    {
+      id: 'format',
+      kind: 'shell',
+      title: 'yarn prettier --write',
+      status: 'completed',
+      startedAt: now - 14_000,
+      endedAt: now - 8_000,
+      exitCode: 0,
+      lastActivity: '12 files formatted',
+      output: '{"formatted":12,"unchanged":88,"durationMs":5900}',
+    },
+    {
+      id: 'docs-agent',
+      kind: 'agent',
+      title: 'Update API docs',
+      status: 'cancelled',
+      startedAt: now - 30 * MINUTE,
+      endedAt: now - 29 * MINUTE,
+      tokens: 2_100,
+      owner: { name: 'docs', color: 'blue' },
+      toolUses: 3,
+      lastActivity: 'Stopped by the user',
+    },
+  ];
+}

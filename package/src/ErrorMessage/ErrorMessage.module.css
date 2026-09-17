@@ -10,7 +10,7 @@
   font-size: var(--ae-font-size-sm);
   line-height: var(--ae-line-height-sm);
   color: var(--ae-fg);
-  border-radius: rem(8px);
+  border-radius: var(--ae-notice-radius);
 }
 
 .title {
@@ -20,5 +20,36 @@
 
 .message {
   margin-top: rem(2px);
+  color: var(--ae-fg-muted);
+
+  &[data-collapsible] {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+.toggle {
+  margin-top: rem(4px);
+  margin-left: rem(-10px);
+}
+
+.card[data-variant='warning'] {
+  border-color: var(--ae-warning-border);
+  background-color: var(--ae-warning-bg);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: rem(12px);
+  margin-top: rem(8px);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
   color: var(--ae-fg-muted);
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
-import type { ChatMessage, ChatSlots } from '../types';
+import { act, fireEvent, waitFor } from '@testing-library/react';
+import type { ChatMessage, ChatSlots, CustomToolRendererProps } from '../types';
 import { AgentChat, findPendingQuestion } from './AgentChat';
 
 const StubInputBar: ChatSlots['InputBar'] = ({ onSend, status }) => (
@@ -17,7 +18,7 @@ const messages: ChatMessage[] = [
   { id: 'a1', role: 'assistant', parts: [{ type: 'text', text: 'First answer' }] },
 ];
 
-describe('AgentChat', () => {
+describe('AgentChat/AgentChat', () => {
   it('calls onSend from the input bar', async () => {
     const onSend = jest.fn();
     render(
@@ -169,6 +170,339 @@ describe('AgentChat', () => {
         answer: { kind: 'skip' },
       });
       expect(onAnswer).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('passes inputBarProps to the composer and renders the status bar', () => {
+    const InputBarProbe: ChatSlots['InputBar'] = ({
+      placeholder,
+      leftActions,
+      labels,
+      onQueue,
+    }) => (
+      <div>
+        <span>placeholder:{placeholder}</span>
+        {leftActions}
+        <span>queued:{labels?.queued}</span>
+        <span>queue:{typeof onQueue}</span>
+      </div>
+    );
+    render(
+      <AgentChat
+        messages={messages}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: InputBarProbe }}
+        statusBar={<span>agent is idle</span>}
+        inputBarProps={{
+          placeholder: 'Ask the agent',
+          leftActions: <span>effort</span>,
+          labels: { queued: 'Up next' },
+          onQueue: () => {},
+        }}
+      />
+    );
+    expect(screen.getByText('placeholder:Ask the agent')).toBeInTheDocument();
+    expect(screen.getByText('effort')).toBeInTheDocument();
+    expect(screen.getByText('queued:Up next')).toBeInTheDocument();
+    expect(screen.getByText('queue:function')).toBeInTheDocument();
+    expect(screen.getByText('agent is idle')).toBeInTheDocument();
+  });
+
+  it('retries a failed request from the error card', async () => {
+    const onRetry = jest.fn();
+    render(
+      <AgentChat
+        messages={messages}
+        status="error"
+        error={new Error('Kaboom')}
+        onRetry={onRetry}
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes tool actions from custom renderers', async () => {
+    const onToolAction = jest.fn();
+    const Approve = ({ onAction, name }: CustomToolRendererProps) => (
+      <button type="button" onClick={() => onAction?.('approve', { edits: '' })}>
+        approve {name}
+      </button>
+    );
+    render(
+      <AgentChat
+        messages={[
+          ...messages,
+          {
+            id: 'a2',
+            role: 'assistant',
+            parts: [
+              { type: 'tool-PlanWrite', toolCallId: 'plan-1', state: 'input-available', input: {} },
+            ],
+          },
+        ]}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+        toolRenderers={{ 'tool-PlanWrite': Approve }}
+        onToolAction={onToolAction}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'approve PlanWrite' }));
+    expect(onToolAction).toHaveBeenCalledWith('plan-1', 'approve', { edits: '' });
+  });
+
+  it('opens the conversation search with Mod+F from anywhere in the chat', async () => {
+    render(
+      <AgentChat
+        messages={messages}
+        status="ready"
+        withSearch
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+      />
+    );
+    fireEvent.keyDown(screen.getByRole('button', { name: 'send' }), { key: 'f', metaKey: true });
+    const input = await screen.findByRole('textbox', { name: 'Search conversation' });
+    await userEvent.type(input, 'answer');
+    expect(await screen.findByText('1/1')).toBeInTheDocument();
+  });
+
+  it('leaves Mod+F to the browser while the welcome screen has no conversation to search', () => {
+    render(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        withSearch
+        emptyState={{ title: 'Hello' }}
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+      />
+    );
+    const notPrevented = fireEvent.keyDown(screen.getByRole('button', { name: 'send' }), {
+      key: 'f',
+      metaKey: true,
+    });
+    expect(notPrevented).toBe(true);
+  });
+
+  it('renders the empty state greeting with its suggestions above the composer', async () => {
+    const SuggestionsProbe: ChatSlots['InputBar'] = ({ value, suggestions }) => (
+      <div>
+        <span>draft:{value}</span>
+        <span>input suggestions:{Array.isArray(suggestions) ? suggestions.length : 'object'}</span>
+      </div>
+    );
+    const { container } = render(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: SuggestionsProbe }}
+        emptyState={{
+          layout: 'center',
+          title: 'What should we work on?',
+          description: 'Ask about this repository',
+          suggestions: [{ id: 's1', label: 'Explain this repo', value: 'Explain the repository' }],
+        }}
+      />
+    );
+    expect(container.querySelector('[data-empty-centered]')).not.toBeNull();
+    expect(screen.getByRole('heading', { name: 'What should we work on?' })).toBeInTheDocument();
+    expect(screen.getByText('Ask about this repository')).toBeInTheDocument();
+    await userEvent.click(screen.getByText('Explain this repo'));
+    expect(screen.getByText('draft:Explain the repository')).toBeInTheDocument();
+  });
+
+  it('hides composer suggestions once the chat has messages and aligns the composer on request', () => {
+    const SuggestionsProbe: ChatSlots['InputBar'] = ({ suggestions, className }) => (
+      <span data-class={className}>
+        input suggestions:{Array.isArray(suggestions) ? suggestions.length : 'object'}
+      </span>
+    );
+    const items = [{ id: 's1', label: 'Explain this repo' }];
+    const props = {
+      status: 'ready' as const,
+      onSend: () => {},
+      onStop: () => {},
+      slots: { InputBar: SuggestionsProbe },
+      suggestions: items,
+    };
+    const { rerender, container } = render(
+      <AgentChat {...props} messages={[]} hideSuggestionsWhenNotEmpty />
+    );
+    expect(screen.getByText('input suggestions:1')).toBeInTheDocument();
+
+    rerender(
+      <AgentChat {...props} messages={messages} hideSuggestionsWhenNotEmpty alignComposer />
+    );
+    expect(screen.getByText('input suggestions:0')).toBeInTheDocument();
+    expect(container.querySelector('[data-align-composer]')).not.toBeNull();
+    expect(screen.getByText('input suggestions:0')).toHaveAttribute(
+      'data-class',
+      expect.stringContaining('alignedInputBar')
+    );
+
+    rerender(<AgentChat {...props} messages={messages} />);
+    expect(screen.getByText('input suggestions:1')).toBeInTheDocument();
+    expect(container.querySelector('[data-align-composer]')).toBeNull();
+  });
+
+  it('places empty state suggestions above the composer and widens the empty state', () => {
+    const { container, rerender } = render(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+        emptyState={{
+          layout: 'center',
+          title: 'Hi',
+          suggestions: [{ id: 's1', label: 'Explain this repo' }],
+        }}
+      />
+    );
+    const root = container.querySelector<HTMLElement>('[data-empty-centered]')!;
+    const composer = screen.getByText('status:ready');
+    const suggestion = screen.getByText('Explain this repo');
+    expect(
+      composer.compareDocumentPosition(suggestion) & Node.DOCUMENT_POSITION_PRECEDING
+    ).toBeTruthy();
+    expect(root.style.getPropertyValue('--ae-empty-state-width')).toBe(
+      'calc(37.5rem * var(--mantine-scale))'
+    );
+
+    rerender(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        slots={{ InputBar: StubInputBar }}
+        emptyStatePosition="center"
+        suggestions={[{ id: 's1', label: 'Explain this repo' }]}
+        emptySuggestionsPlacement="empty"
+        emptySuggestionsPosition="bottom"
+      />
+    );
+    const plainRoot = container.querySelector<HTMLElement>('[data-empty-centered]')!;
+    expect(plainRoot).not.toHaveAttribute('data-empty-width');
+    expect(
+      screen
+        .getByText('status:ready')
+        .compareDocumentPosition(screen.getByText('Explain this repo')) &
+        Node.DOCUMENT_POSITION_PRECEDING
+    ).toBeTruthy();
+  });
+
+  describe('welcome empty state', () => {
+    const DraftProbe: ChatSlots['InputBar'] = ({ value, suggestions }) => (
+      <div>
+        <textarea aria-label="composer" value={value} readOnly />
+        <span>pills:{Array.isArray(suggestions) ? suggestions.length : 'object'}</span>
+      </div>
+    );
+
+    it('keeps the composer in place, lists actions and fills the composer', async () => {
+      const onSelect = jest.fn();
+      const { container } = render(
+        <AgentChat
+          messages={[]}
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: DraftProbe }}
+          suggestions={[{ id: 's1', label: 'Explain this repo' }]}
+          emptyState={{
+            avatar: 'AI',
+            title: 'How can I help you today?',
+            description: 'Ask about this repository',
+            actions: [
+              { id: 'plan', label: 'Plan a change', value: 'Plan a change to ', badge: 'New' },
+              { id: 'docs', label: 'Open docs', onSelect },
+            ],
+          }}
+        />
+      );
+
+      expect(container.querySelector('[data-empty-centered]')).toBeNull();
+      expect(
+        screen.getByRole('heading', { name: 'How can I help you today?' })
+      ).toBeInTheDocument();
+      expect(screen.getByText('New')).toBeInTheDocument();
+      expect(screen.getByText('pills:0')).toBeInTheDocument();
+      const composer = screen.getByRole('textbox', { name: 'composer' });
+
+      await userEvent.click(screen.getByRole('button', { name: /Plan a change/ }));
+      expect(composer).toHaveValue('Plan a change to ');
+      await waitFor(() => expect(composer).toHaveFocus());
+
+      await userEvent.click(screen.getByRole('button', { name: 'Open docs' }));
+      expect(onSelect).toHaveBeenCalled();
+    });
+
+    it('hides the welcome block after the first message without remounting the composer', async () => {
+      let addMessages: () => void = () => {};
+      function Harness() {
+        const [list, setList] = React.useState<ChatMessage[]>([]);
+        addMessages = () => setList(messages);
+        return (
+          <AgentChat
+            messages={list}
+            status="ready"
+            onSend={() => {}}
+            onStop={() => {}}
+            slots={{ InputBar: DraftProbe }}
+            emptyState={{
+              title: 'How can I help you today?',
+              actions: [{ id: 'a', label: 'Plan' }],
+            }}
+          />
+        );
+      }
+      render(<Harness />);
+      const composer = screen.getByRole('textbox', { name: 'composer' });
+      await userEvent.click(screen.getByRole('button', { name: 'Plan' }));
+      act(() => addMessages());
+      expect(screen.queryByRole('heading', { name: 'How can I help you today?' })).toBeNull();
+      expect(screen.getByText('First answer')).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'composer' })).toBe(composer);
+      expect(composer).toHaveValue('Plan');
+    });
+
+    it('moves between actions with the arrow keys and lists suggestions when there are no actions', async () => {
+      render(
+        <AgentChat
+          messages={[]}
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: DraftProbe }}
+          suggestions={[
+            { id: 'a', label: 'Explain this repo' },
+            { id: 'b', label: 'Run tests', value: 'Run the tests' },
+          ]}
+          emptyState={{ title: 'Hi' }}
+        />
+      );
+      const [first, second] = screen.getAllByRole('button');
+      first.focus();
+      await userEvent.keyboard('{ArrowDown}');
+      expect(second).toHaveFocus();
+      await userEvent.keyboard('{ArrowDown}');
+      expect(first).toHaveFocus();
+      await userEvent.keyboard('{ArrowUp}{Enter}');
+      expect(screen.getByRole('textbox', { name: 'composer' })).toHaveValue('Run the tests');
     });
   });
 });

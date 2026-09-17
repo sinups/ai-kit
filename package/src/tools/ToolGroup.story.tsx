@@ -1,7 +1,8 @@
 import React from 'react';
+import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { ToolGroup } from './ToolGroup';
-import { NESTED_TOOLS } from './_stories-shared';
+import { NESTED_TOOLS } from './_story-helpers';
 
 export default { title: 'tools/ToolGroup' };
 
@@ -112,3 +113,34 @@ export function Streaming() {
     </Stack>
   );
 }
+
+export const ExpandFlow = {
+  render: () => (
+    <Stack p={40} maw={420}>
+      <ToolGroup
+        part={{
+          type: 'tool-Agent',
+          toolCallId: 'expand-flow',
+          state: 'output-available',
+          input: { description: 'Explore the codebase' },
+          output: { totalDurationMs: 42_000 },
+        }}
+        nestedTools={NESTED_TOOLS}
+        chatStatus="ready"
+        completeLabel="Agent completed"
+        shimmerLabel="Running agent"
+        interruptedLabel="Agent interrupted"
+      />
+    </Stack>
+  ),
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole('button', { expanded: false });
+    await expect(trigger).toHaveTextContent('Agent completed');
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await waitFor(() => expect(canvas.getByText(/index\.ts/)).toBeVisible(), { timeout: 3000 });
+    await userEvent.click(trigger);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  },
+};

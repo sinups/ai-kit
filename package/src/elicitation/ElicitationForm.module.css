@@ -1,0 +1,20 @@
+.root {
+  width: 100%;
+  overflow: hidden;
+  border-color: var(--ae-tool-border);
+  background-color: var(--ae-bg);
+  color: var(--ae-tool-color);
+}
+
+.bar {
+  background-color: var(--ae-tool-bg);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--ae-tool-color-muted);
+}
+
+.message {
+  white-space: pre-wrap;
+}

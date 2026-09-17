@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@mantine-tests/core';
 import { SendButton } from './SendButton';
 
-describe('SendButton', () => {
+describe('input/SendButton', () => {
   it('exposes the state through a data attribute', () => {
     const { container, rerender } = render(<SendButton state="idle" />);
     const root = () => container.querySelector('[data-state]');

@@ -1,0 +1,18 @@
+.task {
+  transition:
+    background-color 1200ms ease,
+    box-shadow 1200ms ease;
+}
+
+.recent {
+  box-shadow: inset rem(2px) 0 0 alpha(var(--ae-success), 0.5);
+}
+
+.ghostSelect {
+  color: var(--mantine-color-dimmed);
+  text-align: right;
+}
+
+.focusTarget:focus {
+  outline: none;
+}

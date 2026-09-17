@@ -1,6 +1,6 @@
 import { isErrorPart, isRecord, isTextPart, isV5ToolPart } from './parts';
 
-describe('parts guards', () => {
+describe('utils/parts guards', () => {
   it('isRecord accepts objects only', () => {
     expect(isRecord({})).toBe(true);
     expect(isRecord([])).toBe(true);

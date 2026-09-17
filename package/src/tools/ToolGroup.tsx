@@ -1,8 +1,10 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
+import { formatCount } from '../utils/format-count';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
+import { COMMAND_TOOL_TYPES, FILE_TOOL_TYPES, SEARCH_TOOL_TYPES } from './tool-kinds';
 import { toolRegistry } from './tool-registry';
 import { useElapsed } from './use-elapsed';
 import classes from './ToolGroup.module.css';
@@ -32,18 +34,6 @@ export interface ToolGroupProps {
   style?: React.CSSProperties;
 }
 
-const FILE_TYPES = new Set(['tool-Read', 'tool-Edit', 'tool-Write']);
-const SEARCH_TYPES = new Set(['tool-Search', 'tool-Grep', 'tool-Glob', 'tool-WebSearch']);
-const COMMAND_TYPES = new Set(['tool-Bash']);
-
-function formatCount(value: number, label: string): string {
-  return `${value} ${value === 1 ? label : `${label}s`}`;
-}
-
-function formatSearches(count: number): string {
-  return `${count} ${count === 1 ? 'search' : 'searches'}`;
-}
-
 function summarizeNestedTools(nestedTools: ToolPart[]): string {
   if (nestedTools.length === 0) {
     return '';
@@ -54,24 +44,24 @@ function summarizeNestedTools(nestedTools: ToolPart[]): string {
   let commandCount = 0;
 
   for (const tool of nestedTools) {
-    if (FILE_TYPES.has(tool.type)) {
+    if (FILE_TOOL_TYPES.has(tool.type)) {
       fileCount += 1;
-    } else if (SEARCH_TYPES.has(tool.type)) {
+    } else if (SEARCH_TOOL_TYPES.has(tool.type)) {
       searchCount += 1;
-    } else if (COMMAND_TYPES.has(tool.type)) {
+    } else if (COMMAND_TOOL_TYPES.has(tool.type)) {
       commandCount += 1;
     }
   }
 
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file'));
+    parts.push(formatCount(fileCount, 'file', 'files'));
   }
   if (searchCount > 0) {
-    parts.push(formatSearches(searchCount));
+    parts.push(formatCount(searchCount, 'search', 'searches'));
   }
   if (commandCount > 0) {
-    parts.push(formatCount(commandCount, 'command'));
+    parts.push(formatCount(commandCount, 'command', 'commands'));
   }
 
   if (parts.length === 0) {
@@ -90,9 +80,9 @@ function getNestedCounts(nestedTools: ToolPart[]) {
   let fileCount = 0;
   let searchCount = 0;
   for (const tool of nestedTools) {
-    if (FILE_TYPES.has(tool.type)) {
+    if (FILE_TOOL_TYPES.has(tool.type)) {
       fileCount += 1;
-    } else if (SEARCH_TYPES.has(tool.type)) {
+    } else if (SEARCH_TOOL_TYPES.has(tool.type)) {
       searchCount += 1;
     }
   }
@@ -102,10 +92,10 @@ function getNestedCounts(nestedTools: ToolPart[]) {
 function formatStreamCounts(fileCount: number, searchCount: number): string {
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file'));
+    parts.push(formatCount(fileCount, 'file', 'files'));
   }
   if (searchCount > 0) {
-    parts.push(formatSearches(searchCount));
+    parts.push(formatCount(searchCount, 'search', 'searches'));
   }
   return parts.join(', ');
 }
@@ -299,3 +289,5 @@ export const ToolGroup = memo(function ToolGroup({
     </ToolRowBase>
   );
 });
+
+ToolGroup.displayName = 'ToolGroup';

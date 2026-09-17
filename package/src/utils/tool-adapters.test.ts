@@ -1,6 +1,6 @@
 import { mapToolInvocationToStep, mapToolStateToStepState } from './tool-adapters';
 
-describe('mapToolInvocationToStep', () => {
+describe('utils/mapToolInvocationToStep', () => {
   it('maps bash results with exit code', () => {
     const step = mapToolInvocationToStep('1', {
       toolName: 'Bash',

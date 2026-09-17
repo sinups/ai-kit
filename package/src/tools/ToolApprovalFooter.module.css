@@ -1,10 +1,14 @@
 .root {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: rem(4px) rem(8px) rem(4px) rem(12px);
   border-top: rem(1px) solid var(--ae-border);
   background-color: var(--ae-tool-bg);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: rem(8px);
 }
 
 .status {
@@ -36,17 +40,22 @@
 
 .actions {
   display: flex;
+  flex-shrink: 0;
   gap: rem(4px);
 }
 
 .button {
   display: inline-flex;
   align-items: center;
-  height: rem(20px);
+  height: var(--ae-control-height-xs);
   padding: 0 rem(6px);
-  border-radius: var(--mantine-radius-sm);
+  border: 0;
+  border-radius: var(--ae-control-radius);
+  font-family: inherit;
   font-size: var(--ae-font-size-xs);
   line-height: var(--ae-line-height-xs);
+  background-color: transparent;
+  cursor: pointer;
   transition:
     background-color 150ms ease,
     color 150ms ease,
@@ -88,4 +97,43 @@
   &:disabled {
     background-color: var(--ae-primary);
   }
+}
+
+.joined {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.toggle {
+  padding: 0 rem(3px);
+  border-inline-start: rem(1px) solid alpha(var(--ae-send-button-color), 0.25);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.noShrink {
+  flex-shrink: 0;
+}
+
+.ruleInput {
+  font-family: var(--ae-font-mono);
+}
+
+.reasoningToggle {
+  align-self: flex-start;
+}
+
+.reasoning {
+  color: var(--ae-tool-color-muted);
+  white-space: pre-wrap;
+}
+
+.requester {
+  flex-shrink: 0;
+  max-width: 45%;
+}
+
+.lead {
+  flex: 1;
+  min-width: 0;
 }

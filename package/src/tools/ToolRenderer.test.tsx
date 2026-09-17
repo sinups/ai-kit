@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@mantine-tests/core';
+import { render, screen, userEvent } from '@mantine-tests/core';
 import type { CustomToolRendererProps } from '../types';
 import { ToolRenderer } from './ToolRenderer';
 
@@ -55,7 +55,7 @@ describe('tools/ToolRenderer', () => {
     render(
       <ToolRenderer
         part={{
-          type: 'tool-mcp__github__list_issues',
+          type: 'tool-mcp__git__list_issues',
           toolCallId: 'm1',
           state: 'output-available',
           input: { repo: 'x/y' },
@@ -85,6 +85,64 @@ describe('tools/ToolRenderer', () => {
     expect(screen.getByText('custom:weather:success')).toBeInTheDocument();
   });
 
+  it('keeps the built-in card when only a user-tools renderer shares its name', () => {
+    function Custom() {
+      return <div>custom</div>;
+    }
+    render(
+      <ToolRenderer
+        part={{
+          type: 'tool-Bash',
+          toolCallId: 'b0',
+          state: 'output-available',
+          input: { command: 'yarn test' },
+          output: { stdout: 'PASS', exitCode: 0 },
+        }}
+        toolRenderers={{ Bash: Custom }}
+      />
+    );
+    expect(screen.getByText('Ran command: yarn')).toBeInTheDocument();
+    expect(screen.queryByText('custom')).toBeNull();
+  });
+
+  it('uses a renderer keyed by part type before the built-in card', async () => {
+    const onToolAction = jest.fn();
+    function Custom({ name, status, toolCallId, part, onAction }: CustomToolRendererProps) {
+      return (
+        <button type="button" onClick={() => onAction?.('submit', { ok: true })}>
+          {`${name}:${status}:${toolCallId}:${part.type}`}
+        </button>
+      );
+    }
+    render(
+      <ToolRenderer
+        part={{ type: 'tool-Bash', toolCallId: 'b1', state: 'output-available', input: {} }}
+        toolRenderers={{ 'tool-Bash': Custom }}
+        onToolAction={onToolAction}
+      />
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Bash:success:b1:tool-Bash' }));
+    expect(onToolAction).toHaveBeenCalledWith('b1', 'submit', { ok: true });
+  });
+
+  it('matches dynamic tools and full MCP tool names', () => {
+    function Custom({ name }: CustomToolRendererProps) {
+      return <div>{`custom:${name}`}</div>;
+    }
+    render(
+      <ToolRenderer
+        part={{
+          type: 'dynamic-tool',
+          toolName: 'mcp__git__search',
+          toolCallId: 'g1',
+          state: 'input-available',
+        }}
+        toolRenderers={{ 'tool-mcp__git__search': Custom }}
+      />
+    );
+    expect(screen.getByText('custom:mcp__git__search')).toBeInTheDocument();
+  });
+
   it('falls back to the tool name for unknown tools', () => {
     render(
       <ToolRenderer
@@ -101,7 +159,7 @@ describe('tools/ToolRenderer', () => {
         chatStatus="ready"
         part={{
           type: 'dynamic-tool',
-          toolName: 'mcp__linear__list_issues',
+          toolName: 'mcp__issues__list_issues',
           toolCallId: 'd1',
           state: 'output-available',
           input: { query: 'bugs' },

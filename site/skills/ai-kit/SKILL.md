@@ -1,150 +1,71 @@
 ---
 name: ai-kit
 description: |
-  Use whenever the user wants to build or modify a chat, agent, or tool-calling
-  UI in a React + Mantine project, especially if the code imports from
-  `@sinups/ai-kit` or the package is listed in package.json.
-  Triggers: "agent chat", "tool call UI", "streaming chat", "plan approval",
-  "AgentChat", "InputBar", "tool renderer", mentions of AI UI Kit, or requests to add a new agent surface to a Mantine app.
+  Use whenever the user wants to build or change an agent product UI in a React + Mantine
+  project: a chat with tool calls, a chat widget, settings for models, MCP servers, agents,
+  skills, permissions or hooks, session history, background tasks or diff review. Especially
+  when the code imports from `@sinups/ai-kit` or package.json lists it.
+  Triggers: "agent chat", "tool call UI", "chat widget", "chat launcher", "MCP settings",
+  "diff review", "AgentChat", "InputBar", "AiKitProvider", mentions of AI UI Kit.
 
-  Do NOT use for plain chat UIs that don't need tool/plan/approval cards, for
-  Tailwind/shadcn projects (use the upstream Agent Elements skill there), or
-  for projects already committed to a different agent UI kit.
+  Do NOT use for Tailwind/shadcn projects without Mantine (use the upstream Agent Elements
+  registry there) or for projects committed to a different agent UI kit.
 ---
 
 # AI UI Kit skill
 
-Project-aware context for building chat and agent UIs with **AI UI Kit**, an npm package (`@sinups/ai-kit`) that ports AI UI Kit by
-21st.dev to Mantine primitives and theme tokens. Docs:
-`https://sinups.github.io/ai-kit`.
+Context for building agent UIs with **AI UI Kit** (`@sinups/ai-kit`), a Mantine 9 UI kit:
+the chat, tool cards and composer, and the screens around them. Docs:
+`https://sinups.github.io/ai-kit`. The current, complete catalog with API tables is in
+`https://sinups.github.io/ai-kit/llms-full.txt`: fetch it before writing code when you can,
+and treat it as the source of truth over this file.
 
-## What this skill gives you
+## Install
 
-When this skill loads, you know:
+```bash
+npm install @sinups/ai-kit @mantine/core @mantine/hooks @tabler/icons-react
+```
 
-1. **Install is one package.** `npm install @sinups/ai-kit @mantine/core @mantine/hooks`,
-   then import `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css`
-   once at the app root and render inside `MantineProvider`.
-2. **The API is structurally compatible with the Vercel AI SDK.** Messages are
-   `ChatMessage[]` (same shape as `ChatMessage` from `ai`), status is
-   `ChatStatus`. `useChat()` output plugs in directly without importing `ai`.
-3. **The full component catalog with API shapes and composition rules** (see
-   sections below).
-4. **Theming guardrails**: the components read Mantine CSS variables and the
-   `--ae-*` custom properties; restyle through tokens, not by overriding
-   internals.
+Peer dependencies: `@mantine/core` and `@mantine/hooks` ^9.4, `react` and `react-dom` ^19.2,
+`@tabler/icons-react` ^3. Import the stylesheets once at the app root and render inside
+`MantineProvider`:
+
+```tsx
+import "@mantine/core/styles.css";
+import "@sinups/ai-kit/styles.css";
+```
+
+Use `@sinups/ai-kit/styles.layer.css` instead when the app uses CSS layers.
 
 ## Detection
 
-Consider this project ready for AI UI Kit if any of these are true:
+The project is ready for the kit if `package.json` lists `@sinups/ai-kit`, source files import
+from it, or the project uses `@mantine/core` and the user asks for an agent or chat UI. If the
+package is missing, install it with the project's package manager.
 
-- `package.json` dependencies include `@sinups/ai-kit`
-- source files import from `@sinups/ai-kit`
-- the project uses `@mantine/core` and the user asks for an agent or chat UI
+## Contract
 
-If the package is missing, install it with the project's package manager and
-add the two stylesheet imports next to `@mantine/core/styles.css`.
+- Everything is exported from the package root. Pure helpers (validation, filtering,
+  formatting) are exported next to the components.
+- Components are controlled: data through props, intent through callbacks. Async callbacks may
+  return a promise; the component shows the pending state and the rejection message.
+- Data views take `loading`, `error` + `onRetry` and render an empty state.
+- Layout adapts to the component's own width (360px widget to 900px page), not the viewport.
+- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds
+  them); labels of nested parts sit under a key, for example `labels.wizard`.
+- Messages are `ChatMessage[]`, structurally compatible with AI SDK `UIMessage`; status is
+  `ChatStatus`. `useChat()` output plugs in without importing `ai`.
 
-## Imports
-
-Everything is exported from the package root:
-
-```tsx
-import {
-  AgentChat, MessageList, UserMessage, ErrorMessage, Markdown,
-  InputBar, Suggestions, ModelPicker, ModelBadge, ModeSelector,
-  SendButton, AttachmentButton, FileAttachment,
-  BashTool, EditTool, SearchTool, TodoTool, PlanTool, ToolGroup,
-  SubagentTool, McpTool, ThinkingTool, GenericTool, QuestionTool,
-  ToolRenderer, TextShimmer, SpiralLoader,
-  parseMcpToolType, toolRegistry,
-} from "@sinups/ai-kit";
-import type { ChatMessage, ChatStatus, ToolPart } from "@sinups/ai-kit";
-```
-
-## Component catalog
-
-### Chat surface
-
-- **AgentChat** — the full chat shell. Renders `MessageList` + `InputBar`,
-  handles tool invocations via `toolRenderers`, shows an empty state with
-  optional `suggestions`. Props: `messages`, `status`, `onSend`, `onStop`,
-  `toolRenderers?`, `suggestions?`, `attachments?`, `classNames?`, `slots?`.
-- **MessageList** — transcript only. Use when you need the input bar somewhere
-  else. Accepts `toolRenderers` and `showCopyToolbar`.
-- **UserMessage / ErrorMessage / Markdown** — low-level message pieces.
-  `Markdown` streams safely (external links get `rel="noreferrer"` by default).
-
-### Input
-
-- **InputBar** — composer. Props: `status`, `onSend({ content })`, `onStop`,
-  `value?` + `onChange?` (controlled), `attachedImages`/`attachedFiles` with
-  their remove handlers, `leftActions`/`rightActions` slots, `suggestions?`,
-  `questionBar?`, `infoBar?`.
-- **Suggestions** — quick-prompt chips for the empty state or inline.
-- **ModelPicker / ModeSelector** — designed to drop into `leftActions`. Both
-  accept a simple `{ id, name, version? }` / `{ id, label, icon?, description? }`
-  shape. Do not import `CLAUDE_MODELS` — it was removed; supply your own array.
-- **SendButton / AttachmentButton / FileAttachment** — usable standalone if
-  you're building a custom composer.
-
-### Tool cards
-
-All tool cards accept a `part` prop of type
-`Extract<ChatMessage["parts"][number], { type: \`tool-<Name>\` }>` from the AI
-SDK. Register them via `toolRenderers` on `AgentChat`/`MessageList`:
-
-```tsx
-<AgentChat
-  toolRenderers={{
-    Bash: BashTool,
-    Edit: EditTool,
-    Write: EditTool,      // Write reuses EditTool
-    Search: SearchTool,
-    WebSearch: SearchTool,
-    TodoWrite: TodoTool,
-    PlanWrite: PlanTool,
-    Task: SubagentTool,
-    Thinking: ThinkingTool,
-  }}
-/>
-```
-
-Cards available:
-
-- **BashTool** — command + stdout, collapsible.
-- **EditTool** — diff card. Supports `input.old_string`/`input.new_string` or
-  `output.structuredPatch`, plus an approval footer via `input.approval`.
-- **SearchTool** — grouped search results. Pass `results` or use `output.results`.
-- **TodoTool** — diffed todo list from `input.todos` vs `output.oldTodos`.
-- **PlanTool** — plan title + summary with approve/reject footer.
-- **ToolGroup** — collapses consecutive tool calls into one row.
-- **SubagentTool** — sub-agent task with nested tools.
-- **McpTool** — generic MCP tool output; use `parseMcpToolType` from
-  `@sinups/ai-kit` to get `mcpInfo`.
-- **ThinkingTool** — collapsible reasoning row.
-- **GenericTool** — fallback for unknown tools.
-- **QuestionTool** — clarifying question with single/multi/text answer kinds.
-
-### Streaming states
-
-- **TextShimmer** — shimmering status label.
-- **SpiralLoader** — Lottie spiral; use for multi-second loading states.
-
-## Composition patterns
-
-### Full chat with tool rendering (most common)
+## Chat
 
 ```tsx
 "use client";
 
 import { AgentChat } from "@sinups/ai-kit";
-import { BashTool } from "@sinups/ai-kit";
-import { EditTool } from "@sinups/ai-kit";
-import { SearchTool } from "@sinups/ai-kit";
 import { useChat } from "@ai-sdk/react";
+import { IconBook2, IconBug, IconSparkles } from "@tabler/icons-react";
 
-export default function Chat() {
+export function Chat() {
   const { messages, status, sendMessage, stop } = useChat();
   return (
     <AgentChat
@@ -152,93 +73,140 @@ export default function Chat() {
       status={status}
       onSend={({ content }) => sendMessage({ text: content })}
       onStop={stop}
-      toolRenderers={{
-        Bash: BashTool,
-        Edit: EditTool,
-        Write: EditTool,
-        Search: SearchTool,
+      contentWidth={760}
+      collapseToolRuns
+      alignComposer
+      emptyState={{
+        avatar: <IconSparkles size={22} />,
+        title: "How can I help you today?",
+        description: "Ask about the code, fix a bug or plan a change.",
+        actions: [
+          { id: "explain", label: "Explain this repository", icon: <IconBook2 /> },
+          { id: "bug", label: "Find the cause of a bug", icon: <IconBug />, badge: "New" },
+        ],
       }}
     />
   );
 }
 ```
 
-### Composer with mode + model pickers
+- `AgentChat` props: `messages`, `status`, `onSend`, `onStop` (required); `error`,
+  `suggestions`, `attachments`, `toolRenderers`, `onToolAction`, `messageActions`, `onRetry`,
+  `statusBar`, `inputBarProps`, `withSearch`, `stickyPrompt`, `collapseToolRuns`,
+  `highlighter`, `longMessageThreshold`, `contentWidth`, `emptyState`, `emptyStateWidth`,
+  `alignComposer`, `topFade`, `wrapLines`, `responsiveTables`, `classNames`, `slots`.
+- `contentWidth`: `420px` by default; a number such as `760` on pages, `"100%"` in panels and
+  widgets. In narrow containers pass `wrapLines`.
+- `emptyState`: the `welcome` layout (default) shows `avatar`, `title`, `description` and
+  `actions` (`id`, `label`, `icon`, `badge`, `value`, `onSelect`) with the composer at the
+  bottom. `layout: "center"` centers greeting and composer, with `suggestions` as pills above
+  the composer.
+- `emptySuggestionsPosition` is deprecated: suggestions always render above the composer and
+  `"bottom"` behaves as `"top"`. Do not pass it.
+- `statusBar`: content above the composer, for example `<AgentStatus />`. Context indicators
+  such as `<ContextUsage />` go into `inputBarProps.rightActions`.
+- `MessageList` renders the feed alone; `InputBar` is the composer (`leftActions`,
+  `rightActions`, `suggestions`, `completions`, `onQueue`, `history`, `infoBar`,
+  `questionBar`). Put `ModeSelector` (`modes`, `value`/`defaultValue`, `onChange`) and
+  `ModelPicker` (`models`: `{ id, name, version? }[]`) into `leftActions`.
+
+## Tool cards
+
+`AgentChat` and `MessageList` render built-in cards for tool parts on their own:
+`tool-Bash` (BashTool), `tool-Edit` and `tool-Write` (EditTool), `tool-Grep`, `tool-Glob`,
+`tool-WebSearch` (SearchTool), `tool-TodoWrite` (TodoTool), `tool-PlanWrite` (PlanTool),
+`tool-Question` (QuestionTool), `tool-Task` and `tool-Agent` (ToolGroup with nested tools),
+`tool-Thinking` (ThinkingTool), `tool-mcp__<server>__<tool>` (McpTool).
+
+Add or replace a card with `toolRenderers`, keyed by the **full part type**. A bare name only
+matches `mcp__user-tools__<name>`. Renderers receive `CustomToolRendererProps`: `name`,
+`input`, `output`, `status` (`pending`, `streaming`, `success`, `error`), `toolCallId`, `part`,
+`onAction`; `onAction(action, payload)` reaches `onToolAction(toolCallId, action, payload)`.
 
 ```tsx
-import { InputBar } from "@sinups/ai-kit";
-import { ModeSelector } from "@sinups/ai-kit";
-import { ModelPicker } from "@sinups/ai-kit";
-import { IconBulb, IconCursor } from "@tabler/icons-react";
+import { Button, Group, Paper, Text } from "@mantine/core";
+import { AgentChat, type CustomToolRendererProps } from "@sinups/ai-kit";
 
-const modes = [
-  { id: "agent", label: "Agent", icon: IconCursor },
-  { id: "plan", label: "Plan", icon: IconBulb },
-];
-const models = [
-  { id: "sonnet", name: "Sonnet", version: "4.6" },
-  { id: "opus", name: "Opus", version: "4.7" },
-];
+function DeployCard({ input, status, onAction }: CustomToolRendererProps) {
+  return (
+    <Paper withBorder p="xs">
+      <Group justify="space-between">
+        <Text size="sm">Deploy {String(input.service)} · {status}</Text>
+        <Button size="xs" onClick={() => onAction?.("approve")}>Approve</Button>
+      </Group>
+    </Paper>
+  );
+}
 
-<InputBar
-  status="ready"
-  onSend={handleSend}
-  onStop={handleStop}
-  leftActions={
-    <>
-      <ModeSelector modes={modes} defaultValue="agent" />
-      <ModelPicker models={models} defaultValue="sonnet" />
-    </>
-  }
-/>
+<AgentChat
+  {...chat}
+  toolRenderers={{ "tool-Deploy": DeployCard }}
+  onToolAction={(toolCallId, action) => approveDeploy(toolCallId, action)}
+/>;
 ```
 
-### Custom tool renderer
+Confirmation UI for a pending call: `ToolApprovalFooter` (`onApprove(scope)`, `onReject`,
+`approveOptions`, `onExplain` with a risk level, `ruleSuggestion`).
 
-`toolRenderers` values are React components that receive `{ part, chatStatus }`.
-Return whatever UI you want; reuse `GenericTool` as a fallback shell.
+## Screens around the chat
+
+| Need | Components |
+| --- | --- |
+| Multi-step flows, settings screens, lists | `Wizard`, `WizardModal`, `SettingsLayout`, `SettingsSection`, `SettingRow`, `SettingsModal`, `MasterDetail`, `EntityList`, `CommandPalette`, `ConfirmDialog`, `KeyValueEditor`, `SchemaView`, `StatusBadge` |
+| MCP servers | `McpSettingsPanel`, `McpServerList`, `McpServerDetail`, `McpToolDetail`, `McpServerWizard`, `McpImportDialog` |
+| Agents and skills | `AgentsSettingsPanel`, `AgentList`, `AgentDetail`, `AgentEditor`, `AgentCreateWizard`, `SkillsSettingsPanel`, `SkillCatalog`, `SkillPicker` |
+| Permissions and hooks | `PermissionRulesPanel`, `AddPermissionRuleWizard`, `PermissionModeSelector`, `HooksPanel`, `HookWizard` |
+| Sessions and tasks | `SessionList`, `SessionPreview`, `ExportDialog`, `BackgroundTasksPanel`, `TaskList`, `AgentTree` |
+| Diff review | `DiffReview`, `DiffReviewModal`, `DiffFileList`, `DiffFileView` |
+| Model, usage, memory, help | `ModelSettingsPanel`, `UsagePanel`, `StatusPanel`, `MemoryPanel`, `CommandsHelp` |
+| Message actions | `messageActions` on `AgentChat` (`onEdit`, `onRetry`, `onRewind`, `onBranch`, `onFeedback`), `PlanApproval`, `RewindDialog` |
+
+Check each component's props in `llms-full.txt` before use.
 
 ## Theming
 
-The components read Mantine CSS variables and a set of `--ae-*` custom
-properties defined by `@sinups/ai-kit/styles.css`. Restyle through them,
-never by reaching into component internals:
+- Without a provider the kit follows the Mantine primary color, fonts and color scheme.
+- `AiKitProvider` goes inside `MantineProvider` and themes its subtree: `accent` (`gray`,
+  `blue`, `indigo`, `violet`, `grape`, `pink`), `radius` (`sharp`, `default`, `round`),
+  `density` (`default`, `compact`), `colorScheme` (`light`, `dark`, `auto`), `theme`,
+  `tokens` (`--ae-*` names without the prefix), `persistKey`.
+- `AiKitThemeCustomizer` is a ready settings panel; `useAiKitTheme()` reads and changes the
+  settings.
+- Restyle through `--ae-*` tokens (`--ae-bg`, `--ae-fg`, `--ae-border`, `--ae-primary`,
+  `--ae-tool-radius`, `--ae-max-width`, ...), never by overriding component internals.
+- Whole-app kit look: `<MantineProvider theme={mergeAiKitTheme(appTheme)}>` with the `ae-kit`
+  class on the app root.
 
-- Colors: `--ae-bg`, `--ae-fg`, `--ae-fg-muted`, `--ae-border`, `--ae-primary`,
-  `--ae-tool-bg`, `--ae-user-message-bg`, `--ae-diff-added-text`, ...
-- Geometry: `--ae-radius`, `--ae-tool-radius`, `--ae-max-width`
-- Fonts: `--ae-font-mono`, `--ae-font-size-sm`, `--ae-line-height-sm`
+## Launcher
 
-Override them on any ancestor (`.my-chat { --ae-max-width: 640px; }`) or through
-the Mantine theme (`primaryColor`, `radius`, `fontFamily`). Light and dark
-schemes follow `MantineProvider`.
+```tsx
+<ChatLauncher title="Assistant" unreadCount={unread}>
+  <AgentChat {...chat} contentWidth="100%" wrapLines alignComposer emptyState={welcome} />
+</ChatLauncher>
+```
 
-## When NOT to use AI UI Kit
+On a page that is not a React app, or to isolate the widget from page CSS, use
+`mountChatLauncher(target, element, { styles: [mantineCss, kitCss], wrap })`; it renders into a
+shadow root and returns `unmount`.
 
-- Projects using `assistant-ui`, `ai-elements`, `copilotkit`, or another kit;
-  don't mix.
-- Tailwind + shadcn projects: use the upstream Agent Elements registry instead.
-- Pure chat UIs that never render tool calls or plans: `InputBar` + your own
-  message rendering may be enough; skip `AgentChat`.
-- Mantine < 7: the components depend on Mantine CSS variables.
+## Layout rules
 
-## Quick answers for common asks
+- Give the chat a bounded height: flex column with `minHeight: 0` down to `AgentChat`.
+- Measure the container, not the viewport; below about 720px pass `wrapLines` and move side
+  panes into a `Drawer`.
+- Chat with history: a 272px `SessionList` column. Chat with an inspector: Mantine `Splitter`
+  with `DiffReview` or `BackgroundTasksPanel`.
 
-- **"Add AI UI Kit to this project"** → run
-  `npm install @sinups/ai-kit @mantine/core @mantine/hooks`, import
-  `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css` at the root,
-  make sure a `MantineProvider` wraps the app.
-- **"Switch the default SendButton look"** → pass `className`/`style` or
-  override `--ae-send-button-bg` / `--ae-send-button-color`; the source is in
-  the package (`input/SendButton.tsx`) if you need to fork it.
-- **"Render a custom tool"** → map its type in `toolRenderers`; fall back to
-  `GenericTool` for unknown tools.
-- **"Use with useChat"** → pass `messages` and `status` straight through,
-  translate `sendMessage`/`stop` to `onSend({ content })`/`onStop`.
+## When not to use
+
+- Projects on another agent UI kit; do not mix kits.
+- Tailwind + shadcn projects without Mantine: use the upstream Agent Elements registry.
+- Mantine versions below 9.4.
 
 ## Reference
 
 - Docs: `https://sinups.github.io/ai-kit/docs`
+- Recipes with live previews: `https://sinups.github.io/ai-kit/docs/what-you-can-build`
+- Index for assistants: `https://sinups.github.io/ai-kit/llms.txt`
 - Full docs in one file: `https://sinups.github.io/ai-kit/llms-full.txt`
 - Source: `https://github.com/sinups/ai-kit`
-- Upstream (Tailwind/shadcn): `https://github.com/21st-dev/agent-elements`

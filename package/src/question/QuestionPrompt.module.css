@@ -26,10 +26,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: rem(20px);
-  min-width: rem(20px);
+  height: var(--ae-control-height-xs);
+  min-width: var(--ae-control-height-xs);
   padding: 0 rem(4px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   font-size: var(--ae-font-size-sm);
   line-height: var(--ae-line-height-sm);
   font-weight: 500;
@@ -49,7 +49,7 @@
   width: 100%;
   margin: 0 rem(-8px);
   padding: rem(6px) rem(8px);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   text-align: left;
 
   @mixin hover {
@@ -61,11 +61,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: rem(20px);
-  min-width: rem(20px);
+  height: var(--ae-control-height-xs);
+  min-width: var(--ae-control-height-xs);
   padding: 0 rem(4px);
   border: rem(1px) solid var(--ae-border);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   background-color: transparent;
   font-size: var(--ae-font-size-sm);
   font-weight: 500;
@@ -101,11 +101,11 @@
 }
 
 .customInput {
-  height: rem(28px);
-  min-height: rem(28px);
+  height: var(--ae-control-height-md);
+  min-height: var(--ae-control-height-md);
   padding: 0 rem(8px);
   border: rem(1px) solid var(--ae-border);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   background-color: var(--ae-bg);
   font-size: var(--ae-font-size-sm);
   line-height: rem(26px);
@@ -120,7 +120,7 @@
   min-height: 0;
   padding: rem(6px) rem(8px);
   border: rem(1px) solid var(--ae-border);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   background-color: var(--ae-bg);
   font-size: var(--ae-font-size-sm);
   line-height: var(--mantine-line-height);
@@ -150,9 +150,9 @@
 
 .navButton,
 .skipButton {
-  height: rem(24px);
+  height: var(--ae-control-height-sm);
   padding: 0 rem(8px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   font-size: var(--ae-font-size-sm);
   color: var(--ae-fg-muted);
   transition:
@@ -180,9 +180,9 @@
 }
 
 .submitButton {
-  height: rem(24px);
+  height: var(--ae-control-height-sm);
   padding: 0 rem(10px);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--ae-control-radius);
   background-color: var(--ae-primary);
   font-size: var(--ae-font-size-sm);
   font-weight: 500;
@@ -204,4 +204,40 @@
     background-color: var(--ae-primary);
     transform: none;
   }
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: rem(8px);
+
+  &[data-wide-preview] {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    gap: rem(16px);
+  }
+}
+
+.sidePreview,
+.inlinePreview {
+  min-width: 0;
+  max-height: rem(320px);
+  overflow: auto;
+  padding: rem(8px) rem(12px);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-row-radius);
+  background-color: var(--ae-bg-tertiary);
+  font-size: var(--ae-font-size-sm);
+}
+
+.inlinePreview {
+  margin: rem(2px) 0 rem(6px) rem(28px);
+}
+
+.sidePreview[data-kind='code'],
+.inlinePreview[data-kind='code'] {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
 }

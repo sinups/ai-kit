@@ -7,7 +7,7 @@ const images = [
   { id: 'b', url: 'https://example.com/b.png', filename: 'b.png' },
 ];
 
-describe('ImageLightbox', () => {
+describe('ImageLightbox/ImageLightbox', () => {
   it('closes on Escape and restores body overflow', async () => {
     document.body.style.overflow = 'auto';
     const onClose = jest.fn();

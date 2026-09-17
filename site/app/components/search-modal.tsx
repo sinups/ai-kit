@@ -24,6 +24,16 @@ const SUGGESTED_PAGES: { title: string; href: string; description: string }[] =
       description: "Prerequisites, styles, provider and your first component",
     },
     {
+      title: "Theming",
+      href: "/docs/theming",
+      description: "AiKitProvider settings, customizer panel and tokens",
+    },
+    {
+      title: "Layouts",
+      href: "/docs/layouts",
+      description: "Full-page chat, sidebar, inspector, settings and widget",
+    },
+    {
       title: "MCP",
       href: "/docs/mcp",
       description: "Read the docs from your AI assistant"
@@ -31,7 +41,7 @@ const SUGGESTED_PAGES: { title: string; href: string; description: string }[] =
     {
       title: "Skills",
       href: "/docs/skills",
-      description: "Project-aware context for Claude Code and Cursor",
+      description: "Project-aware context for AI coding assistants",
     },
     {
       title: "Use cases",

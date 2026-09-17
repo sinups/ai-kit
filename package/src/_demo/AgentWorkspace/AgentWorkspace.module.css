@@ -1,0 +1,43 @@
+.shell {
+  --demo-workspace-height: 100dvh;
+}
+
+.shell[data-mobile] {
+  --demo-workspace-height: 100%;
+
+  height: 100%;
+}
+
+.main {
+  display: flex;
+  background-color: var(--ae-bg);
+  flex-direction: column;
+  height: var(--demo-workspace-height);
+  min-height: 0;
+}
+
+.chat {
+  flex: 1;
+  min-height: 0;
+}
+
+.noShrink {
+  flex-shrink: 0;
+}
+
+.navFooter {
+  border-top: rem(1px) solid var(--ae-border);
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--mantine-radius-lg);
+}
+
+.shell[data-mobile] .navbar {
+  bottom: 0;
+  height: auto;
+}

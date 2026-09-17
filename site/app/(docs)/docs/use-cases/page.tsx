@@ -121,22 +121,22 @@ function buildConversation(): ChatMessage[] {
           output: {
             results: [
               {
-                source: "github",
+                source: "web",
                 title: "package/src/input/InputBar.tsx",
                 date: "repo",
               },
               {
-                source: "github",
+                source: "web",
                 title: "site/app/data/component-docs.ts",
                 date: "repo",
               },
               {
-                source: "github",
+                source: "web",
                 title: "app/components/component-example-preview.tsx",
                 date: "repo",
               },
             ],
-            tabs: [{ source: "github", label: "Repo", count: 3 }],
+            tabs: [{ source: "web", label: "Repo", count: 3 }],
           },
         }),
       ],
@@ -673,7 +673,7 @@ export default function UseCasesPage() {
         </p>
         <div
           style={
-            { "--an-input-focus-outline": "#0ea5e9" } as React.CSSProperties
+            { "--ae-input-focus-outline": "var(--mantine-color-cyan-5)" } as React.CSSProperties
           }
         >
           <div className="border border-border rounded-lg overflow-hidden bg-background h-[680px]">

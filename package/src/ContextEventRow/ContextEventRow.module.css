@@ -1,0 +1,12 @@
+.items {
+  padding-inline-start: rem(20px);
+}
+
+.item {
+  width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background-color: transparent;
+  color: var(--ae-fg-muted);
+  font-size: var(--ae-font-size-xs);
+}

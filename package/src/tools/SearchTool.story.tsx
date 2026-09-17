@@ -5,7 +5,7 @@ import { SearchTool, type SearchResult } from './SearchTool';
 export default { title: 'tools/SearchTool' };
 
 const results: SearchResult[] = [
-  { source: 'github', title: 'mantinedev/mantine — Collapse component', date: '2 days ago' },
+  { source: 'web', title: 'mantinedev/mantine — Collapse component', date: '2 days ago' },
   { source: 'stackoverflow', title: 'How to animate height with CSS grid', date: 'Mar 2026' },
   { source: 'web', title: 'MDN: interpolate-size', date: '' },
 ];

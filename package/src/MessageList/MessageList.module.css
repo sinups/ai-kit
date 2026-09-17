@@ -6,7 +6,7 @@
 
 .content {
   margin-inline: auto;
-  padding: rem(24px) rem(16px);
+  padding: rem(24px) var(--ae-column-inset, rem(16px));
   max-width: var(--ae-max-width);
 }
 
@@ -92,7 +92,7 @@
   justify-content: center;
   width: rem(24px);
   height: rem(24px);
-  border-radius: rem(6px);
+  border-radius: var(--ae-row-radius);
   opacity: 0.5;
   background-color: transparent;
   transition:
@@ -154,4 +154,61 @@
   margin-inline: auto;
   max-width: var(--ae-max-width);
   width: 100%;
+}
+
+.root:focus {
+  outline: none;
+}
+
+.stickyTop {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 0;
+}
+
+.stickyTopInner {
+  position: absolute;
+  inset-inline: 0;
+  top: rem(8px);
+  display: flex;
+  flex-direction: column;
+  gap: rem(6px);
+}
+
+.stickyPrompt {
+  overflow: hidden;
+}
+
+.stickyPromptButton {
+  display: flex;
+  align-items: center;
+  gap: rem(6px);
+  width: 100%;
+  padding: rem(6px) rem(10px);
+  color: var(--ae-fg-muted);
+
+  @mixin hover {
+    background-color: var(--ae-hover);
+  }
+}
+
+.jumpToLatest {
+  position: sticky;
+  bottom: rem(20px);
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  height: 0;
+  pointer-events: none;
+}
+
+.jumpToLatestButton {
+  pointer-events: auto;
+  transform: translateY(-100%);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.root[data-top-fade] {
+  mask-image: linear-gradient(to bottom, transparent 0, black var(--ae-top-fade-size, rem(24px)));
 }

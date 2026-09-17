@@ -1,0 +1,8 @@
+.details {
+  padding-inline-start: rem(20px);
+}
+
+.reason {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

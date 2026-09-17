@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from 'react';
-import { Box } from '@mantine/core';
+import React, { memo, useMemo, useState } from 'react';
+import { Badge, Box, Button, Group, Text, type MantineColor } from '@mantine/core';
 import { CheckIcon, IconArrowRight } from '../icons';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
@@ -10,6 +10,13 @@ import {
   getPartOutput,
   getToolStatus,
 } from '../utils/format-tool';
+import {
+  DEFAULT_TODO_TOOL_LABELS,
+  describeHiddenTodos,
+  getTodoBlockers,
+  limitTodos,
+  type TodoToolLabels,
+} from './todo-utils';
 import classes from './TodoTool.module.css';
 
 export type TodoItem = {
@@ -18,6 +25,12 @@ export type TodoItem = {
   status: 'pending' | 'in_progress' | 'completed';
   /** Present-tense form shown while the task is in progress */
   activeForm?: string;
+  /** Stable id other todos refer to in `blockedBy` */
+  id?: string;
+  /** Ids of todos that must be completed first */
+  blockedBy?: string[];
+  /** Agent or teammate working on the todo */
+  owner?: { name: string; color?: MantineColor };
 };
 
 export interface TodoToolProps {
@@ -25,6 +38,10 @@ export interface TodoToolProps {
   part: ToolPart;
   /** Chat status from `useChat()`, used to tell a pending tool from an interrupted one */
   chatStatus?: string;
+  /** Shows at most this many todos, in-progress first, with a summary of the rest */
+  maxVisible?: number;
+  /** Overrides of the default English labels */
+  labels?: Partial<TodoToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -94,9 +111,13 @@ function TodoStatusIcon({ status }: { status: TodoItem['status'] }) {
 const TodoListItem = memo(function TodoListItem({
   todo,
   isPending,
+  blockers,
+  blockedByLabel,
 }: {
   todo: TodoItem;
   isPending: boolean;
+  blockers: string[];
+  blockedByLabel: string;
 }) {
   const dimmed = isPending || todo.status === 'completed' || todo.status === 'pending';
   return (
@@ -104,12 +125,30 @@ const TodoListItem = memo(function TodoListItem({
       <span className={classes.iconWrap}>
         <TodoStatusIcon status={todo.status} />
       </span>
-      <span
-        className={classes.text}
-        data-completed={todo.status === 'completed' || undefined}
-        data-dimmed={dimmed || undefined}
-      >
-        {todo.content}
+      <span className={classes.body}>
+        <span
+          className={classes.text}
+          data-completed={todo.status === 'completed' || undefined}
+          data-dimmed={dimmed || undefined}
+        >
+          {todo.content}
+        </span>
+        {todo.owner && (
+          <Badge
+            size="xs"
+            variant="dot"
+            color={todo.owner.color ?? 'gray'}
+            tt="none"
+            className={classes.owner}
+          >
+            {todo.owner.name}
+          </Badge>
+        )}
+        {blockers.length > 0 && (
+          <Text span size="xs" c="dimmed" className={classes.blocked}>
+            {blockedByLabel} {blockers.join(', ')}
+          </Text>
+        )}
       </span>
     </div>
   );
@@ -128,9 +167,13 @@ function firstNonEmptyList(...candidates: unknown[]): TodoItem[] {
 export const TodoTool = memo(function TodoTool({
   part,
   chatStatus,
+  maxVisible = 0,
+  labels: labelsProp,
   className,
   style,
 }: TodoToolProps) {
+  const labels = { ...DEFAULT_TODO_TOOL_LABELS, ...labelsProp };
+  const [showAll, setShowAll] = useState(false);
   const { isPending } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
   const output = getPartOutput(part);
@@ -141,6 +184,13 @@ export const TodoTool = memo(function TodoTool({
 
   const isCreation = oldTodos.length === 0;
   const changes = useMemo(() => detectChanges(oldTodos, newTodos), [oldTodos, newTodos]);
+  const limited = useMemo(
+    () => limitTodos(newTodos, showAll ? 0 : maxVisible),
+    [newTodos, maxVisible, showAll]
+  );
+  const blockers = useMemo(() => getTodoBlockers(newTodos), [newTodos]);
+  const canToggle = maxVisible > 0 && newTodos.length > maxVisible;
+  const hiddenText = describeHiddenTodos(limited.hidden, labels);
 
   if (!isStreaming && part.state === 'output-available' && newTodos.length === 0) {
     return null;
@@ -160,9 +210,34 @@ export const TodoTool = memo(function TodoTool({
 
   return (
     <Box className={cx(classes.root, className)} style={style} data-change-type={changes.type}>
-      {newTodos.map((todo, idx) => (
-        <TodoListItem key={idx} todo={todo} isPending={isPending} />
+      {limited.visible.map(({ todo, index }) => (
+        <TodoListItem
+          key={todo.id ?? `idx-${index}`}
+          todo={todo}
+          isPending={isPending}
+          blockers={blockers.get(todo) ?? []}
+          blockedByLabel={labels.blockedBy}
+        />
       ))}
+      {canToggle && (
+        <Group gap={10} wrap="nowrap" className={classes.hidden}>
+          {hiddenText && (
+            <Text size="xs" c="dimmed">
+              {hiddenText}
+            </Text>
+          )}
+          <Button
+            variant="subtle"
+            color="gray"
+            size="compact-xs"
+            onClick={() => setShowAll((value) => !value)}
+          >
+            {showAll ? labels.showLess : labels.showAll}
+          </Button>
+        </Group>
+      )}
     </Box>
   );
 }, areToolPropsEqual);
+
+TodoTool.displayName = 'TodoTool';

@@ -1,0 +1,34 @@
+.node {
+  padding: rem(6px) var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  cursor: pointer;
+
+  @mixin hover {
+    background-color: var(--mantine-color-default-hover);
+  }
+
+  &[data-selected] {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+}
+
+.toggle {
+  flex-shrink: 0;
+
+  &[data-hidden] {
+    visibility: hidden;
+  }
+
+  & svg {
+    transition: transform 150ms ease;
+  }
+
+  &[data-expanded] svg {
+    transform: rotate(90deg);
+  }
+}
+
+.elapsed {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}

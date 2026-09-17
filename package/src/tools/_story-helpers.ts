@@ -1,4 +1,5 @@
 import type { ToolPart } from '../types';
+import type { SyntaxHighlighter } from '../utils/highlighter';
 
 export const OLD_CODE = `export function greet(name: string) {
   console.log("Hello " + name);
@@ -79,3 +80,22 @@ export const NESTED_TOOLS: ToolPart[] = [
     output: { numFiles: 12 },
   },
 ];
+
+const KEYWORDS = /^(import|export|from|const|let|function|return|if|type|interface|default|new)$/;
+
+/** Tiny regex highlighter for stories: keywords, strings and numbers in light and dark colors */
+export const demoHighlighter: SyntaxHighlighter = (code) =>
+  code.split('\n').map((line) =>
+    (line.match(/'[^']*'|"[^"]*"|`[^`]*`|\w+|\s+|[^\w\s]/g) ?? []).map((content) => {
+      if (KEYWORDS.test(content)) {
+        return { content, color: '#8250df', darkColor: '#d2a8ff' };
+      }
+      if (/^['"`]/.test(content)) {
+        return { content, color: '#0a3069', darkColor: '#a5d6ff' };
+      }
+      if (/^\d+$/.test(content)) {
+        return { content, color: '#0550ae', darkColor: '#79c0ff' };
+      }
+      return { content };
+    })
+  );

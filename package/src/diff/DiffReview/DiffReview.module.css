@@ -1,0 +1,59 @@
+.root {
+  height: 100%;
+  min-height: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+}
+
+.counter {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  height: 88dvh;
+}
+
+.modalContentFull {
+  display: flex;
+  flex-direction: column;
+}
+
+.modalBody {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+}
+
+.measured[data-measuring] {
+  visibility: hidden;
+}
+
+.ghostNav {
+  &:disabled,
+  &[data-disabled] {
+    background-color: transparent;
+    color: var(--mantine-color-dimmed);
+    opacity: 0.5;
+  }
+}
+
+.inset {
+  padding-inline: var(--ae-panel-inset, var(--ae-surface-pad));
+}
+
+.panelHeader {
+  box-sizing: border-box;
+  min-height: var(--ae-panel-header-height);
+  padding-block: var(--ae-space-xs);
+  align-items: center;
+}

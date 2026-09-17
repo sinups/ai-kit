@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
+  AiKitProvider,
   InputBar,
   Suggestions,
   UserMessage,
@@ -35,13 +36,20 @@ import {
   IconCode,
   IconPencil,
   IconSearch,
+  IconBug,
+  IconFileText,
+  IconGitPullRequest,
+  IconSparkles,
+  IconTestPipe,
 } from "@tabler/icons-react";
 import { parseMcpToolType } from "@sinups/ai-kit";
 import type { ChatMessage } from "@sinups/ai-kit";
-import { CLAUDE_MODELS, DEFAULT_MODEL_ID } from "@/app/data/models";
+import { DEMO_MODELS, DEFAULT_MODEL_ID } from "@/app/data/models";
 import { COMPONENT_SHOWCASES } from "@/app/data/component-showcase";
 import { componentIdFromName } from "@/app/data/component-docs";
 import { MessageList } from "@sinups/ai-kit";
+import { renderAgentUiPreview } from "@/app/components/agent-ui-previews";
+import { ClientOnly } from "@/app/components/previews/frames";
 
 const noop = () => {};
 const sampleImage =
@@ -53,6 +61,24 @@ const toolbarModes: ModeOption[] = [
     label: "Plan",
     icon: PlanModeIcon,
     description: "Think before acting",
+  },
+];
+
+const welcomeActions = [
+  {
+    id: "review",
+    label: "Review my pull request",
+    value: "Review the changes in my current branch.",
+    icon: <IconGitPullRequest />,
+    badge: "New",
+  },
+  { id: "bug", label: "Find the cause of a bug", value: "Help me find why ", icon: <IconBug /> },
+  { id: "tests", label: "Write tests for a file", value: "Write tests for ", icon: <IconTestPipe /> },
+  {
+    id: "docs",
+    label: "Explain this repository",
+    value: "Explain what this repository does.",
+    icon: <IconFileText />,
   },
 ];
 
@@ -84,6 +110,20 @@ const suggestionItems = [
 ];
 
 export function ComponentExamplePreview({ previewId }: { previewId: string }) {
+  return (
+    <ClientOnly>
+      <AiKitProvider>
+        <ExamplePreview previewId={previewId} />
+      </AiKitProvider>
+    </ClientOnly>
+  );
+}
+
+function ExamplePreview({ previewId }: { previewId: string }) {
+  const agentUiPreview = renderAgentUiPreview(previewId);
+  if (agentUiPreview !== undefined) {
+    return <>{agentUiPreview}</>;
+  }
   if (previewId === "InputBar/outline") {
     return <InputBarFocusPreview />;
   }
@@ -150,7 +190,7 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
               <>
                 <ModeSelector modes={toolbarModes} defaultValue="agent" />
                 <ModelPicker
-                  models={CLAUDE_MODELS}
+                  models={DEMO_MODELS}
                   defaultValue={DEFAULT_MODEL_ID}
                 />
               </>
@@ -162,7 +202,7 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
   }
   if (previewId === "ModelPicker/basic") {
     return (
-      <ModelPicker models={CLAUDE_MODELS} defaultValue={DEFAULT_MODEL_ID} />
+      <ModelPicker models={DEMO_MODELS} defaultValue={DEFAULT_MODEL_ID} />
     );
   }
   if (previewId === "ModelPicker/in-input-bar") {
@@ -175,7 +215,7 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
             onStop={noop}
             leftActions={
               <ModelPicker
-                models={CLAUDE_MODELS}
+                models={DEMO_MODELS}
                 defaultValue={DEFAULT_MODEL_ID}
               />
             }
@@ -185,7 +225,7 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
     );
   }
   if (previewId === "ModelPicker/badge") {
-    return <ModelBadge models={CLAUDE_MODELS} value="opus" />;
+    return <ModelBadge models={DEMO_MODELS} value="qwen-2.5-coder-32b" />;
   }
   if (previewId === "ModeSelector/basic") {
     return <ModeSelector modes={toolbarModes} defaultValue="agent" />;
@@ -419,7 +459,7 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
       </div>
     );
   }
-  if (previewId === "AgentChat/empty-centered-suggestions") {
+  if (previewId === "AgentChat/welcome") {
     return (
       <div className="h-full bg-background">
         <AgentChat
@@ -427,13 +467,15 @@ export function ComponentExamplePreview({ previewId }: { previewId: string }) {
           status="ready"
           onSend={noop}
           onStop={noop}
-          emptyStatePosition="center"
-          emptySuggestionsPlacement="empty"
-          emptySuggestionsPosition="bottom"
-          suggestions={{
-            items: suggestionItems,
-            className: "justify-center",
-            itemClassName: "h-7 rounded-[6px] px-2 text-sm",
+          contentWidth="100%"
+          alignComposer
+          hideSuggestionsWhenNotEmpty
+          emptyState={{
+            layout: "welcome" as const,
+            avatar: <IconSparkles size={22} />,
+            title: "How can I help you today?",
+            description: "Ask about the code, fix a bug or plan a change.",
+            actions: welcomeActions,
           }}
         />
       </div>
@@ -645,7 +687,7 @@ function InputBarQuestionPreview() {
 function InputBarFocusPreview() {
   return (
     <div
-      style={{ "--an-input-focus-outline": "#0ea5e9" } as React.CSSProperties}
+      style={{ "--ae-input-focus-outline": "var(--mantine-color-cyan-5)" } as React.CSSProperties}
     >
       <InputBar onSend={noop} status="ready" onStop={noop} />
     </div>
@@ -920,7 +962,7 @@ const bashToolApprovalPart = {
   state: "input-available",
   input: {
     command: "pnpm test --filter ./apps/web -- --runInBand",
-    approval: { approveLabel: "Run", rejectLabel: "Skip" },
+    approval: { labels: { approve: "Run", reject: "Skip" } },
   },
 };
 
@@ -967,7 +1009,7 @@ const editToolApprovalPart = {
   state: "output-available",
   input: {
     file_path: "/app/page.tsx",
-    approval: { approveLabel: "Apply", rejectLabel: "Skip" },
+    approval: { labels: { approve: "Apply", reject: "Skip" } },
   },
   output: {
     old_content:

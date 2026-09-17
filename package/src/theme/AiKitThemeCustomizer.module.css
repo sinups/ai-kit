@@ -1,0 +1,43 @@
+.root {
+  color: var(--ae-fg);
+}
+
+.title {
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  font-weight: 500;
+  color: var(--ae-fg);
+}
+
+.sectionLabel {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  font-weight: 500;
+  color: var(--ae-fg-muted);
+}
+
+.options {
+  margin-inline-start: rem(-10px);
+}
+
+.option {
+  font-weight: 400;
+  line-height: var(--ae-line-height-xs);
+  text-transform: capitalize;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &[data-selected] {
+    font-weight: 500;
+  }
+}
+
+.optionSection {
+  margin-inline-end: rem(6px);
+}

@@ -1,0 +1,54 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ae-space-sm);
+}
+
+.groupHeader {
+  min-height: var(--ae-control-height-md);
+}
+
+.checkboxBody {
+  min-width: 0;
+}
+
+.labelWrapper {
+  min-width: 0;
+}
+
+.toolTitle {
+  min-width: 0;
+}
+
+.toolName {
+  font-family: var(--mantine-font-family-monospace);
+  min-width: 0;
+}
+
+.badge {
+  flex-shrink: 0;
+}
+
+.chevron {
+  transition: transform 150ms ease;
+
+  &[data-expanded='true'] {
+    transform: rotate(180deg);
+  }
+}
+
+.toolsContainer {
+  container-type: inline-size;
+}
+
+.tools {
+  display: grid;
+  padding-block-start: var(--ae-space-xs);
+  padding-inline-start: var(--ae-space-2xl);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+
+  @container (min-width: 40rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,113 @@
+name: Visual regression
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    # Screenshots are compared on macOS; Linux renders fonts differently.
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v4
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+
+      - name: Install base dependencies
+        working-directory: base
+        run: yarn install --immutable
+
+      - name: Build base Storybook
+        id: base-storybook
+        working-directory: base
+        run: |
+          if [ ! -x node_modules/.bin/storybook ]; then
+            echo "::warning::The base branch has no Storybook; visual comparison is skipped."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node_modules/.bin/storybook build -o ../storybook-static-base --quiet
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        if: steps.base-storybook.outputs.available == 'true'
+        run: yarn install --immutable
+
+      - name: Install Chromium
+        if: steps.base-storybook.outputs.available == 'true'
+        run: node_modules/.bin/playwright install chromium
+
+      - name: Record baselines from the base Storybook
+        if: steps.base-storybook.outputs.available == 'true'
+        continue-on-error: true
+        run: yarn test:visual:baseline:ci
+
+      - name: Count baselines
+        if: steps.base-storybook.outputs.available == 'true'
+        run: |
+          count=$(find package/__visual__ -name '*.png' 2>/dev/null | wc -l | tr -d ' ')
+          echo "Baseline images: $count"
+          if [ "$count" = "0" ]; then
+            echo "::warning::No baselines were recorded from the base Storybook; nothing is compared."
+          fi
+
+      - name: Build Storybook
+        if: steps.base-storybook.outputs.available == 'true'
+        run: yarn storybook:build
+
+      - name: Compare with the base branch
+        if: steps.base-storybook.outputs.available == 'true'
+        continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'visual-change') }}
+        run: yarn test:visual:ci
+
+      - name: List changed stories
+        if: always() && steps.base-storybook.outputs.available == 'true'
+        env:
+          ACCEPTED: ${{ contains(github.event.pull_request.labels.*.name, 'visual-change') }}
+        run: |
+          diffs=$(find storybook-visual-diff -maxdepth 1 -name '*-diff.png' 2>/dev/null | sort)
+          {
+            echo "## Visual regression"
+            if [ -z "$diffs" ]; then
+              echo "No differences from the base branch."
+            else
+              if [ "$ACCEPTED" = "true" ]; then
+                echo "Label \`visual-change\` is set: these differences are accepted and do not block the pull request."
+              else
+                echo "These stories differ from the base branch. Add the \`visual-change\` label if the change is intended."
+              fi
+              echo
+              for file in $diffs; do
+                echo "- \`$(basename "$file" -diff.png)\`"
+              done
+              echo
+              echo "Diff and received images are in the \`storybook-visual-diff\` artifact."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload visual diffs
+        if: always() && steps.base-storybook.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-visual-diff
+          path: storybook-visual-diff/
+          if-no-files-found: ignore

@@ -1,6 +1,5 @@
 export type ClassValue = string | number | null | undefined | false | ClassValue[];
 
-/** Tiny class name joiner, replaces clsx/tailwind-merge from the reference implementation */
 export function cx(...inputs: ClassValue[]): string {
   const out: string[] = [];
   for (const input of inputs) {
