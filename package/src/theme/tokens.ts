@@ -1,4 +1,5 @@
 export const AE_TOKENS = [
+  'anim-appear',
   'anim-blink',
   'anim-loading-dots',
   'anim-shimmer',
