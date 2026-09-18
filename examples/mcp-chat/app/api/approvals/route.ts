@@ -5,8 +5,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  const { requestId, decision }: ApprovalRequest = await request.json();
-  const settled = settleApproval(requestId, decision);
+  const { requestId, choice }: ApprovalRequest = await request.json();
+  const settled = settleApproval(requestId, choice);
 
   return Response.json({ settled }, { status: settled ? 200 : 404 });
 }

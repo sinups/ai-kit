@@ -1,10 +1,19 @@
 'use client';
 
-import { ActionIcon, Badge, Box, Group, Text, Tooltip, useMantineColorScheme } from '@mantine/core';
-import { IconMoon, IconSun } from '@tabler/icons-react';
+import {
+  ActionIcon,
+  Badge,
+  Box,
+  Group,
+  Switch,
+  Text,
+  Tooltip,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { IconMoon, IconSun, IconX } from '@tabler/icons-react';
 import { AgentChat, type CustomToolRendererProps } from '@sinups/ai-kit';
 import { useEffect, useMemo, useState } from 'react';
-import type { StatusResponse } from '@/lib/events';
+import type { PermissionState, StatusResponse } from '@/lib/events';
 import { useAgentChat } from '@/lib/use-agent-chat';
 import { ApprovalContext, McpToolCard } from './mcp-tool-card';
 
@@ -19,7 +28,14 @@ const SERVER_SUGGESTIONS = [
   { id: 'overview', label: 'Give me an overview of what is in there.' },
 ];
 
-function ServerBar({ status, tools }: { status: StatusResponse | null; tools: number }) {
+type ServerBarProps = {
+  status: StatusResponse | null;
+  tools: number;
+  permissions: PermissionState;
+  onPermissions: (patch: { auto?: boolean; reset?: boolean }) => void;
+};
+
+function ServerBar({ status, tools, permissions, onPermissions }: ServerBarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   return (
@@ -36,15 +52,56 @@ function ServerBar({ status, tools }: { status: StatusResponse | null; tools: nu
         {tools > 0 && <Badge variant="default">{tools} tools</Badge>}
         {status && <Badge variant="default">{status.model}</Badge>}
       </Group>
-      <ActionIcon variant="default" onClick={toggleColorScheme} aria-label="Toggle color scheme">
-        {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
-      </ActionIcon>
+      <Group gap="sm">
+        {permissions.allowed.length > 0 && (
+          <Tooltip label={permissions.allowed.join(', ')}>
+            <Badge
+              variant="light"
+              color="green"
+              rightSection={
+                <ActionIcon
+                  size="xs"
+                  variant="transparent"
+                  color="green"
+                  onClick={() => onPermissions({ reset: true })}
+                  aria-label="Forget allowed tools"
+                >
+                  <IconX size={12} />
+                </ActionIcon>
+              }
+            >
+              {permissions.allowed.length} {permissions.allowed.length === 1 ? 'tool' : 'tools'}{' '}
+              allowed
+            </Badge>
+          </Tooltip>
+        )}
+        <Switch
+          size="xs"
+          label="Auto-approve"
+          checked={permissions.auto}
+          onChange={(event) => onPermissions({ auto: event.currentTarget.checked })}
+        />
+        <ActionIcon variant="default" onClick={toggleColorScheme} aria-label="Toggle color scheme">
+          {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+        </ActionIcon>
+      </Group>
     </Group>
   );
 }
 
 export default function Page() {
-  const { messages, status, error, send, stop, approvals, decide, tools } = useAgentChat();
+  const {
+    messages,
+    status,
+    error,
+    send,
+    stop,
+    approvals,
+    decide,
+    permissions,
+    updatePermissions,
+    tools,
+  } = useAgentChat();
   const [serverStatus, setServerStatus] = useState<StatusResponse | null>(null);
 
   useEffect(() => {
@@ -94,7 +151,12 @@ export default function Page() {
   return (
     <ApprovalContext value={{ approvals, decide }}>
       <Box h="100dvh" display="flex" style={{ flexDirection: 'column' }}>
-        <ServerBar status={serverStatus} tools={tools.length} />
+        <ServerBar
+          status={serverStatus}
+          tools={tools.length}
+          permissions={permissions}
+          onPermissions={updatePermissions}
+        />
         <Box style={{ flex: 1, minHeight: 0 }}>
           <AgentChat
             messages={messages}

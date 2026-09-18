@@ -2,14 +2,14 @@
 
 import type { ChatMessage, ChatStatus, MessagePart, ToolPart } from '@sinups/ai-kit';
 import { useCallback, useRef, useState } from 'react';
-import type { AgentEvent, ApprovalDecision } from './events';
+import type { AgentEvent, ApprovalChoice, ApprovalOutcome, PermissionState } from './events';
 
 export type ApprovalState = {
   requestId: string;
   toolCallId: string;
   name: string;
   title?: string;
-  decision?: ApprovalDecision;
+  outcome?: ApprovalOutcome;
 };
 
 function withParts(messages: ChatMessage[], update: (parts: MessagePart[]) => MessagePart[]) {
@@ -67,22 +67,31 @@ export function useAgentChat() {
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [approvals, setApprovals] = useState<Record<string, ApprovalState>>({});
+  const [permissions, setPermissions] = useState<PermissionState>({ allowed: [], auto: false });
   const [tools, setTools] = useState<string[]>([]);
   const sessionId = useRef<string | undefined>(undefined);
+  const [chatId] = useState(() => `chat-${Math.random().toString(36).slice(2)}`);
   const abort = useRef<AbortController | null>(null);
 
-  const decide = useCallback(async (requestId: string, decision: ApprovalDecision) => {
-    setApprovals((current) =>
-      current[requestId]
-        ? { ...current, [requestId]: { ...current[requestId], decision } }
-        : current
-    );
+  const decide = useCallback(async (requestId: string, choice: ApprovalChoice) => {
     await fetch('/api/approvals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestId, decision }),
+      body: JSON.stringify({ requestId, choice }),
     });
   }, []);
+
+  const updatePermissions = useCallback(
+    async (patch: { auto?: boolean; reset?: boolean }) => {
+      const response = await fetch('/api/permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, ...patch }),
+      });
+      setPermissions((await response.json()) as PermissionState);
+    },
+    [chatId]
+  );
 
   const stop = useCallback(() => {
     abort.current?.abort();
@@ -90,100 +99,125 @@ export function useAgentChat() {
     setStatus('ready');
   }, []);
 
-  const send = useCallback(async ({ content }: { content: string }) => {
-    const controller = new AbortController();
-    abort.current = controller;
-    setError(undefined);
-    setStatus('submitted');
-    setMessages((current) => [
-      ...current,
-      { id: `u-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: content }] },
-      { id: `a-${Date.now()}`, role: 'assistant', parts: [] },
-    ]);
+  const send = useCallback(
+    async ({ content }: { content: string }) => {
+      const controller = new AbortController();
+      abort.current = controller;
+      setError(undefined);
+      setStatus('submitted');
+      setMessages((current) => [
+        ...current,
+        { id: `u-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: content }] },
+        { id: `a-${Date.now()}`, role: 'assistant', parts: [] },
+      ]);
 
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: content, sessionId: sessionId.current }),
-        signal: controller.signal,
-      });
-      if (!response.ok) {
-        throw new Error(`The chat endpoint answered ${response.status}`);
-      }
-
-      for await (const event of readEvents(response)) {
-        switch (event.kind) {
-          case 'session':
-            sessionId.current = event.sessionId;
-            setTools(event.tools);
-            setStatus('streaming');
-            break;
-          case 'text':
-            setMessages((current) => withParts(current, (parts) => appendText(parts, event.delta)));
-            break;
-          case 'tool-start':
-            setMessages((current) =>
-              withParts(current, (parts) => [
-                ...parts,
-                {
-                  type: `tool-${event.name}`,
-                  toolCallId: event.toolCallId,
-                  state: 'input-available',
-                  input: event.input,
-                },
-              ])
-            );
-            break;
-          case 'tool-end':
-            setMessages((current) =>
-              withParts(current, (parts) =>
-                updateTool(parts, event.toolCallId, {
-                  state: event.isError ? 'output-error' : 'output-available',
-                  output: event.output,
-                  errorText: event.isError ? String(event.output) : undefined,
-                })
-              )
-            );
-            break;
-          case 'approval':
-            setApprovals((current) => ({
-              ...current,
-              [event.requestId]: {
-                requestId: event.requestId,
-                toolCallId: event.toolCallId,
-                name: event.name,
-                title: event.title,
-              },
-            }));
-            break;
-          case 'approval-settled':
-            setApprovals((current) =>
-              current[event.requestId]
-                ? {
-                    ...current,
-                    [event.requestId]: { ...current[event.requestId], decision: event.decision },
-                  }
-                : current
-            );
-            break;
-          case 'error':
-            setError(new Error(event.message));
-            break;
-          case 'done':
-            break;
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chatId,
+            prompt: content,
+            sessionId: sessionId.current,
+          }),
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`The chat endpoint answered ${response.status}`);
         }
-      }
-      setStatus('ready');
-    } catch (cause) {
-      if ((cause as Error).name !== 'AbortError') {
-        setError(cause instanceof Error ? cause : new Error(String(cause)));
-        setStatus('error');
-      }
-    } finally {
-      abort.current = null;
-    }
-  }, []);
 
-  return { messages, status, error, send, stop, approvals, decide, tools };
+        for await (const event of readEvents(response)) {
+          switch (event.kind) {
+            case 'session':
+              sessionId.current = event.sessionId;
+              setTools(event.tools);
+              setStatus('streaming');
+              break;
+            case 'text':
+              setMessages((current) =>
+                withParts(current, (parts) => appendText(parts, event.delta))
+              );
+              break;
+            case 'tool-start':
+              setMessages((current) =>
+                withParts(current, (parts) => [
+                  ...parts,
+                  {
+                    type: `tool-${event.name}`,
+                    toolCallId: event.toolCallId,
+                    state: 'input-available',
+                    input: event.input,
+                  },
+                ])
+              );
+              break;
+            case 'tool-end':
+              setMessages((current) =>
+                withParts(current, (parts) =>
+                  updateTool(parts, event.toolCallId, {
+                    state: event.isError ? 'output-error' : 'output-available',
+                    output: event.output,
+                    errorText: event.isError ? String(event.output) : undefined,
+                  })
+                )
+              );
+              break;
+            case 'approval':
+              setApprovals((current) => ({
+                ...current,
+                [event.toolCallId]: {
+                  requestId: event.requestId,
+                  toolCallId: event.toolCallId,
+                  name: event.name,
+                  title: event.title,
+                },
+              }));
+              break;
+            case 'approval-settled':
+              setApprovals((current) => ({
+                ...current,
+                [event.toolCallId]: {
+                  ...current[event.toolCallId],
+                  requestId: event.requestId,
+                  toolCallId: event.toolCallId,
+                  name: event.name,
+                  outcome: event.outcome,
+                },
+              }));
+              break;
+            case 'permissions':
+              setPermissions(event.state);
+              break;
+            case 'error':
+              setError(new Error(event.message));
+              break;
+            case 'done':
+              break;
+          }
+        }
+        setStatus('ready');
+      } catch (cause) {
+        if ((cause as Error).name !== 'AbortError') {
+          setError(cause instanceof Error ? cause : new Error(String(cause)));
+          setStatus('error');
+        }
+      } finally {
+        abort.current = null;
+      }
+    },
+    [chatId]
+  );
+
+  return {
+    messages,
+    status,
+    error,
+    send,
+    stop,
+    approvals,
+    decide,
+    permissions,
+    updatePermissions,
+    tools,
+  };
 }

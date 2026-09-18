@@ -60,6 +60,23 @@ your credentials and your model quota. The credentials themselves stay on the se
 read in the route handlers and no token is ever sent to the browser. Use `dev:lan` on a network you
 trust, and stop it when you are done.
 
+## Approving tool calls
+
+Every call needs a decision the first time. The footer under the card offers:
+
+- **Allow** — this call only;
+- **Always allow** (in the menu next to it) — remembers the tool for the rest of the chat, so the
+  agent keeps working without stopping at every step;
+- **Deny** — the refusal goes back to the agent, which says what it could not do.
+
+The header shows how many tools are remembered and forgets them all on the cross next to the
+counter. The **Auto-approve** switch next to it approves everything without asking; it is off by
+default. Each card keeps its outcome as a badge: `Allowed`, `Denied`, or `Auto` for a call nobody was
+asked about.
+
+The list lives on the server, keyed by the chat, not in the browser: a reload starts over, and one
+tab cannot approve tools for another.
+
 ## Point it at another MCP server
 
 Both transports are supported, picked with `MCP_TRANSPORT` in `.env.local`.
@@ -108,6 +125,7 @@ type, so a new server shows up correctly on its own.
 | `app/api/chat/route.ts` | Streams the events of one turn |
 | `app/api/approvals/route.ts` | Receives the allow/deny decision and releases the parked call |
 | `lib/use-agent-chat.ts` | Builds `ChatMessage[]` from the events: text parts and `tool-mcp__*` parts |
+| `lib/permissions.ts` | Per-chat allowlist and the auto-approve flag, kept on the server |
 | `app/mcp-tool-card.tsx` | Tool renderer: `McpTool` plus `ToolApprovalFooter` while a call waits |
 | `app/page.tsx` | `AgentChat` with the renderers keyed by part type, plus a small server bar |
 

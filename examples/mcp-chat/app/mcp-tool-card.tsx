@@ -8,19 +8,33 @@ import {
   ToolApprovalFooter,
 } from '@sinups/ai-kit';
 import { createContext, use } from 'react';
-import type { ApprovalDecision } from '@/lib/events';
+import type { ApprovalChoice } from '@/lib/events';
 import type { ApprovalState } from '@/lib/use-agent-chat';
 import classes from './mcp-tool-card.module.css';
 
 type ApprovalContextValue = {
   approvals: Record<string, ApprovalState>;
-  decide: (requestId: string, decision: ApprovalDecision) => void;
+  decide: (requestId: string, choice: ApprovalChoice) => void;
 };
 
 export const ApprovalContext = createContext<ApprovalContextValue>({
   approvals: {},
   decide: () => {},
 });
+
+const OUTCOME_LABELS = {
+  allow: 'Allowed',
+  always: 'Allowed',
+  deny: 'Denied',
+  auto: 'Auto',
+} as const;
+
+const OUTCOME_COLORS = {
+  allow: 'green',
+  always: 'green',
+  deny: 'red',
+  auto: 'blue',
+} as const;
 
 function countItems(value: unknown, depth = 3): number | null {
   if (Array.isArray(value)) {
@@ -58,7 +72,7 @@ function summarize(output: unknown): string | null {
 export function McpToolCard({ part, output, status }: CustomToolRendererProps) {
   const { approvals, decide } = use(ApprovalContext);
   const mcpInfo = parseMcpToolType(part.type);
-  const approval = Object.values(approvals).find((item) => item.toolCallId === part.toolCallId);
+  const approval = part.toolCallId ? approvals[part.toolCallId] : undefined;
   const running = status === 'pending' || status === 'streaming';
   const summary = running ? null : summarize(output);
 
@@ -79,19 +93,26 @@ export function McpToolCard({ part, output, status }: CustomToolRendererProps) {
           {summary}
         </Text>
       )}
-      {approval && !approval.decision && (
+      {approval && !approval.outcome && (
         <ToolApprovalFooter
           isPending={running}
           reason={approval.title ?? `The agent wants to call ${mcpInfo.toolName}`}
           labels={{ approve: 'Allow', reject: 'Deny' }}
-          onApprove={() => decide(approval.requestId, 'allow')}
+          approveOptions={[
+            {
+              value: 'always',
+              label: 'Always allow',
+              description: 'Stop asking for this tool in this chat',
+            },
+          ]}
+          onApprove={(scope) => decide(approval.requestId, scope === 'always' ? 'always' : 'allow')}
           onReject={() => decide(approval.requestId, 'deny')}
         />
       )}
-      {approval?.decision && (
+      {approval?.outcome && (
         <Group gap="xs">
-          <Badge variant="light" color={approval.decision === 'allow' ? 'green' : 'red'}>
-            {approval.decision === 'allow' ? 'Allowed' : 'Denied'}
+          <Badge variant="light" color={OUTCOME_COLORS[approval.outcome]}>
+            {OUTCOME_LABELS[approval.outcome]}
           </Badge>
         </Group>
       )}

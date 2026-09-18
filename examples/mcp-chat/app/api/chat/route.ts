@@ -5,9 +5,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  const { prompt, sessionId }: ChatRequest = await request.json();
+  const { chatId, prompt, sessionId }: ChatRequest = await request.json();
 
-  return new Response(runAgent(prompt, sessionId, request.signal), {
+  return new Response(runAgent(chatId, prompt, sessionId, request.signal), {
     headers: {
       'Content-Type': 'application/x-ndjson; charset=utf-8',
       'Cache-Control': 'no-store',

@@ -1,7 +1,8 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { askUser } from './approvals';
 import { config, mcpServer, sampleDir } from './config';
-import type { AgentEvent } from './events';
+import type { AgentEvent, ApprovalOutcome } from './events';
+import { isPreApproved, permissionState, rememberTool } from './permissions';
 
 const SYSTEM_PROMPT = [
   'You are a demo assistant for a UI kit example.',
@@ -9,6 +10,9 @@ const SYSTEM_PROMPT = [
   config.transport === 'stdio'
     ? `The server is scoped to the folder ${sampleDir}.`
     : 'The server is reached over HTTP and holds the data you are asked about.',
+  'Reply in the language the user writes in.',
+  'Act instead of interviewing: when a request is clear enough, call the tools, pick sensible defaults for anything optional and say afterwards what you assumed.',
+  'Ask at most one short question, and only when a required argument cannot be guessed or the action would be destructive.',
   'Answer in markdown, keep answers under six lines and use lists for collections.',
 ].join(' ');
 
@@ -23,6 +27,7 @@ function textDelta(event: {
 }
 
 export function runAgent(
+  chatId: string,
   prompt: string,
   sessionId: string | undefined,
   signal: AbortSignal
@@ -53,6 +58,22 @@ export function runAgent(
           resume: sessionId,
           mcpServers: { [config.serverName]: mcpServer },
           canUseTool: async (name, input, options) => {
+            const settle = (outcome: ApprovalOutcome) => {
+              emit({
+                kind: 'approval-settled',
+                requestId: options.requestId,
+                toolCallId: options.toolUseID,
+                name,
+                outcome,
+              });
+              emit({ kind: 'permissions', state: permissionState(chatId) });
+            };
+
+            if (isPreApproved(chatId, name)) {
+              settle('auto');
+              return { behavior: 'allow', updatedInput: input };
+            }
+
             emit({
               kind: 'approval',
               requestId: options.requestId,
@@ -60,16 +81,14 @@ export function runAgent(
               name,
               title: options.title,
             });
-            const decision = await askUser(options.requestId, signal);
-            emit({
-              kind: 'approval-settled',
-              requestId: options.requestId,
-              toolCallId: options.toolUseID,
-              decision,
-            });
-            return decision === 'allow'
-              ? { behavior: 'allow', updatedInput: input }
-              : { behavior: 'deny', message: 'The user rejected this tool call.' };
+            const choice = await askUser(options.requestId, signal);
+            if (choice === 'always') {
+              rememberTool(chatId, name);
+            }
+            settle(choice);
+            return choice === 'deny'
+              ? { behavior: 'deny', message: 'The user rejected this tool call.' }
+              : { behavior: 'allow', updatedInput: input };
           },
         },
       });
@@ -80,6 +99,7 @@ export function runAgent(
         for await (const message of run) {
           if (message.type === 'system' && message.subtype === 'init') {
             emit({ kind: 'session', sessionId: message.session_id, tools: message.tools });
+            emit({ kind: 'permissions', state: permissionState(chatId) });
           } else if (message.type === 'stream_event') {
             const delta = textDelta(message.event as never);
             if (delta) {

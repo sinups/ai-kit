@@ -38,7 +38,7 @@ export const config = {
     (arg) => arg.replace(DATA_DIR, sampleDir)
   ),
   model: process.env.AGENT_MODEL || 'claude-sonnet-5',
-  maxTurns: Number(process.env.AGENT_MAX_TURNS || 12),
+  maxTurns: Number(process.env.AGENT_MAX_TURNS || 30),
 };
 
 export const mcpServer =
