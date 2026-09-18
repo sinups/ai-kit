@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/sinups/ai-kit/compare/v0.2.0...v0.3.0) (2026-09-18)
+
+
+### Features
+
+* quiet transcript, tool catalog, approvals, labels and composer context ([#15](https://github.com/sinups/ai-kit/issues/15)) ([3fcb670](https://github.com/sinups/ai-kit/commit/3fcb670c3be3b6e36d91ad908e7e78a20f791eed))
+
 ## [0.2.0](https://github.com/sinups/ai-kit/compare/v0.1.0...v0.2.0) (2026-09-17)
 
 
