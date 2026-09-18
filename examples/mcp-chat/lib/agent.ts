@@ -1,22 +1,11 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { askUser } from './approvals';
-import { config, mcpServer, sampleDir } from './config';
+import { config, mcpServers, serverOf } from './config';
 import { describeCall } from './describe-call';
 import type { AgentEvent, ApprovalOutcome } from './events';
+import { mcpServerInfo } from './mcp-tools';
 import { addRule, matchingRule, permissionState } from './permissions';
-
-const SYSTEM_PROMPT = [
-  'You are a demo assistant for a UI kit example.',
-  `Answer every question with the tools of the "${config.serverName}" MCP server instead of guessing.`,
-  config.transport === 'stdio'
-    ? `The server is scoped to the folder ${sampleDir}.`
-    : 'The server is reached over HTTP and holds the data you are asked about.',
-  'Reply in the language the user writes in, and in Russian when the message is Cyrillic or looks like Russian typed in the wrong keyboard layout. Never answer in English a message that was not written in English.',
-  'Act instead of interviewing: when a request is clear enough, call the tools, pick sensible defaults for anything optional and say afterwards in one short line what you assumed.',
-  'Ask at most one short question, and only when a required argument cannot be guessed or the action would be destructive.',
-  'Answer in two to four lines. Do not retell the tool output: give the result and the one or two details that matter.',
-  'Use a list only when the user asked to list or enumerate something, and keep it to the items asked for.',
-].join(' ');
+import { buildSystemPrompt } from './system-prompt';
 
 function textDelta(event: {
   type: string;
@@ -49,16 +38,15 @@ export function runAgent(
         prompt,
         options: {
           model: config.model,
-          cwd: sampleDir,
           maxTurns: config.maxTurns,
-          systemPrompt: SYSTEM_PROMPT,
+          systemPrompt: buildSystemPrompt(await mcpServerInfo()),
           tools: [],
           settingSources: [],
           strictMcpConfig: true,
           includePartialMessages: true,
           permissionMode: 'default',
           resume: sessionId,
-          mcpServers: { [config.serverName]: mcpServer },
+          mcpServers: mcpServers(),
           canUseTool: async (name, input, options) => {
             const settle = (outcome: ApprovalOutcome, matchedRule?: string) => {
               emit({
@@ -84,7 +72,7 @@ export function runAgent(
               requestId: options.requestId,
               toolCallId: options.toolUseID,
               name,
-              details: await describeCall(name, input, config.serverName),
+              details: await describeCall(name, input, serverOf(name)?.name ?? 'mcp'),
             });
             const choice = await askUser(options.requestId, signal);
             if (choice === 'session' || choice === 'always') {

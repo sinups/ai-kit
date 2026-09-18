@@ -18,14 +18,12 @@ import classes from './mcp-tool-card.module.css';
 type ApprovalContextValue = {
   approvals: Record<string, ApprovalState>;
   decide: (requestId: string, choice: ApprovalChoice) => void;
-  serverName: string;
   definitions: Record<string, McpToolDefinition>;
 };
 
 export const ApprovalContext = createContext<ApprovalContextValue>({
   approvals: {},
   decide: () => {},
-  serverName: 'mcp',
   definitions: {},
 });
 
@@ -155,7 +153,7 @@ export function McpToolCard({ part, input, output, status }: CustomToolRendererP
 
   const values = flatten(input);
   const summary = argumentSummary(values);
-  const meta: string[] = [];
+  const meta: string[] = [mcpInfo.serverName];
   if (definition?.annotations?.destructiveHint) {
     meta.push('writes');
   } else if (definition?.annotations?.readOnlyHint) {

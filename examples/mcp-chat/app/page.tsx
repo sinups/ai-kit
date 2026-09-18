@@ -52,11 +52,10 @@ export default function Page() {
     updatePermissions,
     usage,
     startedAt,
-    tools,
   } = useAgentChat();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [serverStatus, setServerStatus] = useState<StatusResponse | null>(null);
-  const [server, setServer] = useState<McpServer | null>(null);
+  const [mcpServers, setMcpServers] = useState<McpServer[]>([]);
   const [loadingServer, setLoadingServer] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const wide = useMediaQuery('(min-width: 1100px)');
@@ -64,8 +63,8 @@ export default function Page() {
   const loadServer = useCallback(async (refresh = false) => {
     setLoadingServer(true);
     try {
-      const response = await fetch(`/api/server${refresh ? '?refresh' : ''}`);
-      setServer((await response.json()) as McpServer);
+      const response = await fetch(`/api/servers${refresh ? '?refresh' : ''}`);
+      setMcpServers((await response.json()) as McpServer[]);
     } finally {
       setLoadingServer(false);
     }
@@ -80,26 +79,28 @@ export default function Page() {
   }, [loadServer]);
 
   const definitions = useMemo(
-    () => Object.fromEntries((server?.tools ?? []).map((tool) => [tool.name, tool])),
-    [server]
+    () =>
+      Object.fromEntries(
+        mcpServers.flatMap((server) => (server.tools ?? []).map((tool) => [tool.name, tool]))
+      ),
+    [mcpServers]
   );
 
-  const panelServer = useMemo(() => {
-    if (!server?.tools) {
-      return server;
-    }
-    return {
-      ...server,
-      tools: server.tools.map((tool) => ({
-        ...tool,
-        annotations: tool.annotations?.destructiveHint
-          ? { destructiveHint: true }
-          : tool.annotations?.readOnlyHint
-            ? { readOnlyHint: true }
-            : undefined,
+  const panelServers = useMemo(
+    () =>
+      mcpServers.map((server) => ({
+        ...server,
+        tools: server.tools?.map((tool) => ({
+          ...tool,
+          annotations: tool.annotations?.destructiveHint
+            ? { destructiveHint: true }
+            : tool.annotations?.readOnlyHint
+              ? { readOnlyHint: true }
+              : undefined,
+        })),
       })),
-    };
-  }, [server]);
+    [mcpServers]
+  );
 
   const toolTypes = useMemo(() => {
     const types = new Set<string>();
@@ -124,19 +125,15 @@ export default function Page() {
     [toolTypes]
   );
 
-  const transport = serverStatus?.transport ?? 'stdio';
-  const onFiles = transport !== 'http';
+  const configured = serverStatus?.servers ?? [];
+  const onFiles = configured.length === 1 && configured[0]?.transport === 'stdio';
   const suggestions = onFiles ? FILE_SUGGESTIONS : SERVER_SUGGESTIONS;
   const working = status === 'submitted' || status === 'streaming';
+  const toolTotal = mcpServers.reduce((sum, server) => sum + (server.toolCount ?? 0), 0);
 
   const approvalValue = useMemo(
-    () => ({
-      approvals,
-      decide,
-      serverName: serverStatus?.server ?? 'mcp',
-      definitions,
-    }),
-    [approvals, decide, serverStatus?.server, definitions]
+    () => ({ approvals, decide, definitions }),
+    [approvals, decide, definitions]
   );
 
   const awaitingApproval = useMemo(
@@ -167,7 +164,7 @@ export default function Page() {
   const inspector = useMemo(
     () => (
       <Inspector
-        server={panelServer}
+        servers={panelServers}
         loading={loadingServer}
         rules={permissions.rules}
         onReconnect={reconnect}
@@ -175,7 +172,7 @@ export default function Page() {
         onDeleteRule={removeRule}
       />
     ),
-    [panelServer, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
+    [panelServers, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
   );
 
   return (
@@ -186,17 +183,26 @@ export default function Page() {
             <Text fw={600} size="sm">
               Chat over MCP
             </Text>
-            {serverStatus && (
-              <Tooltip label={serverStatus.target}>
-                <Badge
-                  variant="light"
-                  leftSection={<McpTransportIcon transport={transport} size={12} />}
-                >
-                  {serverStatus.server}
-                </Badge>
-              </Tooltip>
+            {configured.map((server) => {
+              const live = mcpServers.find((item) => item.name === server.name);
+              return (
+                <Tooltip key={server.name} label={server.target}>
+                  <Badge
+                    variant="light"
+                    color={live?.status === 'error' ? 'red' : 'blue'}
+                    leftSection={<McpTransportIcon transport={server.transport} size={12} />}
+                  >
+                    {server.name}
+                  </Badge>
+                </Tooltip>
+              );
+            })}
+            {toolTotal > 0 && (
+              <Badge variant="default">
+                {configured.length} {configured.length === 1 ? 'server' : 'servers'} · {toolTotal}{' '}
+                tools
+              </Badge>
             )}
-            {tools.length > 0 && <Badge variant="default">{tools.length} tools</Badge>}
             {serverStatus && <Badge variant="default">{serverStatus.model}</Badge>}
           </Group>
           <Group gap="sm">
@@ -238,9 +244,7 @@ export default function Page() {
               emptySuggestionsPlacement="empty"
               emptyState={{
                 layout: 'center',
-                title: onFiles
-                  ? 'Ask about the data folder'
-                  : `Ask the ${serverStatus?.server ?? 'MCP'} server`,
+                title: onFiles ? 'Ask about the data folder' : 'Ask the connected MCP servers',
                 description: 'Answers come from an MCP server, every call needs your approval.',
               }}
             />

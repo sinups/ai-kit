@@ -83,9 +83,6 @@ export type PermissionRequest = {
 };
 
 export type StatusResponse = {
-  server: string;
-  transport: 'stdio' | 'http';
-  target: string;
+  servers: { name: string; transport: 'stdio' | 'http'; target: string }[];
   model: string;
-  sampleDir?: string;
 };

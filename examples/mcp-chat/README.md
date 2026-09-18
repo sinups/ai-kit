@@ -86,54 +86,83 @@ Each card keeps its outcome as a badge: `Allowed once`, `Allowed`, `By rule`, `A
 
 The panel on the right has two tabs, and turns into a bottom sheet under 1100px:
 
-- **Server** — `McpServerDetail` fed by a real MCP handshake (`lib/mcp-tools.ts` connects with the
-  official MCP SDK): connection status, transport, version, and every tool with its description,
+- **Servers** — the configured servers, each with its transport and tool count, and
+  `McpServerDetail` for the selected one, fed by a real MCP handshake (`lib/mcp-tools.ts` connects
+  with the official MCP SDK): connection status, version, and every tool with its description,
   annotations and input schema;
 - **Permissions** — `PermissionRulesPanel` over the rules this chat has saved.
 
-## Point it at another MCP server
+## Connecting MCP servers
 
-Both transports are supported, picked with `MCP_TRANSPORT` in `.env.local`.
-
-**Another stdio server** — set the command:
-
-```bash
-MCP_TRANSPORT=stdio
-MCP_SERVER_NAME=git
-MCP_COMMAND=uvx
-MCP_ARGS=mcp-server-git,--repository,/path/to/repo
-```
-
-`MCP_ARGS` is a comma-separated argument list, where `{dataDir}` stands for the absolute path of the
-sample folder.
-
-**An HTTP server** — set the endpoint, and credentials if it needs them:
+`MCP_SERVERS` in `.env.local` is a JSON array; every entry needs a name and either a `url` (HTTP) or
+a `command` with `args` (stdio):
 
 ```bash
-MCP_TRANSPORT=http
-MCP_SERVER_NAME=layers
-MCP_URL=http://localhost:8091/mcp
-MCP_TOKEN=<token>
-MCP_HEADERS=X-Layers-Profile:core
+MCP_SERVERS=[{"name":"files","command":"npx","args":["-y","@modelcontextprotocol/server-filesystem","{dataDir}"]},{"name":"context7","url":"https://mcp.context7.com/mcp"}]
 ```
 
-`MCP_TOKEN` is sent as `Authorization: Bearer <token>`; `MCP_HEADERS` is a comma-separated list of
-`Name:value` pairs for anything else the server expects. Both belong in `.env.local`, which stays out
-of git — `.env.example` holds placeholders only, and no credential is ever logged or shown in the UI
-(the server bar shows the URL, never the headers).
+`{dataDir}` in an argument becomes the absolute path of the sample folder. `token` on an entry is
+sent as `Authorization: Bearer …`, `headers` adds anything else; both belong in `.env.local`, which
+stays out of git, and neither is ever sent to the browser — the UI shows the URL alone.
 
-For the Layers MCP server that means starting it on `http://localhost:8091/mcp` first (its own
-repository documents how) and pointing the example at it with the block above. Restart `next dev`
-after editing `.env.local`.
+The single-server keys of earlier versions (`MCP_SERVER_NAME`, `MCP_TRANSPORT`, `MCP_URL`,
+`MCP_TOKEN`, `MCP_HEADERS`, `MCP_COMMAND`, `MCP_ARGS`) still work: that server is added first and
+`MCP_SERVERS` is appended to it, so an existing `.env.local` keeps working while public servers are
+added next to it.
 
-The tool cards need no configuration either way: their titles come from the tool name in the part
-type, so a new server shows up correctly on its own.
+### Public servers to try, none of which needs a key
+
+| Server | What it does |
+| --- | --- |
+| `{"name":"files","command":"npx","args":["-y","@modelcontextprotocol/server-filesystem","{dataDir}"]}` | The sample folder of this example: list, read, search |
+| `{"name":"context7","url":"https://mcp.context7.com/mcp"}` | Current documentation and code examples for public libraries |
+| `{"name":"deepwiki","url":"https://mcp.deepwiki.com/mcp"}` | Questions about a public GitHub repository and its wiki |
+| `{"name":"fetch","command":"uvx","args":["mcp-server-fetch"]}` | Reads a URL and returns it as markdown |
+| `{"name":"git","command":"uvx","args":["mcp-server-git","--repository","/path/to/repo"]}` | History, diffs and branches of a local repository |
+
+All five were checked against this example. Restart `next dev` after editing `.env.local`.
+
+### Several servers at once
+
+Every server is listed in the header with its transport, and the inspector switches between them:
+status, version and the tools each one exposes. A tool call says which server it belongs to, and a
+saved permission rule is per server and tool (`mcp__context7__query-docs`), so allowing a tool on
+one server says nothing about another. A server that fails to connect turns red in the header and
+shows its error in the panel; the others keep working, and the agent is told which one is down.
+
+## The system prompt
+
+A chat over MCP is only as good as what the model was told about the server, and the tool catalogue
+alone does not say it: it lists 120 ways to act without saying which to reach for first, what a
+failure means, or how long an answer should be. `lib/system-prompt.ts` builds that in three layers,
+and the result is assembled per turn from the live handshake, not written by hand:
+
+1. **Core** — the same for every server: answer in the user's language (Cyrillic, or Russian typed on
+   the wrong keyboard layout, means Russian); act instead of interviewing, take the obvious default
+   and name the assumption in one line afterwards; at most one question, asked with candidates
+   instead of open; no warm-up calls to resolve ids the tool resolves itself; errors are information
+   — candidates mean "which one", throttling means wait and repeat, a refusal is reported and not
+   worked around; answers two to four lines, no retold tool output. The approval footer is the
+   confirmation step, so the model is told not to ask for permission on top of it.
+2. **Generated** — read off the handshake `lib/mcp-tools.ts` already performs: the server's name, the
+   opening of its own `instructions` field, how many tools it has and how many are read-only, and the
+   tools carrying `destructiveHint` by name, since those are the ones worth a question.
+3. **Playbook** — hand-written operating notes for a server the example recognises, matched on its
+   tool names. The Layers one covers the entity hierarchy, orienting once per conversation, the
+   multi-workspace disambiguation error, working by name rather than id, `__me__` for the caller,
+   `*Name` versus `*Id` fields, and the bulk tools.
+
+Only the third layer knows about a product, so pointing the example at a public server such as
+context7 still yields the core rules plus whatever that server says about itself — no Layers wording
+leaks in. `AGENT_CONTEXT` in `.env.local` appends a free-text block at the end, which is where a
+default workspace or a house style belongs.
 
 ## How it works
 
 | File | Role |
 | --- | --- |
-| `lib/config.ts` | Reads the environment and builds the MCP server config for either transport |
+| `lib/config.ts` | Reads the environment and builds the list of MCP servers, migrating the old single-server keys |
+| `lib/system-prompt.ts` | Core rules, a section generated from each server's handshake, and the playbook for a server it recognises |
 | `lib/agent.ts` | Runs `query()` from the agent SDK and turns its messages into a small NDJSON event stream |
 | `lib/approvals.ts` | Parks the SDK's `canUseTool` callback until the browser answers |
 | `app/api/chat/route.ts` | Streams the events of one turn |
