@@ -4,17 +4,28 @@ import {
   ActionIcon,
   Badge,
   Box,
+  Drawer,
   Group,
   Switch,
   Text,
   Tooltip,
   useMantineColorScheme,
 } from '@mantine/core';
-import { IconMoon, IconSun, IconX } from '@tabler/icons-react';
-import { AgentChat, type CustomToolRendererProps } from '@sinups/ai-kit';
-import { useEffect, useMemo, useState } from 'react';
-import type { PermissionState, StatusResponse } from '@/lib/events';
+import { useMediaQuery } from '@mantine/hooks';
+import { IconLayoutSidebarRight, IconMoon, IconSun } from '@tabler/icons-react';
+import {
+  AgentChat,
+  AgentStatus,
+  ContextUsage,
+  type CustomToolRendererProps,
+  type McpServer,
+  McpTransportIcon,
+  type PermissionRule,
+} from '@sinups/ai-kit';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { StatusResponse } from '@/lib/events';
 import { useAgentChat } from '@/lib/use-agent-chat';
+import { Inspector } from './inspector';
 import { ApprovalContext, McpToolCard } from './mcp-tool-card';
 
 const FILE_SUGGESTIONS = [
@@ -28,67 +39,6 @@ const SERVER_SUGGESTIONS = [
   { id: 'overview', label: 'Give me an overview of what is in there.' },
 ];
 
-type ServerBarProps = {
-  status: StatusResponse | null;
-  tools: number;
-  permissions: PermissionState;
-  onPermissions: (patch: { auto?: boolean; reset?: boolean }) => void;
-};
-
-function ServerBar({ status, tools, permissions, onPermissions }: ServerBarProps) {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-
-  return (
-    <Group justify="space-between" px="md" py="xs">
-      <Group gap="xs">
-        <Text fw={600} size="sm">
-          Chat over MCP
-        </Text>
-        {status && (
-          <Tooltip label={status.target}>
-            <Badge variant="light">{status.server}</Badge>
-          </Tooltip>
-        )}
-        {tools > 0 && <Badge variant="default">{tools} tools</Badge>}
-        {status && <Badge variant="default">{status.model}</Badge>}
-      </Group>
-      <Group gap="sm">
-        {permissions.allowed.length > 0 && (
-          <Tooltip label={permissions.allowed.join(', ')}>
-            <Badge
-              variant="light"
-              color="green"
-              rightSection={
-                <ActionIcon
-                  size="xs"
-                  variant="transparent"
-                  color="green"
-                  onClick={() => onPermissions({ reset: true })}
-                  aria-label="Forget allowed tools"
-                >
-                  <IconX size={12} />
-                </ActionIcon>
-              }
-            >
-              {permissions.allowed.length} {permissions.allowed.length === 1 ? 'tool' : 'tools'}{' '}
-              allowed
-            </Badge>
-          </Tooltip>
-        )}
-        <Switch
-          size="xs"
-          label="Auto-approve"
-          checked={permissions.auto}
-          onChange={(event) => onPermissions({ auto: event.currentTarget.checked })}
-        />
-        <ActionIcon variant="default" onClick={toggleColorScheme} aria-label="Toggle color scheme">
-          {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
-        </ActionIcon>
-      </Group>
-    </Group>
-  );
-}
-
 export default function Page() {
   const {
     messages,
@@ -100,24 +50,39 @@ export default function Page() {
     decide,
     permissions,
     updatePermissions,
+    usage,
+    startedAt,
     tools,
   } = useAgentChat();
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [serverStatus, setServerStatus] = useState<StatusResponse | null>(null);
+  const [server, setServer] = useState<McpServer | null>(null);
+  const [loadingServer, setLoadingServer] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const wide = useMediaQuery('(min-width: 1100px)');
+
+  const loadServer = useCallback(async (refresh = false) => {
+    setLoadingServer(true);
+    try {
+      const response = await fetch(`/api/server${refresh ? '?refresh' : ''}`);
+      setServer((await response.json()) as McpServer);
+    } finally {
+      setLoadingServer(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let active = true;
     fetch('/api/status')
       .then((response) => response.json() as Promise<StatusResponse>)
-      .then((body) => {
-        if (active) {
-          setServerStatus(body);
-        }
-      })
+      .then(setServerStatus)
       .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
+    void loadServer();
+  }, [loadServer]);
+
+  const definitions = useMemo(
+    () => Object.fromEntries((server?.tools ?? []).map((tool) => [tool.name, tool])),
+    [server]
+  );
 
   const toolTypes = useMemo(() => {
     const types = new Set<string>();
@@ -142,40 +107,144 @@ export default function Page() {
     [toolTypes]
   );
 
-  const onFiles = serverStatus?.transport !== 'http';
+  const transport = serverStatus?.transport ?? 'stdio';
+  const onFiles = transport !== 'http';
   const suggestions = onFiles ? FILE_SUGGESTIONS : SERVER_SUGGESTIONS;
-  const emptyTitle = onFiles
-    ? 'Ask about the data folder'
-    : `Ask the ${serverStatus?.server ?? 'MCP'} server`;
+  const working = status === 'submitted' || status === 'streaming';
+
+  const approvalValue = useMemo(
+    () => ({
+      approvals,
+      decide,
+      transport,
+      serverName: serverStatus?.server ?? 'mcp',
+      definitions,
+    }),
+    [approvals, decide, transport, serverStatus?.server, definitions]
+  );
+
+  const awaitingApproval = useMemo(
+    () => Object.values(approvals).some((approval) => !approval.outcome),
+    [approvals]
+  );
+
+  const statusBar = working ? (
+    <AgentStatus
+      label={awaitingApproval ? 'Waiting for your decision' : 'Working'}
+      startedAt={startedAt ?? undefined}
+      tokens={usage?.tokens}
+      paused={awaitingApproval}
+      onStop={stop}
+    />
+  ) : undefined;
+
+  const reconnect = useCallback(() => void loadServer(true), [loadServer]);
+  const saveRule = useCallback(
+    (rule: PermissionRule) => void updatePermissions({ save: rule }),
+    [updatePermissions]
+  );
+  const removeRule = useCallback(
+    (rule: PermissionRule) => void updatePermissions({ remove: rule.id }),
+    [updatePermissions]
+  );
+
+  const inspector = useMemo(
+    () => (
+      <Inspector
+        server={server}
+        loading={loadingServer}
+        rules={permissions.rules}
+        onReconnect={reconnect}
+        onSaveRule={saveRule}
+        onDeleteRule={removeRule}
+      />
+    ),
+    [server, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
+  );
 
   return (
-    <ApprovalContext value={{ approvals, decide }}>
+    <ApprovalContext value={approvalValue}>
       <Box h="100dvh" display="flex" style={{ flexDirection: 'column' }}>
-        <ServerBar
-          status={serverStatus}
-          tools={tools.length}
-          permissions={permissions}
-          onPermissions={updatePermissions}
-        />
-        <Box style={{ flex: 1, minHeight: 0 }}>
-          <AgentChat
-            messages={messages}
-            status={status}
-            error={error}
-            onSend={send}
-            onStop={stop}
-            toolRenderers={toolRenderers}
-            suggestions={suggestions}
-            contentWidth={760}
-            emptyStatePosition="center"
-            emptySuggestionsPlacement="empty"
-            emptyState={{
-              layout: 'center',
-              title: emptyTitle,
-              description: 'Answers come from an MCP server, every call needs your approval.',
-            }}
-          />
-        </Box>
+        <Group justify="space-between" px="md" py="xs">
+          <Group gap="xs">
+            <Text fw={600} size="sm">
+              Chat over MCP
+            </Text>
+            {serverStatus && (
+              <Tooltip label={serverStatus.target}>
+                <Badge
+                  variant="light"
+                  leftSection={<McpTransportIcon transport={transport} size={12} />}
+                >
+                  {serverStatus.server}
+                </Badge>
+              </Tooltip>
+            )}
+            {tools.length > 0 && <Badge variant="default">{tools.length} tools</Badge>}
+            {serverStatus && <Badge variant="default">{serverStatus.model}</Badge>}
+          </Group>
+          <Group gap="sm">
+            {usage && (
+              <ContextUsage used={usage.contextTokens} total={usage.contextWindow} withLabel />
+            )}
+            <Switch
+              size="xs"
+              label="Auto-approve"
+              checked={permissions.auto}
+              onChange={(event) => void updatePermissions({ auto: event.currentTarget.checked })}
+            />
+            <ActionIcon
+              variant="default"
+              onClick={() => setInspectorOpen((open) => !open)}
+              aria-label="Toggle inspector"
+            >
+              <IconLayoutSidebarRight size={18} />
+            </ActionIcon>
+            <ActionIcon variant="default" onClick={toggleColorScheme} aria-label="Toggle theme">
+              {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+            </ActionIcon>
+          </Group>
+        </Group>
+
+        <Group align="stretch" gap={0} style={{ flex: 1, minHeight: 0 }} wrap="nowrap">
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <AgentChat
+              messages={messages}
+              status={status}
+              error={error}
+              onSend={send}
+              onStop={stop}
+              toolRenderers={toolRenderers}
+              statusBar={statusBar}
+              suggestions={suggestions}
+              contentWidth={760}
+              emptyStatePosition="center"
+              emptySuggestionsPlacement="empty"
+              emptyState={{
+                layout: 'center',
+                title: onFiles
+                  ? 'Ask about the data folder'
+                  : `Ask the ${serverStatus?.server ?? 'MCP'} server`,
+                description: 'Answers come from an MCP server, every call needs your approval.',
+              }}
+            />
+          </Box>
+          {wide && inspectorOpen && (
+            <Box w={400} style={{ borderLeft: '1px solid var(--mantine-color-default-border)' }}>
+              {inspector}
+            </Box>
+          )}
+        </Group>
+
+        <Drawer
+          opened={!wide && inspectorOpen}
+          onClose={() => setInspectorOpen(false)}
+          position="bottom"
+          size="70%"
+          title="MCP server"
+        >
+          {inspector}
+        </Drawer>
       </Box>
     </ApprovalContext>
   );

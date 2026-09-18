@@ -39,6 +39,7 @@ export const config = {
   ),
   model: process.env.AGENT_MODEL || 'claude-sonnet-5',
   maxTurns: Number(process.env.AGENT_MAX_TURNS || 30),
+  contextWindow: Number(process.env.AGENT_CONTEXT_WINDOW || 200000),
 };
 
 export const mcpServer =

@@ -1,8 +1,9 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { askUser } from './approvals';
 import { config, mcpServer, sampleDir } from './config';
+import { describeCall } from './describe-call';
 import type { AgentEvent, ApprovalOutcome } from './events';
-import { isPreApproved, permissionState, rememberTool } from './permissions';
+import { addRule, matchingRule, permissionState } from './permissions';
 
 const SYSTEM_PROMPT = [
   'You are a demo assistant for a UI kit example.',
@@ -58,19 +59,22 @@ export function runAgent(
           resume: sessionId,
           mcpServers: { [config.serverName]: mcpServer },
           canUseTool: async (name, input, options) => {
-            const settle = (outcome: ApprovalOutcome) => {
+            const settle = (outcome: ApprovalOutcome, matchedRule?: string) => {
               emit({
                 kind: 'approval-settled',
                 requestId: options.requestId,
                 toolCallId: options.toolUseID,
                 name,
                 outcome,
+                matchedRule,
               });
               emit({ kind: 'permissions', state: permissionState(chatId) });
             };
 
-            if (isPreApproved(chatId, name)) {
-              settle('auto');
+            const rule = matchingRule(chatId, name);
+            const state = permissionState(chatId);
+            if (rule || state.auto) {
+              settle(rule ? 'rule' : 'auto', rule?.toolName);
               return { behavior: 'allow', updatedInput: input };
             }
 
@@ -79,11 +83,11 @@ export function runAgent(
               requestId: options.requestId,
               toolCallId: options.toolUseID,
               name,
-              title: options.title,
+              details: await describeCall(name, input, config.serverName),
             });
             const choice = await askUser(options.requestId, signal);
-            if (choice === 'always') {
-              rememberTool(chatId, name);
+            if (choice === 'session' || choice === 'always') {
+              addRule(chatId, name, choice === 'always' ? 'user' : 'session');
             }
             settle(choice);
             return choice === 'deny'
@@ -127,8 +131,25 @@ export function runAgent(
                 });
               }
             }
-          } else if (message.type === 'result' && message.subtype !== 'success') {
-            emit({ kind: 'error', message: `The agent stopped: ${message.subtype}` });
+          } else if (message.type === 'result') {
+            const usage = message.usage;
+            const context =
+              (usage.input_tokens ?? 0) +
+              (usage.cache_read_input_tokens ?? 0) +
+              (usage.cache_creation_input_tokens ?? 0) +
+              (usage.output_tokens ?? 0);
+            emit({
+              kind: 'usage',
+              usage: {
+                tokens: usage.output_tokens ?? 0,
+                contextTokens: context,
+                contextWindow: config.contextWindow,
+                durationMs: message.duration_ms,
+              },
+            });
+            if (message.subtype !== 'success') {
+              emit({ kind: 'error', message: `The agent stopped: ${message.subtype}` });
+            }
           }
         }
       } catch (error) {

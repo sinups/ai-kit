@@ -1,9 +1,12 @@
 'use client';
 
-import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Alert, Badge, Group, Stack, Text } from '@mantine/core';
 import {
   type CustomToolRendererProps,
   McpTool,
+  McpToolAnnotationBadges,
+  type McpToolDefinition,
+  McpTransportIcon,
   parseMcpToolType,
   ToolApprovalFooter,
 } from '@sinups/ai-kit';
@@ -15,26 +18,41 @@ import classes from './mcp-tool-card.module.css';
 type ApprovalContextValue = {
   approvals: Record<string, ApprovalState>;
   decide: (requestId: string, choice: ApprovalChoice) => void;
+  transport: 'stdio' | 'http' | 'sse';
+  serverName: string;
+  definitions: Record<string, McpToolDefinition>;
 };
 
 export const ApprovalContext = createContext<ApprovalContextValue>({
   approvals: {},
   decide: () => {},
+  transport: 'stdio',
+  serverName: 'mcp',
+  definitions: {},
 });
 
 const OUTCOME_LABELS = {
-  allow: 'Allowed',
+  once: 'Allowed once',
+  session: 'Allowed',
   always: 'Allowed',
   deny: 'Denied',
   auto: 'Auto',
+  rule: 'By rule',
 } as const;
 
 const OUTCOME_COLORS = {
-  allow: 'green',
+  once: 'green',
+  session: 'green',
   always: 'green',
   deny: 'red',
   auto: 'blue',
+  rule: 'blue',
 } as const;
+
+const APPROVE_OPTIONS = [
+  { value: 'once', label: 'Allow once', description: 'Ask again next time' },
+  { value: 'session', label: 'Allow for this chat', description: 'Until the chat is reset' },
+];
 
 function countItems(value: unknown, depth = 3): number | null {
   if (Array.isArray(value)) {
@@ -70,11 +88,14 @@ function summarize(output: unknown): string | null {
 }
 
 export function McpToolCard({ part, output, status }: CustomToolRendererProps) {
-  const { approvals, decide } = use(ApprovalContext);
+  const { approvals, decide, transport, serverName, definitions } = use(ApprovalContext);
   const mcpInfo = parseMcpToolType(part.type);
   const approval = part.toolCallId ? approvals[part.toolCallId] : undefined;
   const running = status === 'pending' || status === 'streaming';
+  const failed = status === 'error';
   const summary = running ? null : summarize(output);
+  const definition = mcpInfo ? definitions[mcpInfo.toolName] : undefined;
+  const details = approval?.details;
 
   if (!mcpInfo) {
     return null;
@@ -82,30 +103,44 @@ export function McpToolCard({ part, output, status }: CustomToolRendererProps) {
 
   return (
     <Stack gap={4}>
+      <Group gap={6} wrap="nowrap">
+        <McpTransportIcon transport={transport} size={14} />
+        <Text size="xs" c="dimmed">
+          {serverName}
+        </Text>
+        <McpToolAnnotationBadges annotations={definition?.annotations} withTooltips />
+      </Group>
       <McpTool
         part={part}
         mcpInfo={mcpInfo}
         chatStatus={running ? 'streaming' : 'ready'}
         className={classes.card}
       />
-      {summary && (
-        <Text size="xs" c="dimmed">
+      {failed ? (
+        <Alert color="red" variant="light" title="The server refused the call">
           {summary}
-        </Text>
+        </Alert>
+      ) : (
+        summary && (
+          <Text size="xs" c="dimmed">
+            {summary}
+          </Text>
+        )
       )}
-      {approval && !approval.outcome && (
+      {approval && !approval.outcome && details && (
         <ToolApprovalFooter
           isPending={running}
-          reason={approval.title ?? `The agent wants to call ${mcpInfo.toolName}`}
+          reason={details.reason}
           labels={{ approve: 'Allow', reject: 'Deny' }}
-          approveOptions={[
-            {
-              value: 'always',
-              label: 'Always allow',
-              description: 'Stop asking for this tool in this chat',
-            },
-          ]}
-          onApprove={(scope) => decide(approval.requestId, scope === 'always' ? 'always' : 'allow')}
+          approveOptions={APPROVE_OPTIONS}
+          requestedBy={{ name: details.server, color: 'blue' }}
+          ruleSuggestion={{ value: details.ruleSuggestion, label: 'Always allow this tool' }}
+          onExplain={async () => ({
+            risk: details.risk,
+            explanation: details.explanation,
+            reasoning: details.reasoning,
+          })}
+          onApprove={(scope) => decide(approval.requestId, (scope as ApprovalChoice) ?? 'once')}
           onReject={() => decide(approval.requestId, 'deny')}
         />
       )}
@@ -114,6 +149,11 @@ export function McpToolCard({ part, output, status }: CustomToolRendererProps) {
           <Badge variant="light" color={OUTCOME_COLORS[approval.outcome]}>
             {OUTCOME_LABELS[approval.outcome]}
           </Badge>
+          {approval.matchedRule && (
+            <Text size="xs" c="dimmed">
+              Rule: {approval.matchedRule}
+            </Text>
+          )}
         </Group>
       )}
     </Stack>

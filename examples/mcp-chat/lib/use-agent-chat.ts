@@ -1,15 +1,29 @@
 'use client';
 
-import type { ChatMessage, ChatStatus, MessagePart, ToolPart } from '@sinups/ai-kit';
+import type {
+  ChatMessage,
+  ChatStatus,
+  MessagePart,
+  PermissionRule,
+  ToolPart,
+} from '@sinups/ai-kit';
 import { useCallback, useRef, useState } from 'react';
-import type { AgentEvent, ApprovalChoice, ApprovalOutcome, PermissionState } from './events';
+import type {
+  AgentEvent,
+  ApprovalChoice,
+  ApprovalDetails,
+  ApprovalOutcome,
+  PermissionState,
+  TurnUsage,
+} from './events';
 
 export type ApprovalState = {
   requestId: string;
   toolCallId: string;
   name: string;
-  title?: string;
+  details?: ApprovalDetails;
   outcome?: ApprovalOutcome;
+  matchedRule?: string;
 };
 
 function withParts(messages: ChatMessage[], update: (parts: MessagePart[]) => MessagePart[]) {
@@ -67,7 +81,9 @@ export function useAgentChat() {
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [approvals, setApprovals] = useState<Record<string, ApprovalState>>({});
-  const [permissions, setPermissions] = useState<PermissionState>({ allowed: [], auto: false });
+  const [permissions, setPermissions] = useState<PermissionState>({ rules: [], auto: false });
+  const [usage, setUsage] = useState<TurnUsage | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [tools, setTools] = useState<string[]>([]);
   const sessionId = useRef<string | undefined>(undefined);
   const [chatId] = useState(() => `chat-${Math.random().toString(36).slice(2)}`);
@@ -82,7 +98,7 @@ export function useAgentChat() {
   }, []);
 
   const updatePermissions = useCallback(
-    async (patch: { auto?: boolean; reset?: boolean }) => {
+    async (patch: { auto?: boolean; reset?: boolean; save?: PermissionRule; remove?: string }) => {
       const response = await fetch('/api/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,6 +121,7 @@ export function useAgentChat() {
       abort.current = controller;
       setError(undefined);
       setStatus('submitted');
+      setStartedAt(Date.now());
       setMessages((current) => [
         ...current,
         { id: `u-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: content }] },
@@ -169,7 +186,7 @@ export function useAgentChat() {
                   requestId: event.requestId,
                   toolCallId: event.toolCallId,
                   name: event.name,
-                  title: event.title,
+                  details: event.details,
                 },
               }));
               break;
@@ -187,6 +204,19 @@ export function useAgentChat() {
               break;
             case 'permissions':
               setPermissions(event.state);
+              break;
+            case 'usage':
+              setUsage(event.usage);
+              setMessages((current) =>
+                withParts(current, (parts) => [
+                  ...parts,
+                  {
+                    type: 'turn-summary',
+                    durationMs: event.usage.durationMs,
+                    tokens: event.usage.tokens,
+                  },
+                ])
+              );
               break;
             case 'error':
               setError(new Error(event.message));
@@ -218,6 +248,8 @@ export function useAgentChat() {
     decide,
     permissions,
     updatePermissions,
+    usage,
+    startedAt,
     tools,
   };
 }

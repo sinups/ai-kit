@@ -62,20 +62,30 @@ trust, and stop it when you are done.
 
 ## Approving tool calls
 
-Every call needs a decision the first time. The footer under the card offers:
+Every call needs a decision the first time. The footer under the card carries what the agent is
+about to do — the tool's own title and arguments in words, a badge for the server that asked, and a
+risk level taken from the tool's MCP annotations (`readOnlyHint` reads, `destructiveHint` changes).
+**Why?** expands the tool's description and what the call will touch.
 
-- **Allow** — this call only;
-- **Always allow** (in the menu next to it) — remembers the tool for the rest of the chat, so the
-  agent keeps working without stopping at every step;
-- **Deny** — the refusal goes back to the agent, which says what it could not do.
+The approve button has scopes: **Allow once**, **Allow for this chat**, and **Always allow this
+tool**, which saves a permission rule. **Deny** sends the refusal back to the agent, which says what
+it could not do.
 
-The header shows how many tools are remembered and forgets them all on the cross next to the
-counter. The **Auto-approve** switch next to it approves everything without asking; it is off by
-default. Each card keeps its outcome as a badge: `Allowed`, `Denied`, or `Auto` for a call nobody was
-asked about.
+Saved rules live on the server, keyed by the chat: a reload starts over and one tab cannot approve
+tools for another. The **Permissions** tab of the inspector lists them and lets you add or delete
+rules by hand; a call approved by a rule says so on its card instead of asking again. The
+**Auto-approve** switch in the header approves everything without asking and is off by default.
 
-The list lives on the server, keyed by the chat, not in the browser: a reload starts over, and one
-tab cannot approve tools for another.
+Each card keeps its outcome as a badge: `Allowed once`, `Allowed`, `By rule`, `Auto` or `Denied`.
+
+## The inspector
+
+The panel on the right has two tabs, and turns into a bottom sheet under 1100px:
+
+- **Server** — `McpServerDetail` fed by a real MCP handshake (`lib/mcp-tools.ts` connects with the
+  official MCP SDK): connection status, transport, version, and every tool with its description,
+  annotations and input schema;
+- **Permissions** — `PermissionRulesPanel` over the rules this chat has saved.
 
 ## Point it at another MCP server
 
