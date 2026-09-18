@@ -8,7 +8,12 @@ import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 import type { MarkdownTailGranularity } from './Markdown/Markdown';
 import type { ToolCallLookups, ToolCallState } from './tools/tool-call-state';
+import type { ToolOutputFormatters } from './rows/tool-output';
+import type { TranscriptPresentation } from './MessageList/transcript-presentation';
+import type { ToolArgsFormatters } from './tools/tool-args';
+import type { ToolCatalog } from './tools/tool-presentation';
 import type { ToolApprovals } from './approvals/tool-approvals';
+import type { AgentChatLabels } from './AgentChat/agent-chat-labels';
 
 /** Chat status, structurally compatible with `ChatStatus` from the Vercel AI SDK */
 export type ChatStatus = 'submitted' | 'streaming' | 'ready' | 'error';
@@ -311,6 +316,17 @@ export type AgentChatProps = {
   approvals?: ToolApprovals;
 
   /**
+   * Every label of the chat, grouped by the component that shows it: `messageList` (with `search`
+   * and `toolRuns`), `inputBar`, `errorMessage`, `turnSummary`, `toolApproval`, `welcome`, the
+   * tool sections `toolTitles`, `toolCall`, `toolCard`, `toolRow`, `mcpTool`, `bashTool`,
+   * `editTool`, `searchTool`, `todoTool`, `planTool`, `toolGroup`, plus `errorTitle` and
+   * `placeholder`. Sections are partial and merge key by key
+   * with the English defaults; `inputBarProps.labels`, `emptyState.labels` and the `labels` of an
+   * approval request win over the matching section.
+   */
+  labels?: Partial<AgentChatLabels>;
+
+  /**
    * Extra props for the composer: `completions`, `leftActions`, `rightActions`, `placeholder`,
    * `onQueue`, `queuedMessages`, `onRemoveQueued`, `labels` and the rest of `InputBarProps`.
    * `AgentChat` owns `onSend`, `status`, `onStop`, the draft value and the question bar;
@@ -392,10 +408,32 @@ export type AgentChatProps = {
    */
   toolActivity?: boolean;
   /**
-   * How the transcript is laid out: `cards` (the default) keeps the tool cards, `rows` shows the
-   * flat transcript of a terminal client — a marker, the call and its answer under a gutter.
+   * How the transcript is laid out: `cards` (the default) keeps the tool cards; `rowsPresentation`
+   * shows the flat transcript of a terminal client — a marker, the call and its answer under a
+   * gutter; `quietPresentation` folds MCP calls into quiet lines that open into their details. Both
+   * are passed as values so they only reach the bundle of a host that uses them.
    */
-  presentation?: 'cards' | 'rows';
+  presentation?: 'cards' | TranscriptPresentation;
+  /**
+   * Result formatters by part type, keyed as `toolRenderers`:
+   * `tool-Read`, `tool-mcp__tracker__task_list` or a server-wide `tool-mcp__tracker__*`. A formatter
+   * that returns `null` leaves the readable summary the kit builds.
+   */
+  toolOutputs?: ToolOutputFormatters;
+  /**
+   * Tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`: a call then
+   * reads by the tool `title` instead of its name, and its arguments and result as a short summary.
+   */
+  toolCatalog?: ToolCatalog;
+  /** Argument formatters by part type, keyed as `toolOutputs`; `null` keeps the kit summary */
+  toolArgs?: ToolArgsFormatters;
+  /**
+   * One vertical gap between every two blocks of the transcript — prompt, answer text, tool call —
+   * instead of the tighter gaps around the prompt, `false` by default. Always on in `rows`.
+   */
+  evenSpacing?: boolean;
+  /** Locale of numbers and dates in tool arguments and results, the locale of the runtime by default */
+  locale?: string;
   emptySuggestionsPlacement?: 'input' | 'empty' | 'both';
   /**
    * @deprecated Suggestions are always rendered above the composer; `bottom` is treated as `top`.

@@ -1,8 +1,7 @@
 import type { ToolPart } from '../types';
 import { isRecord } from '../utils/parts';
 import { parseMcpToolType } from '../tools/tool-registry';
-
-const MAX_VALUE_CHARS = 80;
+import { clipText } from './tool-output';
 
 /** Bare tool name of a call, `Read`, `Bash`, `search_tasks` for an MCP call */
 export function getToolRowName(part: ToolPart): string {
@@ -14,10 +13,6 @@ export function getToolRowName(part: ToolPart): string {
     return part.toolName;
   }
   return part.type.startsWith('tool-') ? part.type.slice(5) : part.type;
-}
-
-function clipValue(value: string): string {
-  return value.length > MAX_VALUE_CHARS ? `${value.slice(0, MAX_VALUE_CHARS).trimEnd()}…` : value;
 }
 
 function readInput(part: ToolPart): Record<string, unknown> | undefined {
@@ -42,50 +37,14 @@ export function getToolRowArgs(part: ToolPart): string {
   for (const key of single) {
     const value = input[key];
     if (typeof value === 'string' && value) {
-      return clipValue(value);
+      return clipText(value);
     }
   }
 
   return Object.entries(input)
     .filter(([, value]) => value !== undefined)
-    .map(([key, value]) => `${key}: ${clipValue(textValue(value))}`)
+    .map(([key, value]) => `${key}: ${clipText(textValue(value))}`)
     .join(', ');
-}
-
-/** Output of a call as plain text: stdout, the text of an MCP result or pretty JSON */
-export function getToolRowOutput(part: ToolPart): string {
-  if (part.state === 'output-error' && typeof part.errorText === 'string') {
-    return part.errorText;
-  }
-  const output = part.output ?? part.result;
-  if (output === undefined || output === null) {
-    return '';
-  }
-  if (typeof output === 'string') {
-    return output;
-  }
-  if (isRecord(output)) {
-    const { stdout, text, message, content } = output as Record<string, unknown>;
-    if (typeof stdout === 'string' && stdout.trim()) {
-      return stdout;
-    }
-    if (typeof text === 'string' && text.trim()) {
-      return text;
-    }
-    if (typeof message === 'string' && message.trim()) {
-      return message;
-    }
-    if (Array.isArray(content)) {
-      const joined = content
-        .map((item) => (isRecord(item) && typeof item.text === 'string' ? item.text : ''))
-        .filter(Boolean)
-        .join('\n');
-      if (joined.trim()) {
-        return joined;
-      }
-    }
-  }
-  return JSON.stringify(output, null, 2);
 }
 
 export type ClampedText = {

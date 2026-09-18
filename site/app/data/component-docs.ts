@@ -239,13 +239,10 @@ export function Example() {
 />`,
       },
       {
-        type: 'example',
-        title: 'Full-page chat',
-        previewId: 'AgentChat/full-page',
         type: 'usage',
         title: 'Tool approvals',
         content:
-          "`approvals` attaches a confirmation to a tool call by its `toolCallId` without replacing the card that renders it, so an MCP call gets Allow/Deny with the same renderer. Each entry takes what `ToolApprovalFooter` understands — `reason`, `approveOptions`, `ruleSuggestion`, `matchedRule`, `requestedBy`, `onExplain`, `onApprove`, `onReject`, `onRejectWithFeedback`, `labels` — plus `isPending` while the call is still running. Once the host settles the request, replace the entry with `{ outcome: { decision: 'approved' | 'rejected', scope } }` and the footer gives way to a quiet settled line. An id with no call in the transcript is ignored, and dropping the entry removes the footer. `MessageList` rendered on its own takes the same map through `ToolApprovalsProvider`.",
+          "`approvals` attaches a confirmation to a tool call by its `toolCallId` without replacing the card that renders it, so an MCP call gets Allow/Deny with the same renderer. Each entry takes what `ToolApprovalFooter` understands — `reason`, `approveOptions`, `ruleSuggestion`, `matchedRule`, `requestedBy`, `onExplain`, `onApprove`, `onReject`, `onRejectWithFeedback`, `labels` — plus `isPending` while the call is still running. Once the host settles the request, replace the entry with `{ outcome: { decision: 'approved' | 'rejected', scope } }` and the footer gives way to a quiet settled line. An id with no call in the transcript is ignored, and dropping the entry removes the footer. `MessageList` rendered on its own takes the same map through `ToolApprovalsProvider`. The settled line names the scope the call was approved with: set `labels.toolApproval.scopes`, for example `{ session: 'for this session' }`, or it falls back to the label of the matching approve option and then to the scope itself.",
       },
       {
         type: 'example',
@@ -264,6 +261,7 @@ export function Example() {
       setApprovals({ "call-create-issue": { outcome: { decision: "approved", scope } } }),
     onReject: () =>
       setApprovals({ "call-create-issue": { outcome: { decision: "rejected" } } }),
+  },
 });
 
 <AgentChat
@@ -273,6 +271,115 @@ export function Example() {
   onStop={stop}
   approvals={approvals}
 />`,
+      },
+      {
+        type: 'usage',
+        title: 'Presentation',
+        content:
+          "`presentation` sets how the transcript lays out tool calls. `'cards'`, the default, keeps a card per call. `rowsPresentation` shows the flat transcript of a terminal client: a marker, the call and its answer under a gutter, with even spacing. `quietPresentation` turns MCP calls and thinking into muted lines that open into their arguments and result; the thinking and the finished or running calls a turn makes before its answer fold into one line such as `Thought · used 2 tools · 26s`, and a call that waits for a decision in `approvals` stays outside that line with a frame and its buttons. Other tool parts keep their cards. Both presentations are values imported from the package root, so a host that does not import them does not ship their code.",
+      },
+      {
+        type: 'example',
+        title: 'Cards rows and quiet lines',
+        previewId: 'AgentChat/presentation',
+        code: `import { AgentChat, quietPresentation, rowsPresentation } from "@sinups/ai-kit";
+
+<>
+  <AgentChat
+    messages={messages}
+    status={status}
+    onSend={send}
+    onStop={stop}
+    presentation={quietPresentation}
+    toolCatalog={catalog}
+  />
+  <AgentChat {...chat} presentation={rowsPresentation} />
+</>`,
+      },
+      {
+        type: 'usage',
+        title: 'Tool catalog and formatters',
+        content:
+          "`toolCatalog` takes the tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`; the full part type and the bare tool name also match. Each entry is `title`, `description`, `annotations` and `inputSchema`: a call then reads by the tool title instead of its name, and its arguments by the schema. `toolArgs` and `toolOutputs` format the arguments line and the result of a call. They are keyed like `toolRenderers`, by the full part type or a server-wide `tool-mcp__<server>__*`, and return `null` to keep the summary the kit builds. A formatter receives the part and a context with `state`, `summary` and `locale`, plus `args` and `schema` for arguments, or `output` and `labels` for results. `locale` formats numbers and dates in arguments and results; the runtime locale is the default.",
+      },
+      {
+        type: 'example',
+        title: 'Catalog formatters and locale',
+        previewId: 'AgentChat/tool-catalog',
+        code: `const catalog = {
+  mcp__issues__list_issues: {
+    title: "Find issues",
+    description: "Lists issues that match a filter",
+    annotations: { readOnlyHint: true },
+  },
+  mcp__git__log: { title: "Read the commit log" },
+};
+
+<AgentChat
+  {...chat}
+  presentation={quietPresentation}
+  toolCatalog={catalog}
+  toolArgs={{
+    "tool-mcp__issues__list_issues": (part, { args }) =>
+      args.assignee === "__me__" ? "Open issues assigned to me" : null,
+  }}
+  toolOutputs={{
+    "tool-mcp__issues__*": (part, { state, summary }) =>
+      state === "done" ? summary + " in the tracker" : null,
+  }}
+  locale="de-DE"
+/>`,
+      },
+      {
+        type: 'usage',
+        title: 'Labels',
+        content:
+          "`labels` translates the whole chat. Its sections merge key by key with the English defaults: `messageList` (including `search`, `toolRuns` and `planning`), `inputBar`, `welcome`, `errorMessage`, `turnSummary`, `toolApproval`, the tool sections `toolTitles`, `toolCall`, `toolCard`, `toolRow`, `mcpTool`, `bashTool`, `editTool`, `searchTool`, `todoTool`, `planTool`, `toolGroup` and `thinkingTool`, plus `durationUnits`, `errorTitle` and `placeholder`. `durationUnits` (`hours`, `minutes`, `seconds`, `milliseconds`) applies to every duration in the transcript: the turn summary, the working line, running calls and thinking. `messageList.toolRuns` holds the phrases of folded runs, such as `otherTools` and `thought`; `messageList.planning` is the row shown before the first token when `workingRow` is off. `inputBarProps.labels`, `emptyState.labels` and the `labels` of an approval request win over the matching section. A `MessageList` rendered on its own reads the same sections from `ChatLabelsProvider`.",
+      },
+      {
+        type: 'example',
+        title: 'Translated chat',
+        previewId: 'AgentChat/labels',
+        code: `const labels: Partial<AgentChatLabels> = {
+  placeholder: "Nachricht schreiben…",
+  thinkingTool: {
+    thinking: "Denkt nach",
+    thought: (duration) => (duration ? duration + " nachgedacht" : "Nachgedacht"),
+  },
+  durationUnits: { hours: " Std.", minutes: " Min.", seconds: " s", milliseconds: " ms" },
+  messageList: {
+    planning: "Wird vorbereitet…",
+    toolRuns: { thought: "nachgedacht", otherTools: (count) => count + " Werkzeuge genutzt" },
+  },
+  toolApproval: {
+    approve: "Erlauben",
+    reject: "Ablehnen",
+    approved: "Erlaubt",
+    scopes: { once: "einmal", session: "für diese Sitzung" },
+  },
+};
+
+<AgentChat {...chat} labels={labels} locale="de-DE" approvals={approvals} />`,
+      },
+      {
+        type: 'usage',
+        title: 'Working row and motion',
+        content:
+          "`workingRow` shows a quiet line at the end of the transcript while the agent works between tool calls, `true` by default; pass a node, for example an `AgentStatus` with your own label and token count, to replace it. `toolActivity` shows how long a running call has been going and the progress its MCP server reports, `true` by default. `evenSpacing` puts one gap between every two blocks (prompt, answer text, tool call) instead of the tighter gaps around the prompt, `false` by default and always on with `rowsPresentation`. `animateAppearance` fades a newly arrived message or part in over 150ms, `true` by default; the transcript already on screen at mount never animates, and `prefers-reduced-motion` turns it off. `frameBatched` commits the streaming answer at most once per animation frame, `true` by default; a finished stream, a hidden tab and reduced motion commit right away. `tailGranularity` reveals the streaming tail by character (`'char'`, the default) or by finished line (`'line'`).",
+      },
+      {
+        type: 'example',
+        title: 'Working row and tool activity',
+        previewId: 'AgentChat/working-row',
+        code: `<AgentChat
+  {...chat}
+  status="streaming"
+  toolActivity
+  workingRow={<AgentStatus label="Querying postgres" startedAt={turnStartedAt} tokens={usage.tokens} />}
+/>`,
+      },
+      {
+        type: 'example',
         title: 'Full-page chat',
         previewId: 'AgentChat/full-page',
         code: `<AgentChat
@@ -318,6 +425,35 @@ export function Example() {
         title: 'Usage',
         content:
           'Render the full transcript from ChatMessage[]. Use showCopyToolbar for user/assistant text copy, className for container sizing, and slots/classNames/toolRenderers for custom rendering. contentWidth sets the column width: keep the 420px default in a side widget, pass 720 or "100%" in a full-page chat. collapseToolRuns folds three or more consecutive read and search calls into one summary row, and a compaction part renders a CompactBoundary divider.',
+      },
+      {
+        type: 'usage',
+        title: 'Presentation and tool context',
+        content:
+          "`MessageList` takes the same transcript props as `AgentChat`: `presentation` (`'cards'`, `rowsPresentation` or `quietPresentation`), `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`, `evenSpacing`, `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched` and `withSearch`. The defaults differ: `AgentChat` turns on `frameBatched`, `animateAppearance`, `workingRow` and `toolActivity`, while a standalone `MessageList` keeps all four off until you pass `true`. Its own `labels` cover the list: `working`, `planning`, `search`, `toolRuns` and the message toolbar. The rows inside a standalone list read their labels from `ChatLabelsProvider` and their approvals from `ToolApprovalsProvider`; `AgentChat` sets up both from its `labels` and `approvals`.",
+      },
+      {
+        type: 'example',
+        title: 'Presentations',
+        previewId: 'MessageList/presentation',
+        code: `import {
+  ChatLabelsProvider,
+  MessageList,
+  ToolApprovalsProvider,
+  quietPresentation,
+} from "@sinups/ai-kit";
+
+<ChatLabelsProvider labels={{ durationUnits: { seconds: " s" } }}>
+  <ToolApprovalsProvider approvals={approvals}>
+    <MessageList
+      messages={messages}
+      status={status}
+      presentation={quietPresentation}
+      toolCatalog={catalog}
+      evenSpacing
+    />
+  </ToolApprovalsProvider>
+</ChatLabelsProvider>`,
       },
       {
         type: 'example',
@@ -1850,7 +1986,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Render assistant reasoning in a collapsible row. Use defaultOpen for uncontrolled expand, or expanded + onToggleExpand for controlled state. You can also render from mapped step/state/onComplete instead of part.',
+          'Render assistant reasoning in a collapsible row. Use defaultOpen for uncontrolled expand, or expanded + onToggleExpand for controlled state. You can also render from mapped step/state/onComplete instead of part. The row reads `Thinking` with a running timer while the part streams and `Thought for 4s` once it is complete; the duration is measured from when the part first rendered until it finished. `labels.thinking` and `labels.thought(duration)` translate the row, and `duration` is an empty string when the time is unknown. Inside `AgentChat` pass the same keys as `labels.thinkingTool`; the units come from `labels.durationUnits`.',
       },
       {
         type: 'example',
@@ -1868,6 +2004,18 @@ export function Example() {
           '  },\n' +
           '};\n\n' +
           '<ThinkingTool part={streamingPart} defaultOpen />',
+      },
+      {
+        type: 'example',
+        title: 'Custom labels',
+        previewId: 'ThinkingTool/labels',
+        code: `<ThinkingTool
+  part={part}
+  labels={{
+    thinking: "Reasoning",
+    thought: (duration) => (duration ? "Reasoned for " + duration : "Reasoned"),
+  }}
+/>`,
       },
       {
         type: 'example',

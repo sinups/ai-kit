@@ -4,7 +4,8 @@ import { useMinDisplayTime } from '../hooks/use-min-display-time';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import { cx } from '../utils/cx';
 import { fillTemplate } from '../utils/fill-template';
-import { formatElapsedTime } from '../utils/format-elapsed';
+import { formatElapsedTime, type DurationUnits } from '../utils/format-elapsed';
+import { useChatLabels } from '../labels/chat-labels';
 import { formatTokens } from '../utils/format-tokens';
 import { useStalled } from './use-stalled';
 import classes from './AgentStatus.module.css';
@@ -16,12 +17,15 @@ export interface AgentStatusLabels {
   tokens: string;
   /** Stop button, `Stop` by default */
   stop: string;
+  /** Units of the elapsed time: `{ seconds: ' с' }` gives `5 с`, English `5s` by default */
+  durationUnits: Partial<DurationUnits>;
 }
 
 export const DEFAULT_AGENT_STATUS_LABELS: AgentStatusLabels = {
   stalled: '',
   tokens: '↓ {tokens} tokens',
   stop: 'Stop',
+  durationUnits: {},
 };
 
 export interface AgentStatusProps {
@@ -65,7 +69,8 @@ export const AgentStatus = memo(function AgentStatus({
 }: AgentStatusProps) {
   const labels = { ...DEFAULT_AGENT_STATUS_LABELS, ...labelsProp };
   const { elapsedMs, isStalled } = useStalled({ startedAt, lastActivityAt, stallAfterMs, paused });
-  const elapsed = formatElapsedTime(elapsedMs);
+  const contextUnits = useChatLabels('durationUnits');
+  const elapsed = formatElapsedTime(elapsedMs, { ...contextUnits, ...labels.durationUnits });
   const status = useMinDisplayTime(
     { text: isStalled ? labels.stalled || label : label, isStalled },
     { minMs: minStatusMs, key: `${isStalled}\u0000${isStalled ? labels.stalled || label : label}` }

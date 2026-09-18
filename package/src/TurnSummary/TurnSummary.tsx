@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Group, Loader, Text } from '@mantine/core';
 import { IconClock } from '@tabler/icons-react';
+import { useChatLabels } from '../labels/chat-labels';
 import type { TurnSummaryPart } from '../types';
 import {
   DEFAULT_TURN_SUMMARY_LABELS,
@@ -27,9 +28,12 @@ export const TurnSummary = memo(function TurnSummary({
   className,
   style,
 }: TurnSummaryProps) {
+  const contextLabels = useChatLabels('turnSummary');
+  const durationUnits = useChatLabels('durationUnits');
   const segments = getTurnSummarySegments(
     { durationMs, tokens, tokenBudget, backgroundTasks },
-    { ...DEFAULT_TURN_SUMMARY_LABELS, ...labels }
+    { ...DEFAULT_TURN_SUMMARY_LABELS, ...contextLabels, ...labels },
+    durationUnits
   );
 
   return (

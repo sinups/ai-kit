@@ -110,8 +110,8 @@ export function Loading() {
 
 const LONG_NAME_SERVER: McpServer = {
   ...GIT_SERVER,
-  id: 'layers',
-  name: 'layers',
+  id: 'tracker',
+  name: 'tracker',
   tools: [
     {
       name: 'workspace_context',

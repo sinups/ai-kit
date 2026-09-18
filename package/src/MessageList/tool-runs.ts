@@ -79,6 +79,8 @@ export interface ToolRunLabels {
   webSearches: (count: number) => string;
   /** Summary phrase for any other tool, `used N tools` by default */
   otherTools: (count: number) => string;
+  /** Phrase for the thinking of a folded turn in `quietPresentation`, `thought` by default */
+  thought?: string;
   reading: string;
   editing: string;
   searching: string;
@@ -95,7 +97,13 @@ export const DEFAULT_TOOL_RUN_LABELS: ToolRunLabels = {
   editing: 'Editing...',
   searching: 'Searching...',
   working: 'Working...',
+  thought: 'thought',
 };
+
+/** First letter of a phrase in upper case, by the rules of the locale */
+export function capitalize(phrase: string): string {
+  return phrase.charAt(0).toLocaleUpperCase() + phrase.slice(1);
+}
 
 type ToolRunCounts = { reads: number; edits: number; searches: number; web: number; other: number };
 
@@ -131,7 +139,7 @@ export function describeToolRunPhrases(
     other > 0 && labels.otherTools(other),
   ].filter((phrase): phrase is string => Boolean(phrase));
   if (phrases.length > 0) {
-    phrases[0] = phrases[0].charAt(0).toUpperCase() + phrases[0].slice(1);
+    phrases[0] = capitalize(phrases[0]);
   }
   return phrases;
 }

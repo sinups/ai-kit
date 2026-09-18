@@ -7,12 +7,41 @@ import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import type { StepState, ToolCallStep } from '../types/timeline';
+import { useChatLabels } from '../labels/chat-labels';
 import { cx } from '../utils/cx';
+import { fillTemplate } from '../utils/fill-template';
 import { getPartInput, getPartOutput } from '../utils/format-tool';
 import { DiffView } from './DiffView';
 import { ToolApprovalFooter, type ToolApproval } from './ToolApprovalFooter';
 import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './EditTool.module.css';
+
+export interface EditToolLabels {
+  /** Header while the arguments stream in without a file name, `Generating...` by default */
+  generating: string;
+  /** Header while a new file is written, `{file}` is replaced, `Creating {file}` by default */
+  creating: string;
+  /** Header while a file is edited, `Editing {file}` by default */
+  editing: string;
+  /** Header once a new file is written, `Created {file}` by default */
+  created: string;
+  /** Header once a file is edited, `Edited {file}` by default */
+  edited: string;
+  /** Accessible label of the toggle that expands a clamped diff, `Show more` by default */
+  expand: string;
+  /** Accessible label of the toggle that clamps the diff again, `Hide` by default */
+  collapse: string;
+}
+
+export const DEFAULT_EDIT_TOOL_LABELS: EditToolLabels = {
+  generating: 'Generating...',
+  creating: 'Creating {file}',
+  editing: 'Editing {file}',
+  created: 'Created {file}',
+  edited: 'Edited {file}',
+  expand: 'Show more',
+  collapse: 'Hide',
+};
 
 export interface EditToolDiffCardProps {
   /** Timeline step describing the tool call */
@@ -35,6 +64,8 @@ export interface EditToolDiffCardProps {
   highlighter?: SyntaxHighlighter;
   /** When set, renders `ToolApprovalFooter` with approve/reject buttons under the card */
   approval?: ToolApproval;
+  /** Overrides of the default English labels */
+  labels?: Partial<EditToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -53,10 +84,13 @@ export function EditToolDiffCard({
   wrapLines = false,
   highlighter,
   approval,
+  labels: labelsProp,
   className,
   style,
 }: EditToolDiffCardProps) {
   useToolComplete(state === 'animating', step.duration, onComplete);
+  const contextLabels = useChatLabels('editTool');
+  const labels = { ...DEFAULT_EDIT_TOOL_LABELS, ...contextLabels, ...labelsProp };
   const isPending = state === 'animating';
   const fileName = step.filePath?.split('/').pop() ?? step.toolDetail;
   const hasFileName = Boolean(fileName);
@@ -102,15 +136,15 @@ export function EditToolDiffCard({
           {hasFileName && <FileExtIcon filename={fileName} size={12} />}
           {isPending && !hasFileName ? (
             <TextShimmer as="span" duration={1.2} className={classes.shimmer}>
-              Generating...
+              {labels.generating}
             </TextShimmer>
           ) : isPending ? (
             <TextShimmer as="span" duration={1.2} className={classes.shimmer}>
-              {isWrite ? 'Creating' : 'Editing'} {fileName}
+              {fillTemplate(isWrite ? labels.creating : labels.editing, { file: fileName ?? '' })}
             </TextShimmer>
           ) : (
             <span className={classes.title}>
-              {isWrite ? 'Created' : 'Edited'} {fileName}
+              {fillTemplate(isWrite ? labels.created : labels.edited, { file: fileName ?? '' })}
             </span>
           )}
         </div>
@@ -146,7 +180,7 @@ export function EditToolDiffCard({
             <UnstyledButton
               className={classes.expandButton}
               onClick={() => setIsExpanded((prev) => !prev)}
-              aria-label={isExpanded ? 'Hide' : 'Show more'}
+              aria-label={isExpanded ? labels.collapse : labels.expand}
               data-collapsed={collapsed || undefined}
             >
               <IconChevronDown
@@ -180,6 +214,8 @@ export interface EditToolProps {
   wrapLines?: boolean;
   /** Colors the diff with this highlighter, the language comes from the file extension */
   highlighter?: SyntaxHighlighter;
+  /** Overrides of the default English labels */
+  labels?: Partial<EditToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -193,6 +229,7 @@ export const EditTool = memo(function EditTool({
   wordHighlight = false,
   wrapLines = false,
   highlighter,
+  labels,
   className,
   style,
 }: EditToolProps) {
@@ -219,6 +256,7 @@ export const EditTool = memo(function EditTool({
       wrapLines={wrapLines}
       highlighter={highlighter}
       approval={approval}
+      labels={labels}
       className={className}
       style={style}
     />

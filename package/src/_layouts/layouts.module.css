@@ -1,4 +1,6 @@
 .viewport {
+  --layout-header-height: var(--ae-panel-header-height, rem(48px));
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -7,6 +9,10 @@
   overflow: hidden;
   background-color: var(--ae-bg);
   color: var(--ae-fg);
+}
+
+.viewport > * {
+  --ae-panel-header-height: var(--layout-header-height);
 }
 
 .mobileViewport {
@@ -18,7 +24,7 @@
 
 .header {
   flex-shrink: 0;
-  height: rem(48px);
+  height: var(--ae-panel-header-height);
   padding-inline: rem(16px) rem(8px);
 
   &[data-column] {
@@ -95,7 +101,6 @@
 }
 
 .inspector {
-  --ae-panel-header-height: rem(48px);
   --ae-panel-inset: var(--ae-column-pad-x);
 
   display: flex;

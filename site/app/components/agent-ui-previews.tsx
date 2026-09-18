@@ -24,6 +24,7 @@ import { renderChatActionsPreview } from "./previews/chat-actions";
 import { renderChatExtrasPreview } from "./previews/chat-extras";
 import { renderConfigExtrasPreview } from "./previews/config-extras";
 import { renderLauncherPreview } from "./previews/launcher";
+import { renderTranscriptPreview } from "./previews/transcript";
 import { renderDiffPreview } from "./previews/diff";
 import { renderHelpPreview } from "./previews/help";
 import { renderHooksPreview } from "./previews/hooks";
@@ -580,7 +581,8 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
         renderHelpPreview(previewId) ??
         renderChatExtrasPreview(previewId) ??
         renderConfigExtrasPreview(previewId) ??
-        renderLauncherPreview(previewId)
+        renderLauncherPreview(previewId) ??
+        renderTranscriptPreview(previewId)
       );
   }
 }

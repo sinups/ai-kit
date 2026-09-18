@@ -2,8 +2,13 @@ import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import userEvent from '@testing-library/user-event';
 import { AgentChat } from '../AgentChat/AgentChat';
+import type { AgentChatLabels } from '../AgentChat/agent-chat-labels';
 import type { ChatMessage } from '../types';
-import type { ToolApprovals } from './tool-approvals';
+import {
+  DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS,
+  getToolApprovalOutcomeText,
+  type ToolApprovals,
+} from './tool-approvals';
 
 const messages: ChatMessage[] = [
   {
@@ -20,7 +25,7 @@ const messages: ChatMessage[] = [
   },
 ];
 
-function renderChat(approvals?: ToolApprovals) {
+function renderChat(approvals?: ToolApprovals, labels?: Partial<AgentChatLabels>) {
   return render(
     <AgentChat
       messages={messages}
@@ -28,6 +33,7 @@ function renderChat(approvals?: ToolApprovals) {
       onSend={() => {}}
       onStop={() => {}}
       approvals={approvals}
+      labels={labels}
     />
   );
 }
@@ -64,5 +70,52 @@ describe('approvals/ToolApprovalSlot', () => {
 
     renderChat();
     expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+  });
+
+  it('takes the outcome text from the labels of the request', () => {
+    const { rerender } = renderChat({
+      'call-1': { outcome: { decision: 'approved' }, labels: { approved: 'Разрешено' } },
+    });
+    expect(screen.getByTestId('tool-approval-outcome')).toHaveTextContent('Разрешено');
+
+    rerender(
+      <AgentChat
+        messages={messages}
+        status="ready"
+        onSend={() => {}}
+        onStop={() => {}}
+        approvals={{
+          'call-1': { outcome: { decision: 'rejected' }, labels: { skipped: 'Пропущено' } },
+        }}
+      />
+    );
+    expect(screen.getByTestId('tool-approval-outcome')).toHaveTextContent('Пропущено');
+  });
+
+  it('applies the chat-wide toolApproval labels under the labels of each request', () => {
+    const { unmount } = renderChat(
+      { 'call-1': { reason: 'Создаёт задачу', labels: { reject: 'Отклонить' } } },
+      { toolApproval: { approve: 'Разрешить', reject: 'Не сейчас' } }
+    );
+    expect(screen.getByRole('button', { name: 'Разрешить' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Отклонить' })).toBeInTheDocument();
+    unmount();
+
+    renderChat(
+      { 'call-1': { outcome: { decision: 'approved', scope: 'сессия' } } },
+      { toolApproval: { approved: 'Разрешено' } }
+    );
+    expect(screen.getByTestId('tool-approval-outcome')).toHaveTextContent('Разрешено · сессия');
+  });
+
+  it('keeps the English outcome defaults', () => {
+    expect(DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS).toEqual({
+      approved: 'Approved',
+      outcomeRejected: 'Skipped',
+    });
+    expect(getToolApprovalOutcomeText({ outcome: { decision: 'rejected' } })).toBe('Skipped');
+    expect(
+      getToolApprovalOutcomeText({ outcome: { decision: 'approved' } }, { approved: 'Allowed' })
+    ).toBe('Allowed');
   });
 });

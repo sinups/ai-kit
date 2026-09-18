@@ -16,6 +16,8 @@ export interface ToolRowBaseProps extends BoxProps, ElementProps<'div', 'childre
   isAnimating: boolean;
   /** Muted, truncated text after the label */
   detail?: string;
+  /** Lines the detail may wrap to before the ellipsis, `1` by default */
+  detailLines?: number;
   /** Content rendered at the end of the row, for example elapsed time */
   trailingContent?: React.ReactNode;
   /** How long a status stays readable before the next one replaces it in ms, `600` by default, `0` disables */
@@ -37,6 +39,7 @@ export function ToolRowBase({
   completeLabel,
   isAnimating,
   detail,
+  detailLines = 1,
   trailingContent,
   minStatusMs,
   expandable = false,
@@ -66,7 +69,7 @@ export function ToolRowBase({
 
   const row = (
     <div className={classes.row} data-toggle={expandable || undefined}>
-      <div className={classes.content}>
+      <div className={classes.content} data-wrap={detailLines > 1 || undefined}>
         {icon && <span className={classes.icon}>{icon}</span>}
         <span className={classes.label}>
           {status.isAnimating && status.shimmerLabel ? (
@@ -77,7 +80,19 @@ export function ToolRowBase({
             status.completeLabel
           )}
         </span>
-        {detail && <span className={classes.detail}>{detail}</span>}
+        {detail && (
+          <span
+            className={classes.detail}
+            data-lines={detailLines > 1 ? detailLines : undefined}
+            style={
+              detailLines > 1
+                ? ({ '--ae-detail-lines': detailLines } as React.CSSProperties)
+                : undefined
+            }
+          >
+            {detail}
+          </span>
+        )}
         {trailingContent}
       </div>
       {expandable && (

@@ -5,7 +5,8 @@ import { formatCount } from '../utils/format-count';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
 import { COMMAND_TOOL_TYPES, FILE_TOOL_TYPES, SEARCH_TOOL_TYPES } from './tool-kinds';
-import { toolRegistry } from './tool-registry';
+import { useChatLabels } from '../labels/chat-labels';
+import { resolveToolTitleLabels, toolRegistry } from './tool-registry';
 import { useElapsed } from './use-elapsed';
 import classes from './ToolGroup.module.css';
 
@@ -141,7 +142,9 @@ export const ToolGroup = memo(function ToolGroup({
   className,
   style,
 }: ToolGroupProps) {
-  const labels = { ...DEFAULT_TOOL_GROUP_LABELS, ...labelsProp };
+  const contextLabels = useChatLabels('toolGroup');
+  const labels = { ...DEFAULT_TOOL_GROUP_LABELS, ...contextLabels, ...labelsProp };
+  const titleLabels = resolveToolTitleLabels(useChatLabels('toolTitles'));
   const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
   const description: string = input.description || '';
@@ -305,8 +308,8 @@ export const ToolGroup = memo(function ToolGroup({
               <GenericTool
                 key={idx}
                 icon={nestedMeta.icon}
-                title={nestedMeta.title(derivedPart)}
-                subtitle={nestedMeta.subtitle?.(derivedPart)}
+                title={nestedMeta.title(derivedPart, titleLabels)}
+                subtitle={nestedMeta.subtitle?.(derivedPart, titleLabels)}
                 isPending={nestedIsPending}
                 isError={nestedIsError}
               />

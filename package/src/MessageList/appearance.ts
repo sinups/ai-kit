@@ -11,18 +11,21 @@ export type AppearanceTracker = {
 export const NO_APPEARANCE: AppearanceTracker = { enabled: false, isNew: () => false };
 
 /**
- * Remembers which keys were already on screen at mount, so only items that arrive later animate.
- * The verdict for a key is taken once and kept, which keeps a running animation from restarting.
+ * Remembers which keys were already on screen with the first content, so only items that arrive
+ * later animate: a transcript restored after mount shows at once. The verdict for a key is taken
+ * once and kept, which keeps a running animation from restarting.
  */
-export function useAppearanceTracker(enabled: boolean): AppearanceTracker {
+export function useAppearanceTracker(enabled: boolean, hasContent = true): AppearanceTracker {
   const reducedMotion = useReducedMotion();
   const active = enabled && !reducedMotion;
   const verdicts = useRef(new Map<string, boolean>());
   const painted = useRef(false);
 
   useEffect(() => {
-    painted.current = true;
-  }, []);
+    if (hasContent) {
+      painted.current = true;
+    }
+  }, [hasContent]);
 
   const isNew = useCallback(
     (key: string) => {

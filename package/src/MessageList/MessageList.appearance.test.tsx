@@ -3,6 +3,7 @@ import { MantineProvider } from '@mantine/core';
 import { render as rtlRender } from '@testing-library/react';
 import type { ChatMessage } from '../types';
 import { MessageList } from './MessageList';
+import { rowsPresentation } from '../rows/rows-presentation';
 
 // `render` of `@mantine-tests/core` wraps the tree in a fragment that `rerender` drops, which
 // remounts the list and loses the memory of what was already on screen.
@@ -34,6 +35,17 @@ describe('MessageList appearance', () => {
     );
 
     expect(appearing(container)).toHaveLength(0);
+  });
+
+  it('shows a transcript restored after mount at once and animates what follows it', () => {
+    const { container, rerender } = render(
+      <MessageList messages={[]} status="ready" animateAppearance />
+    );
+    rerender(<MessageList messages={transcript} status="ready" animateAppearance />);
+    expect(appearing(container)).toHaveLength(0);
+
+    rerender(<MessageList messages={withReply} status="ready" animateAppearance />);
+    expect(appearing(container)).toHaveLength(2);
   });
 
   it('animates a message and a part that arrive later', () => {
@@ -71,6 +83,44 @@ describe('MessageList appearance', () => {
 
     const animated = Array.from(appearing(container));
     expect(animated.map((element) => element.textContent)).toEqual(['One more thought']);
+  });
+
+  it('animates a row that arrives in the rows presentation', () => {
+    const call = {
+      type: 'tool-Read',
+      toolCallId: 'r1',
+      state: 'output-available',
+      input: { file_path: 'src/a.ts' },
+      output: 'done',
+    };
+    const { container, rerender } = render(
+      <MessageList
+        messages={transcript}
+        status="ready"
+        presentation={rowsPresentation}
+        animateAppearance
+      />
+    );
+
+    rerender(
+      <MessageList
+        messages={[
+          transcript[0],
+          {
+            id: 'a1',
+            role: 'assistant',
+            parts: [{ type: 'text', text: 'First answer' }, call],
+          } as ChatMessage,
+        ]}
+        status="ready"
+        presentation={rowsPresentation}
+        animateAppearance
+      />
+    );
+
+    const animated = Array.from(appearing(container));
+    expect(animated).toHaveLength(1);
+    expect(animated[0].textContent).toContain('Read');
   });
 
   it('keeps the animation off without the prop', () => {

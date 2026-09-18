@@ -219,10 +219,10 @@ export const Flow = {
     await expect(launcher).toHaveAttribute('tabindex', '-1');
 
     await userEvent.type(composer, 'How do I invite my team?{Enter}');
-    await expect(await within(dialog).findByText('How do I invite my team?')).toBeVisible();
-    await expect(
-      await within(dialog).findByText(/Looking into it/, undefined, { timeout: 3000 })
-    ).toBeVisible();
+    await waitFor(() => expect(within(dialog).getByText('How do I invite my team?')).toBeVisible());
+    await waitFor(() => expect(within(dialog).getByText(/Looking into it/)).toBeVisible(), {
+      timeout: 3000,
+    });
     await expect(dialog.offsetHeight).toBe(height);
 
     const scroller = findScroller(dialog);
@@ -306,7 +306,7 @@ export const ResizeFlow = {
     const composer = within(dialog).getByRole('textbox');
     await waitFor(() => expect(composer).toHaveFocus());
     await userEvent.type(composer, 'Keep this message{Enter}');
-    await expect(await within(dialog).findByText('Keep this message')).toBeVisible();
+    await waitFor(() => expect(within(dialog).getByText('Keep this message')).toBeVisible());
     await expect(root).toHaveAttribute('data-mode', 'compact');
 
     await userEvent.click(canvas.getByRole('button', { name: '375px' }));

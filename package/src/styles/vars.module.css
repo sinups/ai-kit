@@ -33,7 +33,7 @@
   --ae-column-pad-y: var(--ae-space-xl);
   --ae-surface-pad: var(--ae-space-md);
   --ae-max-width: rem(420px);
-  --ae-panel-header-height: auto;
+  --ae-panel-header-height: initial;
   --ae-context-padding: rem(10px);
   --ae-user-message-x: rem(14px);
   --ae-user-message-y: rem(6px);

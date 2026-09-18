@@ -7,6 +7,7 @@ import type { ToolPart } from '../types';
 import { cx } from '../utils/cx';
 import { areToolPropsEqual, getPartInput, getToolStatus } from '../utils/format-tool';
 import classes from './PlanTool.module.css';
+import { useChatLabels } from '../labels/chat-labels';
 
 export type Plan = {
   /** Plan id, used to build the file name (`plan-<id>.md`) */
@@ -87,7 +88,8 @@ export const PlanTool = memo(function PlanTool({
   className,
   style,
 }: PlanToolProps) {
-  const labels = { ...DEFAULT_PLAN_TOOL_LABELS, ...labelsProp };
+  const contextLabels = useChatLabels('planTool');
+  const labels = { ...DEFAULT_PLAN_TOOL_LABELS, ...contextLabels, ...labelsProp };
   const { isPending } = getToolStatus(part, chatStatus);
   const input = getPartInput(part) as PlanToolInput;
   const plan = input.plan;

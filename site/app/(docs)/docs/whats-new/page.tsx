@@ -276,6 +276,8 @@ export default function WhatsNewPage() {
   return (
     <DocPageShell
       sections={[
+        { id: 'next', label: '0.3.0' },
+        { id: 'next-defaults', label: 'Changed defaults in 0.3.0' },
         { id: 'overview', label: 'Overview' },
         { id: 'breaking', label: 'Breaking changes' },
         { id: 'package', label: 'Package' },
@@ -303,6 +305,103 @@ export default function WhatsNewPage() {
           ranges move to Mantine 9.4 and React 19.2.
         </P>
       </GuideHeader>
+
+      <GuideSection id="next" title="0.3.0">
+        <P>
+          New props of <ComponentLink name="AgentChat" /> and <ComponentLink name="MessageList" />,
+          the composer and the mode picker. Some defaults of <C>AgentChat</C> changed as well; see{' '}
+          <a href="#next-defaults" className={docLinkClass}>
+            Changed defaults in 0.3.0
+          </a>
+          .
+        </P>
+        <Bullets>
+          <li>
+            <C>presentation</C>: <C>&apos;cards&apos;</C> by default, <C>rowsPresentation</C> for the
+            flat transcript of a terminal client, <C>quietPresentation</C> for muted MCP lines and
+            one folded line per turn such as <C>Thought · used 2 tools · 26s</C>. Both are imported
+            values, so they reach the bundle only when used.
+          </li>
+          <li>
+            <C>toolCatalog</C> (tool definitions keyed by <C>mcp__&lt;server&gt;__&lt;tool&gt;</C>:{' '}
+            <C>title</C>, <C>description</C>, <C>annotations</C>, <C>inputSchema</C>),{' '}
+            <C>toolArgs</C> and <C>toolOutputs</C> formatters, and <C>locale</C> for numbers and
+            dates in tool arguments and results.
+          </li>
+          <li>
+            <C>approvals</C> attaches Allow/Deny to any call by <C>toolCallId</C>;{' '}
+            <C>ToolApprovalsProvider</C> does the same for a standalone <C>MessageList</C>, and{' '}
+            <C>labels.toolApproval.scopes</C> names the scope in the settled line.
+          </li>
+          <li>
+            <C>labels</C> covers the whole chat by section, including <C>durationUnits</C>,{' '}
+            <C>thinkingTool</C>, <C>messageList.toolRuns</C> and <C>messageList.planning</C>;{' '}
+            <C>ChatLabelsProvider</C> does the same for a standalone list.
+          </li>
+          <li>
+            <C>evenSpacing</C>, <C>workingRow</C>, <C>toolActivity</C>, <C>animateAppearance</C>{' '}
+            and <C>frameBatched</C> control spacing, the working line, the timer of running calls,
+            the fade-in of new parts and how often the streaming answer commits.
+          </li>
+          <li>
+            <ComponentLink name="ThinkingTool" /> shows <C>Thinking</C> with a timer while the part
+            streams and <C>Thought for 4s</C> after it; both texts are labels.
+          </li>
+          <li>
+            <ComponentLink name="InputBar" />: <C>contextItems</C> shows context chips above the
+            text, for example the open document; <C>onRemoveContext</C> adds a remove button to each
+            chip and <C>onRestoreContext</C> shows removed items as a line that brings them back.
+          </li>
+          <li>
+            <ComponentLink name="ModeSelector" />: <C>labels.title</C> adds a heading to the open
+            menu, a mode&apos;s <C>badge</C> marks it, for example <C>Default</C>, and{' '}
+            <C>shortcuts</C> picks a mode by its digit while the menu is open.
+          </li>
+        </Bullets>
+      </GuideSection>
+
+      <GuideSection id="next-defaults" title="Changed defaults in 0.3.0">
+        <P>These change what an existing app renders without code changes. Each one can be undone.</P>
+        <Bullets>
+          <li>
+            <C>AgentChat</C> now turns on <C>frameBatched</C>, <C>animateAppearance</C>,{' '}
+            <C>workingRow</C> and <C>toolActivity</C> by default. A standalone{' '}
+            <C>MessageList</C> keeps all four off. To get the old chat, pass{' '}
+            <C>frameBatched={'{false}'}</C>, <C>animateAppearance={'{false}'}</C>,{' '}
+            <C>workingRow={'{false}'}</C> and <C>toolActivity={'{false}'}</C>.
+          </li>
+          <li>
+            <ComponentLink name="ToolRowBase" /> and <ComponentLink name="AgentStatus" /> keep a
+            status on screen for at least 600ms before a newer one replaces it, so a step that ends
+            in a few frames does not flash. <C>minStatusMs={'{0}'}</C> switches back to immediate
+            updates.
+          </li>
+          <li>
+            Durations from one hour up read <C>1h 5m</C> instead of <C>65m 3s</C>. The units come
+            from <C>labels.durationUnits</C>.
+          </li>
+          <li>
+            <C>--ae-user-message-y</C>, the vertical padding of the user bubble, is 6px instead of
+            10px, also without <C>AiKitProvider</C>. Set the token to <C>10px</C> on an ancestor to
+            keep the old bubble.
+          </li>
+          <li>
+            Timers in status rows share one animation frame loop and stop while the tab is hidden;
+            they catch up when it becomes visible again.
+          </li>
+          <li>
+            Types: <C>InputBarLabels</C> has new required keys (<C>send</C>, <C>stop</C>,{' '}
+            <C>closeInfoBar</C>, <C>attach</C>, <C>attachment</C>, <C>question</C>,{' '}
+            <C>questionHeader</C>, <C>removeContext</C>, <C>restoreContext</C>), and{' '}
+            <C>ToolApprovalLabels</C> has <C>scopes</C>. This only affects code that declares a full
+            labels object; the <C>labels</C> props take <C>Partial</C> objects and need no change.
+          </li>
+          <li>
+            Package: type declarations are split into <C>index.d.mts</C> for <C>import</C> and{' '}
+            <C>index.d.ts</C> for <C>require</C>.
+          </li>
+        </Bullets>
+      </GuideSection>
 
       <GuideSection id="overview" title="Overview">
         <Bullets>
@@ -374,8 +473,8 @@ export default function WhatsNewPage() {
             .
           </li>
           <li>
-            One type declaration entry serves <C>import</C> and <C>require</C>. Projects with{' '}
-            <C>moduleResolution: node16</C> in ESM mode now get the kit types instead of <C>any</C>.
+            Projects with <C>moduleResolution: node16</C> in ESM mode now get the kit types instead
+            of <C>any</C>.
           </li>
           <li>
             Source maps are no longer published: the unpacked package is 3.4 MB instead of 13.9 MB,

@@ -102,6 +102,8 @@ export interface ToolApprovalLabels {
   ruleBack: string;
   /** Prefix of `matchedRule`, `Asked because:` by default */
   matchedRule: string;
+  /** Names of approval scopes in the settled line, keyed by scope: `{ once: 'once' }`; falls back to the label of the matching approve option, then to the scope itself */
+  scopes: Record<string, string>;
 }
 
 export const DEFAULT_TOOL_APPROVAL_LABELS: ToolApprovalLabels = {
@@ -128,6 +130,7 @@ export const DEFAULT_TOOL_APPROVAL_LABELS: ToolApprovalLabels = {
   ruleConfirm: 'Confirm',
   ruleBack: 'Back',
   matchedRule: 'Asked because:',
+  scopes: {},
 };
 
 export type ToolApproval = {

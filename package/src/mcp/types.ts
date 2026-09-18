@@ -17,6 +17,8 @@ export type McpServerScope = 'user' | 'project' | 'local';
 export type McpServerAction = (server: McpServer) => void | Promise<void>;
 
 export interface McpToolAnnotations {
+  /** Human-readable name of the tool, used when the tool itself has no `title` */
+  title?: string;
   /** The tool does not modify its environment */
   readOnlyHint?: boolean;
   /** The tool may perform destructive updates */

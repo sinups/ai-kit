@@ -1,71 +1,64 @@
-import React, { createContext, memo, useContext } from 'react';
+import React from 'react';
 import { Box, Text } from '@mantine/core';
 import { cx } from '../utils/cx';
-import {
-  DEFAULT_TOOL_APPROVAL_LABELS,
-  ToolApprovalFooter,
-  type ToolApproval,
-} from '../tools/ToolApprovalFooter';
+import { DEFAULT_TOOL_APPROVAL_LABELS, ToolApprovalFooter } from '../tools/ToolApprovalFooter';
 import classes from './ToolApprovals.module.css';
+import { useToolApproval, type ToolApprovalRequest } from './approval-context';
 
-export type ToolApprovalDecision = 'approved' | 'rejected';
-
-export type ToolApprovalOutcome = {
-  /** How the request was settled */
-  decision: ToolApprovalDecision;
-  /** Scope the call was approved with, for example `session`, appended to the outcome text */
-  scope?: string;
-  /** Replaces the default outcome text */
-  label?: React.ReactNode;
-};
-
-/** One approval request attached to a tool call by its `toolCallId` */
-export type ToolApprovalRequest = ToolApproval & {
-  /** The tool call has not finished yet; the footer shows "Starting..." after approval */
-  isPending?: boolean;
-  /** Set once the host settled the request; the footer is replaced by a quiet outcome line */
-  outcome?: ToolApprovalOutcome;
-};
-
-/** Approval requests keyed by `toolCallId`; ids without a call in the transcript are ignored */
-export type ToolApprovals = Record<string, ToolApprovalRequest | undefined>;
+export {
+  ToolApprovalsProvider,
+  useToolApproval,
+  useToolApprovals,
+  type ToolApprovalDecision,
+  type ToolApprovalOutcome,
+  type ToolApprovalRequest,
+  type ToolApprovals,
+  type ToolApprovalsProviderProps,
+} from './approval-context';
 
 export interface ToolApprovalOutcomeLabels {
   /** Outcome of an approved call, `Approved` by default */
   approved: string;
-  /** Outcome of a rejected call, `Skipped` by default */
-  rejected: string;
+  /** Outcome of a call the user refused, `Skipped` by default */
+  outcomeRejected: string;
 }
 
 export const DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS: ToolApprovalOutcomeLabels = {
   approved: DEFAULT_TOOL_APPROVAL_LABELS.approved,
-  rejected: DEFAULT_TOOL_APPROVAL_LABELS.skipped,
+  outcomeRejected: DEFAULT_TOOL_APPROVAL_LABELS.skipped,
 };
 
-const ToolApprovalsContext = createContext<ToolApprovals | undefined>(undefined);
-
-export interface ToolApprovalsProviderProps {
-  /** Approval requests keyed by `toolCallId` */
-  approvals?: ToolApprovals;
-  children: React.ReactNode;
-}
-
-/** Makes host approval requests available to every tool call rendered inside it */
-export function ToolApprovalsProvider({ approvals, children }: ToolApprovalsProviderProps) {
-  return (
-    <ToolApprovalsContext.Provider value={approvals}>{children}</ToolApprovalsContext.Provider>
-  );
-}
-
-ToolApprovalsProvider.displayName = 'ToolApprovalsProvider';
-
-/** Approval request attached to this call, `undefined` when the host has none for it */
-export function useToolApproval(toolCallId?: string): ToolApprovalRequest | undefined {
-  const approvals = useContext(ToolApprovalsContext);
-  if (!approvals || !toolCallId) {
-    return undefined;
+/**
+ * Text of a settled request: `outcome.label`, otherwise `labels.approved` or `labels.skipped` of
+ * the request, then of `fallback`, then the English default, followed by the scope.
+ */
+export function getToolApprovalOutcomeText(
+  request: ToolApprovalRequest,
+  fallback?: Partial<ToolApprovalOutcomeLabels>
+): React.ReactNode {
+  const outcome = request.outcome;
+  if (!outcome) {
+    return null;
   }
-  return approvals[toolCallId];
+  if (outcome.label !== undefined) {
+    return outcome.label;
+  }
+  const base =
+    outcome.decision === 'approved'
+      ? (request.labels?.approved ??
+        fallback?.approved ??
+        DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS.approved)
+      : (request.labels?.skipped ??
+        fallback?.outcomeRejected ??
+        DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS.outcomeRejected);
+  if (!outcome.scope) {
+    return base;
+  }
+  const scope =
+    request.labels?.scopes?.[outcome.scope] ??
+    request.approveOptions?.find((option) => option.value === outcome.scope)?.label ??
+    outcome.scope;
+  return `${base} · ${scope}`;
 }
 
 export interface ToolApprovalSlotProps {
@@ -73,8 +66,10 @@ export interface ToolApprovalSlotProps {
   toolCallId?: string;
   /** The tool card this approval belongs to */
   children: React.ReactNode;
-  /** Overrides of the default English outcome labels */
+  /** Outcome labels used when the request has no `labels.approved` or `labels.skipped` of its own */
   labels?: Partial<ToolApprovalOutcomeLabels>;
+  /** Draws one frame around the call and its approval, for calls that render as a bare row */
+  framed?: boolean;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -86,10 +81,11 @@ export interface ToolApprovalSlotProps {
  * approve/reject footer while the request is open, a quiet line once it is settled. Without a
  * request for this id the card is returned untouched.
  */
-export const ToolApprovalSlot = memo(function ToolApprovalSlot({
+export function ToolApprovalSlot({
   toolCallId,
   children,
-  labels: labelsProp,
+  labels,
+  framed = false,
   className,
   style,
 }: ToolApprovalSlotProps) {
@@ -98,11 +94,10 @@ export const ToolApprovalSlot = memo(function ToolApprovalSlot({
     return <>{children}</>;
   }
 
-  const labels = { ...DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS, ...labelsProp };
   const { isPending, outcome, ...footer } = approval;
 
   return (
-    <Box className={cx(classes.slot, className)} style={style}>
+    <Box className={cx(classes.slot, className)} style={style} data-framed={framed || undefined}>
       {children}
       {outcome ? (
         <Text
@@ -111,18 +106,13 @@ export const ToolApprovalSlot = memo(function ToolApprovalSlot({
           data-decision={outcome.decision}
           data-testid="tool-approval-outcome"
         >
-          {outcome.label ?? formatOutcome(outcome, labels)}
+          {getToolApprovalOutcomeText(approval, labels)}
         </Text>
       ) : (
         <ToolApprovalFooter {...footer} isPending={isPending} className={classes.footer} />
       )}
     </Box>
   );
-});
+}
 
 ToolApprovalSlot.displayName = 'ToolApprovalSlot';
-
-function formatOutcome(outcome: ToolApprovalOutcome, labels: ToolApprovalOutcomeLabels): string {
-  const base = outcome.decision === 'approved' ? labels.approved : labels.rejected;
-  return outcome.scope ? `${base} · ${outcome.scope}` : base;
-}

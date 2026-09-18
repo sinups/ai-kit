@@ -690,13 +690,15 @@ export function Example() {
       {
         type: "code",
         title: "Code",
-        content: `import { AgentChat, ChatInspectorLayout, DiffReview } from "@sinups/ai-kit";
+        content: `import { useState } from "react";
+import { AgentChat, BackgroundTasksPanel, ChatInspectorLayout, DiffReview } from "@sinups/ai-kit";
 
 export function Example() {
   const [opened, setOpened] = useState(true);
 
   return (
     <ChatInspectorLayout
+      style={{ height: "100dvh" }}
       opened={opened}
       onOpenedChange={setOpened}
       panels={[
@@ -713,7 +715,31 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "The chat-with-an-inspector shape as a component: the chat area is `children`, the panel beside it is `inspector` or a list of `panels` rendered as tabs (`activePanelId`, `onActivePanelIdChange`). The pane is resizable and collapsible; `opened` and `onOpenedChange` drive the toggle in your header, and dragging the pane shut reports back through the same callback. Below `breakpoint` (900px of the layout width, or forced with `compact`) the inspector moves into a drawer — `drawerPosition` and `drawerSize` shape it. `defaultSize`, `minChatWidth` and `minInspectorWidth` control the split.",
+          "The chat-with-an-inspector shape as a component: the chat area is `children`, the panel beside it is `inspector` or a list of `panels` rendered as tabs (`activePanelId`, `onActivePanelIdChange`). The pane is resizable and collapsible; `opened` and `onOpenedChange` drive the toggle in your header, and dragging the pane shut reports back through the same callback. Below `breakpoint` (900px of the layout width, or forced with `compact`) the inspector moves into a drawer — `drawerPosition` and `drawerSize` shape it. `defaultSize`, `minChatWidth` and `minInspectorWidth` control the split. The layout fills its parent, so give it a height — `style={{ height: '100dvh' }}` for a full-page chat — or the panes grow with the longest panel and the page scrolls instead of the transcript.",
+      },
+      {
+        type: "example",
+        title: "Beside the chat",
+        previewId: "ChatInspectorLayout/wide",
+        code: `<ChatInspectorLayout
+  style={{ height: "100%" }}
+  opened={opened}
+  onOpenedChange={setOpened}
+  panels={[
+    { id: "changes", label: "Changes", content: <DiffReview changes={changes} decisions={decisions} onAccept={accept} onReject={reject} /> },
+    { id: "tasks", label: "Tasks", content: <BackgroundTasksPanel tasks={tasks} /> },
+  ]}
+>
+  <AgentChat {...chat} contentWidth="100%" wrapLines alignComposer />
+</ChatInspectorLayout>`,
+      },
+      {
+        type: "example",
+        title: "Drawer on narrow screens",
+        previewId: "ChatInspectorLayout/compact",
+        code: `<ChatInspectorLayout style={{ height: "100%" }} compact opened={opened} onOpenedChange={setOpened} panels={panels}>
+  <AgentChat {...chat} contentWidth="100%" wrapLines />
+</ChatInspectorLayout>`,
       },
     ],
   },

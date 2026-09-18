@@ -1,35 +1,53 @@
 import type { PermissionRule } from '@sinups/ai-kit';
-import type { PermissionState } from './events';
+import type { PermissionMode, PermissionState } from './events';
 
 type ChatPermissions = {
   rules: PermissionRule[];
-  auto: boolean;
+  mode: PermissionMode;
 };
+
+/** Chats kept in memory; the least recently used one is dropped past this number */
+const MAX_CHATS = 200;
+
+const DEFAULT_MODE: PermissionMode = 'ask-writes';
 
 const globalKey = Symbol.for('ai-kit-example.chat-permissions');
 const store = globalThis as unknown as Record<symbol, Map<string, ChatPermissions> | undefined>;
 const chats: Map<string, ChatPermissions> = store[globalKey] ?? new Map();
 store[globalKey] = chats;
 
-function forChat(chatId: string): ChatPermissions {
-  const existing = chats.get(chatId);
-  if (existing) {
-    return existing;
+function touch(chatId: string, chat: ChatPermissions): ChatPermissions {
+  chats.delete(chatId);
+  chats.set(chatId, chat);
+  while (chats.size > MAX_CHATS) {
+    const oldest = chats.keys().next().value;
+    if (oldest === undefined) {
+      break;
+    }
+    chats.delete(oldest);
   }
-  const created: ChatPermissions = { rules: [], auto: false };
-  chats.set(chatId, created);
-  return created;
+  return chat;
+}
+
+function forChat(chatId: string): ChatPermissions {
+  return touch(chatId, chats.get(chatId) ?? { rules: [], mode: DEFAULT_MODE });
 }
 
 export function permissionState(chatId: string): PermissionState {
-  const chat = forChat(chatId);
-  return { rules: chat.rules, auto: chat.auto };
+  const chat = chats.get(chatId);
+  return chat ? { rules: chat.rules, mode: chat.mode } : { rules: [], mode: DEFAULT_MODE };
 }
 
-export function matchingRule(chatId: string, toolName: string): PermissionRule | undefined {
-  return forChat(chatId).rules.find(
-    (rule) => rule.behavior === 'allow' && rule.toolName === toolName
-  );
+export function matchingRule(
+  chatId: string,
+  toolName: string,
+  behavior: PermissionRule['behavior']
+): PermissionRule | undefined {
+  return chats
+    .get(chatId)
+    ?.rules.find(
+      (rule) => rule.behavior === behavior && rule.toolName === toolName && !rule.specifier
+    );
 }
 
 export function addRule(chatId: string, toolName: string, scope: PermissionRule['scope']): void {
@@ -63,10 +81,10 @@ export function deleteRule(chatId: string, ruleId: string): void {
   chat.rules = chat.rules.filter((rule) => rule.id !== ruleId);
 }
 
-export function setAutoApprove(chatId: string, auto: boolean): void {
-  forChat(chatId).auto = auto;
+export function setPermissionMode(chatId: string, mode: PermissionMode): void {
+  forChat(chatId).mode = mode;
 }
 
 export function resetPermissions(chatId: string): void {
-  chats.set(chatId, { rules: [], auto: false });
+  touch(chatId, { rules: [], mode: DEFAULT_MODE });
 }

@@ -94,3 +94,26 @@
   display: block;
   color: var(--ae-fg-subtle);
 }
+
+.outputToggle {
+  display: block;
+  width: 100%;
+  text-align: start;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  border-radius: var(--ae-row-radius);
+
+  @mixin hover {
+    & .hiddenLines {
+      color: var(--ae-fg-muted);
+    }
+  }
+}
+
+.outputDetail {
+  padding-block-start: var(--ae-space-2xs);
+  color: var(--ae-fg);
+  white-space: normal;
+}

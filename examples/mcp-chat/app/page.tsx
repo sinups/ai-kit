@@ -1,72 +1,76 @@
 'use client';
 
-import {
-  ActionIcon,
-  Badge,
-  Box,
-  Drawer,
-  Group,
-  Switch,
-  Text,
-  Tooltip,
-  useMantineColorScheme,
-} from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
-import { IconLayoutSidebarRight, IconMoon, IconSun } from '@tabler/icons-react';
+import { ActionIcon, Box, Group, Menu, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { IconLanguage, IconLayoutSidebarRight, IconMoon, IconSun } from '@tabler/icons-react';
 import {
   AgentChat,
-  AgentStatus,
+  ChatHeader,
+  ChatInspectorLayout,
   ContextUsage,
-  type CustomToolRendererProps,
   type McpServer,
-  McpTransportIcon,
   type PermissionRule,
+  type ToolApprovals,
+  ModeSelector,
+  ModelPicker,
+  quietPresentation,
 } from '@sinups/ai-kit';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { StatusResponse } from '@/lib/events';
+import type {
+  ApprovalDetails,
+  ApprovalOutcome,
+  PermissionMode,
+  StatusResponse,
+} from '@/lib/events';
+import { MODELS } from '@/lib/models';
+import { buildToolCatalog } from '@/lib/tool-catalog';
+import { buildToolArgs } from './tool-args';
 import { useAgentChat } from '@/lib/use-agent-chat';
-import { Inspector } from './inspector';
-import { ApprovalContext, McpToolCard } from './mcp-tool-card';
+import type { Messages } from './i18n/en';
+import { useLocale } from './i18n/locale';
+import { MESSAGES, type Locale } from './i18n/locales';
+import { useInspectorPanels } from './inspector';
+import { welcomeActions, welcomeSuggestions } from './welcome';
 
-const FILE_SUGGESTIONS = [
-  { id: 'list', label: 'What files are in the data folder?' },
-  { id: 'notes', label: 'Summarise release-notes.md' },
-  { id: 'search', label: 'Which file mentions onboarding?' },
-];
+const CONTEXT_FILE = 'onboarding.md';
 
-const SERVER_SUGGESTIONS = [
-  { id: 'tools', label: 'What can you do with this server?' },
-  { id: 'overview', label: 'Give me an overview of what is in there.' },
-];
+const REJECTED_OUTCOMES = new Set<ApprovalOutcome>(['deny', 'blocked', 'interrupted']);
 
 export default function Page() {
+  const { locale, messages: t, setLocale } = useLocale();
   const {
     messages,
     status,
     error,
     send,
     stop,
+    retry,
     approvals,
     decide,
     permissions,
     updatePermissions,
     usage,
-    startedAt,
-  } = useAgentChat();
+    model,
+    setModel,
+  } = useAgentChat(t.chat);
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [serverStatus, setServerStatus] = useState<StatusResponse | null>(null);
   const [mcpServers, setMcpServers] = useState<McpServer[]>([]);
-  const [loadingServer, setLoadingServer] = useState(true);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
-  const wide = useMediaQuery('(min-width: 1100px)');
+  const [loadingServers, setLoadingServers] = useState(true);
+  const toolArgs = useMemo(() => buildToolArgs(t.me), [t.me]);
+  const toolCatalog = useMemo(
+    () => buildToolCatalog(mcpServers, t.toolTitles),
+    [mcpServers, t.toolTitles]
+  );
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [contextRemoved, setContextRemoved] = useState(false);
 
-  const loadServer = useCallback(async (refresh = false) => {
-    setLoadingServer(true);
+  const loadServers = useCallback(async (refresh = false) => {
+    setLoadingServers(true);
     try {
       const response = await fetch(`/api/servers${refresh ? '?refresh' : ''}`);
       setMcpServers((await response.json()) as McpServer[]);
     } finally {
-      setLoadingServer(false);
+      setLoadingServers(false);
     }
   }, []);
 
@@ -75,197 +79,250 @@ export default function Page() {
       .then((response) => response.json() as Promise<StatusResponse>)
       .then(setServerStatus)
       .catch(() => {});
-    void loadServer();
-  }, [loadServer]);
+    void loadServers();
+  }, [loadServers]);
 
-  const definitions = useMemo(
-    () =>
-      Object.fromEntries(
-        mcpServers.flatMap((server) => (server.tools ?? []).map((tool) => [tool.name, tool]))
-      ),
+  const connected = useMemo(
+    () => mcpServers.filter((server) => server.status === 'connected').map((server) => server.name),
+    [mcpServers]
+  );
+  const unreachable = useMemo(
+    () => mcpServers.filter((server) => server.status === 'error'),
     [mcpServers]
   );
 
-  const panelServers = useMemo(
+  const chatApprovals = useMemo<ToolApprovals>(
     () =>
-      mcpServers.map((server) => ({
-        ...server,
-        tools: server.tools?.map((tool) => ({
-          ...tool,
-          annotations: tool.annotations?.destructiveHint
-            ? { destructiveHint: true }
-            : tool.annotations?.readOnlyHint
-              ? { readOnlyHint: true }
+      Object.fromEntries(
+        Object.values(approvals).map((approval) => [
+          approval.toolCallId,
+          {
+            reason: approval.details
+              ? t.approval.effect[approval.details.effect](approval.details.server)
               : undefined,
-        })),
-      })),
-    [mcpServers]
-  );
-
-  const toolTypes = useMemo(() => {
-    const types = new Set<string>();
-    for (const message of messages) {
-      for (const part of message.parts) {
-        if (part.type.startsWith('tool-mcp__')) {
-          types.add(part.type);
-        }
-      }
-    }
-    return [...types].sort().join('|');
-  }, [messages]);
-
-  const toolRenderers = useMemo(
-    () =>
-      Object.fromEntries(
-        (toolTypes ? toolTypes.split('|') : []).map((type) => [
-          type,
-          McpToolCard as React.ComponentType<CustomToolRendererProps>,
+            approveOptions: t.approval.options,
+            requestedBy: approval.details ? { name: approval.details.server } : undefined,
+            matchedRule: approval.matchedRule,
+            ruleSuggestion: approval.details
+              ? {
+                  value: approval.details.ruleSuggestion,
+                  label: t.approval.alwaysAllowTool,
+                }
+              : undefined,
+            labels: t.kit?.approval,
+            onExplain: approval.details
+              ? async () => ({
+                  risk: approval.details!.risk,
+                  explanation: explainCall(t, approval.details!),
+                  reasoning: approval.details!.reasoning,
+                })
+              : undefined,
+            onApprove: (scope?: string) =>
+              decide(
+                approval.requestId,
+                scope === 'always' ? 'always' : scope === 'session' ? 'session' : 'once'
+              ),
+            onReject: () => decide(approval.requestId, 'deny'),
+            outcome: approval.outcome
+              ? {
+                  decision: REJECTED_OUTCOMES.has(approval.outcome)
+                    ? ('rejected' as const)
+                    : ('approved' as const),
+                  scope:
+                    approval.outcome === 'interrupted'
+                      ? t.approval.interrupted
+                      : REJECTED_OUTCOMES.has(approval.outcome)
+                        ? undefined
+                        : approval.outcome === 'rule'
+                          ? t.approval.byRule
+                          : approval.outcome === 'auto'
+                            ? t.approval.automatic
+                            : approval.outcome,
+                }
+              : undefined,
+          },
         ])
       ),
-    [toolTypes]
+    [approvals, decide, t]
   );
 
-  const configured = serverStatus?.servers ?? [];
-  const onFiles = configured.length === 1 && configured[0]?.transport === 'stdio';
-  const suggestions = onFiles ? FILE_SUGGESTIONS : SERVER_SUGGESTIONS;
-  const working = status === 'submitted' || status === 'streaming';
-  const toolTotal = mcpServers.reduce((sum, server) => sum + (server.toolCount ?? 0), 0);
-
-  const approvalValue = useMemo(
-    () => ({ approvals, decide, definitions }),
-    [approvals, decide, definitions]
-  );
-
-  const awaitingApproval = useMemo(
-    () => Object.values(approvals).some((approval) => !approval.outcome),
-    [approvals]
-  );
-
-  const statusBar = working ? (
-    <AgentStatus
-      label={awaitingApproval ? 'Waiting for your decision' : 'Working'}
-      startedAt={startedAt ?? undefined}
-      tokens={usage?.tokens}
-      paused={awaitingApproval}
-      onStop={stop}
-    />
-  ) : undefined;
-
-  const reconnect = useCallback(() => void loadServer(true), [loadServer]);
+  const reconnect = useCallback(() => void loadServers(true), [loadServers]);
   const saveRule = useCallback(
-    (rule: PermissionRule) => void updatePermissions({ save: rule }),
+    (rule: PermissionRule) => updatePermissions({ save: rule }),
     [updatePermissions]
   );
   const removeRule = useCallback(
-    (rule: PermissionRule) => void updatePermissions({ remove: rule.id }),
+    (rule: PermissionRule) => updatePermissions({ remove: rule.id }),
     [updatePermissions]
   );
 
-  const inspector = useMemo(
-    () => (
-      <Inspector
-        servers={panelServers}
-        loading={loadingServer}
-        rules={permissions.rules}
-        onReconnect={reconnect}
-        onSaveRule={saveRule}
-        onDeleteRule={removeRule}
-      />
-    ),
-    [panelServers, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
-  );
+  const inspectorPanels = useInspectorPanels({
+    messages: t,
+    servers: mcpServers,
+    loading: loadingServers,
+    rules: permissions.rules,
+    onReconnect: reconnect,
+    onSaveRule: saveRule,
+    onDeleteRule: removeRule,
+  });
 
-  return (
-    <ApprovalContext value={approvalValue}>
-      <Box h="100dvh" display="flex" style={{ flexDirection: 'column' }}>
-        <Group justify="space-between" px="md" py="xs">
-          <Group gap="xs">
-            <Text fw={600} size="sm">
-              Chat over MCP
-            </Text>
-            {configured.map((server) => {
-              const live = mcpServers.find((item) => item.name === server.name);
-              return (
-                <Tooltip key={server.name} label={server.target}>
-                  <Badge
-                    variant="light"
-                    color={live?.status === 'error' ? 'red' : 'blue'}
-                    leftSection={<McpTransportIcon transport={server.transport} size={12} />}
-                  >
-                    {server.name}
-                  </Badge>
-                </Tooltip>
-              );
-            })}
-            {toolTotal > 0 && (
-              <Badge variant="default">
-                {configured.length} {configured.length === 1 ? 'server' : 'servers'} · {toolTotal}{' '}
-                tools
-              </Badge>
-            )}
-            {serverStatus && <Badge variant="default">{serverStatus.model}</Badge>}
-          </Group>
-          <Group gap="sm">
-            {usage && (
-              <ContextUsage used={usage.contextTokens} total={usage.contextWindow} withLabel />
-            )}
-            <Switch
-              size="xs"
-              label="Auto-approve"
-              checked={permissions.auto}
-              onChange={(event) => void updatePermissions({ auto: event.currentTarget.checked })}
-            />
+  const header = (
+    <ChatHeader
+      title={t.title}
+      labels={t.kit?.chatHeader}
+      rightSection={
+        <Group gap="xs" wrap="nowrap">
+          <Tooltip label={t.header.inspector}>
             <ActionIcon
-              variant="default"
+              variant="subtle"
+              color="gray"
               onClick={() => setInspectorOpen((open) => !open)}
-              aria-label="Toggle inspector"
+              aria-label={t.header.showInspector}
             >
               <IconLayoutSidebarRight size={18} />
             </ActionIcon>
-            <ActionIcon variant="default" onClick={toggleColorScheme} aria-label="Toggle theme">
-              {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
-            </ActionIcon>
-          </Group>
+          </Tooltip>
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray" aria-label={t.header.language}>
+                <IconLanguage size={18} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {(Object.keys(MESSAGES) as Locale[]).map((option) => (
+                <Menu.Item
+                  key={option}
+                  onClick={() => setLocale(option)}
+                  fw={option === locale ? 600 : undefined}
+                  lang={option}
+                >
+                  {MESSAGES[option].languageName}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={toggleColorScheme}
+            aria-label={t.header.toggleTheme}
+          >
+            {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+          </ActionIcon>
         </Group>
-
-        <Group align="stretch" gap={0} style={{ flex: 1, minHeight: 0 }} wrap="nowrap">
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <AgentChat
-              messages={messages}
-              status={status}
-              error={error}
-              onSend={send}
-              onStop={stop}
-              toolRenderers={toolRenderers}
-              statusBar={statusBar}
-              suggestions={suggestions}
-              contentWidth={760}
-              emptyStatePosition="center"
-              emptySuggestionsPlacement="empty"
-              emptyState={{
-                layout: 'center',
-                title: onFiles ? 'Ask about the data folder' : 'Ask the connected MCP servers',
-                description: 'Answers come from an MCP server, every call needs your approval.',
-              }}
-            />
-          </Box>
-          {wide && inspectorOpen && (
-            <Box w={400} style={{ borderLeft: '1px solid var(--mantine-color-default-border)' }}>
-              {inspector}
-            </Box>
-          )}
-        </Group>
-
-        <Drawer
-          opened={!wide && inspectorOpen}
-          onClose={() => setInspectorOpen(false)}
-          position="bottom"
-          size="70%"
-          title="MCP server"
-        >
-          {inspector}
-        </Drawer>
-      </Box>
-    </ApprovalContext>
+      }
+    />
   );
+
+  const lostServer = unreachable[0];
+  const contextFile = connected.includes('files') ? CONTEXT_FILE : undefined;
+  const contextItems = contextFile
+    ? [
+        {
+          id: contextFile,
+          label: contextFile,
+          description: t.context.description,
+          removed: contextRemoved,
+        },
+      ]
+    : undefined;
+  const sendWithContext = useCallback(
+    (message: { content: string }) =>
+      send({ ...message, contextFile: contextRemoved ? undefined : contextFile }),
+    [send, contextRemoved, contextFile]
+  );
+
+  const inputBarProps = {
+    contextItems,
+    onRemoveContext: () => setContextRemoved(true),
+    onRestoreContext: () => setContextRemoved(false),
+    placeholder: t.composer.placeholder,
+    labels: t.kit?.input,
+    infoBar: lostServer
+      ? {
+          title: t.serverLost.title(lostServer.name),
+          description: lostServer.error ?? t.serverLost.fallback,
+          position: 'top' as const,
+          action: { label: t.serverLost.reconnect, onClick: reconnect },
+        }
+      : undefined,
+    leftActions: (
+      <>
+        <ModeSelector
+          modes={t.approvalModes}
+          value={permissions.mode}
+          onChange={(mode) =>
+            void updatePermissions({ mode: mode as PermissionMode }).catch(() => {})
+          }
+          labels={{ trigger: t.composer.approvalMode, title: t.composer.approvalModeTitle }}
+          shortcuts
+        />
+        <ModelPicker
+          models={MODELS}
+          value={model ?? serverStatus?.model}
+          onChange={setModel}
+          labels={{ trigger: t.composer.chooseModel, placeholder: t.composer.model }}
+        />
+      </>
+    ),
+    rightActions: usage ? (
+      <ContextUsage
+        used={usage.contextTokens}
+        total={usage.contextWindow}
+        ariaLabel={t.composer.contextUsage}
+        labels={t.kit?.contextUsage}
+      />
+    ) : undefined,
+  };
+
+  return (
+    <ChatInspectorLayout
+      panels={inspectorPanels}
+      opened={inspectorOpen}
+      onOpenedChange={setInspectorOpen}
+      defaultOpened={false}
+      style={{ height: '100dvh' }}
+    >
+      <Box h="100%" display="flex" style={{ flexDirection: 'column' }}>
+        {header}
+        <Box style={{ flex: 1, minHeight: 0 }}>
+          <AgentChat
+            messages={messages}
+            status={status}
+            error={error}
+            onSend={sendWithContext}
+            onStop={stop}
+            onRetry={retry}
+            approvals={chatApprovals}
+            toolCatalog={toolCatalog}
+            toolArgs={toolArgs}
+            locale={t.locale}
+            evenSpacing
+            presentation={quietPresentation}
+            labels={t.kit?.chat}
+            suggestions={welcomeSuggestions(t, connected)}
+            withSearch
+            inputBarProps={inputBarProps}
+            contentWidth={760}
+            wrapLines
+            responsiveTables
+            emptySuggestionsPlacement="input"
+            emptyState={{
+              layout: 'welcome',
+              title: t.welcome.title,
+              description: t.welcome.description,
+              actions: welcomeActions(t, connected, (text) => send({ content: text })),
+              labels: t.kit?.welcome,
+            }}
+          />
+        </Box>
+      </Box>
+    </ChatInspectorLayout>
+  );
+}
+
+function explainCall(t: Messages, details: ApprovalDetails): string {
+  const effect = t.approval.effect[details.effect](details.server);
+  const why = details.effect === 'read' ? t.approval.askedForEveryCall : t.approval.needsPermission;
+  return `${effect} ${why}`;
 }

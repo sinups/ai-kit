@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from 'react';
-import { UnstyledButton } from '@mantine/core';
+import { Badge, UnstyledButton } from '@mantine/core';
 import { IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { cx } from '../utils/cx';
 import { InputPopover } from './InputPopover';
@@ -11,15 +11,20 @@ export type ModeOption = {
   /** Icon component, receives `className` for sizing */
   icon?: React.ComponentType<{ className?: string }>;
   description?: string;
+  /** Short mark after the label, for example `Default` */
+  badge?: string;
 };
 
 export interface ModeSelectorLabels {
   /** Accessible label of the trigger, `Select mode` by default */
   trigger: string;
+  /** Heading of the open menu, empty by default and then not shown */
+  title: string;
 }
 
 export const DEFAULT_MODE_SELECTOR_LABELS: ModeSelectorLabels = {
   trigger: 'Select mode',
+  title: '',
 };
 
 export interface ModeSelectorProps {
@@ -29,6 +34,8 @@ export interface ModeSelectorProps {
   /** Initial selected mode id in uncontrolled mode */
   defaultValue?: string;
   onChange?: (modeId: string) => void;
+  /** Shows the digits `1`…`N` next to the modes and picks a mode by its digit while the menu is open, `false` by default */
+  shortcuts?: boolean;
   /** Overrides of the default English labels */
   labels?: Partial<ModeSelectorLabels>;
   className?: string;
@@ -41,6 +48,7 @@ export const ModeSelector = memo(function ModeSelector({
   value,
   defaultValue,
   onChange,
+  shortcuts = false,
   labels: labelsProp,
   className,
   style,
@@ -63,6 +71,18 @@ export const ModeSelector = memo(function ModeSelector({
     [isControlled, onChange]
   );
 
+  const pickByDigit = (event: React.KeyboardEvent<HTMLElement>) => {
+    const { key, metaKey, ctrlKey, altKey, repeat, isComposing } = event.nativeEvent;
+    if (!open || !shortcuts || metaKey || ctrlKey || altKey || repeat || isComposing) {
+      return;
+    }
+    const mode = /^[1-9]$/.test(key) ? modes[Number(key) - 1] : undefined;
+    if (mode) {
+      event.preventDefault();
+      handleSelect(mode.id);
+    }
+  };
+
   if (modes.length === 0) {
     return null;
   }
@@ -76,6 +96,7 @@ export const ModeSelector = memo(function ModeSelector({
       style={style}
       data-static={!hasMultiple || undefined}
       aria-label={hasMultiple ? labels.trigger : undefined}
+      onKeyDown={hasMultiple ? pickByDigit : undefined}
     >
       {ActiveIcon && <ActiveIcon className={classes.triggerIcon} />}
       <span className={classes.label}>{activeMode?.label}</span>
@@ -89,27 +110,43 @@ export const ModeSelector = memo(function ModeSelector({
 
   return (
     <InputPopover open={open} onOpenChange={setOpen} side="top" align="start" trigger={trigger}>
-      {modes.map((mode) => {
-        const isActive = mode.id === activeMode?.id;
-        const Icon = mode.icon;
-        return (
-          <UnstyledButton
-            key={mode.id}
-            onClick={() => handleSelect(mode.id)}
-            className={classes.option}
-            data-active={isActive || undefined}
-          >
-            {Icon && <Icon className={classes.optionIcon} />}
-            <span className={classes.optionText}>
-              <span className={classes.optionLabel}>{mode.label}</span>
-              {mode.description && (
-                <span className={classes.optionDescription}>{mode.description}</span>
+      {labels.title && <div className={classes.title}>{labels.title}</div>}
+      <div onKeyDown={pickByDigit} role="presentation">
+        {modes.map((mode, index) => {
+          const isActive = mode.id === activeMode?.id;
+          const Icon = mode.icon;
+          return (
+            <UnstyledButton
+              key={mode.id}
+              onClick={() => handleSelect(mode.id)}
+              className={classes.option}
+              data-active={isActive || undefined}
+              aria-keyshortcuts={shortcuts && index < 9 ? String(index + 1) : undefined}
+            >
+              {Icon && <Icon className={classes.optionIcon} />}
+              <span className={classes.optionText}>
+                <span className={classes.optionLabel}>
+                  {mode.label}
+                  {mode.badge && (
+                    <Badge size="xs" variant="default" radius="sm" className={classes.badge}>
+                      {mode.badge}
+                    </Badge>
+                  )}
+                </span>
+                {mode.description && (
+                  <span className={classes.optionDescription}>{mode.description}</span>
+                )}
+              </span>
+              {isActive && <IconCheck size={14} className={classes.check} />}
+              {shortcuts && index < 9 && (
+                <kbd className={classes.shortcut} aria-hidden="true">
+                  {index + 1}
+                </kbd>
               )}
-            </span>
-            {isActive && <IconCheck size={14} className={classes.check} />}
-          </UnstyledButton>
-        );
-      })}
+            </UnstyledButton>
+          );
+        })}
+      </div>
     </InputPopover>
   );
 });

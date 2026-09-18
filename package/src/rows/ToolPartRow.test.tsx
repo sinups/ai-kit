@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen } from '@mantine-tests/core';
+import { render, screen, userEvent } from '@mantine-tests/core';
 import type { ToolPart } from '../types';
 import { createToolCallLookups } from '../tools/tool-call-state';
 import { ToolApprovalsProvider } from '../approvals/tool-approvals';
+import { ToolPresentationProvider } from '../tools/tool-presentation';
 import { ResponseRow } from './ResponseRow';
 import { ToolPartRow } from './ToolPartRow';
 
@@ -152,6 +153,124 @@ describe('rows/ToolPartRow', () => {
     );
 
     expect(screen.getByText('Updated app.ts with 2 additions and 1 removals')).toBeInTheDocument();
+  });
+
+  it('sums an MCP result up instead of printing its JSON', () => {
+    render(
+      <ToolPartRow
+        part={{
+          type: 'tool-mcp__tracker__task_list',
+          toolCallId: 'm1',
+          state: 'output-available',
+          input: { overdue: true },
+          output: {
+            total: 4,
+            tasks: [
+              { id: 'TRK-400', title: 'Перенести сборку' },
+              { id: 'TRK-401', title: 'Обновить лицензии' },
+              { id: 'TRK-402', title: 'Почистить ветки' },
+              { id: 'TRK-403', title: 'Сверить бюджеты' },
+            ],
+          },
+        }}
+        chatStatus="ready"
+      />
+    );
+
+    expect(screen.getByText(/4 items/)).toBeInTheDocument();
+    expect(screen.getByText(/TRK-400 · Перенести сборку/)).toBeInTheDocument();
+    expect(screen.queryByText(/"total"/)).toBeNull();
+  });
+
+  it('opens the whole result on a click and folds it back', async () => {
+    render(
+      <ToolPartRow
+        part={{
+          type: 'tool-mcp__tracker__page_get',
+          toolCallId: 'm2',
+          state: 'output-available',
+          input: { page: 'План недели' },
+          output: { id: 'PAGE-7', title: 'План недели', words: 1240 },
+        }}
+        chatStatus="ready"
+      />
+    );
+
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(screen.queryByText(/"words"/)).toBeNull();
+
+    await userEvent.click(toggle);
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    expect(screen.getByText(/"words"/)).toBeInTheDocument();
+  });
+
+  it('lets a formatter of the host replace the summary and fall back to it', () => {
+    const part = {
+      type: 'tool-mcp__tracker__task_create',
+      toolCallId: 'm3',
+      state: 'output-available',
+      input: { title: 'Разобрать просроченное' },
+      output: { id: 'TRK-482', title: 'Разобрать просроченное' },
+    } as ToolPart;
+
+    const { rerender } = render(
+      <ToolPartRow
+        part={part}
+        chatStatus="ready"
+        toolOutputs={{ 'tool-mcp__tracker__*': () => 'Создана задача TRK-482' }}
+      />
+    );
+    expect(screen.getByText('Создана задача TRK-482')).toBeInTheDocument();
+
+    rerender(
+      <ToolPartRow
+        part={part}
+        chatStatus="ready"
+        toolOutputs={{ 'tool-mcp__tracker__*': () => null }}
+      />
+    );
+    expect(screen.getByText(/TRK-482 · Разобрать просроченное/)).toBeInTheDocument();
+  });
+
+  it('says a refused call once when the host settled its approval', () => {
+    render(
+      <ToolApprovalsProvider
+        approvals={{ x2: { onApprove: () => {}, outcome: { decision: 'rejected' } } }}
+      >
+        <ToolPartRow
+          part={{
+            type: 'tool-Bash',
+            toolCallId: 'x2',
+            state: 'output-error',
+            errorText: 'Rejected by the user',
+          }}
+          chatStatus="ready"
+        />
+      </ToolApprovalsProvider>
+    );
+
+    expect(screen.getAllByText('Skipped')).toHaveLength(1);
+  });
+
+  it('reads a call by its catalog title and unfolded arguments', () => {
+    render(
+      <ToolPresentationProvider
+        catalog={{ mcp__tracker__tracker_task_search: { title: 'Найти задачи по условиям' } }}
+      >
+        <ToolPartRow
+          part={{
+            type: 'tool-mcp__tracker__tracker_task_search',
+            toolCallId: 'c1',
+            state: 'input-available',
+            input: { payload: JSON.stringify({ size: 100, overdue: true }) },
+          }}
+          chatStatus="streaming"
+        />
+      </ToolPresentationProvider>
+    );
+
+    expect(screen.getByText('Найти задачи по условиям')).toBeInTheDocument();
+    expect(screen.getByText('(size: 100 · overdue)')).toBeInTheDocument();
   });
 
   it('draws one gutter for an answer nested in another answer', () => {

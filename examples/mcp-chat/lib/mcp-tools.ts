@@ -1,8 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import {
+  getDefaultEnvironment,
+  StdioClientTransport,
+} from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { McpServer, McpToolDefinition } from '@sinups/ai-kit';
-import { type ServerConfig, servers, targetOf } from './config';
+import { publicTarget, redact, type ServerConfig, servers } from './config';
+import { isReadOnlyName } from './tool-effect';
 
 const globalKey = Symbol.for('ai-kit-example.mcp-servers');
 const store = globalThis as unknown as Record<symbol, Promise<McpServer[]> | undefined>;
@@ -13,7 +17,11 @@ function transportFor(server: ServerConfig) {
       requestInit: { headers: server.headers },
     });
   }
-  return new StdioClientTransport({ command: server.command ?? '', args: server.args ?? [] });
+  return new StdioClientTransport({
+    command: server.command ?? '',
+    args: server.args ?? [],
+    env: server.env ? { ...getDefaultEnvironment(), ...server.env } : undefined,
+  });
 }
 
 async function describe(server: ServerConfig): Promise<McpServer> {
@@ -24,9 +32,7 @@ async function describe(server: ServerConfig): Promise<McpServer> {
     transport: server.transport,
     status: 'connecting',
     scope: 'local',
-    ...(server.transport === 'http'
-      ? { url: server.url }
-      : { command: server.command, args: server.args }),
+    ...(server.transport === 'http' ? { url: publicTarget(server) } : { command: server.command }),
   };
 
   try {
@@ -52,7 +58,7 @@ async function describe(server: ServerConfig): Promise<McpServer> {
     return {
       ...base,
       status: 'error',
-      error: `${targetOf(server)}: ${error instanceof Error ? error.message : String(error)}`,
+      error: `${publicTarget(server)}: ${redact(error instanceof Error ? error.message : String(error), server)}`,
     };
   } finally {
     await client.close().catch(() => {});
@@ -75,4 +81,16 @@ export async function toolDefinition(toolName: string): Promise<McpToolDefinitio
     }
   }
   return undefined;
+}
+
+/** Whether a tool only reads: the server annotations first, then the words of its name */
+export async function isReadOnlyTool(toolName: string): Promise<boolean> {
+  const annotations = (await toolDefinition(toolName))?.annotations;
+  if (annotations?.destructiveHint || annotations?.readOnlyHint === false) {
+    return false;
+  }
+  if (annotations?.readOnlyHint) {
+    return true;
+  }
+  return isReadOnlyName(toolName);
 }

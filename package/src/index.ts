@@ -62,6 +62,10 @@ export type {
 export type { TimelineStep, ToolCallStep, StepState, DiffLine, Turn } from './types/timeline';
 
 export { AgentChat } from './AgentChat/AgentChat';
+export { DEFAULT_AGENT_CHAT_LABELS } from './AgentChat/agent-chat-labels';
+export type { AgentChatLabels } from './AgentChat/agent-chat-labels';
+export { ChatLabelsProvider, useChatLabels } from './labels/chat-labels';
+export type { ChatComponentLabels, ChatLabelsProviderProps } from './labels/chat-labels';
 export { DEFAULT_CHAT_WELCOME_LABELS } from './AgentChat/ChatWelcome';
 export type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
 export { MessageList, DEFAULT_MESSAGE_LIST_LABELS } from './MessageList/MessageList';
@@ -86,6 +90,7 @@ export type {
 
 export { InputBar, DEFAULT_INPUT_BAR_LABELS } from './input/InputBar';
 export type { InputBarProps, QueuedMessage, InputBarLabels } from './input/InputBar';
+export type { InputContextItem } from './input/InputContext';
 export type { CompletionItem, CompletionSource } from './input/use-completion-items';
 
 export type { CompletionToken } from './input/completion-token';
@@ -127,10 +132,12 @@ export type {
 
 export { ToolRenderer } from './tools/ToolRenderer';
 export type { ToolRendererProps } from './tools/ToolRenderer';
-export { BashTool, BashToolTerminalCard } from './tools/BashTool';
-export type { BashToolProps, BashToolTerminalCardProps } from './tools/BashTool';
-export { EditTool, EditToolDiffCard } from './tools/EditTool';
-export type { EditToolProps, EditToolDiffCardProps } from './tools/EditTool';
+export { BashTool, BashToolTerminalCard, DEFAULT_BASH_TOOL_LABELS } from './tools/BashTool';
+export type { BashToolLabels, BashToolProps, BashToolTerminalCardProps } from './tools/BashTool';
+export { DEFAULT_EDIT_TOOL_LABELS, EditTool, EditToolDiffCard } from './tools/EditTool';
+export type { EditToolDiffCardProps, EditToolLabels, EditToolProps } from './tools/EditTool';
+export { DEFAULT_TOOL_CARD_LABELS } from './tools/tool-card-labels';
+export type { ToolCardLabels } from './tools/tool-card-labels';
 export { DiffView } from './tools/DiffView';
 export type { DiffViewProps } from './tools/DiffView';
 export { SearchTool, SearchGroupRich, DEFAULT_SEARCH_TOOL_LABELS } from './tools/SearchTool';
@@ -141,23 +148,25 @@ export type {
   SearchResult,
 } from './tools/SearchTool';
 export { TodoTool } from './tools/TodoTool';
-export type {
-  TodoToolProps,
-  TodoItem,
-  TodoChange,
-  ChangeType,
-  DetectedChanges,
-} from './tools/TodoTool';
+export type { TodoToolProps, TodoItem, TodoChange, DetectedChanges } from './tools/TodoTool';
 export { PlanTool, DEFAULT_PLAN_TOOL_LABELS } from './tools/PlanTool';
 export type { PlanToolProps, PlanToolLabels, Plan } from './tools/PlanTool';
 export { ToolGroup, DEFAULT_TOOL_GROUP_LABELS } from './tools/ToolGroup';
 export type { ToolGroupProps, ToolGroupLabels } from './tools/ToolGroup';
 export { SubagentTool } from './tools/SubagentTool';
 export type { SubagentToolProps } from './tools/SubagentTool';
-export { McpTool, unwrapMcpOutput } from './tools/McpTool';
-export type { McpToolProps } from './tools/McpTool';
-export { ThinkingTool, ThinkingCollapsed } from './tools/ThinkingTool';
-export type { ThinkingToolProps, ThinkingCollapsedProps } from './tools/ThinkingTool';
+export { DEFAULT_MCP_TOOL_LABELS, McpTool, unwrapMcpOutput } from './tools/McpTool';
+export type { McpToolLabels, McpToolProps } from './tools/McpTool';
+export {
+  ThinkingTool,
+  ThinkingCollapsed,
+  DEFAULT_THINKING_TOOL_LABELS,
+} from './tools/ThinkingTool';
+export type {
+  ThinkingToolProps,
+  ThinkingCollapsedProps,
+  ThinkingToolLabels,
+} from './tools/ThinkingTool';
 export { GenericTool, GenericToolRow } from './tools/GenericTool';
 export type { GenericToolProps, GenericToolRowProps } from './tools/GenericTool';
 export { ActionRow } from './tools/ActionRow';
@@ -189,15 +198,62 @@ export type { ToolCallRowProps } from './rows/ToolCallRow';
 export { ResponseRow } from './rows/ResponseRow';
 export type { ResponseRowProps, ResponseRowTone } from './rows/ResponseRow';
 export { ToolPartRow, DEFAULT_TOOL_PART_ROW_LABELS } from './rows/ToolPartRow';
+export { rowsPresentation } from './rows/rows-presentation';
+export type {
+  TranscriptPresentation,
+  PresentationContext,
+  PresentationEntry,
+} from './MessageList/transcript-presentation';
+export { quietPresentation } from './quiet/quiet-presentation';
+export type { QuietPresentation } from './quiet/quiet-presentation';
+export { QuietToolRow } from './quiet/QuietToolRow';
+export type { QuietToolRowProps } from './quiet/QuietToolRow';
+export { QuietToolRun } from './quiet/QuietToolRun';
+export type { QuietToolRunProps } from './quiet/QuietToolRun';
+export type { RowsPresentation } from './rows/rows-presentation';
 export type { ToolPartRowProps, ToolPartRowLabels } from './rows/ToolPartRow';
-export { getToolRowName, getToolRowArgs, getToolRowOutput, clampLines } from './rows/rows-format';
+export {
+  summarizeToolOutput,
+  formatOutputValue,
+  getToolOutputValue,
+  unwrapToolOutput,
+  DEFAULT_TOOL_OUTPUT_LABELS,
+} from './rows/tool-output';
+export type {
+  ToolOutputFormatter,
+  ToolOutputFormatters,
+  ToolOutputContext,
+  ToolOutputLabels,
+  SummarizeOptions,
+} from './rows/tool-output';
+export {
+  ToolPresentationProvider,
+  useToolPresentation,
+  findToolCatalogEntry,
+  getToolCatalogTitle,
+} from './tools/tool-presentation';
+export type {
+  ToolCatalog,
+  ToolCatalogEntry,
+  ToolPresentation,
+  ToolPresentationProviderProps,
+} from './tools/tool-presentation';
+export { unfoldToolArgs, summarizeToolArgs } from './tools/tool-args';
+export type {
+  ToolArgsFormatter,
+  ToolArgsFormatters,
+  ToolArgsContext,
+  SummarizeArgsOptions,
+} from './tools/tool-args';
 export { ToolActivity } from './tools/ToolActivity';
+export { formatDuration, formatElapsedTime, DEFAULT_DURATION_UNITS } from './utils/format-elapsed';
+export type { DurationUnits } from './utils/format-elapsed';
 export type { ToolActivityProps } from './tools/ToolActivity';
 export { getToolProgress, getToolProgressRatio, formatToolProgress } from './tools/tool-progress';
 export { ToolCardBoundary } from './tools/ToolCardBoundary';
-export type { ToolCardBoundaryProps } from './tools/ToolCardBoundary';
-export { parsePartialJson, parsePartialRecord } from './utils/partial-json';
-export { toolRegistry, parseMcpToolType } from './tools/tool-registry';
+export type { ToolCardBoundaryProps, ToolCardBoundaryState } from './tools/ToolCardBoundary';
+export { DEFAULT_TOOL_TITLE_LABELS, parseMcpToolType, toolRegistry } from './tools/tool-registry';
+export type { ToolTitleLabels } from './tools/tool-registry';
 export type { ToolMeta, ToolVariant, McpToolInfo } from './tools/tool-registry';
 export { routeToolCall } from './tools/tool-router';
 
@@ -226,7 +282,6 @@ export type {
   ElicitationEnumOption,
   ElicitationOption,
   ElicitationDraft,
-  ElicitationDraftValue,
 } from './elicitation/elicitation-schema';
 
 export { AgentStatus, DEFAULT_AGENT_STATUS_LABELS } from './AgentStatus/AgentStatus';
@@ -354,26 +409,19 @@ export {
 export type {
   KeyValuePair,
   KeyValidator,
-  KeyValueEntry,
   KeyValueErrorLabels,
 } from './primitives/KeyValueEditor/key-value';
 
 export { SchemaView, DEFAULT_SCHEMA_VIEW_LABELS } from './primitives/SchemaView/SchemaView';
 export type { SchemaViewProps, SchemaViewLabels } from './primitives/SchemaView/SchemaView';
 export { flattenSchema, getSchemaTypeLabel } from './primitives/SchemaView/schema';
-export type {
-  JsonSchema,
-  JsonSchemaType,
-  SchemaRow,
-  CollapsibleRow,
-} from './primitives/SchemaView/schema';
+export type { JsonSchema, JsonSchemaType, SchemaRow } from './primitives/SchemaView/schema';
 
 export { SchemaValues, DEFAULT_SCHEMA_VALUES_LABELS } from './primitives/SchemaView/SchemaValues';
 export type { SchemaValuesProps, SchemaValuesLabels } from './primitives/SchemaView/SchemaValues';
 export {
   flattenSchemaValues,
   formatSchemaValue,
-  isLikelySecretKey,
   resolveValueSchema,
 } from './primitives/SchemaView/schema-values';
 export type { SchemaValueRow, SchemaValueKind } from './primitives/SchemaView/schema-values';
@@ -945,6 +993,8 @@ export {
   ToolApprovalSlot,
   ToolApprovalsProvider,
   useToolApproval,
+  useToolApprovals,
+  getToolApprovalOutcomeText,
 } from './approvals/tool-approvals';
 export type {
   ToolApprovalDecision,

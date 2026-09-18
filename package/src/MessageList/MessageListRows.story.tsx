@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ChatMessage, ToolPart } from '../types';
 import { MessageList } from './MessageList';
+import { rowsPresentation } from '../rows/rows-presentation';
 
 export default { title: 'MessageList/rows' };
 
@@ -9,28 +10,28 @@ function Feed({ width = 520, children }: { width?: number; children: React.React
 }
 
 const workspaceContext: ToolPart = {
-  type: 'tool-mcp__layers__workspace_context',
+  type: 'tool-mcp__tracker__workspace_context',
   toolCallId: 'w1',
   state: 'output-available',
   input: {},
-  output: 'Пространство Layers, проект «Релиз 0.3», открыта страница «План недели»',
+  output: 'Пространство Core, проект «Релиз 0.3», открыта страница «План недели»',
 };
 
 const taskList: ToolPart = {
-  type: 'tool-mcp__layers__task_list',
+  type: 'tool-mcp__tracker__task_list',
   toolCallId: 'm1',
   state: 'output-available',
-  input: { overdue: true, workspace: 'Layers', limit: 20 },
+  input: { overdue: true, workspace: 'Core', limit: 20 },
   output:
     'Перенести сборку на oxlint — просрочена на 4 дня\nОбновить лицензии — просрочена на 2 дня\nПочистить старые ветки — просрочена на 1 день\nСверить бюджеты бандла — просрочена на 1 день\nПроверить фикстуры — просрочена сегодня',
 };
 
 const taskCreate: ToolPart = {
-  type: 'tool-mcp__layers__task_create',
+  type: 'tool-mcp__tracker__task_create',
   toolCallId: 'm2',
   state: 'output-available',
   input: { project: 'Релиз 0.3', title: 'Разобрать просроченное', assignee: 'Sinups' },
-  output: 'Создана задача LAY-482 «Разобрать просроченное»',
+  output: 'Создана задача TRK-482 «Разобрать просроченное»',
 };
 
 function turn(parts: Array<ToolPart | { type: 'text'; text: string }>): ChatMessage[] {
@@ -55,22 +56,22 @@ const series = turn([
   { type: 'text', text: 'Пройдусь по пространству и соберу картину.' },
   workspaceContext,
   {
-    type: 'tool-mcp__layers__projects_tree_by_workspace',
+    type: 'tool-mcp__tracker__projects_tree_by_workspace',
     toolCallId: 'p1',
     state: 'output-available',
-    input: { workspace: 'Layers' },
+    input: { workspace: 'Core' },
     output: 'Релиз 0.3 · Документация · Поддержка',
   },
   taskList,
   {
-    type: 'tool-mcp__layers__search',
+    type: 'tool-mcp__tracker__search',
     toolCallId: 's1',
     state: 'output-available',
     input: { query: 'просрочено', scope: 'workspace' },
-    output: 'Страница «План недели» — 3 совпадения\nЗадача LAY-311 — 1 совпадение',
+    output: 'Страница «План недели» — 3 совпадения\nЗадача TRK-311 — 1 совпадение',
   },
   taskCreate,
-  { type: 'text', text: 'Готово: **5 просроченных задач** собраны в задачу LAY-482.' },
+  { type: 'text', text: 'Готово: **5 просроченных задач** собраны в задачу TRK-482.' },
 ]);
 
 export function Usage() {
@@ -79,7 +80,7 @@ export function Usage() {
       <MessageList
         messages={conversation}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -92,7 +93,7 @@ export function Series() {
       <MessageList
         messages={series}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -105,7 +106,7 @@ export function Narrow() {
       <MessageList
         messages={series}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -119,16 +120,16 @@ export function Error() {
         messages={turn([
           { type: 'text', text: 'Создам задачу в проекте «Релиз 0.3».' },
           {
-            type: 'tool-mcp__layers__task_create',
+            type: 'tool-mcp__tracker__task_create',
             toolCallId: 'm3',
             state: 'output-error',
             input: { project: 'Релиз 0.3', title: 'Разобрать просроченное' },
             errorText:
-              'Ошибка сервера: проект «Релиз 0.3» доступен только для чтения\n  workspace: Layers\n  требуется роль: редактор\nЗадача не создана.',
+              'Ошибка сервера: проект «Релиз 0.3» доступен только для чтения\n  workspace: Core\n  требуется роль: редактор\nЗадача не создана.',
           },
         ])}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -142,7 +143,7 @@ export function Rejected() {
         messages={turn([
           { type: 'text', text: 'Хочу удалить черновик страницы.' },
           {
-            type: 'tool-mcp__layers__page_delete',
+            type: 'tool-mcp__tracker__page_delete',
             toolCallId: 'm4',
             state: 'output-error',
             input: { page: 'Черновик плана' },
@@ -150,7 +151,7 @@ export function Rejected() {
           },
         ])}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -164,26 +165,26 @@ export function AwaitingPermission() {
         messages={turn([
           { type: 'text', text: 'Нужно закрыть просроченные задачи пачкой.' },
           {
-            type: 'tool-mcp__layers__task_bulk_update',
+            type: 'tool-mcp__tracker__task_bulk_update',
             toolCallId: 'm5',
             state: 'input-available',
             input: { filter: 'overdue', status: 'Закрыта', approval: { decision: null } },
           },
           {
-            type: 'tool-mcp__layers__task_list',
+            type: 'tool-mcp__tracker__task_list',
             toolCallId: 'm6',
             state: 'input-available',
             input: { project: 'Релиз 0.3' },
           },
           {
-            type: 'tool-mcp__layers__page_get',
+            type: 'tool-mcp__tracker__page_get',
             toolCallId: 'm7',
             state: 'input-available',
             input: { page: 'План недели' },
           },
         ])}
         status="streaming"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
       />
     </Feed>
@@ -197,19 +198,114 @@ export function LongOutput() {
         messages={turn([
           { type: 'text', text: 'Покажу задачи проекта целиком.' },
           {
-            type: 'tool-mcp__layers__task_list',
+            type: 'tool-mcp__tracker__task_list',
             toolCallId: 'm8',
             state: 'output-available',
             input: { project: 'Релиз 0.3', limit: 50 },
             output: Array.from(
               { length: 24 },
-              (_, index) => `LAY-${400 + index} — задача ${index + 1}`
+              (_, index) => `TRK-${400 + index} — задача ${index + 1}`
             ).join('\n'),
           },
         ])}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         initialScrollBehavior="top"
+      />
+    </Feed>
+  );
+}
+
+const jsonTasks = {
+  type: 'tool-mcp__tracker__task_list',
+  toolCallId: 'j1',
+  state: 'output-available',
+  input: { overdue: true, project: 'Релиз 0.3' },
+  output: {
+    total: 5,
+    tasks: [
+      { id: 'TRK-400', title: 'Перенести сборку на oxlint', dueAt: '2026-09-10', points: 5 },
+      { id: 'TRK-401', title: 'Обновить лицензии', dueAt: '2026-09-12', points: 2 },
+      { id: 'TRK-402', title: 'Почистить старые ветки', dueAt: '2026-09-13', points: 1 },
+      { id: 'TRK-403', title: 'Сверить бюджеты бандла', dueAt: '2026-09-14', points: 3 },
+      { id: 'TRK-404', title: 'Проверить фикстуры', dueAt: '2026-09-15', points: 2 },
+    ],
+  },
+} as ToolPart;
+
+const jsonPage = {
+  type: 'tool-mcp__tracker__page_get',
+  toolCallId: 'j2',
+  state: 'output-available',
+  input: { page: 'План недели' },
+  output: {
+    id: 'PAGE-7',
+    title: 'План недели',
+    updatedAt: '2026-09-18',
+    words: 1240,
+    author: { id: 'U-1', name: 'Sinups' },
+  },
+} as ToolPart;
+
+const jsonSearch = {
+  type: 'tool-mcp__tracker__search',
+  toolCallId: 'j3',
+  state: 'output-available',
+  input: { query: 'просрочено' },
+  output: {
+    matches: [
+      { name: 'План недели', kind: 'page', score: 0.91 },
+      { name: 'TRK-311 Починить экспорт', kind: 'task', score: 0.72 },
+    ],
+  },
+} as ToolPart;
+
+const jsonError = {
+  type: 'tool-mcp__tracker__task_create',
+  toolCallId: 'j4',
+  state: 'output-error',
+  input: { project: 'Релиз 0.3', title: 'Разобрать просроченное' },
+  errorText: 'Ошибка сервера: проект доступен только для чтения\n  требуется роль: редактор',
+} as ToolPart;
+
+export function Outputs() {
+  return (
+    <Feed>
+      <MessageList
+        messages={turn([
+          { type: 'text', text: 'Соберу картину по просроченному.' },
+          jsonTasks,
+          jsonPage,
+          jsonSearch,
+          jsonError,
+        ])}
+        status="ready"
+        presentation={rowsPresentation}
+        initialScrollBehavior="top"
+      />
+    </Feed>
+  );
+}
+
+export function OutputsOfTheHost() {
+  return (
+    <Feed>
+      <MessageList
+        messages={turn([
+          { type: 'text', text: 'Соберу картину по просроченному.' },
+          jsonTasks,
+          jsonPage,
+        ])}
+        status="ready"
+        presentation={rowsPresentation}
+        initialScrollBehavior="top"
+        toolOutputs={{
+          'tool-mcp__tracker__task_list': (part) => {
+            const tasks = (part.output as { tasks?: Array<{ title: string }> })?.tasks ?? [];
+            return `Просрочено: ${tasks.length}. Ближайшая — «${tasks[0]?.title ?? '—'}»`;
+          },
+          'tool-mcp__tracker__*': () => null,
+        }}
       />
     </Feed>
   );
@@ -229,7 +325,7 @@ export function Working() {
           },
         ])}
         status="streaming"
-        presentation="rows"
+        presentation={rowsPresentation}
         workingRow
         toolActivity
         initialScrollBehavior="top"

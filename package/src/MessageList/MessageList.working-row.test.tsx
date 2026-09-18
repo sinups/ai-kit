@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import type { ChatMessage, ChatStatus } from '../types';
+import { ToolApprovalsProvider } from '../approvals/tool-approvals';
 import { MessageList } from './MessageList';
 
 type Metrics = { scrollHeight: number; clientHeight: number };
@@ -117,6 +118,56 @@ describe('MessageList/working row', () => {
 
     expect(screen.getByText('Reading tasks · 44s')).toBeInTheDocument();
     expect(screen.queryByText('Working')).toBeNull();
+  });
+
+  it('opens a turn with the working row instead of the planning row', () => {
+    render(<Harness initial={[question]} workingRow />);
+
+    expect(screen.getByText('Working')).toBeInTheDocument();
+    expect(screen.queryByText('Processing...')).toBeNull();
+  });
+
+  it('names the planning row by the labels of the host when the working row is off', () => {
+    render(
+      <MessageList messages={[question]} status="submitted" labels={{ planning: 'Обрабатываю…' }} />
+    );
+
+    expect(screen.getByText('Обрабатываю…')).toBeInTheDocument();
+    expect(screen.queryByText('Working')).toBeNull();
+  });
+
+  it('stays hidden while a call waits for the decision of the user', () => {
+    const waiting = [
+      question,
+      {
+        id: 'a-w',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-mcp__tracker__task_create',
+            toolCallId: 'w1',
+            state: 'input-available',
+            input: { title: 'Проверить отчёт' },
+          },
+        ],
+      },
+    ] as ChatMessage[];
+
+    const { rerender } = render(
+      <ToolApprovalsProvider approvals={{ w1: { onApprove: () => {} } }}>
+        <MessageList messages={waiting} status="streaming" workingRow />
+      </ToolApprovalsProvider>
+    );
+    expect(screen.queryByText('Working')).toBeNull();
+
+    rerender(
+      <ToolApprovalsProvider
+        approvals={{ w1: { onApprove: () => {}, outcome: { decision: 'approved' } } }}
+      >
+        <MessageList messages={waiting} status="streaming" workingRow />
+      </ToolApprovalsProvider>
+    );
+    expect(screen.getByText('Working')).toBeInTheDocument();
   });
 
   it('keeps the list at the bottom when a card arrives after a long pause', () => {

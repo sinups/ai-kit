@@ -64,7 +64,7 @@ export interface ChatInspectorLayoutProps {
   style?: React.CSSProperties;
 }
 
-/** Chat next to a resizable, collapsible inspector; below `breakpoint` the inspector becomes a drawer */
+/** Chat next to a resizable, collapsible inspector; below `breakpoint` the inspector becomes a drawer. Give the root or its flex parent a height, such as `100dvh`: the panes take their height from it */
 export const ChatInspectorLayout = memo(function ChatInspectorLayout({
   children,
   inspector,
@@ -92,8 +92,16 @@ export const ChatInspectorLayout = memo(function ChatInspectorLayout({
   const [uncontrolledPanelId, setUncontrolledPanelId] = useState(() => panels?.[0]?.id ?? '');
 
   const isOpened = opened ?? uncontrolledOpened;
+  const openedRef = useRef(isOpened);
+  useEffect(() => {
+    openedRef.current = isOpened;
+  });
+  const isMeasured = compact !== undefined || width > 0;
   const isCompact = compact ?? (width > 0 && width < breakpoint);
-  const activeId = activePanelId ?? uncontrolledPanelId;
+  const requestedId = activePanelId ?? uncontrolledPanelId;
+  const activeId = panels?.some((panel) => panel.id === requestedId)
+    ? requestedId
+    : (panels?.[0]?.id ?? '');
 
   const setOpened = (next: boolean) => {
     if (opened === undefined) {
@@ -103,17 +111,15 @@ export const ChatInspectorLayout = memo(function ChatInspectorLayout({
   };
 
   useEffect(() => {
-    if (isCompact) {
-      return;
-    }
     const splitter = splitterRef.current;
     if (!splitter) {
       return;
     }
-    if (isOpened && splitter.collapsed[1]) {
-      splitter.expand(1);
-    } else if (!isOpened && !splitter.collapsed[1]) {
+    const shouldCollapse = isCompact || !isOpened;
+    if (shouldCollapse && !splitter.collapsed[1]) {
       splitter.collapse(1);
+    } else if (!shouldCollapse && splitter.collapsed[1]) {
+      splitter.expand(1);
     }
   }, [isOpened, isCompact]);
 
@@ -133,7 +139,12 @@ export const ChatInspectorLayout = memo(function ChatInspectorLayout({
       <Tabs value={activeId} onChange={setPanel} className={classes.tabs} keepMounted={false}>
         <Tabs.List className={classes.tabsList}>
           {panels.map((panel) => (
-            <Tabs.Tab key={panel.id} value={panel.id} leftSection={panel.icon}>
+            <Tabs.Tab
+              key={panel.id}
+              value={panel.id}
+              leftSection={panel.icon}
+              className={classes.tab}
+            >
               {panel.label}
             </Tabs.Tab>
           ))}
@@ -155,59 +166,72 @@ export const ChatInspectorLayout = memo(function ChatInspectorLayout({
     </Box>
   );
 
-  const chat = <Box className={classes.chat}>{children}</Box>;
-
   return (
-    <Box ref={ref} className={cx(classes.root, className)} style={style}>
-      {isCompact ? (
-        <>
-          {chat}
-          <Drawer
-            opened={isOpened}
-            onClose={() => setOpened(false)}
-            position={drawerPosition}
-            size={drawerSize}
-            withCloseButton={false}
-            aria-label={labels.inspector}
-            classNames={{
-              inner: OVERLAY_INNER_CLASS,
-              content: classes.drawerContent,
-              body: classes.drawerBody,
-            }}
-          >
-            {inspectorRegion}
-          </Drawer>
-        </>
-      ) : (
-        <Splitter
-          className={classes.splitter}
-          splitterRef={splitterRef}
-          withHandle={false}
-          lineSize={1}
-          handleColor="var(--ae-border)"
-          onCollapseChange={(index, collapsed) => {
-            if (index === 1) {
-              setOpened(!collapsed);
+    <Box
+      ref={ref}
+      className={cx(classes.root, className)}
+      style={style}
+      data-compact={isCompact || undefined}
+    >
+      <Splitter
+        className={classes.splitter}
+        classNames={{ handle: classes.handle }}
+        splitterRef={splitterRef}
+        withHandle={false}
+        lineSize={1}
+        handleColor="var(--ae-border)"
+        onCollapseChange={(index, collapsed) => {
+          if (index !== 1 || isCompact) {
+            return;
+          }
+          if (collapsed === isOpened) {
+            setOpened(!collapsed);
+          }
+          setTimeout(() => {
+            const splitter = splitterRef.current;
+            if (splitter && openedRef.current === collapsed) {
+              if (collapsed) {
+                splitter.expand(1);
+              } else {
+                splitter.collapse(1);
+              }
             }
+          });
+        }}
+      >
+        <Splitter.Pane
+          defaultSize={100 - defaultSize}
+          min={isCompact ? undefined : minChatWidth}
+          className={classes.pane}
+        >
+          <Box className={classes.chat}>{children}</Box>
+        </Splitter.Pane>
+        <Splitter.Pane
+          defaultSize={defaultSize}
+          min={minInspectorWidth}
+          collapsible
+          collapseThreshold="240px"
+          className={classes.pane}
+        >
+          {isMeasured && !isCompact && inspectorRegion}
+        </Splitter.Pane>
+      </Splitter>
+      {isCompact && (
+        <Drawer
+          opened={isOpened}
+          onClose={() => setOpened(false)}
+          position={drawerPosition}
+          size={drawerSize}
+          withCloseButton={false}
+          aria-label={labels.inspector}
+          classNames={{
+            inner: OVERLAY_INNER_CLASS,
+            content: classes.drawerContent,
+            body: classes.drawerBody,
           }}
         >
-          <Splitter.Pane
-            defaultSize={100 - defaultSize}
-            min={minChatWidth}
-            className={classes.pane}
-          >
-            {chat}
-          </Splitter.Pane>
-          <Splitter.Pane
-            defaultSize={defaultSize}
-            min={minInspectorWidth}
-            collapsible
-            collapseThreshold="240px"
-            className={classes.pane}
-          >
-            {inspectorRegion}
-          </Splitter.Pane>
-        </Splitter>
+          {inspectorRegion}
+        </Drawer>
       )}
     </Box>
   );

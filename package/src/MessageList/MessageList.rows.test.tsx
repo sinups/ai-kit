@@ -3,6 +3,7 @@ import { render, screen } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import type { ChatMessage, ToolPart } from '../types';
 import { MessageList } from './MessageList';
+import { rowsPresentation } from '../rows/rows-presentation';
 
 type Metrics = { scrollHeight: number; clientHeight: number };
 
@@ -57,7 +58,9 @@ let setList: (next: ChatMessage[]) => void = () => {};
 function Harness({ initial }: { initial: ChatMessage[] }) {
   const [list, setListState] = React.useState(initial);
   setList = setListState;
-  return <MessageList messages={list} status="streaming" presentation="rows" workingRow />;
+  return (
+    <MessageList messages={list} status="streaming" presentation={rowsPresentation} workingRow />
+  );
 }
 
 describe('MessageList/rows presentation', () => {
@@ -70,7 +73,7 @@ describe('MessageList/rows presentation', () => {
 
   it('lays the calls out as flat rows with one rhythm', () => {
     const { container } = render(
-      <MessageList messages={messages} status="ready" presentation="rows" />
+      <MessageList messages={messages} status="ready" presentation={rowsPresentation} />
     );
 
     expect(screen.getByText('(src/a.ts)')).toBeInTheDocument();
@@ -83,7 +86,7 @@ describe('MessageList/rows presentation', () => {
       <MessageList
         messages={transcript([readCall('a'), readCall('b'), readCall('c')])}
         status="ready"
-        presentation="rows"
+        presentation={rowsPresentation}
         collapseToolRuns
       />
     );
@@ -127,6 +130,40 @@ describe('MessageList/rows presentation', () => {
       )
     );
     expect(scroller.scrollTop).toBe(metrics.scrollHeight - metrics.clientHeight);
+  });
+
+  it('passes the formatters of the host down to the rows', () => {
+    render(
+      <MessageList
+        messages={transcript([
+          {
+            type: 'tool-mcp__tracker__task_list',
+            toolCallId: 'm1',
+            state: 'output-available',
+            input: { overdue: true },
+            output: { tasks: [{ id: 'TRK-400', title: 'Перенести сборку' }] },
+          },
+        ])}
+        status="ready"
+        presentation={rowsPresentation}
+        toolOutputs={{ 'tool-mcp__tracker__*': () => 'Просрочена одна задача' }}
+      />
+    );
+
+    expect(screen.getByText('Просрочена одна задача')).toBeInTheDocument();
+  });
+
+  it('puts one gap between the blocks of the cards only when asked', () => {
+    const { container, rerender } = render(<MessageList messages={messages} status="ready" />);
+    expect(container.querySelector('[data-even]')).toBeNull();
+
+    rerender(<MessageList messages={messages} status="ready" evenSpacing />);
+    expect(container.querySelectorAll('[data-even]').length).toBeGreaterThanOrEqual(3);
+
+    rerender(
+      <MessageList messages={messages} status="ready" presentation={rowsPresentation} evenSpacing />
+    );
+    expect(container.querySelector('[data-even]')).toBeNull();
   });
 
   it('keeps the working line of the mode at the end of the transcript', () => {

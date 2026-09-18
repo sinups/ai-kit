@@ -5,7 +5,8 @@ import type { ToolPart } from '../types';
 import { cx } from '../utils/cx';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
-import { toolRegistry } from './tool-registry';
+import { useChatLabels } from '../labels/chat-labels';
+import { resolveToolTitleLabels, toolRegistry } from './tool-registry';
 import { useElapsed } from './use-elapsed';
 import classes from './SubagentTool.module.css';
 
@@ -37,14 +38,15 @@ export const SubagentTool = memo(function SubagentTool({
   const description: string = input.description || '';
   const hasNestedTools = nestedTools.length > 0;
   const elapsedTimeDisplay = useElapsed(part, isPending);
+  const titleLabels = resolveToolTitleLabels(useChatLabels('toolTitles'));
 
   const subtitle = (() => {
     if (isPending && hasNestedTools) {
       const lastTool = nestedTools[nestedTools.length - 1];
       const meta = lastTool ? toolRegistry[lastTool.type] : null;
       if (meta && lastTool) {
-        const title = meta.title(lastTool);
-        const nestedSubtitle = meta.subtitle?.(lastTool);
+        const title = meta.title(lastTool, titleLabels);
+        const nestedSubtitle = meta.subtitle?.(lastTool, titleLabels);
         return nestedSubtitle ? `${title} ${nestedSubtitle}` : title;
       }
     }
@@ -107,8 +109,8 @@ export const SubagentTool = memo(function SubagentTool({
                 <GenericTool
                   key={idx}
                   icon={nestedMeta.icon}
-                  title={nestedMeta.title(nestedPart)}
-                  subtitle={nestedMeta.subtitle?.(nestedPart)}
+                  title={nestedMeta.title(nestedPart, titleLabels)}
+                  subtitle={nestedMeta.subtitle?.(nestedPart, titleLabels)}
                   isPending={nestedIsPending}
                   isError={nestedIsError}
                 />

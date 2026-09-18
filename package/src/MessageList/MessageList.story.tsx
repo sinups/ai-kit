@@ -191,7 +191,7 @@ const betweenCalls: ChatMessage[] = [
     parts: [
       { type: 'text', text: 'Looking at the workspace first.' },
       {
-        type: 'tool-mcp__layers__task_list',
+        type: 'tool-mcp__tracker__task_list',
         toolCallId: 'w1',
         state: 'output-available',
         input: { overdue: true },

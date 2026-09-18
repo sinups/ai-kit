@@ -1,3 +1,13 @@
+.root,
+.drawerContent {
+  --inspector-header-height: var(--ae-panel-header-height, rem(48px));
+}
+
+.splitter,
+.inspector {
+  --ae-panel-header-height: var(--inspector-header-height);
+}
+
 .root {
   display: flex;
   flex: 1;
@@ -27,7 +37,6 @@
 }
 
 .inspector {
-  --ae-panel-header-height: rem(48px);
   --ae-panel-inset: var(--ae-column-pad-x);
 
   display: flex;
@@ -54,7 +63,22 @@
 
 .tabsList {
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  height: var(--ae-panel-header-height);
   padding-inline: var(--ae-space-sm);
+}
+
+.inspector .tabs .tabsList {
+  --tab-border-color: var(--ae-border);
+}
+
+.inspector .tabs .tab {
+  height: auto;
+}
+
+.inspector .tabsList::before {
+  border-width: 0 0 rem(1px);
 }
 
 .drawerContent {
@@ -69,4 +93,8 @@
   flex-direction: column;
   min-height: 0;
   padding: 0;
+}
+
+.root[data-compact] .handle {
+  display: none;
 }

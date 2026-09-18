@@ -3,6 +3,21 @@
   flex-direction: column;
   width: 100%;
   min-width: 0;
+
+  &[data-framed] {
+    overflow: hidden;
+    border: rem(1px) solid var(--ae-tool-border);
+    border-radius: var(--ae-tool-radius);
+
+    & > :first-child {
+      padding: var(--ae-space-xs) var(--ae-inset-tool-x);
+    }
+
+    & .footer {
+      border: 0;
+      border-radius: 0;
+    }
+  }
 }
 
 .footer {

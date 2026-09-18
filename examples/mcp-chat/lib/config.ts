@@ -9,6 +9,8 @@ export type ServerConfig = {
   headers?: Record<string, string>;
   command?: string;
   args?: string[];
+  /** Environment of a stdio server; the place for its secrets, never `args` */
+  env?: Record<string, string>;
 };
 
 type ServerInput = Partial<ServerConfig> & { token?: string };
@@ -49,6 +51,7 @@ function normalize(input: ServerInput, index: number): ServerConfig | null {
       transport: 'stdio',
       command: input.command,
       args: (input.args ?? []).map((arg) => arg.replace(DATA_DIR, sampleDir)),
+      env: input.env,
     };
   }
   return null;
@@ -64,9 +67,12 @@ function legacyServer(): ServerInput | null {
     return null;
   }
   if (transport === 'http' || (!command && url)) {
+    if (!url) {
+      throw new Error('MCP_TRANSPORT=http needs MCP_URL');
+    }
     return {
       name: name ?? 'mcp',
-      url: url ?? 'http://localhost:8091/mcp',
+      url,
       token: process.env.MCP_TOKEN,
       headers: pairs(process.env.MCP_HEADERS),
     };
@@ -125,7 +131,7 @@ export function serverOf(toolName: string): ServerConfig | undefined {
 
 type SdkServer =
   | { type: 'http'; url: string; headers?: Record<string, string> }
-  | { command: string; args?: string[] };
+  | { command: string; args?: string[]; env?: Record<string, string> };
 
 export function mcpServers(): Record<string, SdkServer> {
   return Object.fromEntries(
@@ -133,13 +139,37 @@ export function mcpServers(): Record<string, SdkServer> {
       server.name,
       server.transport === 'http'
         ? { type: 'http', url: server.url ?? '', headers: server.headers }
-        : { command: server.command ?? '', args: server.args },
+        : { command: server.command ?? '', args: server.args, env: server.env },
     ])
   );
 }
 
-export function targetOf(server: ServerConfig): string {
-  return server.transport === 'http'
-    ? (server.url ?? '')
-    : [server.command, ...(server.args ?? [])].join(' ');
+/** Address without credentials: scheme, host and path of a URL, or the bare command of stdio */
+export function publicTarget(server: ServerConfig): string {
+  if (server.transport !== 'http') {
+    return server.command ?? '';
+  }
+  try {
+    const url = new URL(server.url ?? '');
+    return `${url.protocol}//${url.host}${url.pathname}`;
+  } catch {
+    return '';
+  }
+}
+
+/** Removes the values a server is configured with (URL, headers, arguments, env) from a text */
+export function redact(text: string, server: ServerConfig): string {
+  const secrets = [
+    server.url,
+    ...Object.values(server.headers ?? {}),
+    ...(server.args ?? []),
+    ...Object.values(server.env ?? {}),
+  ]
+    .filter((value): value is string => typeof value === 'string' && value.length >= 4)
+    .sort((a, b) => b.length - a.length);
+  return secrets.reduce(
+    (result, secret) =>
+      result.split(secret).join(secret === server.url ? publicTarget(server) : '…'),
+    text
+  );
 }

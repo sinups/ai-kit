@@ -6,7 +6,7 @@ import { createToolCallLookups } from './tool-call-state';
 import { ToolRenderer } from './ToolRenderer';
 
 const runningCall: ToolPart = {
-  type: 'tool-mcp__layers__task_list',
+  type: 'tool-mcp__tracker__task_list',
   toolCallId: 'c1',
   state: 'input-available',
   input: { overdue: true },

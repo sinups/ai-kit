@@ -80,6 +80,7 @@ const PREVIEW_HEIGHTS: Record<string, string> = {
   "task-status-pill": "200px",
   "diff-review": "720px",
   "chat-launcher": "660px",
+  "chat-inspector-layout": "600px",
   "diff-file-list": "560px",
   "diff-file-view": "720px",
 };
@@ -168,6 +169,12 @@ const FULLBLEED_PREVIEW_IDS = new Set<string>([
  * embeds a full composer).
  */
 const EXAMPLE_HEIGHTS: Record<string, string> = {
+  "AgentChat/presentation": "540px",
+  "AgentChat/tool-catalog": "460px",
+  "AgentChat/labels": "560px",
+  "AgentChat/working-row": "420px",
+  "MessageList/presentation": "540px",
+  "ThinkingTool/labels": "200px",
   "ModelPicker/in-input-bar": "220px",
   "ModeSelector/in-input-bar": "220px",
   "FileAttachment/basic": "220px",
@@ -311,6 +318,9 @@ export default async function ComponentPage({
   const usageBlock = blocks.find(
     (block): block is ComponentTextBlock => block.type === "usage",
   );
+  const guideBlocks = blocks.filter(
+    (block): block is ComponentTextBlock => block.type === "usage" && block !== usageBlock,
+  );
   const exampleBlocks = blocks.filter((block) => block.type === "example");
   const exampleSections = exampleBlocks.map((block) => ({
     id: `example-${componentIdFromName(block.title)}`,
@@ -350,6 +360,10 @@ export default async function ComponentPage({
   const related = (group?.items ?? []).filter((item) => item.href !== currentHref);
   const sections = [
     { id: "overview", label: component.name },
+    ...guideBlocks.map((block) => ({
+      id: `guide-${componentIdFromName(block.title)}`,
+      label: block.title,
+    })),
     { id: "installation", label: "Getting Started" },
     ...(exampleBlocks.length > 0
       ? [{ id: "examples", label: "Examples", children: exampleSections }]
@@ -414,6 +428,19 @@ export default async function ComponentPage({
                     : undefined
           }
         />
+        {guideBlocks.map((block) => (
+          <div
+            key={block.title}
+            id={`guide-${componentIdFromName(block.title)}`}
+            className="space-y-2 scroll-mt-8"
+          >
+            <div className="text-base font-medium text-an-foreground">{block.title}</div>
+            <Markdown
+              content={block.content}
+              className="text-base text-muted-foreground [&_.an-md-p]:text-base [&_a]:text-an-primary-color [&_a]:underline-offset-2 [&_a:hover]:underline text-pretty"
+            />
+          </div>
+        ))}
         <div id="installation" className="space-y-3 scroll-mt-8">
           <div className="text-base font-medium text-an-foreground">
             Getting Started

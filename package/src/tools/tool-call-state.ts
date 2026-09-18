@@ -8,7 +8,8 @@ export type ToolCallState =
   | 'running'
   | 'done'
   | 'error'
-  | 'rejected';
+  | 'rejected'
+  | 'interrupted';
 
 /** Transcript questions a tool card asks about a call id, see `createToolCallLookups` */
 export type ToolCallLookups = {
@@ -36,6 +37,8 @@ export interface ToolCallStateLabels {
   awaitingPermission: string;
   /** Row label of a call the user refused, `Skipped` by default */
   rejected: string;
+  /** Row label of a call left without a result when its turn ended, `Interrupted` by default */
+  interrupted: string;
   /** Row label of a card that failed to render, `Could not display this tool call` by default */
   renderError: string;
 }
@@ -44,6 +47,7 @@ export const DEFAULT_TOOL_CALL_STATE_LABELS: ToolCallStateLabels = {
   queued: 'Queued',
   awaitingPermission: 'Waiting for permission',
   rejected: 'Skipped',
+  interrupted: 'Interrupted',
   renderError: 'Could not display this tool call',
 };
 
@@ -125,7 +129,7 @@ export function deriveToolCallState(
 
   return chatStatus === undefined || chatStatus === 'streaming' || chatStatus === 'submitted'
     ? 'running'
-    : 'done';
+    : 'interrupted';
 }
 
 function collectToolParts(

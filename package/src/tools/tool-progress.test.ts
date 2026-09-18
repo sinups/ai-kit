@@ -4,14 +4,14 @@ describe('tools/tool-progress', () => {
   it('reads the notification from the part and from the provider metadata', () => {
     expect(
       getToolProgress({
-        type: 'tool-mcp__layers__search',
+        type: 'tool-mcp__tracker__search',
         progress: { progress: 3, total: 10, message: 'Reading tasks', progressToken: 7 },
       })
     ).toEqual({ progress: 3, total: 10, message: 'Reading tasks', progressToken: 7 });
 
     expect(
       getToolProgress({
-        type: 'tool-mcp__layers__search',
+        type: 'tool-mcp__tracker__search',
         callProviderMetadata: { custom: { progress: { progress: 2 } } },
       })
     ).toEqual({ progress: 2, total: undefined, message: undefined, progressToken: undefined });

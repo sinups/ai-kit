@@ -123,6 +123,12 @@ function renderEssentials(): string {
     "- `contentWidth` sets the message column and composer width: `420px` by default, a number such as `760` on full pages, `\"100%\"` in panels and widgets. Pass `wrapLines` in narrow containers.",
     "- Layout adapts to the component's own width, from a 360px widget to a 900px page. Data views handle loading, error and empty states.",
     "- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds them); labels of nested parts sit under a key, for example `labels.wizard`.",
+    "- Transcript layout: `presentation` on `AgentChat` and `MessageList` is `'cards'` by default; `rowsPresentation` gives the flat rows of a terminal client, `quietPresentation` muted MCP lines and one folded line per turn (`Thought · used 2 tools · 26s`). Import them from the package root and pass the value.",
+    "- Tool context: `toolCatalog` takes MCP tool definitions keyed by `mcp__<server>__<tool>` (`title`, `description`, `annotations`, `inputSchema`); `toolArgs` and `toolOutputs` format arguments and results, keyed like `toolRenderers`, `tool-mcp__<server>__*` allowed, `null` keeps the kit summary; `locale` formats numbers and dates.",
+    "- Approvals: `approvals` on `AgentChat` maps `toolCallId` to an approval request (the `ToolApprovalFooter` props plus `isPending` and `outcome`); a standalone `MessageList` reads the same map from `ToolApprovalsProvider`. `labels.toolApproval.scopes` names the scope in the settled line.",
+    "- Labels: `AgentChat` `labels` has one section per component (`messageList`, `inputBar`, `toolApproval`, `mcpTool`, `thinkingTool`, `durationUnits`, ...); a standalone `MessageList` reads them from `ChatLabelsProvider`.",
+    "- Transcript behavior: `workingRow`, `toolActivity`, `animateAppearance` and `frameBatched` are on by default in `AgentChat` and off in a standalone `MessageList`; `evenSpacing` is off in both. `ToolRowBase` and `AgentStatus` keep a status for at least `minStatusMs` (600) before replacing it.",
+    "- Composer context: `InputBar` `contextItems` shows chips above the text; `onRemoveContext` adds a remove button, `onRestoreContext` a line that brings removed items back. `ModeSelector` takes `labels.title` for a menu heading, a `badge` per mode and `shortcuts` for picking a mode by digit.",
   ].join("\n");
 }
 

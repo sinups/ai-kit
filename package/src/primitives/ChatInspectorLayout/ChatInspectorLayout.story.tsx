@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ActionIcon, Box, Group, Text } from '@mantine/core';
+import { ActionIcon, Box } from '@mantine/core';
 import { IconGitBranch, IconLayoutSidebarRight, IconListCheck } from '@tabler/icons-react';
 import { AgentChat } from '../../AgentChat/AgentChat';
+import { ChatHeader } from '../../ChatHeader/ChatHeader';
 import { DiffReview } from '../../diff/DiffReview/DiffReview';
 import { DIFF_FIXTURES } from '../../diff/fixtures';
 import { conversation } from '../../MessageList/fixtures';
@@ -36,19 +37,19 @@ function Frame({ compact = false }: { compact?: boolean }) {
           },
         ]}
       >
-        <Group component="header" gap="xs" px="sm" h={48} wrap="nowrap">
-          <Text size="sm" fw={500} flex={1}>
-            Add retry to token refresh
-          </Text>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label="Toggle inspector"
-            onClick={() => setOpened((current) => !current)}
-          >
-            <IconLayoutSidebarRight size={18} />
-          </ActionIcon>
-        </Group>
+        <ChatHeader
+          title="Add retry to token refresh"
+          rightSection={
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label="Toggle inspector"
+              onClick={() => setOpened((current) => !current)}
+            >
+              <IconLayoutSidebarRight size={18} />
+            </ActionIcon>
+          }
+        />
         <AgentChat
           messages={conversation}
           status="ready"

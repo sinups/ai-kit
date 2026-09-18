@@ -3,6 +3,9 @@ import { QuestionTool, type QuestionToolPart } from '../question/QuestionTool';
 import type { CustomToolRendererProps, ToolActionHandler, ToolPart } from '../types';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { parsePartialRecord } from '../utils/partial-json';
+import { useChatLabels } from '../labels/chat-labels';
+import { resolveToolCallState, useToolApproval } from '../approvals/approval-context';
+import { fillTemplate } from '../utils/fill-template';
 import { BashTool } from './BashTool';
 import { EditTool } from './EditTool';
 import { GenericTool } from './GenericTool';
@@ -13,7 +16,6 @@ import { ThinkingTool } from './ThinkingTool';
 import { TodoTool } from './TodoTool';
 import {
   DEFAULT_TOOL_CALL_STATE_LABELS,
-  deriveToolCallState,
   type ToolCallLookups,
   type ToolCallState,
   type ToolCallStateLabels,
@@ -22,7 +24,8 @@ import { ToolActivity } from './ToolActivity';
 import { ToolCardBoundary } from './ToolCardBoundary';
 import { getToolProgress } from './tool-progress';
 import { useElapsed } from './use-elapsed';
-import { parseMcpToolType, toolRegistry } from './tool-registry';
+import { DEFAULT_TOOL_CARD_LABELS, type ToolCardLabels } from './tool-card-labels';
+import { parseMcpToolType, resolveToolTitleLabels, toolRegistry } from './tool-registry';
 import { ToolGroup } from './ToolGroup';
 
 export interface ToolRendererProps {
@@ -108,8 +111,11 @@ export const ToolRenderer = memo(function ToolRenderer({
         ? mcpInfo.toolName
         : null;
 
-  const labels = { ...DEFAULT_TOOL_CALL_STATE_LABELS, ...labelsProp };
-  const callState = deriveToolCallState(part, { chatStatus, lookups });
+  const contextLabels = useChatLabels('toolCall');
+  const labels = { ...DEFAULT_TOOL_CALL_STATE_LABELS, ...contextLabels, ...labelsProp };
+  const hostApproval = useToolApproval(part.toolCallId);
+  const isHostDeciding = Boolean(hostApproval && !hostApproval.outcome);
+  const callState = resolveToolCallState(part, hostApproval, { chatStatus, lookups });
   const settledElsewhere =
     callState === 'done' &&
     part.state !== 'output-available' &&
@@ -124,9 +130,13 @@ export const ToolRenderer = memo(function ToolRenderer({
   const progress = isRunning ? getToolProgress(cardPart) : undefined;
   const activity =
     elapsed || progress ? <ToolActivity elapsed={elapsed} progress={progress} /> : undefined;
+  const titleLabels = resolveToolTitleLabels(useChatLabels('toolTitles'));
+  const cardContextLabels = useChatLabels('toolCard');
+  const cardLabels = { ...DEFAULT_TOOL_CARD_LABELS, ...cardContextLabels };
   const meta = toolRegistry[partType];
-  const registryTitle = (meta ? safeText(() => meta.title(part)) : undefined) || toolName;
-  const registrySubtitle = safeText(() => meta?.subtitle?.(part));
+  const registryTitle =
+    (meta ? safeText(() => meta.title(part, titleLabels)) : undefined) || toolName;
+  const registrySubtitle = safeText(() => meta?.subtitle?.(part, titleLabels));
 
   const quietRow = (title: string, subtitle?: string) => (
     <GenericTool
@@ -138,7 +148,10 @@ export const ToolRenderer = memo(function ToolRenderer({
     />
   );
 
-  if (callState === 'queued' || (callState === 'awaiting-permission' && !hasApprovalFooter(part))) {
+  if (
+    callState === 'queued' ||
+    (callState === 'awaiting-permission' && !hasApprovalFooter(part) && !isHostDeciding)
+  ) {
     const label = callState === 'queued' ? labels.queued : labels.awaitingPermission;
     return quietRow(label, registrySubtitle || registryTitle);
   }
@@ -159,6 +172,7 @@ export const ToolRenderer = memo(function ToolRenderer({
     wrapLines,
     callState,
     activity,
+    cardLabels,
   });
 
   return (
@@ -188,6 +202,7 @@ type ToolCardOptions = {
   wrapLines?: boolean;
   callState: ToolCallState;
   activity?: React.ReactNode;
+  cardLabels: ToolCardLabels;
 };
 
 function renderToolCard({
@@ -206,6 +221,7 @@ function renderToolCard({
   wrapLines,
   callState,
   activity,
+  cardLabels,
 }: ToolCardOptions): React.ReactNode {
   if (toolRenderers && customKey !== null) {
     const CustomRenderer = toolRenderers[customKey];
@@ -246,15 +262,15 @@ function renderToolCard({
       return <QuestionTool part={part as unknown as QuestionToolPart} chatStatus={chatStatus} />;
     case 'tool-Task':
     case 'tool-Agent': {
-      const labelBase = partType === 'tool-Agent' ? 'Agent' : 'Task';
+      const isAgent = partType === 'tool-Agent';
       return (
         <ToolGroup
           part={part}
           nestedTools={nestedTools}
           chatStatus={chatStatus}
-          completeLabel={`${labelBase} completed`}
-          shimmerLabel={`Running ${labelBase.toLowerCase()}`}
-          interruptedLabel={`${labelBase} interrupted`}
+          completeLabel={isAgent ? cardLabels.agentCompleted : cardLabels.taskCompleted}
+          shimmerLabel={isAgent ? cardLabels.agentRunning : cardLabels.taskRunning}
+          interruptedLabel={isAgent ? cardLabels.agentInterrupted : cardLabels.taskInterrupted}
           defaultOpen={false}
         />
       );
@@ -286,7 +302,7 @@ function renderToolCard({
 
   return (
     <GenericTool
-      title={isPending ? `Running ${toolName}` : toolName}
+      title={isPending ? fillTemplate(cardLabels.running, { name: toolName }) : toolName}
       isPending={isPending}
       isError={isError}
       trailingContent={activity}

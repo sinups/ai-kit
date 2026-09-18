@@ -7,12 +7,13 @@ import type {
   PermissionRule,
   ToolPart,
 } from '@sinups/ai-kit';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   AgentEvent,
   ApprovalChoice,
   ApprovalDetails,
   ApprovalOutcome,
+  PermissionMode,
   PermissionState,
   TurnUsage,
 } from './events';
@@ -26,6 +27,16 @@ export type ApprovalState = {
   matchedRule?: string;
 };
 
+/** Texts the hook writes into the transcript itself, from the dictionary of the page */
+export type AgentChatTexts = {
+  /** Result of a call the turn ended before it answered */
+  interrupted: string;
+  /** Error shown when the server did not accept a decision */
+  approvalFailed: string;
+  /** Error shown when the chat endpoint refuses the request, `{status}` is replaced */
+  chatFailed: string;
+};
+
 function withParts(messages: ChatMessage[], update: (parts: MessagePart[]) => MessagePart[]) {
   const last = messages.at(-1);
   if (!last || last.role !== 'assistant') {
@@ -34,12 +45,77 @@ function withParts(messages: ChatMessage[], update: (parts: MessagePart[]) => Me
   return [...messages.slice(0, -1), { ...last, parts: update(last.parts) }];
 }
 
-function appendText(parts: MessagePart[], delta: string): MessagePart[] {
+const THINKING = 'tool-Thinking';
+
+function isOpenThinking(part: MessagePart | undefined): part is ToolPart {
+  return part?.type === THINKING && (part as ToolPart).state === 'input-streaming';
+}
+
+function closeThinking(parts: MessagePart[]): MessagePart[] {
   const last = parts.at(-1);
-  if (last && last.type === 'text') {
-    return [...parts.slice(0, -1), { ...last, text: `${(last as { text: string }).text}${delta}` }];
+  if (!isOpenThinking(last)) {
+    return parts;
   }
-  return [...parts, { type: 'text', text: delta }];
+  return [...parts.slice(0, -1), { ...last, state: 'output-available' }];
+}
+
+function appendThinking(parts: MessagePart[], delta: string, id: string): MessagePart[] {
+  const last = parts.at(-1);
+  if (isOpenThinking(last)) {
+    const thought = `${(last.input as { thought?: string } | undefined)?.thought ?? ''}${delta}`;
+    return [...parts.slice(0, -1), { ...last, input: { thought } }];
+  }
+  return [
+    ...parts,
+    { type: THINKING, toolCallId: id, state: 'input-streaming', input: { thought: delta } },
+  ];
+}
+
+function appendText(parts: MessagePart[], delta: string): MessagePart[] {
+  const closed = closeThinking(parts);
+  const last = closed.at(-1);
+  if (last && last.type === 'text') {
+    return [
+      ...closed.slice(0, -1),
+      { ...last, text: `${(last as { text: string }).text}${delta}` },
+    ];
+  }
+  return [...closed, { type: 'text', text: delta }];
+}
+
+function isOpenTool(part: MessagePart): part is ToolPart {
+  const state = (part as ToolPart).state;
+  return (
+    part.type.startsWith('tool-') &&
+    part.type !== THINKING &&
+    (state === 'input-streaming' || state === 'input-available')
+  );
+}
+
+function closeOpenTools(parts: MessagePart[], interrupted: string): MessagePart[] {
+  return closeThinking(parts).map((part) =>
+    isOpenTool(part) ? { ...part, state: 'output-error', errorText: interrupted } : part
+  );
+}
+
+/** Text of an MCP result: the text blocks joined, anything else as JSON */
+function outputText(output: unknown): string {
+  if (typeof output === 'string') {
+    return output;
+  }
+  if (Array.isArray(output)) {
+    const texts = output
+      .map((block) =>
+        block && typeof block === 'object' && typeof (block as { text?: unknown }).text === 'string'
+          ? (block as { text: string }).text
+          : null
+      )
+      .filter((text): text is string => text !== null);
+    if (texts.length > 0) {
+      return texts.join('\n');
+    }
+  }
+  return JSON.stringify(output);
 }
 
 function updateTool(
@@ -76,36 +152,60 @@ async function* readEvents(response: Response): AsyncGenerator<AgentEvent> {
   }
 }
 
-export function useAgentChat() {
+export function useAgentChat(texts: AgentChatTexts) {
+  const textsRef = useRef(texts);
+  useEffect(() => {
+    textsRef.current = texts;
+  }, [texts]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [approvals, setApprovals] = useState<Record<string, ApprovalState>>({});
-  const [permissions, setPermissions] = useState<PermissionState>({ rules: [], auto: false });
+  const [permissions, setPermissions] = useState<PermissionState>({
+    rules: [],
+    mode: 'ask-writes',
+  });
   const [usage, setUsage] = useState<TurnUsage | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [tools, setTools] = useState<string[]>([]);
   const sessionId = useRef<string | undefined>(undefined);
-  const [chatId] = useState(() => `chat-${Math.random().toString(36).slice(2)}`);
+  const [chatId] = useState(
+    () => `chat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+  );
   const abort = useRef<AbortController | null>(null);
-  const toolStarts = useRef<Map<string, number>>(new Map());
+  const [model, setModel] = useState<string | undefined>(undefined);
 
-  const decide = useCallback(async (requestId: string, choice: ApprovalChoice) => {
-    await fetch('/api/approvals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestId, choice }),
-    });
-  }, []);
+  const decide = useCallback(
+    async (requestId: string, choice: ApprovalChoice) => {
+      const response = await fetch('/api/approvals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, requestId, choice }),
+      }).catch(() => null);
+      if (!response?.ok) {
+        setError(new Error(textsRef.current.approvalFailed));
+      }
+    },
+    [chatId]
+  );
 
   const updatePermissions = useCallback(
-    async (patch: { auto?: boolean; reset?: boolean; save?: PermissionRule; remove?: string }) => {
+    async (patch: {
+      mode?: PermissionMode;
+      reset?: boolean;
+      save?: PermissionRule;
+      remove?: string;
+    }) => {
       const response = await fetch('/api/permissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chatId, ...patch }),
       });
-      setPermissions((await response.json()) as PermissionState);
+      const body = (await response.json()) as PermissionState | { error: string };
+      if (!response.ok || 'error' in body) {
+        throw new Error('error' in body ? body.error : `${response.status}`);
+      }
+      setPermissions(body);
     },
     [chatId]
   );
@@ -117,12 +217,13 @@ export function useAgentChat() {
   }, []);
 
   const send = useCallback(
-    async ({ content }: { content: string }) => {
+    async ({ content, contextFile }: { content: string; contextFile?: string }) => {
       const controller = new AbortController();
       abort.current = controller;
       setError(undefined);
       setStatus('submitted');
-      setStartedAt(Date.now());
+      const turnStartedAt = Date.now();
+      setStartedAt(turnStartedAt);
       setMessages((current) => [
         ...current,
         { id: `u-${Date.now()}`, role: 'user', parts: [{ type: 'text', text: content }] },
@@ -137,11 +238,13 @@ export function useAgentChat() {
             chatId,
             prompt: content,
             sessionId: sessionId.current,
+            model,
+            contextFile,
           }),
           signal: controller.signal,
         });
         if (!response.ok) {
-          throw new Error(`The chat endpoint answered ${response.status}`);
+          throw new Error(textsRef.current.chatFailed.replace('{status}', String(response.status)));
         }
 
         for await (const event of readEvents(response)) {
@@ -156,11 +259,17 @@ export function useAgentChat() {
                 withParts(current, (parts) => appendText(parts, event.delta))
               );
               break;
+            case 'thinking':
+              setMessages((current) =>
+                withParts(current, (parts) =>
+                  appendThinking(parts, event.delta, `thinking-${Date.now()}`)
+                )
+              );
+              break;
             case 'tool-start':
-              toolStarts.current.set(event.toolCallId, Date.now());
               setMessages((current) =>
                 withParts(current, (parts) => [
-                  ...parts,
+                  ...closeThinking(parts),
                   {
                     type: `tool-${event.name}`,
                     toolCallId: event.toolCallId,
@@ -175,10 +284,8 @@ export function useAgentChat() {
                 withParts(current, (parts) =>
                   updateTool(parts, event.toolCallId, {
                     state: event.isError ? 'output-error' : 'output-available',
-                    durationMs:
-                      Date.now() - (toolStarts.current.get(event.toolCallId) ?? Date.now()),
                     output: event.output,
-                    errorText: event.isError ? String(event.output) : undefined,
+                    errorText: event.isError ? outputText(event.output) : undefined,
                   })
                 )
               );
@@ -191,6 +298,7 @@ export function useAgentChat() {
                   toolCallId: event.toolCallId,
                   name: event.name,
                   details: event.details,
+                  matchedRule: event.matchedRule,
                 },
               }));
               break;
@@ -216,7 +324,7 @@ export function useAgentChat() {
                   ...parts,
                   {
                     type: 'turn-summary',
-                    durationMs: event.usage.durationMs,
+                    durationMs: Date.now() - turnStartedAt,
                     tokens: event.usage.tokens,
                   },
                 ])
@@ -226,6 +334,7 @@ export function useAgentChat() {
               setError(new Error(event.message));
               break;
             case 'done':
+              setStatus((current) => (current === 'error' ? current : 'ready'));
               break;
           }
         }
@@ -237,10 +346,29 @@ export function useAgentChat() {
         }
       } finally {
         abort.current = null;
+        const interrupted = textsRef.current.interrupted;
+        setMessages((current) => withParts(current, (parts) => closeOpenTools(parts, interrupted)));
+        setApprovals((current) =>
+          Object.fromEntries(
+            Object.entries(current).map(([id, approval]) => [
+              id,
+              approval.outcome ? approval : { ...approval, outcome: 'interrupted' as const },
+            ])
+          )
+        );
       }
     },
-    [chatId]
+    [chatId, model]
   );
+
+  const retry = useCallback(() => {
+    const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+    const text = lastUserMessage?.parts.find((part) => part.type === 'text');
+    if (text) {
+      setMessages((current) => current.slice(0, current.indexOf(lastUserMessage!)));
+      void send({ content: (text as { text: string }).text });
+    }
+  }, [messages, send]);
 
   return {
     messages,
@@ -248,6 +376,7 @@ export function useAgentChat() {
     error,
     send,
     stop,
+    retry,
     approvals,
     decide,
     permissions,
@@ -255,5 +384,7 @@ export function useAgentChat() {
     usage,
     startedAt,
     tools,
+    model,
+    setModel,
   };
 }

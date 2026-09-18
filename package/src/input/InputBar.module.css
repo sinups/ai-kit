@@ -166,6 +166,46 @@
   padding: var(--ae-context-padding) var(--ae-context-padding) rem(2px);
 }
 
+.contextList {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: rem(6px);
+}
+
+.contextChip {
+  display: flex;
+  align-items: center;
+  gap: rem(6px);
+  min-width: 0;
+  max-width: 100%;
+  padding: rem(4px) rem(4px) rem(4px) rem(8px);
+  border-radius: calc(var(--ae-input-radius) - var(--ae-context-padding));
+  background-color: alpha(var(--ae-muted), 0.5);
+}
+
+.contextIcon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--ae-fg-muted);
+}
+
+.contextRestore {
+  display: flex;
+  align-items: center;
+  gap: rem(6px);
+  min-width: 0;
+  max-width: 100%;
+  padding: rem(4px);
+  border-radius: var(--ae-row-radius);
+  color: var(--ae-fg-muted);
+
+  @mixin hover {
+    color: var(--ae-fg);
+  }
+}
+
 .typingImages {
   display: flex;
   flex-wrap: wrap;

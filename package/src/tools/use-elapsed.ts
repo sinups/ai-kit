@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { ToolPart } from '../types';
 import { useAnimationTime } from '../hooks/use-animation-clock';
+import { useChatLabels } from '../labels/chat-labels';
 import { formatElapsedTime } from '../utils/format-elapsed';
 import { getPartOutput } from '../utils/format-tool';
 
@@ -34,5 +35,6 @@ export function useElapsed(part: ToolPart, isPending: boolean): string {
   });
   const elapsedMs = isPending && startedAt ? Math.max(0, now - startedAt) : 0;
 
-  return formatElapsedTime(!isPending && outputDuration ? outputDuration : elapsedMs);
+  const units = useChatLabels('durationUnits');
+  return formatElapsedTime(!isPending && outputDuration ? outputDuration : elapsedMs, units);
 }

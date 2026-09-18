@@ -101,9 +101,10 @@ export function RevealFlow() {
 
 RevealFlow.play = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
   const canvas = within(canvasElement);
-  await expect(await canvas.findByText('••••••••')).toBeInTheDocument();
+  const reveal = await canvas.findByRole('button', { name: 'Show value: apiToken' });
+  await expect(canvas.getByText('••••••••')).toBeVisible();
 
-  await userEvent.click(canvas.getByRole('button', { name: 'Show value: apiToken' }));
+  await userEvent.click(reveal);
   await expect(await canvas.findByText('ghp_exampleexampleexample')).toBeInTheDocument();
 
   await userEvent.click(canvas.getByRole('button', { name: 'Show more' }));

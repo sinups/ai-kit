@@ -6,7 +6,8 @@ import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
 import { getPartOutput } from '../utils/format-tool';
-import { toolRegistry } from './tool-registry';
+import { useChatLabels } from '../labels/chat-labels';
+import { resolveToolTitleLabels, toolRegistry } from './tool-registry';
 import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './SearchTool.module.css';
 
@@ -76,7 +77,8 @@ export function SearchGroupRich({
   className,
   style,
 }: SearchGroupRichProps) {
-  const labels = { ...DEFAULT_SEARCH_TOOL_LABELS, ...labelsProp };
+  const contextLabels = useChatLabels('searchTool');
+  const labels = { ...DEFAULT_SEARCH_TOOL_LABELS, ...contextLabels, ...labelsProp };
   const anyAnimating = toolSteps.some((s) => stepStates[s.id] === 'animating');
   const searchQuery = toolSteps.find((s) => s.searchQuery)?.searchQuery ?? labels.unknownQuery;
   const totalResults = results.length;
@@ -182,6 +184,7 @@ export const SearchTool = memo(function SearchTool({
   const stepStates = useMemo(() => ({ [step.id]: stepState }), [step.id, stepState]);
   const registryMeta =
     part.type === 'tool-Grep' || part.type === 'tool-Glob' ? toolRegistry[part.type] : undefined;
+  const titleLabels = resolveToolTitleLabels(useChatLabels('toolTitles'));
 
   return (
     <SearchGroupRich
@@ -189,7 +192,7 @@ export const SearchTool = memo(function SearchTool({
       stepStates={stepStates}
       onStepComplete={noopComplete}
       results={results ?? normalizeResults(output?.results)}
-      completeLabel={registryMeta?.title(part)}
+      completeLabel={registryMeta?.title(part, titleLabels)}
       labels={labels}
       defaultOpen={defaultOpen}
       className={className}

@@ -95,9 +95,29 @@ export function Chat() {
   `statusBar`, `inputBarProps`, `withSearch`, `stickyPrompt`, `collapseToolRuns`,
   `highlighter`, `longMessageThreshold`, `contentWidth`, `emptyState`, `emptyStateWidth`,
   `alignComposer`, `topFade`, `wrapLines`, `responsiveTables`, `frameBatched`, `tailGranularity`,
-  `classNames`, `slots`.
-- `frameBatched`: `true` by default, commits the streaming answer once per animation frame;
+  `presentation`, `approvals`, `labels`, `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`,
+  `workingRow`, `toolActivity`, `animateAppearance`, `evenSpacing`, `classNames`, `slots`.
+- Defaults differ between the two transcripts: `AgentChat` turns on `frameBatched`,
+  `animateAppearance`, `workingRow` and `toolActivity`; a standalone `MessageList` keeps them off.
+  Pass `={false}` to `AgentChat` to turn one off. `evenSpacing` is off in both.
+- `frameBatched` commits the streaming answer once per animation frame;
   `tailGranularity="line"` reveals the growing tail line by line instead of character by character.
+- `presentation`: `'cards'` by default; `rowsPresentation` for the flat rows of a terminal client,
+  `quietPresentation` for muted MCP lines and one folded line per turn. Import the value from the
+  package root and pass it.
+- `toolCatalog`: MCP tool definitions keyed by `mcp__<server>__<tool>` (`title`, `description`,
+  `annotations`, `inputSchema`), so calls read by their titles. `toolArgs` and `toolOutputs`
+  format arguments and results, keyed like `toolRenderers` (`tool-mcp__<server>__*` allowed);
+  returning `null` keeps the kit summary. `locale` formats numbers and dates.
+- `approvals`: approval requests keyed by `toolCallId` (the `ToolApprovalFooter` props plus
+  `isPending` and `outcome`), rendered under the card of that call. A standalone `MessageList`
+  reads them from `ToolApprovalsProvider`.
+- `labels`: one section per component (`messageList`, `inputBar`, `toolApproval` with `scopes`,
+  `mcpTool`, `thinkingTool`, `durationUnits`, ...). A standalone `MessageList` reads them from
+  `ChatLabelsProvider`.
+- `workingRow`: a quiet line while the agent works between calls, or your node such as
+  `<AgentStatus />`. `toolActivity`: time and progress of running calls. `animateAppearance`:
+  fade-in of new parts.
 - `contentWidth`: `420px` by default; a number such as `760` on pages, `"100%"` in panels and
   widgets. In narrow containers pass `wrapLines`.
 - `emptyState`: the `welcome` layout (default) shows `avatar`, `title`, `description` and
@@ -110,8 +130,10 @@ export function Chat() {
   such as `<ContextUsage />` go into `inputBarProps.rightActions`.
 - `MessageList` renders the feed alone; `InputBar` is the composer (`leftActions`,
   `rightActions`, `suggestions`, `completions`, `onQueue`, `history`, `infoBar`,
-  `questionBar`). Put `ModeSelector` (`modes`, `value`/`defaultValue`, `onChange`) and
-  `ModelPicker` (`models`: `{ id, name, version? }[]`) into `leftActions`.
+  `questionBar`, `contextItems` with `onRemoveContext` and `onRestoreContext` for context chips).
+  Put `ModeSelector` (`modes` with an optional `badge`, `value`/`defaultValue`, `onChange`,
+  `shortcuts` to pick a mode by digit, `labels.title` for a menu heading) and `ModelPicker`
+  (`models`: `{ id, name, version? }[]`) into `leftActions`.
 
 ## Tool cards
 

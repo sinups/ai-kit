@@ -29,8 +29,12 @@ import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { SpiralLoader } from '../SpiralLoader/SpiralLoader';
-import { AgentStatus } from '../AgentStatus/AgentStatus';
-import { ToolPartRow } from '../rows/ToolPartRow';
+import { WorkingLine } from './WorkingLine';
+import type { TranscriptPresentation } from './transcript-presentation';
+import { useToolApprovals } from '../approvals/approval-context';
+import type { ToolOutputFormatters } from '../rows/tool-output';
+import type { ToolArgsFormatters } from '../tools/tool-args';
+import { ToolPresentationProvider, type ToolCatalog } from '../tools/tool-presentation';
 import { ToolRenderer as DefaultToolRenderer } from '../tools/ToolRenderer';
 import { CompactBoundary } from '../CompactBoundary/CompactBoundary';
 import {
@@ -79,6 +83,14 @@ export type MessageListLabels = {
   scrollToPrompt: string;
   /** Verb of the working row shown between tool calls, `Working` by default */
   working: string;
+  /** Row before the first token of an answer when `workingRow` is off, `Processing...` by default */
+  planning: string;
+  /** Accessible label of the copy button under a message, `Copy message` by default */
+  copyMessage: string;
+  /** Accessible label of the copy button right after copying, `Copied` by default */
+  copied: string;
+  /** Accessible label of the toolbar under a message, `Message actions` by default */
+  messageActions: string;
   /** Labels of the search bar */
   search?: Partial<TranscriptSearchLabels>;
   /** Summary and progress labels of collapsed tool runs */
@@ -89,6 +101,10 @@ export const DEFAULT_MESSAGE_LIST_LABELS: MessageListLabels = {
   newMessages: (count) => `${count} new ${count === 1 ? 'message' : 'messages'}`,
   scrollToPrompt: 'Scroll to the prompt',
   working: 'Working',
+  planning: 'Processing...',
+  copyMessage: 'Copy message',
+  copied: 'Copied',
+  messageActions: 'Message actions',
 };
 
 export type MessageListProps = {
@@ -115,7 +131,7 @@ export type MessageListProps = {
   /**
    * Collapses runs of consecutive read and search tool calls in an assistant message into one
    * summary row, for example `Read 3 files, searched 2 patterns`, `false` by default. Does not
-   * apply to `presentation="rows"`, where every call keeps its own row.
+   * apply to the rows presentation, where every call keeps its own row.
    */
   collapseToolRuns?: boolean | CollapseToolRunsOptions;
   /**
@@ -160,10 +176,32 @@ export type MessageListProps = {
    */
   toolActivity?: boolean;
   /**
-   * How the transcript is laid out: `cards` (the default) keeps the tool cards, `rows` shows the
-   * flat transcript of a terminal client — a marker, the call and its answer under a gutter.
+   * How the transcript is laid out: `cards` (the default) keeps the tool cards; `rowsPresentation`
+   * shows the flat transcript of a terminal client — a marker, the call and its answer under a
+   * gutter; `quietPresentation` folds MCP calls into quiet lines that open into their details. Both
+   * are passed as values so they only reach the bundle of a host that uses them.
    */
-  presentation?: 'cards' | 'rows';
+  presentation?: 'cards' | TranscriptPresentation;
+  /**
+   * Result formatters by part type, keyed as `toolRenderers`:
+   * `tool-Read`, `tool-mcp__tracker__task_list` or a server-wide `tool-mcp__tracker__*`. A formatter
+   * that returns `null` leaves the readable summary the kit builds.
+   */
+  toolOutputs?: ToolOutputFormatters;
+  /**
+   * Tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`: a call then
+   * reads by the tool `title` instead of its name, and its arguments and result as a short summary.
+   */
+  toolCatalog?: ToolCatalog;
+  /** Argument formatters by part type, keyed as `toolOutputs`; `null` keeps the kit summary */
+  toolArgs?: ToolArgsFormatters;
+  /**
+   * One vertical gap between every two blocks of the transcript — prompt, answer text, tool call —
+   * instead of the tighter gaps around the prompt, `false` by default. Always on in `rows`.
+   */
+  evenSpacing?: boolean;
+  /** Locale of numbers and dates in tool arguments and results, the locale of the runtime by default */
+  locale?: string;
   /** Adds a retry button to error parts */
   onRetry?: () => void;
   /** Adds the conversation search, opened with Mod+F while focus is inside the list, `false` by default */
@@ -243,6 +281,28 @@ function getTextFromParts(parts: unknown[], joiner: string): string {
     .join(joiner);
 }
 
+/** Whether a call of the latest answer waits for the user, whose decision the status bar already asks for */
+function hasOpenDecision(
+  messages: ChatMessage[],
+  requests: ReturnType<typeof useToolApprovals>,
+  lookups: ToolCallLookups
+): boolean {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== 'assistant') {
+    return false;
+  }
+  return (last.parts ?? []).some((part) => {
+    if (!isV5ToolPart(part) || !part.toolCallId) {
+      return false;
+    }
+    const request = requests?.[part.toolCallId];
+    if (request) {
+      return !request.outcome;
+    }
+    return Boolean(lookups.isAwaitingPermission?.(part.toolCallId));
+  });
+}
+
 /** Whether the answer itself is still growing, in which case the working row would double the caret */
 function isTailGrowingText(messages: ChatMessage[]): boolean {
   const last = messages[messages.length - 1];
@@ -274,13 +334,23 @@ function formatTimestamp(date: Date): string {
   return dateFormatter.format(date);
 }
 
-function ToolbarCopyButton({ text, onCopied }: { text: string; onCopied?: () => void }) {
+type ToolbarLabels = Pick<MessageListLabels, 'copyMessage' | 'copied' | 'messageActions'>;
+
+function ToolbarCopyButton({
+  text,
+  labels,
+  onCopied,
+}: {
+  text: string;
+  labels: ToolbarLabels;
+  onCopied?: () => void;
+}) {
   return (
     <CopyButton value={text} timeout={2000}>
       {({ copied, copy }) => (
         <UnstyledButton
           tabIndex={-1}
-          aria-label={copied ? 'Copied' : 'Copy message'}
+          aria-label={copied ? labels.copied : labels.copyMessage}
           className={classes.copyButton}
           onClick={() => {
             copy();
@@ -305,6 +375,7 @@ function MessageToolbar({
   size,
   align,
   isVisible,
+  labels,
   onCopied,
 }: {
   text?: string;
@@ -312,13 +383,14 @@ function MessageToolbar({
   size: 'sm' | 'lg';
   align: 'start' | 'end';
   isVisible: boolean;
+  labels: ToolbarLabels;
   onCopied?: () => void;
 }) {
   return (
     <div
       role="toolbar"
       tabIndex={-1}
-      aria-label="Message actions"
+      aria-label={labels.messageActions}
       className={classes.toolbar}
       data-size={size}
       data-align={align}
@@ -327,7 +399,7 @@ function MessageToolbar({
       onPointerDown={(event) => event.stopPropagation()}
     >
       {timestamp && <span>{timestamp}</span>}
-      {text && <ToolbarCopyButton text={text} onCopied={onCopied} />}
+      {text && <ToolbarCopyButton text={text} labels={labels} onCopied={onCopied} />}
     </div>
   );
 }
@@ -355,6 +427,11 @@ export const MessageList = memo(function MessageList({
   workingRow = false,
   toolActivity = false,
   presentation = 'cards',
+  toolOutputs,
+  toolCatalog,
+  toolArgs,
+  evenSpacing = false,
+  locale,
   onRetry,
   withSearch = false,
   searchOpened: searchOpenedProp,
@@ -372,7 +449,10 @@ export const MessageList = memo(function MessageList({
   labels: labelsProp,
 }: MessageListProps) {
   const labels = { ...DEFAULT_MESSAGE_LIST_LABELS, ...labelsProp };
-  const appearance = useAppearanceTracker(animateAppearance);
+  const appearance = useAppearanceTracker(animateAppearance, messages.length > 0);
+  const custom = typeof presentation === 'object' ? presentation : undefined;
+  const isRows = custom?.kind === 'rows';
+  const isEven = evenSpacing && !isRows;
   const appearClass = (key: string) => (appearance.isNew(key) ? classes.appear : undefined);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
@@ -677,7 +757,16 @@ export const MessageList = memo(function MessageList({
     [normalizedMessages]
   );
   const lookups = toolCallLookups ?? derivedToolCallLookups;
+  const approvalRequests = useToolApprovals();
+  const isWaitingForDecision = useMemo(
+    () => hasOpenDecision(normalizedMessages, approvalRequests, lookups),
+    [normalizedMessages, approvalRequests, lookups]
+  );
   const { turns, lastUserMessageId } = transcript;
+  const turnStartRef = useRef({ id: lastUserMessageId, at: Date.now() });
+  if (turnStartRef.current.id !== lastUserMessageId) {
+    turnStartRef.current = { id: lastUserMessageId, at: Date.now() };
+  }
 
   const lastUserMessageIdRef = useRef(lastUserMessageId);
   const pendingPlanningScrollUserIdRef = useRef<string | null>(null);
@@ -696,17 +785,17 @@ export const MessageList = memo(function MessageList({
     lastActivityRef.current = { messages: normalizedMessages, at: Date.now() };
   }
 
-  const planningLabel = 'Processing...';
+  const hasWorkingRow = workingRow !== false && workingRow !== undefined;
   const showPlanning =
     Boolean(lastMessage) &&
     isStreaming &&
     (lastMessageRole === 'user' || !transcript.lastAssistantHasContent);
   const showWorkingRow =
-    workingRow !== false &&
-    workingRow !== undefined &&
+    hasWorkingRow &&
     isStreaming &&
-    !showPlanning &&
-    !isTailGrowingText(normalizedMessages);
+    !isTailGrowingText(normalizedMessages) &&
+    !isWaitingForDecision &&
+    !custom?.showsActivity?.(lastMessage?.parts ?? []);
   const isNewAssistantMessage =
     lastMessageRole === 'assistant' &&
     Boolean(lastMessageId) &&
@@ -739,114 +828,148 @@ export const MessageList = memo(function MessageList({
   }, [lastUserMessageId, showPlanning, scrollToBottomSettled]);
 
   return (
-    <Box
-      ref={containerRefCallback}
-      onScroll={handleScroll}
-      onKeyDown={withSearch ? handleKeyDown : undefined}
-      tabIndex={withSearch ? -1 : undefined}
-      data-top-fade={topFade && isScrolled ? true : undefined}
-      className={cx(classes.root, className)}
-      style={getContentWidthStyle(contentWidth, style)}
+    <ToolPresentationProvider
+      catalog={toolCatalog}
+      args={toolArgs}
+      outputs={toolOutputs}
+      locale={locale}
     >
-      <div ref={contentWrapperRef} className={classes.content}>
-        {(isSearchOpen || (stickyPrompt && stickyTurnKey)) && (
-          <div className={classes.stickyTop} data-search-ignore>
-            <div className={classes.stickyTopInner}>
-              {isSearchOpen && (
-                <TranscriptSearch
-                  inputRef={searchInputRef}
-                  value={search.query}
-                  onChange={search.setQuery}
-                  activeIndex={search.activeIndex}
-                  total={search.total}
-                  onNext={search.next}
-                  onPrevious={search.previous}
-                  onClose={closeSearch}
-                  labels={labels.search}
-                />
-              )}
-              {stickyPrompt &&
-                stickyTurnKey &&
-                (() => {
-                  const turn = turns.find((item) => item.userMsg?.id === stickyTurnKey);
-                  const promptText = turn?.userMsg
-                    ? getTextFromParts(turn.userMsg.parts ?? [], ' ')
-                    : '';
-                  if (!promptText) {
-                    return null;
-                  }
-                  return (
-                    <Paper withBorder shadow="xs" radius="md" className={classes.stickyPrompt}>
-                      <UnstyledButton
-                        className={classes.stickyPromptButton}
-                        aria-label={labels.scrollToPrompt}
-                        onClick={() =>
-                          chatContainerRef.current
-                            ?.querySelector<HTMLElement>(
-                              `[data-turn-key="${CSS.escape(stickyTurnKey)}"]`
-                            )
-                            ?.scrollIntoView({
-                              block: 'start',
-                              behavior: 'smooth',
-                            })
-                        }
-                      >
-                        <IconCornerLeftUp size={14} aria-hidden />
-                        <Text component="span" size="xs" truncate="end" miw={0}>
-                          {promptText}
-                        </Text>
-                      </UnstyledButton>
-                    </Paper>
-                  );
-                })()}
-            </div>
-          </div>
-        )}
-        <div
-          ref={turnsRootRef}
-          className={classes.turns}
-          data-rows={presentation === 'rows' || undefined}
-        >
-          {turns.map((turn, turnIndex) => {
-            const isLastTurn = turnIndex === turns.length - 1;
-            const turnKey = turn.userMsg?.id ?? turn.assistantMsgs[0]?.id ?? `turn-${turnIndex}`;
-
-            return (
-              <div
-                key={turnKey}
-                className={classes.turn}
-                data-turn-key={turnKey}
-                data-rows={presentation === 'rows' || undefined}
-              >
-                {turn.userMsg &&
+      <Box
+        ref={containerRefCallback}
+        onScroll={handleScroll}
+        onKeyDown={withSearch ? handleKeyDown : undefined}
+        tabIndex={withSearch ? -1 : undefined}
+        data-top-fade={topFade && isScrolled ? true : undefined}
+        className={cx(classes.root, className)}
+        style={getContentWidthStyle(contentWidth, style)}
+      >
+        <div ref={contentWrapperRef} className={classes.content}>
+          {(isSearchOpen || (stickyPrompt && stickyTurnKey)) && (
+            <div className={classes.stickyTop} data-search-ignore>
+              <div className={classes.stickyTopInner}>
+                {isSearchOpen && (
+                  <TranscriptSearch
+                    inputRef={searchInputRef}
+                    value={search.query}
+                    onChange={search.setQuery}
+                    activeIndex={search.activeIndex}
+                    total={search.total}
+                    onNext={search.next}
+                    onPrevious={search.previous}
+                    onClose={closeSearch}
+                    labels={labels.search}
+                  />
+                )}
+                {stickyPrompt &&
+                  stickyTurnKey &&
                   (() => {
-                    const userMsg = turn.userMsg;
-                    const text = getTextFromParts(userMsg.parts ?? [], '');
-                    const hasParts = (userMsg.parts ?? []).length > 0;
-                    if (!text && !hasParts) {
+                    const turn = turns.find((item) => item.userMsg?.id === stickyTurnKey);
+                    const promptText = turn?.userMsg
+                      ? getTextFromParts(turn.userMsg.parts ?? [], ' ')
+                      : '';
+                    if (!promptText) {
                       return null;
                     }
-                    const userCreatedAt = userMsg.createdAt;
-                    const userCopyKey = `user-${userMsg.id}`;
-                    const userCopyVisible = activeCopyId === userCopyKey;
-                    const userTimestamp =
-                      isMounted && userCreatedAt
-                        ? formatTimestamp(new Date(userCreatedAt))
-                        : undefined;
-                    const showUserToolbar =
-                      (showCopyToolbar && Boolean(text)) || Boolean(userTimestamp);
-                    if (messageActions) {
-                      const { onEdit, onRewind } = messageActions;
-                      if (onEdit && editingId === userMsg.id) {
+                    return (
+                      <Paper withBorder shadow="xs" radius="md" className={classes.stickyPrompt}>
+                        <UnstyledButton
+                          className={classes.stickyPromptButton}
+                          aria-label={labels.scrollToPrompt}
+                          onClick={() =>
+                            chatContainerRef.current
+                              ?.querySelector<HTMLElement>(
+                                `[data-turn-key="${CSS.escape(stickyTurnKey)}"]`
+                              )
+                              ?.scrollIntoView({
+                                block: 'start',
+                                behavior: 'smooth',
+                              })
+                          }
+                        >
+                          <IconCornerLeftUp size={14} aria-hidden />
+                          <Text component="span" size="xs" truncate="end" miw={0}>
+                            {promptText}
+                          </Text>
+                        </UnstyledButton>
+                      </Paper>
+                    );
+                  })()}
+              </div>
+            </div>
+          )}
+          <div
+            ref={turnsRootRef}
+            className={classes.turns}
+            data-rows={isRows || undefined}
+            data-even={isEven || undefined}
+          >
+            {turns.map((turn, turnIndex) => {
+              const isLastTurn = turnIndex === turns.length - 1;
+              const turnKey = turn.userMsg?.id ?? turn.assistantMsgs[0]?.id ?? `turn-${turnIndex}`;
+
+              return (
+                <div
+                  key={turnKey}
+                  className={classes.turn}
+                  data-turn-key={turnKey}
+                  data-rows={isRows || undefined}
+                  data-even={isEven || undefined}
+                >
+                  {turn.userMsg &&
+                    (() => {
+                      const userMsg = turn.userMsg;
+                      const text = getTextFromParts(userMsg.parts ?? [], '');
+                      const hasParts = (userMsg.parts ?? []).length > 0;
+                      if (!text && !hasParts) {
+                        return null;
+                      }
+                      const userCreatedAt = userMsg.createdAt;
+                      const userCopyKey = `user-${userMsg.id}`;
+                      const userCopyVisible = activeCopyId === userCopyKey;
+                      const userTimestamp =
+                        isMounted && userCreatedAt
+                          ? formatTimestamp(new Date(userCreatedAt))
+                          : undefined;
+                      const showUserToolbar =
+                        (showCopyToolbar && Boolean(text)) || Boolean(userTimestamp);
+                      if (messageActions) {
+                        const { onEdit, onRewind } = messageActions;
+                        if (onEdit && editingId === userMsg.id) {
+                          return (
+                            <div className={classes.group} data-turn-prompt>
+                              <EditMessageComposer
+                                defaultValue={text}
+                                onCancel={finishEditing}
+                                onSubmit={async (nextText) => {
+                                  await onEdit(userMsg.id, nextText);
+                                  finishEditing();
+                                }}
+                              />
+                            </div>
+                          );
+                        }
                         return (
-                          <div className={classes.group} data-turn-prompt>
-                            <EditMessageComposer
-                              defaultValue={text}
-                              onCancel={finishEditing}
-                              onSubmit={async (nextText) => {
-                                await onEdit(userMsg.id, nextText);
-                                finishEditing();
-                              }}
+                          <div
+                            className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
+                            data-message-actions-host
+                            data-message-id={userMsg.id}
+                            data-turn-prompt
+                          >
+                            <CustomUserMessage
+                              message={userMsg}
+                              className={classNames?.userMessage}
+                              enableImagePreview={enableImagePreview}
+                              commands={commands}
+                              longMessageThreshold={longMessageThreshold}
+                            />
+                            <MessageActions
+                              messageRole="user"
+                              align="end"
+                              text={showCopyToolbar ? text : undefined}
+                              timestamp={userTimestamp}
+                              disabled={isStreaming}
+                              onEdit={onEdit && text ? () => setEditingId(userMsg.id) : undefined}
+                              onRewind={onRewind ? () => onRewind(userMsg.id) : undefined}
                             />
                           </div>
                         );
@@ -854,8 +977,6 @@ export const MessageList = memo(function MessageList({
                       return (
                         <div
                           className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
-                          data-message-actions-host
-                          data-message-id={userMsg.id}
                           data-turn-prompt
                         >
                           <CustomUserMessage
@@ -865,197 +986,179 @@ export const MessageList = memo(function MessageList({
                             commands={commands}
                             longMessageThreshold={longMessageThreshold}
                           />
-                          <MessageActions
-                            messageRole="user"
-                            align="end"
-                            text={showCopyToolbar ? text : undefined}
-                            timestamp={userTimestamp}
-                            disabled={isStreaming}
-                            onEdit={onEdit && text ? () => setEditingId(userMsg.id) : undefined}
-                            onRewind={onRewind ? () => onRewind(userMsg.id) : undefined}
-                          />
+                          {showUserToolbar && (
+                            <MessageToolbar
+                              text={showCopyToolbar ? text : ''}
+                              timestamp={userTimestamp}
+                              size="sm"
+                              align="end"
+                              isVisible={userCopyVisible}
+                              labels={labels}
+                              onCopied={() => markCopied(userCopyKey)}
+                            />
+                          )}
                         </div>
                       );
-                    }
-                    return (
-                      <div
-                        className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
-                        data-turn-prompt
-                      >
-                        <CustomUserMessage
-                          message={userMsg}
-                          className={classNames?.userMessage}
-                          enableImagePreview={enableImagePreview}
-                          commands={commands}
-                          longMessageThreshold={longMessageThreshold}
+                    })()}
+
+                  {turn.assistantMsgs.length > 0 &&
+                    !(isLastTurn && showPlanning) &&
+                    (() => {
+                      const assistantText = getTextFromParts(
+                        turn.assistantMsgs.flatMap((msg) => msg.parts ?? []),
+                        '\n\n'
+                      );
+                      const isTurnStreaming = isStreaming && isLastTurn;
+                      const showToolbar =
+                        showCopyToolbar && Boolean(assistantText.trim()) && !isTurnStreaming;
+                      const copyKey = `assistant-${turnKey}-all`;
+                      const toolbarText = showCopyToolbar ? assistantText : '';
+                      const toolbarVisible = activeCopyId === copyKey;
+                      const firstAssistant = turn.assistantMsgs.find(
+                        (msg) => msg.role === 'assistant'
+                      );
+                      const firstAssistantId = firstAssistant?.id ?? '';
+                      const isErrorOnlyTurn = turn.assistantMsgs.every((msg) =>
+                        (msg.parts ?? []).every(isErrorPart)
+                      );
+                      const showActions =
+                        Boolean(messageActions) &&
+                        Boolean(firstAssistant) &&
+                        !isTurnStreaming &&
+                        !isErrorOnlyTurn;
+                      const actionsNode = messageActions && showActions && (
+                        <MessageActions
+                          messageRole="assistant"
+                          text={showCopyToolbar && assistantText.trim() ? assistantText : undefined}
+                          feedbackReasons={messageActions.feedbackReasons}
+                          feedback={
+                            messageActions.feedback
+                              ? (messageActions.feedback[firstAssistantId] ?? null)
+                              : undefined
+                          }
+                          onRetry={
+                            messageActions.onRetry
+                              ? () => messageActions.onRetry!(firstAssistantId)
+                              : undefined
+                          }
+                          onBranch={
+                            messageActions.onBranch
+                              ? () => messageActions.onBranch!(firstAssistantId)
+                              : undefined
+                          }
+                          onFeedback={
+                            messageActions.onFeedback
+                              ? (value, details) =>
+                                  details
+                                    ? messageActions.onFeedback!(firstAssistantId, value, details)
+                                    : messageActions.onFeedback!(firstAssistantId, value)
+                              : undefined
+                          }
                         />
-                        {showUserToolbar && (
-                          <MessageToolbar
-                            text={showCopyToolbar ? text : ''}
-                            timestamp={userTimestamp}
-                            size="sm"
-                            align="end"
-                            isVisible={userCopyVisible}
-                            onCopied={() => markCopied(userCopyKey)}
-                          />
-                        )}
-                      </div>
-                    );
-                  })()}
+                      );
 
-                {turn.assistantMsgs.length > 0 &&
-                  !(isLastTurn && showPlanning) &&
-                  (() => {
-                    const assistantText = getTextFromParts(
-                      turn.assistantMsgs.flatMap((msg) => msg.parts ?? []),
-                      '\n\n'
-                    );
-                    const isTurnStreaming = isStreaming && isLastTurn;
-                    const showToolbar =
-                      showCopyToolbar && Boolean(assistantText.trim()) && !isTurnStreaming;
-                    const copyKey = `assistant-${turnKey}-all`;
-                    const toolbarText = showCopyToolbar ? assistantText : '';
-                    const toolbarVisible = activeCopyId === copyKey;
-                    const firstAssistant = turn.assistantMsgs.find(
-                      (msg) => msg.role === 'assistant'
-                    );
-                    const firstAssistantId = firstAssistant?.id ?? '';
-                    const isErrorOnlyTurn = turn.assistantMsgs.every((msg) =>
-                      (msg.parts ?? []).every(isErrorPart)
-                    );
-                    const showActions =
-                      Boolean(messageActions) &&
-                      Boolean(firstAssistant) &&
-                      !isTurnStreaming &&
-                      !isErrorOnlyTurn;
-                    const actionsNode = messageActions && showActions && (
-                      <MessageActions
-                        messageRole="assistant"
-                        text={showCopyToolbar && assistantText.trim() ? assistantText : undefined}
-                        feedbackReasons={messageActions.feedbackReasons}
-                        feedback={
-                          messageActions.feedback
-                            ? (messageActions.feedback[firstAssistantId] ?? null)
-                            : undefined
-                        }
-                        onRetry={
-                          messageActions.onRetry
-                            ? () => messageActions.onRetry!(firstAssistantId)
-                            : undefined
-                        }
-                        onBranch={
-                          messageActions.onBranch
-                            ? () => messageActions.onBranch!(firstAssistantId)
-                            : undefined
-                        }
-                        onFeedback={
-                          messageActions.onFeedback
-                            ? (value, details) =>
-                                details
-                                  ? messageActions.onFeedback!(firstAssistantId, value, details)
-                                  : messageActions.onFeedback!(firstAssistantId, value)
-                            : undefined
-                        }
-                      />
-                    );
-
-                    return (
-                      <div
-                        className={classes.group}
-                        data-message-actions-host={messageActions ? true : undefined}
-                      >
+                      return (
                         <div
-                          className={classes.assistantStack}
-                          data-rows={presentation === 'rows' || undefined}
+                          className={classes.group}
+                          data-message-actions-host={messageActions ? true : undefined}
                         >
-                          {turn.assistantMsgs.map((msg, i) => {
-                            const isLastMsg = isLastTurn && i === turn.assistantMsgs.length - 1;
-                            return (
-                              <AssistantParts
-                                key={msg.id}
-                                msg={msg}
-                                isRowStreaming={isLastMsg && isStreaming}
-                                isRowTextStreaming={isLastMsg && status === 'streaming'}
-                                highlighter={highlighter}
-                                wrapLines={wrapLines}
-                                responsiveTables={responsiveTables}
-                                frameBatched={frameBatched}
-                                tailGranularity={tailGranularity}
-                                suppressQuestionTool={suppressQuestionTool}
-                                suppressQuestionToolCallId={suppressQuestionToolCallId}
-                                ToolRendererComponent={CustomToolRenderer}
-                                toolRenderers={toolRenderers}
-                                onToolAction={stableToolAction}
-                                onRetry={stableRetry}
-                                toolRunOptions={toolRunOptions}
-                                appearance={appearance}
-                                lookups={lookups}
-                                toolActivity={toolActivity}
-                                presentation={presentation}
-                              />
-                            );
-                          })}
+                          <div
+                            className={classes.assistantStack}
+                            data-rows={isRows || undefined}
+                            data-even={isEven || undefined}
+                          >
+                            {turn.assistantMsgs.map((msg, i) => {
+                              const isLastMsg = isLastTurn && i === turn.assistantMsgs.length - 1;
+                              return (
+                                <AssistantParts
+                                  key={msg.id}
+                                  msg={msg}
+                                  isRowStreaming={isLastMsg && isStreaming}
+                                  isRowTextStreaming={isLastMsg && status === 'streaming'}
+                                  highlighter={highlighter}
+                                  wrapLines={wrapLines}
+                                  responsiveTables={responsiveTables}
+                                  frameBatched={frameBatched}
+                                  tailGranularity={tailGranularity}
+                                  suppressQuestionTool={suppressQuestionTool}
+                                  suppressQuestionToolCallId={suppressQuestionToolCallId}
+                                  ToolRendererComponent={CustomToolRenderer}
+                                  toolRenderers={toolRenderers}
+                                  onToolAction={stableToolAction}
+                                  onRetry={stableRetry}
+                                  toolRunOptions={toolRunOptions}
+                                  appearance={appearance}
+                                  lookups={lookups}
+                                  toolActivity={toolActivity}
+                                  custom={custom}
+                                  runLabels={toolRunLabels}
+                                  turnStartedAt={
+                                    isLastTurn && i === 0 ? turnStartRef.current.at : undefined
+                                  }
+                                  toolOutputs={toolOutputs}
+                                  evenSpacing={isEven}
+                                />
+                              );
+                            })}
+                          </div>
+                          {messageActions ? (
+                            actionsNode
+                          ) : showToolbar || toolbarVisible ? (
+                            <MessageToolbar
+                              text={toolbarText}
+                              size="lg"
+                              align="start"
+                              isVisible={toolbarVisible}
+                              labels={labels}
+                              onCopied={() => markCopied(copyKey)}
+                            />
+                          ) : null}
                         </div>
-                        {messageActions ? (
-                          actionsNode
-                        ) : showToolbar || toolbarVisible ? (
-                          <MessageToolbar
-                            text={toolbarText}
-                            size="lg"
-                            align="start"
-                            isVisible={toolbarVisible}
-                            onCopied={() => markCopied(copyKey)}
-                          />
-                        ) : null}
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
-                {isLastTurn && showPlanning && (
-                  <ToolRowBase
-                    icon={<SpiralLoader size={12} />}
-                    shimmerLabel={planningLabel}
-                    completeLabel="Done"
-                    isAnimating
-                  />
-                )}
-              </div>
-            );
-          })}
-          {showWorkingRow &&
-            (workingRow === true ? (
-              <AgentStatus
-                label={labels.working}
-                startedAt={lastActivityRef.current.at}
-                paused
-                className={cx(
-                  classes.workingRow,
-                  presentation === 'rows' && classes.workingRowInline
-                )}
-              />
-            ) : (
-              workingRow
-            ))}
-        </div>
-        {showAssistantBreathingSpace && (
-          <div aria-hidden="true" className={classes.breathingSpace} />
-        )}
-        {unseenCount > 0 && (
-          <div className={classes.jumpToLatest} data-search-ignore>
-            <Button
-              size="compact-sm"
-              radius="xl"
-              variant="default"
-              leftSection={<IconArrowDown size={14} />}
-              className={classes.jumpToLatestButton}
-              onClick={jumpToLatest}
-            >
-              {labels.newMessages(unseenCount)}
-            </Button>
+                  {isLastTurn && showPlanning && !hasWorkingRow && (
+                    <ToolRowBase
+                      icon={<SpiralLoader size={12} />}
+                      shimmerLabel={labels.planning}
+                      completeLabel="Done"
+                      isAnimating
+                    />
+                  )}
+                </div>
+              );
+            })}
+            {showWorkingRow &&
+              (workingRow === true ? (
+                <WorkingLine
+                  label={labels.working}
+                  since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
+                  className={isRows ? classes.workingRowInline : undefined}
+                />
+              ) : (
+                workingRow
+              ))}
           </div>
-        )}
-      </div>
-    </Box>
+          {showAssistantBreathingSpace && (
+            <div aria-hidden="true" className={classes.breathingSpace} />
+          )}
+          {unseenCount > 0 && (
+            <div className={classes.jumpToLatest} data-search-ignore>
+              <Button
+                size="compact-sm"
+                radius="xl"
+                variant="default"
+                leftSection={<IconArrowDown size={14} />}
+                className={classes.jumpToLatestButton}
+                onClick={jumpToLatest}
+              >
+                {labels.newMessages(unseenCount)}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Box>
+    </ToolPresentationProvider>
   );
 });
 
@@ -1080,7 +1183,11 @@ type AssistantPartsProps = {
   appearance: AppearanceTracker;
   lookups: ToolCallLookups;
   toolActivity: boolean;
-  presentation: 'cards' | 'rows';
+  custom?: TranscriptPresentation;
+  runLabels?: Partial<ToolRunLabels>;
+  turnStartedAt?: number;
+  toolOutputs?: ToolOutputFormatters;
+  evenSpacing: boolean;
 };
 
 function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
@@ -1146,7 +1253,11 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.toolRunOptions === next.toolRunOptions &&
     previous.appearance === next.appearance &&
     previous.toolActivity === next.toolActivity &&
-    previous.presentation === next.presentation &&
+    previous.custom === next.custom &&
+    previous.runLabels === next.runLabels &&
+    previous.turnStartedAt === next.turnStartedAt &&
+    previous.toolOutputs === next.toolOutputs &&
+    previous.evenSpacing === next.evenSpacing &&
     sameToolRenderers(previous.toolRenderers, next.toolRenderers)
   );
 }
@@ -1170,13 +1281,18 @@ const AssistantParts = memo(function AssistantParts({
   appearance,
   lookups,
   toolActivity,
-  presentation,
+  custom,
+  runLabels,
+  turnStartedAt,
+  toolOutputs,
+  evenSpacing,
 }: AssistantPartsProps) {
   const parts = useMemo(
     () => normalizeAssistantToolParts(msg.parts ?? []) as unknown[],
     [msg.parts]
   );
 
+  const approvals = useToolApprovals();
   const liveLookups = useMemo(
     () => (hasUnresolvedToolCalls(parts) ? lookups : undefined),
     [parts, lookups]
@@ -1184,7 +1300,7 @@ const AssistantParts = memo(function AssistantParts({
 
   const elements = useMemo(() => {
     const { siblingsByParentId, nestedToolCallIds, lastTextIndex } = getMessagePartIndex(parts);
-    const chatStreamingStatus = isRowStreaming ? 'streaming' : undefined;
+    const chatStreamingStatus = isRowStreaming ? 'streaming' : 'ready';
     const visible: Array<{ part: unknown; index: number }> = [];
 
     parts.forEach((part, index) => {
@@ -1289,17 +1405,6 @@ const AssistantParts = memo(function AssistantParts({
       }
       const toolPart = part as ToolPart;
       const toolCallId = toolPart.toolCallId;
-      if (presentation === 'rows') {
-        return (
-          <ToolPartRow
-            key={toolCallId ?? `${msg.id}-tool-${index}`}
-            part={toolPart}
-            chatStatus={chatStreamingStatus}
-            lookups={liveLookups}
-            showActivity={toolActivity}
-          />
-        );
-      }
       const nestedTools =
         (toolPart.type === 'tool-Task' || toolPart.type === 'tool-Agent') && toolCallId
           ? siblingsByParentId.get(toolCallId) || []
@@ -1333,7 +1438,24 @@ const AssistantParts = memo(function AssistantParts({
       );
     };
 
-    if (!toolRunOptions || presentation === 'rows') {
+    if (custom) {
+      return custom
+        .renderParts(visible, renderEntry, {
+          messageId: msg.id,
+          chatStatus: chatStreamingStatus,
+          lookups: liveLookups,
+          approvals,
+          showActivity: toolActivity,
+          highlighter,
+          wrapLines,
+          toolOutputs,
+          runLabels,
+          turnStartedAt,
+        })
+        .map(appear);
+    }
+
+    if (!toolRunOptions) {
       return visible.map((entry) => appear(renderEntry(entry)));
     }
 
@@ -1382,14 +1504,19 @@ const AssistantParts = memo(function AssistantParts({
     appearance,
     liveLookups,
     toolActivity,
-    presentation,
+    custom,
+    runLabels,
+    turnStartedAt,
+    toolOutputs,
+    approvals,
   ]);
 
   return (
     <div
       className={classes.assistantParts}
       data-stacked={elements.length > 1 || undefined}
-      data-rows={presentation === 'rows' || undefined}
+      data-rows={custom?.kind === 'rows' || undefined}
+      data-even={evenSpacing || undefined}
     >
       {elements}
     </div>

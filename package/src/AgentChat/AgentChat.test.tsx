@@ -542,6 +542,80 @@ describe('AgentChat/AgentChat', () => {
     expect(screen.getByRole('group', { name: 'Vorschläge' })).toBeInTheDocument();
   });
 
+  describe('tool catalog', () => {
+    const catalogMessages = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Какие у меня задачи?' }] },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-mcp__tracker__tracker_task_search',
+            toolCallId: 'mine',
+            state: 'output-available',
+            input: { payload: JSON.stringify({ assigneeIds: ['alice'], size: 100 }) },
+            output: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    total: 12,
+                    items: [{ id: 'TRK-400', title: 'Перенести сборку' }],
+                  }),
+                },
+              ],
+            },
+          },
+          {
+            type: 'tool-mcp__tracker__tracker_task_update',
+            toolCallId: 'move',
+            state: 'input-available',
+            input: { payload: JSON.stringify({ taskId: 'TRK-400' }) },
+          },
+        ],
+      },
+    ] as ChatMessage[];
+
+    it('reads MCP calls by the catalog of the host and frames the approval with the call', () => {
+      const { container } = render(
+        <AgentChat
+          messages={catalogMessages}
+          status="streaming"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+          toolCatalog={{
+            mcp__tracker__tracker_task_search: { title: 'Найти задачи по условиям' },
+            mcp__tracker__tracker_task_update: { title: 'Изменить задачу' },
+          }}
+          approvals={{ move: { onApprove: () => {} } }}
+        />
+      );
+
+      expect(screen.getByText('Найти задачи по условиям')).toBeInTheDocument();
+      expect(screen.getByText('assigneeIds: alice · size: 100')).toBeInTheDocument();
+      expect(screen.getByText('12 items')).toBeInTheDocument();
+      expect(screen.getByText('TRK-400 · Перенести сборку')).toBeInTheDocument();
+      expect(screen.getByText('Изменить задачу')).toBeInTheDocument();
+      expect(container.querySelector('[data-framed]')).toBeInTheDocument();
+    });
+
+    it('keeps the tool names when the host passes no catalog', () => {
+      render(
+        <AgentChat
+          messages={catalogMessages}
+          status="streaming"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+
+      expect(screen.queryByText('Найти задачи по условиям')).toBeNull();
+      expect(screen.queryByText('12 items')).toBeNull();
+    });
+  });
+
   describe('working row', () => {
     const betweenCalls: ChatMessage[] = [
       { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Find the overdue tasks' }] },
@@ -673,7 +747,7 @@ describe('AgentChat/AgentChat', () => {
                 role: 'assistant',
                 parts: [
                   {
-                    type: 'tool-mcp__layers__task_list',
+                    type: 'tool-mcp__tracker__task_list',
                     toolCallId: 'c1',
                     state: 'input-available',
                     input: { overdue: true },

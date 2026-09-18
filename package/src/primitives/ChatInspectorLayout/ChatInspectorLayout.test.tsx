@@ -23,7 +23,7 @@ describe('primitives/ChatInspectorLayout', () => {
     );
 
     expect(screen.getByText('chat')).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Inspector' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Inspector' })).toBeInTheDocument();
     expect(screen.getByText('diff review')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('tab', { name: 'Tasks' }));
@@ -31,14 +31,14 @@ describe('primitives/ChatInspectorLayout', () => {
     expect(screen.queryByText('diff review')).not.toBeInTheDocument();
   });
 
-  it('renders a single inspector without tabs', () => {
+  it('renders a single inspector without tabs', async () => {
     render(
       <ChatInspectorLayout inspector={<div>diff review</div>} labels={{ inspector: 'Panel' }}>
         <div>chat</div>
       </ChatInspectorLayout>
     );
 
-    expect(screen.getByRole('region', { name: 'Panel' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Panel' })).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 

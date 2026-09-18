@@ -7,22 +7,25 @@ export type ApprovalRisk = 'low' | 'medium' | 'high';
 export type ApprovalChoice = 'once' | 'session' | 'always' | 'deny';
 
 /** How a tool call was settled, including the calls nobody was asked about */
-export type ApprovalOutcome = ApprovalChoice | 'auto' | 'rule';
+export type ApprovalOutcome = ApprovalChoice | 'auto' | 'rule' | 'blocked' | 'interrupted';
+
+/** How the chat treats tool calls: ask before changes, ask always, only read, or never ask */
+export type PermissionMode = 'ask-writes' | 'ask-all' | 'read-only' | 'auto';
 
 export type PermissionState = {
   /** Rules saved for this chat */
   rules: PermissionRule[];
-  /** Approve everything without asking */
-  auto: boolean;
+  mode: PermissionMode;
 };
 
-/** What the approval footer needs to explain a call in human words */
+/** What a call does to the data of its server */
+export type ApprovalEffect = 'read' | 'write' | 'destructive';
+
+/** Facts the client turns into the words of the approval footer */
 export type ApprovalDetails = {
   risk: ApprovalRisk;
-  /** One sentence: what the call will do */
-  reason: string;
-  /** Longer explanation behind the "Why?" button */
-  explanation: string;
+  effect: ApprovalEffect;
+  /** Description of the tool as its server sends it */
   reasoning?: string;
   /** Rule the footer offers to save */
   ruleSuggestion: string;
@@ -40,6 +43,7 @@ export type TurnUsage = {
 export type AgentEvent =
   | { kind: 'session'; sessionId: string; tools: string[] }
   | { kind: 'text'; delta: string }
+  | { kind: 'thinking'; delta: string }
   | { kind: 'tool-start'; toolCallId: string; name: string; input: Record<string, unknown> }
   | { kind: 'tool-end'; toolCallId: string; output: unknown; isError: boolean }
   | {
@@ -48,6 +52,8 @@ export type AgentEvent =
       toolCallId: string;
       name: string;
       details: ApprovalDetails;
+      /** `ask` rule that made the chat ask about this call */
+      matchedRule?: string;
     }
   | {
       kind: 'approval-settled';
@@ -55,8 +61,6 @@ export type AgentEvent =
       toolCallId: string;
       name: string;
       outcome: ApprovalOutcome;
-      /** Rule that approved the call without asking */
-      matchedRule?: string;
     }
   | { kind: 'permissions'; state: PermissionState }
   | { kind: 'usage'; usage: TurnUsage }
@@ -67,16 +71,20 @@ export type ChatRequest = {
   chatId: string;
   prompt: string;
   sessionId?: string;
+  model?: string;
+  /** File from the sample folder the user keeps in context */
+  contextFile?: string;
 };
 
 export type ApprovalRequest = {
+  chatId: string;
   requestId: string;
   choice: ApprovalChoice;
 };
 
 export type PermissionRequest = {
   chatId: string;
-  auto?: boolean;
+  mode?: PermissionMode;
   reset?: boolean;
   save?: PermissionRule;
   remove?: string;

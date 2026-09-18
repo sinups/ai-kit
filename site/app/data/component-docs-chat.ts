@@ -444,12 +444,11 @@ export function Example({ spent, openUsage, dismiss }: { spent: number; openUsag
     ],
   },
   {
-    name: 'QuestionPrompt',
-    name: "ToolUnavailableNotice",
+    name: 'ToolUnavailableNotice',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ToolUnavailableNotice } from "@sinups/ai-kit";
 
 export function Example({ reconnect, dismiss }: { reconnect: () => void; dismiss: () => void }) {
@@ -463,22 +462,37 @@ export function Example({ reconnect, dismiss }: { reconnect: () => void; dismiss
   );
 }`,
       },
-        type: "usage",
-        title: "Usage",
+      {
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Say in the transcript that a tool or the server behind it stopped answering, without turning the answer into an error card: `tracker is unavailable. The connection dropped after three attempts.`. `server` names the server or the tool in the title and is dropped from it when omitted; `message` carries what went wrong. `onRetry` adds a retry button, `onDismiss` a close button, and with neither the notice is read-only. Shares its look and its labels pattern with IdleReturnPrompt and SpendThresholdNotice.",
-        type: "example",
-        title: "Server lost, with retry",
-        previewId: "ToolUnavailableNotice/basic",
+          'Say in the transcript that a tool or the server behind it stopped answering, without turning the answer into an error card: `tracker is unavailable. The connection dropped after three attempts.`. `server` names the server or the tool in the title and is dropped from it when omitted; `message` carries what went wrong. `onRetry` adds a retry button, `onDismiss` a close button, and with neither the notice is read-only. Shares its look and its labels pattern with IdleReturnPrompt and SpendThresholdNotice.',
+      },
+      {
+        type: 'example',
+        title: 'Server lost, with retry',
+        previewId: 'ToolUnavailableNotice/basic',
         code: `<ToolUnavailableNotice
+  server="tracker"
+  message="The connection dropped after three attempts."
+  onRetry={reconnect}
+  onDismiss={dismiss}
 />`,
+      },
     ],
-    name: "ChatHeader",
+  },
+  {
+    name: 'ChatHeader',
+    blocks: [
+      {
+        type: 'code',
+        title: 'Code',
         content: `import { ChatHeader, ContextUsage } from "@sinups/ai-kit";
 import { ActionIcon, Badge, Group } from "@mantine/core";
 import { IconLayoutSidebar, IconLayoutSidebarRight } from "@tabler/icons-react";
 
 export function Example({ toggleSidebar, toggleInspector }: { toggleSidebar: () => void; toggleInspector: () => void }) {
+  return (
     <ChatHeader
       title="Flaky upload test in the release pipeline"
       subtitle="claude-opus-5 · acme workspace"
@@ -493,19 +507,49 @@ export function Example({ toggleSidebar, toggleInspector }: { toggleSidebar: () 
           <ContextUsage used={128_000} total={200_000} />
           <ActionIcon variant="subtle" color="gray" aria-label="Toggle the inspector" onClick={toggleInspector}>
             <IconLayoutSidebarRight size={18} />
+          </ActionIcon>
         </Group>
-          "Top bar of a chat surface, above `AgentChat`. `title` is the conversation name and truncates instead of wrapping; `subtitle` is the quiet second line, for example the model and the workspace. `leftSection` holds the leading controls (a sidebar toggle, a back button), `secondarySection` the badges and connection state, `rightSection` the panel buttons, menus and a `ContextUsage`. In a container narrower than 30rem the subtitle and the secondary section are hidden so the title and the right section keep their room; pass `collapseSecondary={false}` to keep them. The header takes its height from `--ae-panel-header-height`, so it lines up with the other panel headers of a layout, and `withBorder={false}` removes the line under it. `titleOrder` sets the heading level (`2` by default).",
-        title: "Wide",
-        previewId: "ChatHeader/wide",
+      }
+    />
+  );
+}`,
+      },
+      {
+        type: 'usage',
+        title: 'Usage',
+        content:
+          'Top bar of a chat surface, above `AgentChat`. `title` is the conversation name and truncates instead of wrapping; `subtitle` is the quiet second line, for example the model and the workspace. `leftSection` holds the leading controls (a sidebar toggle, a back button), `secondarySection` the badges and connection state, `rightSection` the panel buttons, menus and a `ContextUsage`. In a container narrower than 30rem the subtitle and the secondary section are hidden so the title and the right section keep their room; pass `collapseSecondary={false}` to keep them. The header takes its height from `--ae-panel-header-height`, so it lines up with the other panel headers of a layout, and `withBorder={false}` removes the line under it. `titleOrder` sets the heading level (`2` by default).',
+      },
+      {
+        type: 'example',
+        title: 'Wide',
+        previewId: 'ChatHeader/wide',
         code: `<ChatHeader
+  title="Flaky upload test in the release pipeline"
+  subtitle="claude-opus-5 · acme workspace"
   leftSection={sidebarToggle}
+  secondarySection={<Badge size="sm" variant="light" color="teal">3 servers</Badge>}
   rightSection={<Group gap="sm" wrap="nowrap"><ContextUsage used={128_000} total={200_000} />{inspectorToggle}</Group>}
-        title: "Narrow",
-        previewId: "ChatHeader/narrow",
+/>`,
+      },
+      {
+        type: 'example',
+        title: 'Narrow',
+        previewId: 'ChatHeader/narrow',
         code: `<div style={{ width: 360 }}>
+  <ChatHeader
+    title="Flaky upload test in the release pipeline"
+    subtitle="claude-opus-5 · acme workspace"
+    leftSection={sidebarToggle}
+    secondarySection={<Badge size="sm" variant="light" color="teal">3 servers</Badge>}
     rightSection={inspectorToggle}
+  />
 </div>`,
-    name: "QuestionPrompt",
+      },
+    ],
+  },
+  {
+    name: 'QuestionPrompt',
     blocks: [
       {
         type: 'code',

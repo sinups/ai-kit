@@ -7,7 +7,7 @@
   border-radius: var(--ae-row-radius);
   font-size: var(--ae-font-size-xs);
   line-height: rem(16px);
-  color: alpha(var(--ae-fg), 0.4);
+  color: var(--ae-fg-muted);
   cursor: pointer;
   transition: background-color 150ms ease;
 
@@ -31,7 +31,7 @@
 }
 
 .chevron {
-  color: alpha(var(--ae-fg), 0.4);
+  color: var(--ae-fg-muted);
 }
 
 .option {
@@ -82,11 +82,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: alpha(var(--ae-fg), 0.4);
+  color: var(--ae-fg-muted);
 }
 
 .check {
   margin-top: rem(2px);
   flex-shrink: 0;
   color: alpha(var(--ae-fg), 0.6);
+}
+
+.title {
+  padding: var(--ae-space-2xs) var(--ae-space-sm);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+}
+
+.badge {
+  margin-inline-start: var(--ae-space-xs);
+  vertical-align: middle;
+}
+
+.shortcut {
+  margin-top: rem(2px);
+  flex-shrink: 0;
+  min-width: rem(16px);
+  font-family: inherit;
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  text-align: center;
+  color: var(--ae-fg-muted);
 }

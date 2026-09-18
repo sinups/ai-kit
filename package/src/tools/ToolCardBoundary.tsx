@@ -10,7 +10,8 @@ export interface ToolCardBoundaryProps {
   children?: React.ReactNode;
 }
 
-type ToolCardBoundaryState = { hasError: boolean; resetKey: string | undefined };
+/** State of the boundary: whether the card threw, and the reset key it threw under */
+export type ToolCardBoundaryState = { hasError: boolean; resetKey: string | undefined };
 
 /** Keeps a throwing tool card from unmounting the transcript around it */
 export class ToolCardBoundary extends React.Component<

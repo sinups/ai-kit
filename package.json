@@ -14,7 +14,7 @@
   "scripts": {
     "clean": "rimraf package/dist",
     "build": "rollup -c rollup.config.mjs && tsx scripts/generate-dts && tsx scripts/prepare-css",
-    "pack:preview": "yarn build && tsx scripts/pack-preview.ts",
+    "pack:preview": "yarn clean && yarn build && tsx scripts/pack-preview.ts",
     "size": "tsx scripts/check-size",
     "attw": "yarn dlx -q -p @arethetypeswrong/cli@0.18.5 attw --pack package --entrypoints .",
     "format:test": "oxfmt -c oxfmt.config.mjs --check \"{package,scripts,.storybook}/**/*.{ts,tsx,css}\"",
