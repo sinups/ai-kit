@@ -47,6 +47,7 @@ describe('mcp/McpServerDetail', () => {
   it('leaves tool rows unchanged without expandableTools', () => {
     render(<McpServerDetail server={GIT_SERVER} />);
     expect(screen.queryByRole('button', { name: /Show schema/ })).not.toBeInTheDocument();
+  });
 
   it('lets a long tool name wrap to two lines', () => {
     const longName = 'Где я сейчас нахожусь в рабочем пространстве и что открыто';

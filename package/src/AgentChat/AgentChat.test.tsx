@@ -540,6 +540,7 @@ describe('AgentChat/AgentChat', () => {
       />
     );
     expect(screen.getByRole('group', { name: 'Vorschläge' })).toBeInTheDocument();
+  });
 
   describe('tool call state', () => {
     const openCalls: ChatMessage[] = [
