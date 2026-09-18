@@ -12,6 +12,9 @@
   --ae-control-height-sm: rem(24px);
   --ae-control-height-md: rem(28px);
   --ae-row-height: rem(28px);
+  --ae-rows-marker-width: rem(16px);
+  --ae-rows-gutter-width: rem(28px);
+  --ae-rows-block-gap: var(--ae-line-height-sm);
   --ae-space-3xs: rem(2px);
   --ae-space-2xs: rem(4px);
   --ae-space-xs: rem(6px);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Paper, Stack } from '@mantine/core';
 import type { ChatMessage } from '../types';
+import { AgentStatus } from '../AgentStatus/AgentStatus';
 import {
   compactedConversation,
   conversation,
@@ -177,3 +178,50 @@ export function AnimatedAppearance() {
     </Stack>
   );
 }
+
+const betweenCalls: ChatMessage[] = [
+  {
+    id: 'u1',
+    role: 'user',
+    parts: [{ type: 'text', text: 'Find the overdue tasks and open one task with the list.' }],
+  },
+  {
+    id: 'a1',
+    role: 'assistant',
+    parts: [
+      { type: 'text', text: 'Looking at the workspace first.' },
+      {
+        type: 'tool-mcp__layers__task_list',
+        toolCallId: 'w1',
+        state: 'output-available',
+        input: { overdue: true },
+        output: '3 overdue tasks',
+      },
+    ],
+  },
+];
+
+export function WorkingRow() {
+  return (
+    <Frame>
+      <MessageList messages={betweenCalls} status="streaming" workingRow />
+    </Frame>
+  );
+}
+
+export function WorkingRowOfTheHost() {
+  return (
+    <Frame>
+      <MessageList
+        messages={betweenCalls}
+        status="streaming"
+        workingRow={
+          <AgentStatus label="Reading tasks" startedAt={Date.now() - 44_000} tokens={1840} paused />
+        }
+      />
+    </Frame>
+  );
+}
+
+WorkingRow.parameters = { visual: { skip: true } };
+WorkingRowOfTheHost.parameters = { visual: { skip: true } };

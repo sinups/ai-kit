@@ -18,7 +18,10 @@ import {
   type ToolCallState,
   type ToolCallStateLabels,
 } from './tool-call-state';
+import { ToolActivity } from './ToolActivity';
 import { ToolCardBoundary } from './ToolCardBoundary';
+import { getToolProgress } from './tool-progress';
+import { useElapsed } from './use-elapsed';
 import { parseMcpToolType, toolRegistry } from './tool-registry';
 import { ToolGroup } from './ToolGroup';
 
@@ -37,6 +40,8 @@ export interface ToolRendererProps {
   wrapLines?: boolean;
   /** Transcript lookups behind the visible state of the call, see `createToolCallLookups` */
   lookups?: ToolCallLookups;
+  /** Shows how long a running call has been going and the progress its server reports, `false` by default */
+  showActivity?: boolean;
   /** Overrides of the default English labels of the derived states */
   labels?: Partial<ToolCallStateLabels>;
   /** Called when a card throws and degrades to the generic row */
@@ -81,6 +86,7 @@ export const ToolRenderer = memo(function ToolRenderer({
   onToolAction,
   wrapLines,
   lookups,
+  showActivity = false,
   labels: labelsProp,
   onRenderError,
 }: ToolRendererProps) {
@@ -113,6 +119,11 @@ export const ToolRenderer = memo(function ToolRenderer({
     () => (settledElsewhere ? { ...part, state: 'output-available' } : part),
     [part, settledElsewhere]
   );
+  const isRunning = showActivity && callState === 'running';
+  const elapsed = useElapsed(cardPart, isRunning);
+  const progress = isRunning ? getToolProgress(cardPart) : undefined;
+  const activity =
+    elapsed || progress ? <ToolActivity elapsed={elapsed} progress={progress} /> : undefined;
   const meta = toolRegistry[partType];
   const registryTitle = (meta ? safeText(() => meta.title(part)) : undefined) || toolName;
   const registrySubtitle = safeText(() => meta?.subtitle?.(part));
@@ -147,6 +158,7 @@ export const ToolRenderer = memo(function ToolRenderer({
     onToolAction,
     wrapLines,
     callState,
+    activity,
   });
 
   return (
@@ -175,6 +187,7 @@ type ToolCardOptions = {
   onToolAction?: ToolActionHandler;
   wrapLines?: boolean;
   callState: ToolCallState;
+  activity?: React.ReactNode;
 };
 
 function renderToolCard({
@@ -192,6 +205,7 @@ function renderToolCard({
   onToolAction,
   wrapLines,
   callState,
+  activity,
 }: ToolCardOptions): React.ReactNode {
   if (toolRenderers && customKey !== null) {
     const CustomRenderer = toolRenderers[customKey];
@@ -252,7 +266,9 @@ function renderToolCard({
   }
 
   if (mcpInfo) {
-    return <McpTool part={part} mcpInfo={mcpInfo} chatStatus={chatStatus} />;
+    return (
+      <McpTool part={part} mcpInfo={mcpInfo} chatStatus={chatStatus} trailingContent={activity} />
+    );
   }
 
   const { isPending, isError } = getToolStatus(part, chatStatus);
@@ -263,6 +279,7 @@ function renderToolCard({
         subtitle={registrySubtitle}
         isPending={isPending}
         isError={isError}
+        trailingContent={activity}
       />
     );
   }
@@ -272,6 +289,7 @@ function renderToolCard({
       title={isPending ? `Running ${toolName}` : toolName}
       isPending={isPending}
       isError={isError}
+      trailingContent={activity}
     />
   );
 }

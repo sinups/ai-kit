@@ -242,6 +242,39 @@ export function Example() {
         type: 'example',
         title: 'Full-page chat',
         previewId: 'AgentChat/full-page',
+        type: 'usage',
+        title: 'Tool approvals',
+        content:
+          "`approvals` attaches a confirmation to a tool call by its `toolCallId` without replacing the card that renders it, so an MCP call gets Allow/Deny with the same renderer. Each entry takes what `ToolApprovalFooter` understands — `reason`, `approveOptions`, `ruleSuggestion`, `matchedRule`, `requestedBy`, `onExplain`, `onApprove`, `onReject`, `onRejectWithFeedback`, `labels` — plus `isPending` while the call is still running. Once the host settles the request, replace the entry with `{ outcome: { decision: 'approved' | 'rejected', scope } }` and the footer gives way to a quiet settled line. An id with no call in the transcript is ignored, and dropping the entry removes the footer. `MessageList` rendered on its own takes the same map through `ToolApprovalsProvider`.",
+      },
+      {
+        type: 'example',
+        title: 'Approving an MCP call',
+        previewId: 'AgentChat/approvals',
+        code: `const [approvals, setApprovals] = useState<ToolApprovals>({
+  "call-create-issue": {
+    isPending: true,
+    reason: "Creates an issue in the tracker workspace",
+    requestedBy: { name: "triage agent", color: "blue" },
+    approveOptions: [
+      { value: "once", label: "Allow once" },
+      { value: "session", label: "Allow for this session" },
+    ],
+    onApprove: (scope) =>
+      setApprovals({ "call-create-issue": { outcome: { decision: "approved", scope } } }),
+    onReject: () =>
+      setApprovals({ "call-create-issue": { outcome: { decision: "rejected" } } }),
+});
+
+<AgentChat
+  messages={messages}
+  status="ready"
+  onSend={send}
+  onStop={stop}
+  approvals={approvals}
+/>`,
+        title: 'Full-page chat',
+        previewId: 'AgentChat/full-page',
         code: `<AgentChat
   messages={messages}
   status={status}

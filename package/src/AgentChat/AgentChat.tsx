@@ -1,10 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Box, rem, Stack, Text } from '@mantine/core';
-import type { AgentChatProps, ChatMessage } from '../types';
+import type { AgentChatProps, ChatMessage, ToolRendererSlotProps } from '../types';
 import type { QuestionAnswer, QuestionConfig } from '../question/QuestionPrompt';
 import { getContentWidthStyle } from '../utils/content-width';
 import { cx } from '../utils/cx';
+import { ToolApprovalSlot, ToolApprovalsProvider } from '../approvals/tool-approvals';
 import { MessageList } from '../MessageList/MessageList';
+import { ToolRenderer } from '../tools/ToolRenderer';
 import { InputBar } from '../input/InputBar';
 import { Suggestions, type SuggestionItem } from '../input/Suggestions';
 import { ChatWelcome, type ChatWelcomeAction } from './ChatWelcome';
@@ -26,6 +28,7 @@ export function AgentChat({
   messageActions,
   onRetry,
   onToolAction,
+  approvals,
   inputBarProps,
   statusBar,
   withSearch = false,
@@ -47,6 +50,9 @@ export function AgentChat({
   tailGranularity,
   animateAppearance = true,
   toolCallLookups,
+  workingRow = true,
+  toolActivity = true,
+  presentation,
   emptySuggestionsPlacement = 'input',
   emptyStateWidth,
   questionTool,
@@ -73,6 +79,24 @@ export function AgentChat({
   const [searchOpened, setSearchOpened] = useState(false);
 
   const ResolvedInputBar = slots?.InputBar ?? InputBar;
+  const hostToolRenderer = slots?.ToolRenderer;
+  const withApprovals = Boolean(approvals);
+  const approvalToolRenderer = useMemo(() => {
+    if (!withApprovals) {
+      return undefined;
+    }
+    const Base = hostToolRenderer ?? ToolRenderer;
+    return function ApprovalToolRenderer(props: ToolRendererSlotProps) {
+      return (
+        <ToolApprovalSlot toolCallId={props.part.toolCallId}>
+          <Base {...props} />
+        </ToolApprovalSlot>
+      );
+    };
+  }, [withApprovals, hostToolRenderer]);
+  const resolvedSlots = approvalToolRenderer
+    ? { ...slots, ToolRenderer: approvalToolRenderer }
+    : slots;
   const isEmpty = !error && messages.length === 0;
   const emptyLayout =
     emptyState?.layout ?? (emptyStatePosition === 'center' ? 'center' : 'welcome');
@@ -268,36 +292,41 @@ export function AgentChat({
           labels={emptyState.labels}
         />
       ) : (
-        <MessageList
-          messages={listMessages}
-          status={status}
-          classNames={classNames}
-          slots={slots}
-          toolRenderers={toolRenderers}
-          showCopyToolbar={showCopyToolbar}
-          collapseToolRuns={collapseToolRuns}
-          messageActions={messageActions}
-          onRetry={onRetry}
-          onToolAction={onToolAction}
-          withSearch={withSearch}
-          searchOpened={searchOpened}
-          onSearchOpenedChange={setSearchOpened}
-          stickyPrompt={stickyPrompt}
-          topFade={topFade}
-          onScrollbarWidthChange={alignComposer ? setScrollbarWidth : undefined}
-          wrapLines={wrapLines}
-          responsiveTables={responsiveTables}
-          frameBatched={frameBatched}
-          tailGranularity={tailGranularity}
-          animateAppearance={animateAppearance}
-          toolCallLookups={toolCallLookups}
-          highlighter={highlighter}
-          longMessageThreshold={longMessageThreshold}
-          initialScrollBehavior={initialScrollBehavior}
-          enableImagePreview={enableImagePreview}
-          suppressQuestionTool={Boolean(pendingQuestion) && !pendingQuestion?.toolCallId}
-          suppressQuestionToolCallId={pendingQuestion?.toolCallId}
-        />
+        <ToolApprovalsProvider approvals={approvals}>
+          <MessageList
+            messages={listMessages}
+            status={status}
+            classNames={classNames}
+            slots={resolvedSlots}
+            toolRenderers={toolRenderers}
+            showCopyToolbar={showCopyToolbar}
+            collapseToolRuns={collapseToolRuns}
+            messageActions={messageActions}
+            onRetry={onRetry}
+            onToolAction={onToolAction}
+            withSearch={withSearch}
+            searchOpened={searchOpened}
+            onSearchOpenedChange={setSearchOpened}
+            stickyPrompt={stickyPrompt}
+            topFade={topFade}
+            onScrollbarWidthChange={alignComposer ? setScrollbarWidth : undefined}
+            wrapLines={wrapLines}
+            responsiveTables={responsiveTables}
+            frameBatched={frameBatched}
+            tailGranularity={tailGranularity}
+            animateAppearance={animateAppearance}
+            toolCallLookups={toolCallLookups}
+            workingRow={workingRow}
+            toolActivity={toolActivity}
+            presentation={presentation}
+            highlighter={highlighter}
+            longMessageThreshold={longMessageThreshold}
+            initialScrollBehavior={initialScrollBehavior}
+            enableImagePreview={enableImagePreview}
+            suppressQuestionTool={Boolean(pendingQuestion) && !pendingQuestion?.toolCallId}
+            suppressQuestionToolCallId={pendingQuestion?.toolCallId}
+          />
+        </ToolApprovalsProvider>
       )}
       {statusBar && !isCenteredEmptyState ? (
         <div className={cx(classes.statusBar, alignComposer && classes.alignedStatusBar)}>

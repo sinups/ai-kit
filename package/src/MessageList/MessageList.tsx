@@ -29,6 +29,8 @@ import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { SpiralLoader } from '../SpiralLoader/SpiralLoader';
+import { AgentStatus } from '../AgentStatus/AgentStatus';
+import { ToolPartRow } from '../rows/ToolPartRow';
 import { ToolRenderer as DefaultToolRenderer } from '../tools/ToolRenderer';
 import { CompactBoundary } from '../CompactBoundary/CompactBoundary';
 import {
@@ -75,6 +77,8 @@ export type MessageListLabels = {
   newMessages: (count: number) => string;
   /** Accessible label of the sticky prompt, `Scroll to the prompt` by default */
   scrollToPrompt: string;
+  /** Verb of the working row shown between tool calls, `Working` by default */
+  working: string;
   /** Labels of the search bar */
   search?: Partial<TranscriptSearchLabels>;
   /** Summary and progress labels of collapsed tool runs */
@@ -84,6 +88,7 @@ export type MessageListLabels = {
 export const DEFAULT_MESSAGE_LIST_LABELS: MessageListLabels = {
   newMessages: (count) => `${count} new ${count === 1 ? 'message' : 'messages'}`,
   scrollToPrompt: 'Scroll to the prompt',
+  working: 'Working',
 };
 
 export type MessageListProps = {
@@ -109,7 +114,8 @@ export type MessageListProps = {
   enableImagePreview?: boolean;
   /**
    * Collapses runs of consecutive read and search tool calls in an assistant message into one
-   * summary row, for example `Read 3 files, searched 2 patterns`, `false` by default.
+   * summary row, for example `Read 3 files, searched 2 patterns`, `false` by default. Does not
+   * apply to `presentation="rows"`, where every call keeps its own row.
    */
   collapseToolRuns?: boolean | CollapseToolRunsOptions;
   /**
@@ -141,6 +147,23 @@ export type MessageListProps = {
    * refused, already answered. Built from `messages` when omitted, see `createToolCallLookups`.
    */
   toolCallLookups?: ToolCallLookups;
+  /**
+   * Quiet line at the end of the transcript while the agent works between tool calls, `false` by
+   * default. `true` renders the kit row: `labels.working` with the time since the last event; a node
+   * replaces it, for example an `AgentStatus` of the host carrying its own label and token count.
+   */
+  workingRow?: React.ReactNode | boolean;
+  /**
+   * Shows how long a running tool call has been going and the progress its MCP server reports,
+   * `false` by default. The time comes from the host when the call carries a start time and from
+   * the kit otherwise.
+   */
+  toolActivity?: boolean;
+  /**
+   * How the transcript is laid out: `cards` (the default) keeps the tool cards, `rows` shows the
+   * flat transcript of a terminal client — a marker, the call and its answer under a gutter.
+   */
+  presentation?: 'cards' | 'rows';
   /** Adds a retry button to error parts */
   onRetry?: () => void;
   /** Adds the conversation search, opened with Mod+F while focus is inside the list, `false` by default */
@@ -218,6 +241,25 @@ function getTextFromParts(parts: unknown[], joiner: string): string {
     .filter(isTextPart)
     .map((part) => part.text)
     .join(joiner);
+}
+
+/** Whether the answer itself is still growing, in which case the working row would double the caret */
+function isTailGrowingText(messages: ChatMessage[]): boolean {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== 'assistant') {
+    return false;
+  }
+  const parts = last.parts ?? [];
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    const part = parts[index];
+    if (isTextPart(part)) {
+      return part.text.trim().length > 0;
+    }
+    if (isV5ToolPart(part)) {
+      return false;
+    }
+  }
+  return false;
 }
 
 function formatTimestamp(date: Date): string {
@@ -310,6 +352,9 @@ export const MessageList = memo(function MessageList({
   toolRenderers,
   onToolAction,
   toolCallLookups,
+  workingRow = false,
+  toolActivity = false,
+  presentation = 'cards',
   onRetry,
   withSearch = false,
   searchOpened: searchOpenedProp,
@@ -646,11 +691,22 @@ export const MessageList = memo(function MessageList({
     }
   }, [lastUserMessageId, scrollToBottomSettled]);
 
+  const lastActivityRef = useRef({ messages: normalizedMessages, at: Date.now() });
+  if (lastActivityRef.current.messages !== normalizedMessages) {
+    lastActivityRef.current = { messages: normalizedMessages, at: Date.now() };
+  }
+
   const planningLabel = 'Processing...';
   const showPlanning =
     Boolean(lastMessage) &&
     isStreaming &&
     (lastMessageRole === 'user' || !transcript.lastAssistantHasContent);
+  const showWorkingRow =
+    workingRow !== false &&
+    workingRow !== undefined &&
+    isStreaming &&
+    !showPlanning &&
+    !isTailGrowingText(normalizedMessages);
   const isNewAssistantMessage =
     lastMessageRole === 'assistant' &&
     Boolean(lastMessageId) &&
@@ -746,13 +802,22 @@ export const MessageList = memo(function MessageList({
             </div>
           </div>
         )}
-        <div ref={turnsRootRef} className={classes.turns}>
+        <div
+          ref={turnsRootRef}
+          className={classes.turns}
+          data-rows={presentation === 'rows' || undefined}
+        >
           {turns.map((turn, turnIndex) => {
             const isLastTurn = turnIndex === turns.length - 1;
             const turnKey = turn.userMsg?.id ?? turn.assistantMsgs[0]?.id ?? `turn-${turnIndex}`;
 
             return (
-              <div key={turnKey} className={classes.turn} data-turn-key={turnKey}>
+              <div
+                key={turnKey}
+                className={classes.turn}
+                data-turn-key={turnKey}
+                data-rows={presentation === 'rows' || undefined}
+              >
                 {turn.userMsg &&
                   (() => {
                     const userMsg = turn.userMsg;
@@ -899,7 +964,10 @@ export const MessageList = memo(function MessageList({
                         className={classes.group}
                         data-message-actions-host={messageActions ? true : undefined}
                       >
-                        <div className={classes.assistantStack}>
+                        <div
+                          className={classes.assistantStack}
+                          data-rows={presentation === 'rows' || undefined}
+                        >
                           {turn.assistantMsgs.map((msg, i) => {
                             const isLastMsg = isLastTurn && i === turn.assistantMsgs.length - 1;
                             return (
@@ -922,6 +990,8 @@ export const MessageList = memo(function MessageList({
                                 toolRunOptions={toolRunOptions}
                                 appearance={appearance}
                                 lookups={lookups}
+                                toolActivity={toolActivity}
+                                presentation={presentation}
                               />
                             );
                           })}
@@ -952,6 +1022,20 @@ export const MessageList = memo(function MessageList({
               </div>
             );
           })}
+          {showWorkingRow &&
+            (workingRow === true ? (
+              <AgentStatus
+                label={labels.working}
+                startedAt={lastActivityRef.current.at}
+                paused
+                className={cx(
+                  classes.workingRow,
+                  presentation === 'rows' && classes.workingRowInline
+                )}
+              />
+            ) : (
+              workingRow
+            ))}
         </div>
         {showAssistantBreathingSpace && (
           <div aria-hidden="true" className={classes.breathingSpace} />
@@ -995,6 +1079,8 @@ type AssistantPartsProps = {
   toolRunOptions?: ResolvedToolRunOptions | null;
   appearance: AppearanceTracker;
   lookups: ToolCallLookups;
+  toolActivity: boolean;
+  presentation: 'cards' | 'rows';
 };
 
 function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
@@ -1059,6 +1145,8 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.onRetry === next.onRetry &&
     previous.toolRunOptions === next.toolRunOptions &&
     previous.appearance === next.appearance &&
+    previous.toolActivity === next.toolActivity &&
+    previous.presentation === next.presentation &&
     sameToolRenderers(previous.toolRenderers, next.toolRenderers)
   );
 }
@@ -1081,6 +1169,8 @@ const AssistantParts = memo(function AssistantParts({
   toolRunOptions,
   appearance,
   lookups,
+  toolActivity,
+  presentation,
 }: AssistantPartsProps) {
   const parts = useMemo(
     () => normalizeAssistantToolParts(msg.parts ?? []) as unknown[],
@@ -1199,6 +1289,17 @@ const AssistantParts = memo(function AssistantParts({
       }
       const toolPart = part as ToolPart;
       const toolCallId = toolPart.toolCallId;
+      if (presentation === 'rows') {
+        return (
+          <ToolPartRow
+            key={toolCallId ?? `${msg.id}-tool-${index}`}
+            part={toolPart}
+            chatStatus={chatStreamingStatus}
+            lookups={liveLookups}
+            showActivity={toolActivity}
+          />
+        );
+      }
       const nestedTools =
         (toolPart.type === 'tool-Task' || toolPart.type === 'tool-Agent') && toolCallId
           ? siblingsByParentId.get(toolCallId) || []
@@ -1213,6 +1314,7 @@ const AssistantParts = memo(function AssistantParts({
           onToolAction={onToolAction}
           wrapLines={wrapLines}
           lookups={liveLookups}
+          showActivity={toolActivity}
         />
       );
     };
@@ -1231,7 +1333,7 @@ const AssistantParts = memo(function AssistantParts({
       );
     };
 
-    if (!toolRunOptions) {
+    if (!toolRunOptions || presentation === 'rows') {
       return visible.map((entry) => appear(renderEntry(entry)));
     }
 
@@ -1255,6 +1357,7 @@ const AssistantParts = memo(function AssistantParts({
           onToolAction={onToolAction}
           wrapLines={wrapLines}
           lookups={liveLookups}
+          showActivity={toolActivity}
           labels={toolRunOptions.labels}
         />
       );
@@ -1278,10 +1381,16 @@ const AssistantParts = memo(function AssistantParts({
     toolRunOptions,
     appearance,
     liveLookups,
+    toolActivity,
+    presentation,
   ]);
 
   return (
-    <div className={classes.assistantParts} data-stacked={elements.length > 1 || undefined}>
+    <div
+      className={classes.assistantParts}
+      data-stacked={elements.length > 1 || undefined}
+      data-rows={presentation === 'rows' || undefined}
+    >
       {elements}
     </div>
   );
