@@ -38,7 +38,7 @@ jobs:
           retention-days: 1
 
   test:
-    name: Test
+    name: test
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
