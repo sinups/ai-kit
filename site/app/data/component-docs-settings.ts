@@ -135,7 +135,7 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Show one MCP server: name, transport, scope, version and status with Authenticate, Reconnect and Enable/Disable buttons that show pending state. A failed connection is shown in an alert. Tabs list tools with behavior annotations (read-only, destructive, idempotent, open world), resources, prompts with their arguments, and the configuration with command, arguments or URL and masked secrets that can be revealed. Edit and Remove live in the configuration tab.",
+          "Show one MCP server: name, transport, scope, version and status with Authenticate, Reconnect and Enable/Disable buttons that show pending state. A failed connection is shown in an alert. Tabs list tools with behavior annotations (read-only, destructive, idempotent, open world), resources, prompts with their arguments, and the configuration with command, arguments or URL and masked secrets that can be revealed. Edit and Remove live in the configuration tab. `expandableTools` adds a button to every tool row that opens its `inputSchema` below the row, so the panel documents the tools without a second screen.",
       },
       {
         type: "example",

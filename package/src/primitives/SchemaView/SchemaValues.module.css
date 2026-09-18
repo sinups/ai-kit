@@ -1,0 +1,12 @@
+.value {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.valueCell {
+  min-width: 0;
+}
+
+.toggleText {
+  align-self: flex-start;
+}

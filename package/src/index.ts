@@ -336,7 +336,32 @@ export type {
 export { SchemaView, DEFAULT_SCHEMA_VIEW_LABELS } from './primitives/SchemaView/SchemaView';
 export type { SchemaViewProps, SchemaViewLabels } from './primitives/SchemaView/SchemaView';
 export { flattenSchema, getSchemaTypeLabel } from './primitives/SchemaView/schema';
-export type { JsonSchema, JsonSchemaType, SchemaRow } from './primitives/SchemaView/schema';
+export type {
+  JsonSchema,
+  JsonSchemaType,
+  SchemaRow,
+  CollapsibleRow,
+} from './primitives/SchemaView/schema';
+
+export { SchemaValues, DEFAULT_SCHEMA_VALUES_LABELS } from './primitives/SchemaView/SchemaValues';
+export type { SchemaValuesProps, SchemaValuesLabels } from './primitives/SchemaView/SchemaValues';
+export {
+  flattenSchemaValues,
+  formatSchemaValue,
+  isLikelySecretKey,
+  resolveValueSchema,
+} from './primitives/SchemaView/schema-values';
+export type { SchemaValueRow, SchemaValueKind } from './primitives/SchemaView/schema-values';
+
+export {
+  ChatInspectorLayout,
+  DEFAULT_CHAT_INSPECTOR_LAYOUT_LABELS,
+} from './primitives/ChatInspectorLayout/ChatInspectorLayout';
+export type {
+  ChatInspectorLayoutProps,
+  ChatInspectorLayoutLabels,
+  ChatInspectorPanel,
+} from './primitives/ChatInspectorLayout/ChatInspectorLayout';
 
 export {
   ConfirmDialog,

@@ -642,4 +642,79 @@ export function Example() {
       },
     ],
   },
+  {
+    name: "SchemaValues",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { SchemaValues } from "@sinups/ai-kit";
+
+const args = {
+  repo: "sinups/ai-kit",
+  title: "Retry the token refresh",
+  assignee: { login: "sinups", notify: true },
+  apiToken: "ghp_exampleexampleexample",
+  draft: true,
+};
+
+export function Example() {
+  return <SchemaValues schema={createIssueSchema} values={args} />;
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "Show the arguments of a tool call the way its schema describes them, instead of a blob of JSON. Every field keeps its type, required badge and description; nested objects and array items become collapsible rows; optional fields that were not sent read `Not set` (`hideMissing` drops them); keys the schema does not mention are listed with an `extra` badge. Values of fields that read like credentials — `token`, `password`, `apiKey` — are masked behind a reveal button (`maskSecrets`, `isSecret`), and long values are truncated at `maxValueLength` with a \"Show more\" toggle. From 560px of width it is a table, narrower it becomes stacked rows. `flattenSchemaValues` returns the rows for custom renderers. For the arguments of a single call, use `SchemaValues` next to your tool card rather than inside an MCP settings screen, so it lands only in the bundle that needs it.",
+      },
+      {
+        type: "example",
+        title: "Wide",
+        previewId: "SchemaValues/wide",
+        code: `<SchemaValues schema={createIssueSchema} values={args} />`,
+      },
+      {
+        type: "example",
+        title: "Narrow",
+        previewId: "SchemaValues/narrow",
+        code: `<div style={{ width: 360 }}>
+  <SchemaValues schema={createIssueSchema} values={args} />
+</div>`,
+      },
+    ],
+  },
+  {
+    name: "ChatInspectorLayout",
+    blocks: [
+      {
+        type: "code",
+        title: "Code",
+        content: `import { AgentChat, ChatInspectorLayout, DiffReview } from "@sinups/ai-kit";
+
+export function Example() {
+  const [opened, setOpened] = useState(true);
+
+  return (
+    <ChatInspectorLayout
+      opened={opened}
+      onOpenedChange={setOpened}
+      panels={[
+        { id: "changes", label: "Changes", content: <DiffReview changes={changes} /> },
+        { id: "tasks", label: "Tasks", content: <BackgroundTasksPanel tasks={tasks} /> },
+      ]}
+    >
+      <AgentChat {...chat} contentWidth={760} alignComposer topFade />
+    </ChatInspectorLayout>
+  );
+}`,
+      },
+      {
+        type: "usage",
+        title: "Usage",
+        content:
+          "The chat-with-an-inspector shape as a component: the chat area is `children`, the panel beside it is `inspector` or a list of `panels` rendered as tabs (`activePanelId`, `onActivePanelIdChange`). The pane is resizable and collapsible; `opened` and `onOpenedChange` drive the toggle in your header, and dragging the pane shut reports back through the same callback. Below `breakpoint` (900px of the layout width, or forced with `compact`) the inspector moves into a drawer — `drawerPosition` and `drawerSize` shape it. `defaultSize`, `minChatWidth` and `minInspectorWidth` control the split.",
+      },
+    ],
+  },
 ];

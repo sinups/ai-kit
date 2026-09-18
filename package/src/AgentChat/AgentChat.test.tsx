@@ -522,6 +522,7 @@ describe('AgentChat/AgentChat', () => {
       />
     );
     expect(screen.getByRole('group', { name: 'Vorschläge' })).toBeInTheDocument();
+  });
 
   describe('streaming', () => {
     let setText: (next: string) => void = () => {};

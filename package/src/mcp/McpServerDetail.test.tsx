@@ -28,6 +28,27 @@ describe('mcp/McpServerDetail', () => {
     );
   });
 
+  it('opens the input schema of a tool row without selecting it', async () => {
+    const onSelectTool = jest.fn();
+    render(<McpServerDetail server={GIT_SERVER} onSelectTool={onSelectTool} expandableTools />);
+
+    expect(screen.queryByText('pullNumber')).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'Show schema: Merge pull request' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(toggle);
+    expect(screen.getByText('pullNumber')).toBeInTheDocument();
+    expect(onSelectTool).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hide schema: Merge pull request' }));
+    expect(screen.queryByText('pullNumber')).not.toBeInTheDocument();
+  });
+
+  it('leaves tool rows unchanged without expandableTools', () => {
+    render(<McpServerDetail server={GIT_SERVER} />);
+    expect(screen.queryByRole('button', { name: /Show schema/ })).not.toBeInTheDocument();
+  });
+
   it('does not claim a connected server has no tools before they load', () => {
     render(<McpServerDetail server={{ ...GIT_SERVER, tools: undefined, toolCount: 3 }} />);
     expect(screen.getByRole('tab', { name: /Tools/ })).toHaveTextContent('3');

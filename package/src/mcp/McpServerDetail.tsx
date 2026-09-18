@@ -3,6 +3,7 @@ import {
   ActionIcon,
   Alert,
   Badge,
+  Box,
   Button,
   Code,
   DataList,
@@ -26,6 +27,7 @@ import {
   IconMessage,
   IconPlayerPause,
   IconPlayerPlay,
+  IconChevronRight,
   IconRefresh,
   IconTool,
   IconTrash,
@@ -35,6 +37,7 @@ import { ConfirmDialog } from '../primitives/ConfirmDialog/ConfirmDialog';
 import { EntityList } from '../primitives/EntityList/EntityList';
 import { EntityListItem } from '../primitives/EntityList/EntityListItem';
 import type { KeyValuePair } from '../primitives/KeyValueEditor/key-value';
+import { SchemaView } from '../primitives/SchemaView/SchemaView';
 import { StatusBadge } from '../primitives/StatusBadge/StatusBadge';
 import {
   formatMcpPromptArguments,
@@ -77,6 +80,12 @@ export type McpServerDetailLabels = {
   configuration: string;
   searchTools: string;
   noTools: string;
+  /** Accessible label prefix of the button that opens a tool schema, `Show schema` by default */
+  showSchema: string;
+  /** Accessible label prefix of the button that closes a tool schema, `Hide schema` by default */
+  hideSchema: string;
+  /** Shown in place of the schema of a tool without arguments */
+  noInput: string;
   noResources: string;
   noPrompts: string;
   /** Shown instead of lists while the server is not connected */
@@ -126,6 +135,9 @@ export const DEFAULT_MCP_SERVER_DETAIL_LABELS: McpServerDetailLabels = {
   configuration: 'Configuration',
   searchTools: 'Search tools',
   noTools: 'No tools',
+  showSchema: 'Show schema',
+  hideSchema: 'Hide schema',
+  noInput: 'This tool takes no arguments',
   noResources: 'No resources',
   noPrompts: 'No prompts',
   notConnected: 'Connect the server to load what it provides',
@@ -168,6 +180,8 @@ export interface McpServerDetailProps {
   onTabChange?: (tab: McpServerDetailTab) => void;
   /** Called when a tool row is clicked */
   onSelectTool?: (tool: McpToolDefinition) => void;
+  /** Adds a button to every tool row that opens its input schema below the row */
+  expandableTools?: boolean;
   /** Renders the "Reconnect" button for servers that are not disabled */
   onReconnect?: McpServerAction;
   /** Renders the "Authenticate" button for servers that need auth */
@@ -235,6 +249,68 @@ function PairsValue({ pairs, labels }: { pairs: KeyValuePair[]; labels: McpServe
   );
 }
 
+function stopPropagation(event: React.SyntheticEvent) {
+  event.stopPropagation();
+}
+
+function ToolRow({
+  tool,
+  labels,
+  expandable,
+  expanded,
+  onToggle,
+}: {
+  tool: McpToolDefinition;
+  labels: McpServerDetailLabels;
+  expandable: boolean;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const toggleLabel = `${expanded ? labels.hideSchema : labels.showSchema}: ${getMcpToolDisplayName(tool)}`;
+
+  return (
+    <Stack gap={4}>
+      <EntityListItem
+        title={getMcpToolDisplayName(tool)}
+        description={tool.description}
+        icon={<IconTool size={16} />}
+        badges={
+          <McpToolAnnotationBadges annotations={tool.annotations} labels={labels.annotations} />
+        }
+        meta={
+          expandable ? (
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="gray"
+              aria-label={toggleLabel}
+              aria-expanded={expanded}
+              onClick={(event: React.MouseEvent) => {
+                stopPropagation(event);
+                onToggle();
+              }}
+            >
+              <IconChevronRight
+                size={14}
+                className={classes.chevron}
+                data-expanded={expanded || undefined}
+              />
+            </ActionIcon>
+          ) : undefined
+        }
+      />
+      {expandable && expanded && (
+        <Box className={classes.toolSchema} onClick={stopPropagation} onKeyDown={stopPropagation}>
+          <SchemaView
+            schema={tool.inputSchema ?? { type: 'object' }}
+            labels={{ empty: labels.noInput }}
+          />
+        </Box>
+      )}
+    </Stack>
+  );
+}
+
 function ListSkeleton() {
   return (
     <Stack gap="sm" aria-busy="true">
@@ -255,6 +331,7 @@ export const McpServerDetail = memo(function McpServerDetail({
   tab,
   onTabChange,
   onSelectTool,
+  expandableTools = false,
   onReconnect,
   onAuthenticate,
   onEnable,
@@ -269,6 +346,7 @@ export const McpServerDetail = memo(function McpServerDetail({
   const { ref, width } = useElementSize();
   const [uncontrolledTab, setUncontrolledTab] = useState<McpServerDetailTab>('tools');
   const [toolQuery, setToolQuery] = useState('');
+  const [openSchemas, setOpenSchemas] = useState<ReadonlySet<string>>(new Set());
   const action = usePendingActions(labels.actionFailed);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const anyPending = ['authenticate', 'reconnect', 'enable', 'disable'].some(action.isPending);
@@ -284,6 +362,17 @@ export const McpServerDetail = memo(function McpServerDetail({
   const capabilities = Object.entries(server.capabilities ?? {})
     .filter(([, enabled]) => enabled)
     .map(([name]) => name);
+
+  const toggleSchema = (name: string) =>
+    setOpenSchemas((current) => {
+      const next = new Set(current);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
 
   const setTab = (value: string | null) => {
     if (!value) {
@@ -481,16 +570,12 @@ export const McpServerDetail = memo(function McpServerDetail({
                   : undefined
               }
               renderItem={(tool) => (
-                <EntityListItem
-                  title={getMcpToolDisplayName(tool)}
-                  description={tool.description}
-                  icon={<IconTool size={16} />}
-                  badges={
-                    <McpToolAnnotationBadges
-                      annotations={tool.annotations}
-                      labels={labels.annotations}
-                    />
-                  }
+                <ToolRow
+                  tool={tool}
+                  labels={labels}
+                  expandable={expandableTools}
+                  expanded={openSchemas.has(tool.name)}
+                  onToggle={() => toggleSchema(tool.name)}
                 />
               )}
             />

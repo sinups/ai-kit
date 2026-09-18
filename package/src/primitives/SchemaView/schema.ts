@@ -170,11 +170,17 @@ export function flattenSchema(schema: JsonSchema): SchemaRow[] {
   return rows;
 }
 
-export function getVisibleSchemaRows(
-  rows: SchemaRow[],
+export type CollapsibleRow = {
+  path: string;
+  depth: number;
+  hasChildren: boolean;
+};
+
+export function getVisibleSchemaRows<T extends CollapsibleRow>(
+  rows: T[],
   expanded: ReadonlySet<string>
-): SchemaRow[] {
-  const visible: SchemaRow[] = [];
+): T[] {
+  const visible: T[] = [];
   let hiddenBelow = Infinity;
   for (const row of rows) {
     if (row.depth > hiddenBelow) {
@@ -189,6 +195,6 @@ export function getVisibleSchemaRows(
   return visible;
 }
 
-export function getDefaultExpandedPaths(rows: SchemaRow[], depth: number): Set<string> {
+export function getDefaultExpandedPaths(rows: CollapsibleRow[], depth: number): Set<string> {
   return new Set(rows.filter((row) => row.hasChildren && row.depth < depth).map((row) => row.path));
 }

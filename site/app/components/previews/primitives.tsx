@@ -37,6 +37,7 @@ import {
   EntityListItem,
   KeyValueEditor,
   MasterDetail,
+  SchemaValues,
   SchemaView,
   SettingRow,
   SettingsLayout,
@@ -677,6 +678,25 @@ const CREATE_ISSUE: JsonSchema = {
   },
 };
 
+const CREATE_ISSUE_ARGUMENTS = {
+  repo: "sinups/ai-kit",
+  title: "Retry the token refresh once before failing the request",
+  estimate: 3,
+  labels: ["bug", "auth"],
+  assignee: { login: "sinups", notify: true },
+  apiToken: "ghp_exampleexampleexample",
+  draft: true,
+};
+
+function SchemaValuesPreview({ narrow = false }: { narrow?: boolean }) {
+  const view = <SchemaValues schema={CREATE_ISSUE} values={CREATE_ISSUE_ARGUMENTS} />;
+  return narrow ? (
+    <NarrowFrame className="p-3">{view}</NarrowFrame>
+  ) : (
+    <WideFrame className="p-3">{view}</WideFrame>
+  );
+}
+
 function SchemaViewPreview({ narrow = false }: { narrow?: boolean }) {
   return narrow ? (
     <NarrowFrame className="p-3">
@@ -751,6 +771,11 @@ export function renderPrimitivePreview(previewId: string): React.ReactNode | und
       return <SchemaViewPreview />;
     case "SchemaView/narrow":
       return <SchemaViewPreview narrow />;
+    case "SchemaValues":
+    case "SchemaValues/wide":
+      return <SchemaValuesPreview />;
+    case "SchemaValues/narrow":
+      return <SchemaValuesPreview narrow />;
     default:
       return undefined;
   }
