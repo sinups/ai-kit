@@ -468,6 +468,8 @@ type FlowArgs = {
   onQueue: (message: { role: 'user'; content: string }) => void;
   onRemoveQueued: (id: string) => void;
   onSelect: (item: CompletionItem) => void;
+  onRemoveContext: (id: string) => void;
+  onRestoreContext: (id: string) => void;
 };
 
 type FlowContext = { canvasElement: HTMLElement; args: FlowArgs };
@@ -537,6 +539,57 @@ export const QueueFlow = {
     await userEvent.click(canvas.getByLabelText('Remove queued message'));
     await expect(args.onRemoveQueued).toHaveBeenCalledWith('q1');
     await waitFor(() => expect(canvas.queryByText('Run the tests')).not.toBeInTheDocument());
+  },
+};
+
+const CONTEXT_DOCUMENT = {
+  id: 'doc-1',
+  label: 'Project Documentation (Test)',
+  icon: <IconFileText size={16} />,
+  description: 'The page open next to the chat',
+};
+
+function ContextDemo(args: FlowArgs) {
+  const [removed, setRemoved] = useState(false);
+  return (
+    <WidthFrame width={600}>
+      <InputBar
+        status="ready"
+        onSend={args.onSend}
+        onStop={args.onStop}
+        contextItems={[{ ...CONTEXT_DOCUMENT, removed }]}
+        onRemoveContext={(id) => {
+          args.onRemoveContext(id);
+          setRemoved(true);
+        }}
+        onRestoreContext={(id) => {
+          args.onRestoreContext(id);
+          setRemoved(false);
+        }}
+      />
+    </WidthFrame>
+  );
+}
+
+export const Context = {
+  args: { onSend: fn(), onStop: fn(), onRemoveContext: fn(), onRestoreContext: fn() },
+  render: (args: FlowArgs) => <ContextDemo {...args} />,
+  play: async ({ canvasElement, args }: FlowContext) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Remove Project Documentation (Test)' })
+    );
+    await expect(args.onRemoveContext).toHaveBeenCalledWith('doc-1');
+    const restore = await canvas.findByRole('button', {
+      name: 'Add back: Project Documentation (Test)',
+    });
+    await waitFor(() => expect(restore).toHaveFocus());
+    await userEvent.click(restore);
+    await expect(args.onRestoreContext).toHaveBeenCalledWith('doc-1');
+    const remove = await canvas.findByRole('button', {
+      name: 'Remove Project Documentation (Test)',
+    });
+    await waitFor(() => expect(remove).toHaveFocus());
   },
 };
 

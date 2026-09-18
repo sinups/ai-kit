@@ -5,10 +5,12 @@ import { IconThinSpinner } from '../icons';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import type { ToolPart } from '../types';
 import type { StepState, ToolCallStep } from '../types/timeline';
+import { useChatLabels } from '../labels/chat-labels';
 import { cx } from '../utils/cx';
+import { fillTemplate } from '../utils/fill-template';
 import { getPartInput } from '../utils/format-tool';
 import { getBashRunInfo, type BashRunInfo } from './bash-output';
-import { ShellOutput } from './ShellOutput';
+import { ShellOutput, type ShellOutputLabels } from './ShellOutput';
 import { ToolApprovalFooter, type ToolApproval } from './ToolApprovalFooter';
 import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './BashTool.module.css';
@@ -25,6 +27,21 @@ function extractCommandSummary(cmd: string): string {
 function toSingleLine(command: string): string {
   return command.replace(/\s+/g, ' ').trim();
 }
+
+export interface BashToolLabels {
+  /** Header while the command runs, `{command}` is replaced, `Running command: {command}` by default */
+  running: string;
+  /** Header once the command finished, `{command}` is replaced, `Ran command: {command}` by default */
+  ran: string;
+  /** Labels of the output panel */
+  output: Partial<ShellOutputLabels>;
+}
+
+export const DEFAULT_BASH_TOOL_LABELS: BashToolLabels = {
+  running: 'Running command: {command}',
+  ran: 'Ran command: {command}',
+  output: {},
+};
 
 export interface BashToolTerminalCardProps {
   /** Timeline step describing the tool call */
@@ -45,6 +62,8 @@ export interface BashToolTerminalCardProps {
   formatOutput?: boolean;
   /** Header text: `short` lists the programs of a pipeline (`ls, grep`), `full` shows the whole command on one line, `short` by default */
   commandSummary?: 'short' | 'full';
+  /** Overrides of the default English labels */
+  labels?: Partial<BashToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -62,10 +81,13 @@ export function BashToolTerminalCard({
   withOutputMeta = false,
   formatOutput = false,
   commandSummary = 'short',
+  labels: labelsProp,
   className,
   style,
 }: BashToolTerminalCardProps) {
   useToolComplete(state === 'animating', step.duration, onComplete);
+  const contextLabels = useChatLabels('bashTool');
+  const labels = { ...DEFAULT_BASH_TOOL_LABELS, ...contextLabels, ...labelsProp };
   const isPending = state === 'animating';
   const command = step.bashCommand ?? step.toolDetail;
   const summary =
@@ -86,10 +108,10 @@ export function BashToolTerminalCard({
         >
           {isPending ? (
             <TextShimmer as="span" duration={1.2} className={classes.shimmer}>
-              Running command: {summary}
+              {fillTemplate(labels.running, { command: summary })}
             </TextShimmer>
           ) : (
-            <span className={classes.title}>Ran command: {summary}</span>
+            <span className={classes.title}>{fillTemplate(labels.ran, { command: summary })}</span>
           )}
         </div>
         {isPending && <IconThinSpinner size={12} className={classes.spinner} />}
@@ -102,6 +124,7 @@ export function BashToolTerminalCard({
         {rich
           ? (Boolean(output) || (withOutputMeta && !isPending && run?.exitCode !== undefined)) && (
               <ShellOutput
+                labels={labels.output}
                 variant="compact"
                 className={classes.rich}
                 output={output ?? ''}
@@ -139,6 +162,8 @@ export interface BashToolProps {
   formatOutput?: boolean;
   /** Header text: `short` lists the programs of a pipeline (`ls, grep`), `full` shows the whole command on one line, `short` by default */
   commandSummary?: 'short' | 'full';
+  /** Overrides of the default English labels */
+  labels?: Partial<BashToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -151,6 +176,7 @@ export const BashTool = memo(function BashTool({
   withOutputMeta,
   formatOutput,
   commandSummary,
+  labels,
   className,
   style,
 }: BashToolProps) {
@@ -169,6 +195,7 @@ export const BashTool = memo(function BashTool({
       withOutputMeta={withOutputMeta}
       formatOutput={formatOutput}
       commandSummary={commandSummary}
+      labels={labels}
       className={className}
       style={style}
     />

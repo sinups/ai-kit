@@ -4,3 +4,11 @@
   flex-shrink: 0;
   color: var(--ae-fg-muted);
 }
+
+.quiet {
+  color: var(--ae-fg-subtle);
+
+  & * {
+    color: inherit;
+  }
+}

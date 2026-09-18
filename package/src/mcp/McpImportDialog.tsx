@@ -26,7 +26,7 @@ import { getMcpServerTarget } from './mcp-server';
 import classes from './Mcp.module.css';
 import { MCP_TRANSPORT_LABELS, McpTransportIcon } from './McpTransportIcon';
 import type { McpServerCandidate, McpTransport } from './types';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export type McpImportDialogLabels = McpImportNameLabels & {
   /** `{source}` is replaced with `sourceLabel` */
@@ -137,7 +137,7 @@ function ImportBody({
   return (
     <Stack gap="md">
       <Text size="sm" c="dimmed">
-        {formatTemplate(labels.description, { count: servers.length, source: sourceLabel })}
+        {fillTemplate(labels.description, { count: servers.length, source: sourceLabel })}
       </Text>
 
       <Checkbox
@@ -225,7 +225,7 @@ function ImportBody({
           disabled={!canImport && !pending}
           onClick={handleImport}
         >
-          {formatTemplate(labels.import, { count: selectedIds.length })}
+          {fillTemplate(labels.import, { count: selectedIds.length })}
         </Button>
       </Group>
     </Stack>
@@ -247,7 +247,7 @@ export const McpImportDialog = memo(function McpImportDialog({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={formatTemplate(labels.title, { source: sourceLabel })}
+      title={fillTemplate(labels.title, { source: sourceLabel })}
       size="lg"
       classNames={{ inner: OVERLAY_INNER_CLASS }}
     >

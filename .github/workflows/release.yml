@@ -9,11 +9,7 @@ on:
         description: Existing release tag to publish, for example v0.1.0
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
-  packages: write
+permissions: {}
 
 concurrency:
   group: release
@@ -23,12 +19,15 @@ jobs:
   release-please:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs['package--release_created'] }}
       tag_name: ${{ steps.release.outputs['package--tag_name'] }}
     steps:
       - id: release
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
@@ -38,14 +37,18 @@ jobs:
     needs: release-please
     if: always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     environment:
       name: npm
       url: https://www.npmjs.com/package/@sinups/ai-kit
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -71,7 +74,7 @@ jobs:
             npm publish --access public --provenance
           fi
       - name: Configure npm for GitHub Packages
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           registry-url: https://npm.pkg.github.com

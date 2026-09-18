@@ -47,7 +47,7 @@ import {
   type HookScopeTextOverrides,
 } from './types';
 import classes from './HooksPanel.module.css';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export type HookSaveMode = 'create' | 'edit';
 
@@ -411,7 +411,7 @@ export const HooksPanel = memo(function HooksPanel({
           deleteTarget && (
             <>
               <Code>{getHookSummary(deleteTarget)}</Code>{' '}
-              {formatTemplate(labels.deleteMessage, {
+              {fillTemplate(labels.deleteMessage, {
                 event: getHookEventText(deleteTarget.event, labels.events).label,
               })}
             </>

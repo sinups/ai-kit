@@ -43,4 +43,17 @@ describe('ImageLightbox/ImageLightbox', () => {
     expect(document.activeElement).toBe(trigger);
     trigger.remove();
   });
+
+  it('takes the control names from labels', () => {
+    render(
+      <ImageLightbox
+        open
+        onClose={() => {}}
+        images={images}
+        labels={{ close: 'Schließen', next: 'Weiter' }}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Schließen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Weiter' })).toBeInTheDocument();
+  });
 });

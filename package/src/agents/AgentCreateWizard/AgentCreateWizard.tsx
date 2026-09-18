@@ -43,7 +43,7 @@ import {
   type AgentValidationMessages,
 } from '../validate-agent';
 import { getErrorMessage } from '../../utils/error-message';
-import { formatTemplate } from '../../utils/format-template';
+import { fillTemplate } from '../../utils/fill-template';
 
 export type AgentCreateMethod = 'generate' | 'manual';
 
@@ -444,7 +444,7 @@ export const AgentCreateWizard = memo(function AgentCreateWizard({
     const warnings = Object.values(validate(values));
     const destructive = getDestructiveTools(draft, catalog);
     if (destructive.length > 0) {
-      warnings.push(formatTemplate(labels.destructiveWarning, { tools: destructive.join(', ') }));
+      warnings.push(fillTemplate(labels.destructiveWarning, { tools: destructive.join(', ') }));
     }
     const rows: [string, React.ReactNode][] = [
       [

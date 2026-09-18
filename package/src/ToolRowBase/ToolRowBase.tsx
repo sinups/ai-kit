@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, BoxProps, Collapse, ElementProps, UnstyledButton } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
+import { useMinDisplayTime } from '../hooks/use-min-display-time';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import { cx } from '../utils/cx';
 import classes from './ToolRowBase.module.css';
@@ -15,8 +16,12 @@ export interface ToolRowBaseProps extends BoxProps, ElementProps<'div', 'childre
   isAnimating: boolean;
   /** Muted, truncated text after the label */
   detail?: string;
+  /** Lines the detail may wrap to before the ellipsis, `1` by default */
+  detailLines?: number;
   /** Content rendered at the end of the row, for example elapsed time */
   trailingContent?: React.ReactNode;
+  /** How long a status stays readable before the next one replaces it in ms, `600` by default, `0` disables */
+  minStatusMs?: number;
   /** Whether the row can be expanded to reveal `children` */
   expandable?: boolean;
   /** Controlled expanded state */
@@ -34,7 +39,9 @@ export function ToolRowBase({
   completeLabel,
   isAnimating,
   detail,
+  detailLines = 1,
   trailingContent,
+  minStatusMs,
   expandable = false,
   expanded,
   defaultOpen = false,
@@ -43,6 +50,10 @@ export function ToolRowBase({
   className,
   ...others
 }: ToolRowBaseProps) {
+  const status = useMinDisplayTime(
+    { isAnimating, shimmerLabel, completeLabel },
+    { minMs: minStatusMs, key: `${isAnimating}\u0000${shimmerLabel ?? ''}\u0000${completeLabel}` }
+  );
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isControlled = expanded !== undefined;
   const isOpen = isControlled ? expanded : internalOpen;
@@ -58,18 +69,30 @@ export function ToolRowBase({
 
   const row = (
     <div className={classes.row} data-toggle={expandable || undefined}>
-      <div className={classes.content}>
+      <div className={classes.content} data-wrap={detailLines > 1 || undefined}>
         {icon && <span className={classes.icon}>{icon}</span>}
         <span className={classes.label}>
-          {isAnimating && shimmerLabel ? (
+          {status.isAnimating && status.shimmerLabel ? (
             <TextShimmer duration={1.2} className={classes.shimmer}>
-              {shimmerLabel}
+              {status.shimmerLabel}
             </TextShimmer>
           ) : (
-            completeLabel
+            status.completeLabel
           )}
         </span>
-        {detail && <span className={classes.detail}>{detail}</span>}
+        {detail && (
+          <span
+            className={classes.detail}
+            data-lines={detailLines > 1 ? detailLines : undefined}
+            style={
+              detailLines > 1
+                ? ({ '--ae-detail-lines': detailLines } as React.CSSProperties)
+                : undefined
+            }
+          >
+            {detail}
+          </span>
+        )}
         {trailingContent}
       </div>
       {expandable && (

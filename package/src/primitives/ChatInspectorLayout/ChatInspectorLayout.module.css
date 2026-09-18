@@ -1,0 +1,100 @@
+.root,
+.drawerContent {
+  --inspector-header-height: var(--ae-panel-header-height, rem(48px));
+}
+
+.splitter,
+.inspector {
+  --ae-panel-header-height: var(--inspector-header-height);
+}
+
+.root {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.splitter {
+  flex: 1;
+  min-height: 0;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.inspector {
+  --ae-panel-inset: var(--ae-column-pad-x);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background-color: var(--ae-bg);
+}
+
+.panelBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.tabsList {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  height: var(--ae-panel-header-height);
+  padding-inline: var(--ae-space-sm);
+}
+
+.inspector .tabs .tabsList {
+  --tab-border-color: var(--ae-border);
+}
+
+.inspector .tabs .tab {
+  height: auto;
+}
+
+.inspector .tabsList::before {
+  border-width: 0 0 rem(1px);
+}
+
+.drawerContent {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ae-bg-tertiary);
+}
+
+.drawerBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+
+.root[data-compact] .handle {
+  display: none;
+}

@@ -1,5 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Box, BoxProps, ElementProps } from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
+import { useAnimationPhaseDelay } from '../hooks/use-animation-clock';
 import { cx } from '../utils/cx';
 import classes from './SpiralLoader.module.css';
 
@@ -23,6 +25,9 @@ const SPIRAL_PATH =
 export function SpiralLoader({ size = 16, className, style, ...others }: SpiralLoaderProps) {
   const [phase, setPhase] = useState<'fast' | 'slow'>('fast');
   const repeatCountRef = useRef(0);
+  const reducedMotion = useReducedMotion();
+  const duration = phase === 'fast' ? FAST_DURATION : SLOW_DURATION;
+  const phaseDelay = useAnimationPhaseDelay(duration);
 
   const handleIteration = useCallback(
     (event: React.AnimationEvent<SVGGElement>) => {
@@ -42,10 +47,12 @@ export function SpiralLoader({ size = 16, className, style, ...others }: SpiralL
   return (
     <Box
       className={cx(classes.root, className)}
+      data-static={reducedMotion || undefined}
       style={{
         width: size,
         height: size,
-        '--ae-spiral-duration': `${phase === 'fast' ? FAST_DURATION : SLOW_DURATION}s`,
+        '--ae-spiral-duration': `${duration}s`,
+        '--ae-spiral-delay': phaseDelay,
         ...style,
       }}
       {...others}

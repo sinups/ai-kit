@@ -9,9 +9,9 @@ const entry = path.join(distDir, 'esm/index.mjs');
 const reportPath = path.join(process.cwd(), 'site/app/data/bundle-size.json');
 
 const namedImportBudgets: Record<string, number> = {
-  AgentChat: 84_900,
-  MessageList: 69_400,
-  InputBar: 34_700,
+  AgentChat: 92_300,
+  MessageList: 76_300,
+  InputBar: 35_200,
   Markdown: 15_200,
   BashTool: 14_100,
   DiffReview: 23_800,
@@ -42,7 +42,7 @@ const entries: Entry[] = [
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
     stylesheets: ['styles.css'],
-    gzipBudget: 218_600,
+    gzipBudget: 224_700,
   },
 ];
 

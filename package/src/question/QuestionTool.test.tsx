@@ -79,4 +79,20 @@ describe('question/QuestionTool', () => {
     expect(screen.queryByText('Check your answers')).not.toBeInTheDocument();
     expect(screen.getByText('1: SQLite • 2: No')).toBeInTheDocument();
   });
+
+  it('takes the navigation, header and prompt text from labels', () => {
+    render(
+      <QuestionTool
+        part={createPart({ showProgress: true })}
+        labels={{
+          steps: 'Fragen',
+          header: { caption: 'Frage' },
+          prompt: { skip: 'Überspringen' },
+        }}
+      />
+    );
+    expect(screen.getByRole('navigation', { name: 'Fragen' })).toBeInTheDocument();
+    expect(screen.getByText('Frage')).toBeInTheDocument();
+    expect(screen.getByText('Überspringen')).toBeInTheDocument();
+  });
 });

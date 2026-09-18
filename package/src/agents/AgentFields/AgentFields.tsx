@@ -83,13 +83,14 @@ export const AGENT_COLORS: MantineColor[] = [
   'orange',
 ];
 
-type PatchDraft = (patch: Partial<AgentDraft>) => void;
+export type AgentDraftPatchHandler = (patch: Partial<AgentDraft>) => void;
 
 interface FieldsProps {
   draft: AgentDraft;
   errors: AgentDraftErrors;
-  onChange: PatchDraft;
-  labels: AgentFieldLabels;
+  onChange: AgentDraftPatchHandler;
+  /** Overrides of the default English labels */
+  labels?: Partial<AgentFieldLabels>;
 }
 
 export interface AgentIdentityFieldsProps extends FieldsProps {
@@ -105,11 +106,12 @@ export const AgentIdentityFields = memo(function AgentIdentityFields({
   draft,
   errors,
   onChange,
-  labels,
+  labels: labelsProp,
   autoName,
   onNameEdited,
   nameDisabled,
 }: AgentIdentityFieldsProps) {
+  const labels = { ...DEFAULT_AGENT_FIELD_LABELS, ...labelsProp };
   return (
     <Stack gap="sm">
       <Box className={classes.pairContainer}>
@@ -171,9 +173,10 @@ export const AgentPromptField = memo(function AgentPromptField({
   draft,
   errors,
   onChange,
-  labels,
+  labels: labelsProp,
   minRows = 8,
 }: AgentPromptFieldProps) {
+  const labels = { ...DEFAULT_AGENT_FIELD_LABELS, ...labelsProp };
   const [tab, setTab] = useState<string | null>('write');
 
   return (
@@ -244,15 +247,15 @@ export interface AgentColorPickerProps {
   onChange: (value: MantineColor | undefined) => void;
   /** Colors to offer */
   colors?: MantineColor[];
-  /** Label of the group */
-  label: string;
+  /** Label of the group, `Color` by default */
+  label?: string;
 }
 
 export const AgentColorPicker = memo(function AgentColorPicker({
   value,
   onChange,
   colors = AGENT_COLORS,
-  label,
+  label = DEFAULT_AGENT_FIELD_LABELS.color,
 }: AgentColorPickerProps) {
   return (
     <Input.Wrapper label={label} labelElement="div" classNames={{ root: classes.field }}>
@@ -295,11 +298,12 @@ export const AgentModelFields = memo(function AgentModelFields({
   draft,
   errors,
   onChange,
-  labels,
+  labels: labelsProp,
   models,
   skills = [],
   colors,
 }: AgentModelFieldsProps) {
+  const labels = { ...DEFAULT_AGENT_FIELD_LABELS, ...labelsProp };
   const skillData = [...new Set([...skills, ...draft.skills])];
 
   return (

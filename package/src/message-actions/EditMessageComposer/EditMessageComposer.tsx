@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { Alert, Button, Group, Paper, Stack, Text, Textarea } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 
 export interface EditMessageComposerLabels {
   input: string;
@@ -53,15 +53,15 @@ export const EditMessageComposer = memo(function EditMessageComposer({
 }: EditMessageComposerProps) {
   const labels = { ...DEFAULT_EDIT_MESSAGE_COMPOSER_LABELS, ...labelsProp };
   const [value, setValue] = useState(defaultValue);
-  const { pendingKey, error, run } = useAsyncAction(labels.error);
-  const isPending = pendingKey !== null;
+  const { isPending: actionPending, error, run } = usePendingActions(labels.error);
+  const isPending = actionPending();
   const trimmed = value.trim();
 
   const submit = () => {
     if (!trimmed || isPending) {
       return;
     }
-    run('save', () => onSubmit(trimmed));
+    run('save', () => onSubmit(trimmed), { exclusive: true });
   };
 
   return (

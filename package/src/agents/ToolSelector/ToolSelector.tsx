@@ -24,7 +24,7 @@ import {
 } from '../tool-selection';
 import type { AgentToolSelection, ToolCatalogItem } from '../types';
 import classes from './ToolSelector.module.css';
-import { formatTemplate } from '../../utils/format-template';
+import { fillTemplate } from '../../utils/fill-template';
 
 export interface ToolSelectorLabels {
   all: string;
@@ -317,7 +317,7 @@ export const ToolSelector = memo(function ToolSelector({
               leftSection={<IconSearch size={16} />}
             />
             <Text size="xs" c="dimmed" aria-live="polite">
-              {formatTemplate(labels.counter, { selected: selectedCount, total: catalog.length })}
+              {fillTemplate(labels.counter, { selected: selectedCount, total: catalog.length })}
             </Text>
           </Group>
         )}

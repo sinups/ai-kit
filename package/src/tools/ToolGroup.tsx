@@ -5,9 +5,39 @@ import { formatCount } from '../utils/format-count';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
 import { GenericTool } from './GenericTool';
 import { COMMAND_TOOL_TYPES, FILE_TOOL_TYPES, SEARCH_TOOL_TYPES } from './tool-kinds';
-import { toolRegistry } from './tool-registry';
+import { useChatLabels } from '../labels/chat-labels';
+import { resolveToolTitleLabels, toolRegistry } from './tool-registry';
 import { useElapsed } from './use-elapsed';
 import classes from './ToolGroup.module.css';
+
+export interface ToolGroupLabels {
+  /** Number of file tools in the group summary, `3 files` by default */
+  files: (count: number) => string;
+  /** Number of search tools in the group summary, `3 searches` by default */
+  searches: (count: number) => string;
+  /** Number of command tools in the group summary, `3 commands` by default */
+  commands: (count: number) => string;
+  /** Joins the finished summary parts, `a`, `a and b`, `a, b, and c` by default */
+  summary: (parts: string[]) => string;
+  /** Joins the counts shown while the group streams, `a, b` by default */
+  streamSummary: (parts: string[]) => string;
+}
+
+export const DEFAULT_TOOL_GROUP_LABELS: ToolGroupLabels = {
+  files: (count) => formatCount(count, 'file', 'files'),
+  searches: (count) => formatCount(count, 'search', 'searches'),
+  commands: (count) => formatCount(count, 'command', 'commands'),
+  summary: (parts) => {
+    if (parts.length <= 1) {
+      return parts[0] ?? '';
+    }
+    if (parts.length === 2) {
+      return `${parts[0]} and ${parts[1]}`;
+    }
+    return `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`;
+  },
+  streamSummary: (parts) => parts.join(', '),
+};
 
 export interface ToolGroupProps {
   /** Tool part in AI SDK v5 shape: `{ type, toolCallId, state, input, output }` */
@@ -28,13 +58,15 @@ export interface ToolGroupProps {
   defaultOpen?: boolean;
   /** Show elapsed time at the end of the row, `true` by default */
   showElapsed?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<ToolGroupLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
   style?: React.CSSProperties;
 }
 
-function summarizeNestedTools(nestedTools: ToolPart[]): string {
+function summarizeNestedTools(nestedTools: ToolPart[], labels: ToolGroupLabels): string {
   if (nestedTools.length === 0) {
     return '';
   }
@@ -55,25 +87,16 @@ function summarizeNestedTools(nestedTools: ToolPart[]): string {
 
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file', 'files'));
+    parts.push(labels.files(fileCount));
   }
   if (searchCount > 0) {
-    parts.push(formatCount(searchCount, 'search', 'searches'));
+    parts.push(labels.searches(searchCount));
   }
   if (commandCount > 0) {
-    parts.push(formatCount(commandCount, 'command', 'commands'));
+    parts.push(labels.commands(commandCount));
   }
 
-  if (parts.length === 0) {
-    return '';
-  }
-  if (parts.length === 1) {
-    return parts[0];
-  }
-  if (parts.length === 2) {
-    return `${parts[0]} and ${parts[1]}`;
-  }
-  return `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`;
+  return labels.summary(parts);
 }
 
 function getNestedCounts(nestedTools: ToolPart[]) {
@@ -89,15 +112,19 @@ function getNestedCounts(nestedTools: ToolPart[]) {
   return { fileCount, searchCount };
 }
 
-function formatStreamCounts(fileCount: number, searchCount: number): string {
+function formatStreamCounts(
+  fileCount: number,
+  searchCount: number,
+  labels: ToolGroupLabels
+): string {
   const parts: string[] = [];
   if (fileCount > 0) {
-    parts.push(formatCount(fileCount, 'file', 'files'));
+    parts.push(labels.files(fileCount));
   }
   if (searchCount > 0) {
-    parts.push(formatCount(searchCount, 'search', 'searches'));
+    parts.push(labels.searches(searchCount));
   }
-  return parts.join(', ');
+  return labels.streamSummary(parts);
 }
 
 /** Expandable group of nested tool calls (Task/Agent) with streaming reveal animation */
@@ -111,9 +138,13 @@ export const ToolGroup = memo(function ToolGroup({
   maxVisibleTools = 5,
   defaultOpen,
   showElapsed = true,
+  labels: labelsProp,
   className,
   style,
 }: ToolGroupProps) {
+  const contextLabels = useChatLabels('toolGroup');
+  const labels = { ...DEFAULT_TOOL_GROUP_LABELS, ...contextLabels, ...labelsProp };
+  const titleLabels = resolveToolTitleLabels(useChatLabels('toolTitles'));
   const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
   const description: string = input.description || '';
@@ -134,7 +165,7 @@ export const ToolGroup = memo(function ToolGroup({
     const visibleTools = isPending ? nestedTools.slice(0, Math.max(visibleCount, 0)) : nestedTools;
     return getNestedCounts(visibleTools);
   }, [isPending, nestedTools, visibleCount]);
-  const streamCounts = formatStreamCounts(fileCount, searchCount);
+  const streamCounts = formatStreamCounts(fileCount, searchCount, labels);
   const listRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -204,7 +235,7 @@ export const ToolGroup = memo(function ToolGroup({
       return streamCounts;
     }
     if (!isPending && hasNestedTools) {
-      const summary = summarizeNestedTools(nestedTools);
+      const summary = summarizeNestedTools(nestedTools, labels);
       if (summary) {
         return summary;
       }
@@ -277,8 +308,8 @@ export const ToolGroup = memo(function ToolGroup({
               <GenericTool
                 key={idx}
                 icon={nestedMeta.icon}
-                title={nestedMeta.title(derivedPart)}
-                subtitle={nestedMeta.subtitle?.(derivedPart)}
+                title={nestedMeta.title(derivedPart, titleLabels)}
+                subtitle={nestedMeta.subtitle?.(derivedPart, titleLabels)}
                 isPending={nestedIsPending}
                 isError={nestedIsError}
               />

@@ -1,11 +1,32 @@
 import React, { memo, useMemo } from 'react';
 import { Box, Text } from '@mantine/core';
+import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { Markdown } from '../Markdown/Markdown';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import { cx } from '../utils/cx';
-import { areToolPropsEqual, getToolStatus } from '../utils/format-tool';
+import { fillTemplate } from '../utils/fill-template';
+import { useChatLabels } from '../labels/chat-labels';
+import { areToolPropsEqual, getPartInput, getToolStatus } from '../utils/format-tool';
 import type { McpToolInfo } from './tool-registry';
+import { summarizeToolArgs, unfoldToolArgs } from './tool-args';
+import { useToolApproval } from '../approvals/approval-context';
+import { deriveToolCallState } from './tool-call-state';
+import {
+  findToolCatalogEntry,
+  getToolCatalogTitle,
+  useToolPresentation,
+} from './tool-presentation';
+import {
+  clipText,
+  DEFAULT_TOOL_OUTPUT_LABELS,
+  getToolOutputValue,
+  MAX_OUTPUT_CHARS,
+  resolveByPartType,
+  summarizeToolOutput,
+  unwrapToolOutput,
+  type ToolOutputLabels,
+} from '../rows/tool-output';
 import classes from './McpTool.module.css';
 
 export interface McpToolProps {
@@ -13,10 +34,14 @@ export interface McpToolProps {
   part: ToolPart;
   /** Parsed server/tool names, see `parseMcpToolType` */
   mcpInfo: McpToolInfo;
+  /** Content rendered at the end of the row, for example `ToolActivity` with elapsed time */
+  trailingContent?: React.ReactNode;
   /** Chat status from `useChat()`, used to tell a pending tool from an interrupted one */
   chatStatus?: string;
   /** Initial expanded state of the output panel */
   defaultOpen?: boolean;
+  /** Overrides of the default English labels; verb dictionaries are merged with the defaults */
+  labels?: Partial<McpToolLabels>;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -36,6 +61,23 @@ const PRIORITY_ARGS = [
   'summary',
   'title',
 ];
+
+export interface McpToolLabels extends ToolOutputLabels {
+  /** Form of the leading verb of the tool name while the call runs, keyed by that verb: `{ List: 'Listing' }` */
+  activeVerbs: Record<string, string>;
+  /** Form of the leading verb once the call finished, keyed by that verb: `{ List: 'Listed' }` */
+  completedVerbs: Record<string, string>;
+  /** Title while the arguments stream in, `{name}` is replaced, `Preparing {name}` by default */
+  preparing: string;
+  /** Shown for a call interrupted before its result, `{name}` is replaced, `{name} interrupted` by default */
+  interrupted: string;
+  /** Title of the full arguments in the opened card, `Arguments` by default */
+  arguments: string;
+  /** Title of the result in the opened quiet row, `Result` by default */
+  result: string;
+  /** Short state of a failed call in the quiet row, `Error` by default */
+  failed: string;
+}
 
 const ACTIVE_VERBS: Record<string, string> = {
   List: 'Listing',
@@ -81,6 +123,17 @@ const COMPLETED_VERBS: Record<string, string> = {
   Set: 'Set',
   Check: 'Checked',
   Find: 'Found',
+};
+
+export const DEFAULT_MCP_TOOL_LABELS: McpToolLabels = {
+  activeVerbs: ACTIVE_VERBS,
+  completedVerbs: COMPLETED_VERBS,
+  preparing: 'Preparing {name}',
+  ...DEFAULT_TOOL_OUTPUT_LABELS,
+  arguments: 'Arguments',
+  result: 'Result',
+  failed: 'Error',
+  interrupted: '{name} interrupted',
 };
 
 function conjugate(info: McpToolInfo, verbs: Record<string, string>): string {
@@ -132,43 +185,9 @@ function formatMcpArgs(input: unknown): string {
   return parts.join('  ');
 }
 
-/** Parses a JSON object or array, any other text (including JSON scalars) is returned as is */
-function parseJsonContainer(text: string): unknown {
-  try {
-    const parsed = JSON.parse(text);
-    return parsed !== null && typeof parsed === 'object' ? parsed : text;
-  } catch {
-    return text;
-  }
-}
-
 /** Unwraps MCP results (`CallToolResult`, `[{ type: 'text', text }]`) and parses JSON payloads when possible */
 export function unwrapMcpOutput(output: any): any {
-  if (!output) {
-    return output;
-  }
-  if (typeof output === 'object' && !Array.isArray(output) && Array.isArray(output.content)) {
-    return unwrapMcpOutput(output.content);
-  }
-  if (Array.isArray(output)) {
-    const textParts: string[] = [];
-    for (const block of output) {
-      if (block?.type === 'text' && typeof block?.text === 'string') {
-        textParts.push(block.text);
-      }
-    }
-    if (textParts.length > 0) {
-      return parseJsonContainer(textParts.join(''));
-    }
-    return output;
-  }
-  if (output?.type === 'text' && typeof output?.text === 'string') {
-    return parseJsonContainer(output.text);
-  }
-  if (typeof output === 'string') {
-    return parseJsonContainer(output);
-  }
-  return output;
+  return output ? unwrapToolOutput(output) : output;
 }
 
 /** Backtick fence longer than any backtick run inside the text, at least three characters */
@@ -182,40 +201,120 @@ function codeFence(text: string): string {
 
 function formatOutputForDisplay(output: unknown): string {
   const unwrapped = unwrapMcpOutput(output);
-  if (typeof unwrapped === 'string') {
-    return unwrapped.length > 3000 ? `${unwrapped.slice(0, 3000)}\n...` : unwrapped;
-  }
-  const text = JSON.stringify(unwrapped, null, 2);
-  return text.length > 3000 ? `${text.slice(0, 3000)}\n...` : text;
+  return clipText(
+    typeof unwrapped === 'string' ? unwrapped : JSON.stringify(unwrapped, null, 2),
+    MAX_OUTPUT_CHARS
+  );
 }
 
 /** Renders `tool-mcp__<server>__<tool>` parts with a verb-conjugated title and JSON output */
 export const McpTool = memo(function McpTool({
   part,
   mcpInfo,
+  trailingContent,
   chatStatus,
   defaultOpen,
+  labels: labelsProp,
   className,
   style,
 }: McpToolProps) {
-  const { isPending, isInterrupted } = getToolStatus(part, chatStatus);
+  const status = getToolStatus(part, chatStatus);
+  const hostApproval = useToolApproval(part.toolCallId);
+  const isWaitingForDecision = Boolean(hostApproval && !hostApproval.outcome);
+  const isPending = status.isPending && !isWaitingForDecision;
+  const isRejected =
+    hostApproval?.outcome?.decision === 'rejected' ||
+    deriveToolCallState(part, { chatStatus }) === 'rejected';
+  const { isInterrupted } = status;
+  const contextLabels = useChatLabels('mcpTool');
+  const labels = useMemo(
+    () => ({
+      ...DEFAULT_MCP_TOOL_LABELS,
+      ...contextLabels,
+      ...labelsProp,
+      activeVerbs: {
+        ...DEFAULT_MCP_TOOL_LABELS.activeVerbs,
+        ...contextLabels?.activeVerbs,
+        ...labelsProp?.activeVerbs,
+      },
+      completedVerbs: {
+        ...DEFAULT_MCP_TOOL_LABELS.completedVerbs,
+        ...contextLabels?.completedVerbs,
+        ...labelsProp?.completedVerbs,
+      },
+    }),
+    [contextLabels, labelsProp]
+  );
+
+  const presentation = useToolPresentation();
+  const catalogEntry = findToolCatalogEntry(presentation.catalog, part);
+  const catalogTitle = getToolCatalogTitle(catalogEntry);
+  const argsFormatter = resolveByPartType(presentation.args, part.type);
+  const outputFormatter = resolveByPartType(presentation.outputs, part.type);
+  const isReadable = Boolean(catalogEntry || argsFormatter || outputFormatter);
+  const args = useMemo(
+    () => (isReadable ? unfoldToolArgs(getPartInput(part)) : {}),
+    [isReadable, part]
+  );
 
   const title = useMemo(() => {
+    const name = catalogTitle ?? mcpInfo.displayName;
     if (part.state === 'input-streaming') {
-      return `Preparing ${mcpInfo.displayName}`;
+      return fillTemplate(labels.preparing, { name });
+    }
+    if (catalogTitle) {
+      return catalogTitle;
     }
     if (isPending) {
-      return conjugate(mcpInfo, ACTIVE_VERBS);
+      return conjugate(mcpInfo, labels.activeVerbs);
     }
-    return conjugate(mcpInfo, COMPLETED_VERBS);
-  }, [part.state, isPending, mcpInfo]);
+    return conjugate(mcpInfo, labels.completedVerbs);
+  }, [part.state, isPending, mcpInfo, labels, catalogTitle]);
 
   const subtitle = useMemo(() => {
-    if (part.state === 'input-streaming') {
-      return '';
+    if (!isReadable) {
+      return part.state === 'input-streaming' ? '' : formatMcpArgs(getPartInput(part));
     }
-    return formatMcpArgs(part.input);
-  }, [part.input, part.state]);
+    const summary = summarizeToolArgs(args, {
+      schema: catalogEntry?.inputSchema,
+      locale: presentation.locale,
+    });
+    return (
+      argsFormatter?.(part, {
+        state: isPending ? 'running' : 'done',
+        args,
+        summary,
+        schema: catalogEntry?.inputSchema,
+        locale: presentation.locale,
+      }) ?? summary
+    );
+  }, [isReadable, args, catalogEntry, labels, presentation.locale, argsFormatter, part, isPending]);
+
+  const resultLines = useMemo(() => {
+    if (
+      !isReadable ||
+      isPending ||
+      isRejected ||
+      (part.output === undefined && part.state !== 'output-error')
+    ) {
+      return null;
+    }
+    const output = getToolOutputValue(part);
+    const summary = summarizeToolOutput(output, { labels, locale: presentation.locale });
+    const formatted = outputFormatter?.(part, {
+      state: part.state === 'output-error' ? 'error' : 'done',
+      output,
+      summary,
+      locale: presentation.locale,
+      labels,
+    });
+    if (formatted !== null && formatted !== undefined && typeof formatted !== 'string') {
+      return formatted;
+    }
+    const text = typeof formatted === 'string' ? formatted : summary;
+    const lines = text.split('\n').filter((line) => line.trim());
+    return lines.length > 0 && lines.length <= 4 ? lines : null;
+  }, [isReadable, isPending, isRejected, part, labels, presentation.locale, outputFormatter]);
 
   const displayOutput = useMemo(() => {
     if (!part.output) {
@@ -225,7 +324,7 @@ export const McpTool = memo(function McpTool({
   }, [part.output]);
 
   const codeBlock = useMemo(() => {
-    if (!displayOutput) {
+    if (!displayOutput || (isReadable && isRejected)) {
       return null;
     }
     const trimmed = displayOutput.trim();
@@ -235,14 +334,16 @@ export const McpTool = memo(function McpTool({
     const language = trimmed.startsWith('{') || trimmed.startsWith('[') ? 'json' : 'text';
     const fence = codeFence(displayOutput);
     return `${fence}${language}\n${displayOutput}\n${fence}`;
-  }, [displayOutput]);
+  }, [displayOutput, isReadable, isRejected]);
 
-  const hasExpandableContent = !!codeBlock && !isPending;
+  const argsJson =
+    isReadable && Object.keys(args).length > 0 ? JSON.stringify(args, null, 2) : null;
+  const hasExpandableContent = (!!codeBlock && !isPending) || !!argsJson;
 
-  if (isInterrupted && !part.output) {
+  if (isInterrupted && !part.output && !isWaitingForDecision) {
     return (
       <Text component="span" className={cx(classes.interrupted, className)} style={style}>
-        {mcpInfo.displayName} interrupted
+        {fillTemplate(labels.interrupted, { name: mcpInfo.displayName })}
       </Text>
     );
   }
@@ -254,14 +355,36 @@ export const McpTool = memo(function McpTool({
         completeLabel={title}
         isAnimating={isPending}
         detail={subtitle || undefined}
-        trailingContent={undefined}
+        detailLines={isReadable ? 2 : 1}
+        trailingContent={trailingContent}
         expandable={hasExpandableContent}
         defaultOpen={defaultOpen}
       >
+        {argsJson && (
+          <CodeBlock
+            code={argsJson}
+            language="json"
+            title={labels.arguments}
+            wrapLines
+            className={classes.output}
+          />
+        )}
         {codeBlock && (
           <Markdown content={codeBlock} className={classes.output} controls={{ code: false }} />
         )}
       </ToolRowBase>
+      {resultLines &&
+        (Array.isArray(resultLines) ? (
+          <div className={classes.result} data-error={part.state === 'output-error' || undefined}>
+            {resultLines.map((line, index) => (
+              <div key={index} className={classes.resultLine} data-head={index === 0 || undefined}>
+                {line}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={classes.result}>{resultLines}</div>
+        ))}
     </Box>
   );
 }, areToolPropsEqual);

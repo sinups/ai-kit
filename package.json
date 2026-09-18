@@ -1,8 +1,8 @@
 {
   "name": "ai-kit-monorepo",
-  "version": "0.1.1",
   "description": "Monorepo for @sinups/ai-kit: agent chat UI components for Mantine and their documentation site",
   "packageManager": "yarn@4.17.1",
+  "private": true,
   "workspaces": [
     "package",
     "site"
@@ -14,8 +14,9 @@
   "scripts": {
     "clean": "rimraf package/dist",
     "build": "rollup -c rollup.config.mjs && tsx scripts/generate-dts && tsx scripts/prepare-css",
-    "pack:preview": "yarn build && tsx scripts/pack-preview.ts",
+    "pack:preview": "yarn clean && yarn build && tsx scripts/pack-preview.ts",
     "size": "tsx scripts/check-size",
+    "attw": "yarn dlx -q -p @arethetypeswrong/cli@0.18.5 attw --pack package --entrypoints .",
     "format:test": "oxfmt -c oxfmt.config.mjs --check \"{package,scripts,.storybook}/**/*.{ts,tsx,css}\"",
     "format:write": "oxfmt -c oxfmt.config.mjs --write \"{package,scripts,.storybook}/**/*.{ts,tsx,css}\"",
     "typecheck": "tsc --noEmit && yarn workspace ai-kit-site typecheck",
@@ -23,7 +24,8 @@
     "oxlint": "oxlint -c oxlint.config.mjs .",
     "stylelint": "stylelint '**/*.css' --cache",
     "jest": "jest",
-    "test": "npm run syncpack && npm run format:test && npm run typecheck && npm run lint && npm run site:lint && npm run jest",
+    "check:examples": "tsx --tsconfig site/tsconfig.json scripts/check-example-sources",
+    "test": "npm run syncpack && npm run format:test && npm run typecheck && npm run lint && npm run site:lint && npm run check:examples && npm run jest",
     "dev": "yarn workspace ai-kit-site dev",
     "storybook": "storybook dev -p 8271",
     "storybook:build": "storybook build -o storybook-static --quiet",

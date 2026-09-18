@@ -36,7 +36,7 @@ import type {
   SummarizeRequest,
 } from '../types';
 import { getErrorMessage } from '../../utils/error-message';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 import { OVERLAY_INNER_CLASS } from '../../styles/overlay';
 
 export interface RewindDialogLabels extends RewindGroupLabels {
@@ -130,8 +130,8 @@ export const RewindDialog = memo(function RewindDialog({
   const [query, setQuery] = useState('');
   const [summaryContext, setSummaryContext] = useState('');
   const [now, setNow] = useState(() => new Date());
-  const { pendingKey, error, run, clearError } = useAsyncAction(labels.error);
-  const isPending = pendingKey !== null;
+  const { isPending: actionPending, error, tryRun, clearError } = usePendingActions(labels.error);
+  const isPending = actionPending();
 
   useEffect(() => {
     if (!opened) {
@@ -152,7 +152,9 @@ export const RewindDialog = memo(function RewindDialog({
     if (!selected) {
       return;
     }
-    const ok = await run('rewind', () => onRewind({ messageId: selected.messageId, mode }));
+    const ok = await tryRun('rewind', () => onRewind({ messageId: selected.messageId, mode }), {
+      exclusive: true,
+    });
     if (ok) {
       onClose();
     }
@@ -163,13 +165,17 @@ export const RewindDialog = memo(function RewindDialog({
       return;
     }
     const request = buildSummarizeRequest(selected.messageId, direction, summaryContext);
-    const ok = await run(`summarize-${direction}`, async () => {
-      try {
-        await onSummarize(request);
-      } catch (reason) {
-        throw new Error(getErrorMessage(reason, labels.summarizeError));
-      }
-    });
+    const ok = await tryRun(
+      `summarize-${direction}`,
+      async () => {
+        try {
+          await onSummarize(request);
+        } catch (reason) {
+          throw new Error(getErrorMessage(reason, labels.summarizeError));
+        }
+      },
+      { exclusive: true }
+    );
     if (ok) {
       onClose();
     }
@@ -271,8 +277,8 @@ export const RewindDialog = memo(function RewindDialog({
                 variant="default"
                 leftSection={<IconFoldUp size={16} />}
                 onClick={() => summarize('up-to')}
-                disabled={!selected || (isPending && pendingKey !== 'summarize-up-to')}
-                loading={pendingKey === 'summarize-up-to'}
+                disabled={!selected || (isPending && !actionPending('summarize-up-to'))}
+                loading={actionPending('summarize-up-to')}
               >
                 {labels.summarizeUpTo}
               </Button>
@@ -280,8 +286,8 @@ export const RewindDialog = memo(function RewindDialog({
                 variant="default"
                 leftSection={<IconFoldDown size={16} />}
                 onClick={() => summarize('from')}
-                disabled={!selected || (isPending && pendingKey !== 'summarize-from')}
-                loading={pendingKey === 'summarize-from'}
+                disabled={!selected || (isPending && !actionPending('summarize-from'))}
+                loading={actionPending('summarize-from')}
               >
                 {labels.summarizeFrom}
               </Button>
@@ -300,8 +306,8 @@ export const RewindDialog = memo(function RewindDialog({
           <Button
             leftSection={<IconArrowBackUp size={16} />}
             onClick={confirm}
-            disabled={!selected || (isPending && pendingKey !== 'rewind')}
-            loading={pendingKey === 'rewind'}
+            disabled={!selected || (isPending && !actionPending('rewind'))}
+            loading={actionPending('rewind')}
           >
             {labels.confirm}
           </Button>

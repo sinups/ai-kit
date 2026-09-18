@@ -11,3 +11,27 @@
 .output {
   font-size: var(--ae-font-size-xs);
 }
+
+.result {
+  display: flex;
+  flex-direction: column;
+  padding-inline-start: var(--ae-space-lg);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+
+  &[data-error] {
+    color: var(--ae-danger);
+  }
+}
+
+.resultLine {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &[data-head] {
+    color: var(--ae-fg);
+  }
+}

@@ -93,11 +93,14 @@ secondary text, `0.6` check icon (`input/ModelPicker.module.css`). `--ae-hover` 
 | `--ae-row-height` | 28px | Menu and list rows |
 | `--ae-max-width` | 420px | Default message column width (`contentWidth`) |
 | `--ae-context-padding` | 10px | Padding of the composer attachments strip; attachment radius derives from it |
-| `--ae-user-message-x` / `-y` | 14px / 10px | User bubble padding |
+| `--ae-user-message-x` / `-y` | 14px / 6px | User bubble padding |
 | `--ae-panel-header-height` | `auto` | Header row of panes (48px inside layout inspectors) |
+| `--ae-column-inset` | 16px | Side inset of the message column, welcome screen and chat footer |
+| `--ae-top-fade-size` | 24px | Height of the fade above a scrolled message list |
+| `--ae-input-focus-outline` | `transparent` | Composer focus ring; set a color to turn it on |
 
 `compact` density sets the control heights to 20/22/24px, rows to 24px, context padding to 8px and
-user bubble padding to 12px / 8px.
+user bubble padding to 12px / 4px.
 
 ### Typography
 
@@ -121,6 +124,7 @@ primary buttons, picker labels. There are no headings: the largest text is sm/50
 | `--ae-anim-loading-dots` | opacity 0 → 1 → 0, 1.4s, delays 0.2/0.4/0.6s | "Waiting…" dots (`tools/ToolApprovalFooter.module.css`) |
 | `--ae-anim-blink` | 1s step-end | Typing caret (`input/InputBar.module.css`) |
 | `--ae-anim-spin` | 360deg | Spinners |
+| `--ae-anim-appear` | opacity 0 → 1 with 4px of travel, 150ms ease-out | Messages and parts that arrive after mount (`MessageList` with `animateAppearance`) |
 
 Transitions are `150ms ease` for color and background, `150ms ease-out` for expand, collapse and
 chevrons (`ToolRowBase/ToolRowBase.module.css`, `input/InputBar.module.css`), `200ms ease-out`
@@ -226,6 +230,7 @@ Declared in `styles/vars.module.css`; `theme.spacing` of the kit subtree uses th
 --ae-surface-pad:    var(--ae-space-md);   /* cards, popovers, panes */
 --ae-column-pad-x:   var(--ae-space-lg);
 --ae-column-pad-y:   var(--ae-space-xl);
+--ae-column-inset:   rem(16px);   /* side inset of the message column */
 ```
 
 Mantine props inside the kit: `createAiKitTheme` sets `theme.spacing` to `{ xs: 6, sm: 8, md: 12, lg: 16, xl: 24 }`, so `gap="xs"` lands on the kit scale. The chat components of the first release use explicit pixel values (`gap={10}`) so they keep their original look regardless of the theme scale.

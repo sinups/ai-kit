@@ -7,7 +7,7 @@ import { getMcpServerTarget } from './mcp-server';
 import classes from './Mcp.module.css';
 import { MCP_TRANSPORT_LABELS, McpTransportIcon } from './McpTransportIcon';
 import type { McpDiscoveredServer, McpTransport } from './types';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export type McpDiscoveredServersLabels = {
   /** `{count}` is replaced with the number of servers */
@@ -97,7 +97,7 @@ export const McpDiscoveredServers = memo(function McpDiscoveredServers({
       <Stack gap="sm">
         <Stack gap={2}>
           <Text size="sm" fw={500}>
-            {formatTemplate(labels.title, { count: servers.length })}
+            {fillTemplate(labels.title, { count: servers.length })}
           </Text>
           <Text size="xs" c="dimmed">
             {labels.description}
@@ -132,7 +132,7 @@ export const McpDiscoveredServers = memo(function McpDiscoveredServers({
         <Stack
           gap={4}
           role="group"
-          aria-label={formatTemplate(labels.title, { count: servers.length })}
+          aria-label={fillTemplate(labels.title, { count: servers.length })}
         >
           {servers.map((server) => (
             <Group key={server.id} gap={0} wrap="nowrap" align="center">
@@ -171,7 +171,7 @@ export const McpDiscoveredServers = memo(function McpDiscoveredServers({
 
         <Group justify="space-between" wrap="nowrap" gap="xs">
           <Text size="xs" c="dimmed">
-            {formatTemplate(labels.selected, { count: selectedIds.length })}
+            {fillTemplate(labels.selected, { count: selectedIds.length })}
           </Text>
           <Group gap="xs" wrap="nowrap">
             {onReject && (

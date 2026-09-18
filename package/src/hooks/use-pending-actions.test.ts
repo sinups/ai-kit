@@ -76,4 +76,52 @@ describe('hooks/usePendingActions', () => {
     act(() => result.current.clearError());
     expect(result.current.error).toBeNull();
   });
+
+  it('skips an exclusive action while another key runs and reports the outcome', async () => {
+    let resolveFirst: () => void = () => {};
+    const first = jest.fn(() => new Promise<void>((done) => (resolveFirst = done)));
+    const second = jest.fn();
+    const { result } = renderHook(() => usePendingActions());
+
+    let running: Promise<boolean> = Promise.resolve(false);
+    act(() => {
+      running = result.current.tryRun('a', first, { exclusive: true });
+    });
+
+    await act(async () => {
+      expect(await result.current.tryRun('b', second, { exclusive: true })).toBe(false);
+    });
+    expect(second).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveFirst();
+      expect(await running).toBe(true);
+    });
+
+    await act(async () => {
+      expect(await result.current.tryRun('b', second, { exclusive: true })).toBe(true);
+    });
+    expect(second).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      expect(await result.current.tryRun('c', () => Promise.reject(new Error('Nope')))).toBe(false);
+    });
+    expect(result.current.error).toBe('Nope');
+  });
+
+  it('resolves undefined from run and the outcome from tryRun', async () => {
+    const { result } = renderHook(() => usePendingActions());
+
+    await act(async () => {
+      expect(await result.current.run('a', () => undefined)).toBeUndefined();
+      expect(
+        await result.current.run('b', () => Promise.reject(new Error('Nope')))
+      ).toBeUndefined();
+    });
+
+    await act(async () => {
+      expect(await result.current.tryRun('c', () => undefined)).toBe(true);
+      expect(await result.current.tryRun('d', () => Promise.reject(new Error('Nope')))).toBe(false);
+    });
+  });
 });

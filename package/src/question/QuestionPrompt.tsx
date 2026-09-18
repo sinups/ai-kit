@@ -62,6 +62,33 @@ function optionBadge(idx: number) {
 
 const WIDE_PREVIEW_WIDTH = 640;
 
+export interface QuestionPromptLabels {
+  /** Primary action on the last question, `Send` by default */
+  submit: string;
+  /** Primary action while questions are left, `Next` by default */
+  next: string;
+  /** Skip button, `Skip` by default */
+  skip: string;
+  /** Button that walks back through the questions, `Previous` by default */
+  previous: string;
+  /** Button that walks forward through the questions, `Next` by default */
+  nextQuestion: string;
+  /** Placeholder of the free-text answer and of the custom option, `Type your answer` by default */
+  answerPlaceholder: string;
+  /** Placeholder and accessible label of the notes field, `Add a note (optional)` by default */
+  notesPlaceholder: string;
+}
+
+export const DEFAULT_QUESTION_PROMPT_LABELS: QuestionPromptLabels = {
+  submit: 'Send',
+  next: 'Next',
+  skip: 'Skip',
+  previous: 'Previous',
+  nextQuestion: 'Next',
+  answerPlaceholder: 'Type your answer',
+  notesPlaceholder: 'Add a note (optional)',
+};
+
 export interface QuestionPromptProps {
   questions: QuestionConfig[];
   /** 1-based index of the active question, `1` by default */
@@ -74,17 +101,19 @@ export interface QuestionPromptProps {
    * Read only on mount: hosts remount the prompt (via `key`) when the active question changes.
    */
   initialAnswer?: QuestionAnswer;
-  /** Label for the primary action on the LAST question, `'Send'` by default */
+  /** Label for the primary action on the LAST question, `labels.submit` by default */
   submitLabel?: string;
   /**
-   * Label for the primary action when there are more questions ahead, `'Next'` by default.
+   * Label for the primary action when there are more questions ahead, `labels.next` by default.
    * The host (for example QuestionTool) is expected to advance to the next question after `onSubmit` fires.
    */
   nextLabel?: string;
-  /** `'Skip'` by default */
+  /** `labels.skip` by default */
   skipLabel?: string;
   /** Whether the skip button is shown, `true` by default */
   allowSkip?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<QuestionPromptLabels>;
   onSubmit: (answer: QuestionAnswer) => void;
   /**
    * Called when the skip button is pressed. When provided, `onSubmit` is NOT called for the skip.
@@ -104,16 +133,18 @@ export function QuestionPrompt({
   totalQuestions,
   onPreviousQuestion,
   onNextQuestion,
-  submitLabel = 'Send',
-  nextLabel = 'Next',
-  skipLabel = 'Skip',
+  submitLabel,
+  nextLabel,
+  skipLabel,
   allowSkip = true,
   initialAnswer,
   onSubmit,
   onSkip,
+  labels: labelsProp,
   className,
   style,
 }: QuestionPromptProps) {
+  const labels = { ...DEFAULT_QUESTION_PROMPT_LABELS, ...labelsProp };
   const resolvedTotal = totalQuestions ?? questions.length;
   const clampedIndex = Math.max(1, Math.min(questionIndex, resolvedTotal));
   const activeQuestion = questions[clampedIndex - 1];
@@ -129,7 +160,7 @@ export function QuestionPrompt({
   const canGoPrev = clampedIndex > 1;
   const canGoNext = clampedIndex < resolvedTotal;
   const isLastQuestion = clampedIndex >= resolvedTotal;
-  const primaryLabel = isLastQuestion ? submitLabel : nextLabel;
+  const primaryLabel = isLastQuestion ? (submitLabel ?? labels.submit) : (nextLabel ?? labels.next);
 
   const draft = { selectedIds, customText, textValue, notes };
   const canSubmit = activeQuestion ? canSubmitQuestion(activeQuestion, draft) : false;
@@ -265,7 +296,7 @@ export function QuestionPrompt({
                   variant="unstyled"
                   value={customText}
                   onChange={(event) => handleCustomTextChange(event.currentTarget.value)}
-                  placeholder={activeQuestion.customPlaceholder ?? 'Type your answer'}
+                  placeholder={activeQuestion.customPlaceholder ?? labels.answerPlaceholder}
                   classNames={{ root: classes.customInputRoot, input: classes.customInput }}
                 />
               </div>
@@ -280,7 +311,7 @@ export function QuestionPrompt({
           variant="unstyled"
           value={textValue}
           onChange={(event) => setTextValue(event.currentTarget.value)}
-          placeholder={activeQuestion.placeholder ?? 'Type your answer'}
+          placeholder={activeQuestion.placeholder ?? labels.answerPlaceholder}
           rows={3}
           resize="vertical"
           classNames={{ root: classes.textareaRoot, input: classes.textarea }}
@@ -292,8 +323,8 @@ export function QuestionPrompt({
           variant="unstyled"
           value={notes}
           onChange={(event) => setNotes(event.currentTarget.value)}
-          placeholder={activeQuestion.notesPlaceholder ?? 'Add a note (optional)'}
-          aria-label={activeQuestion.notesPlaceholder ?? 'Add a note (optional)'}
+          placeholder={activeQuestion.notesPlaceholder ?? labels.notesPlaceholder}
+          aria-label={activeQuestion.notesPlaceholder ?? labels.notesPlaceholder}
           autosize
           minRows={1}
           maxRows={4}
@@ -310,7 +341,7 @@ export function QuestionPrompt({
                 disabled={!canGoPrev}
                 className={classes.navButton}
               >
-                Previous
+                {labels.previous}
               </UnstyledButton>
             )}
             {onNextQuestion && (
@@ -319,7 +350,7 @@ export function QuestionPrompt({
                 disabled={!canGoNext}
                 className={classes.navButton}
               >
-                Next
+                {labels.nextQuestion}
               </UnstyledButton>
             )}
           </div>
@@ -327,7 +358,7 @@ export function QuestionPrompt({
         <div className={cx(classes.footerGroup, classes.footerActions)}>
           {allowSkip && (
             <UnstyledButton onClick={handleSkip} className={classes.skipButton}>
-              {skipLabel}
+              {skipLabel ?? labels.skip}
             </UnstyledButton>
           )}
           <UnstyledButton

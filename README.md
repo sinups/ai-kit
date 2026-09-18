@@ -86,6 +86,22 @@ export function Chat({ messages, status, send, stop }) {
 Messages are structurally compatible with `UIMessage` from the AI SDK, so `useChat` output can be
 passed directly. The package does not depend on `ai`.
 
+### Transcript options
+
+- `presentation`: `'cards'` by default; `rowsPresentation` shows the flat rows of a terminal client,
+  `quietPresentation` shows MCP calls as muted lines and folds the work before an answer into one
+  line. Import the value from the package root.
+- `approvals`: Allow/Deny under any tool call, keyed by `toolCallId`. A standalone `MessageList`
+  takes the same map from `ToolApprovalsProvider`.
+- `labels`: every text of the chat, one section per component; `ChatLabelsProvider` does the same
+  for a standalone `MessageList`.
+- `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`: tool titles from your MCP servers and
+  formatters for arguments and results.
+- `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched`: on by default in `AgentChat`,
+  off in a standalone `MessageList`. `evenSpacing` is off in both.
+- Composer: `InputBar` shows context chips with `contextItems`, `onRemoveContext` and
+  `onRestoreContext`; `ModeSelector` takes a menu title, a badge per mode and digit `shortcuts`.
+
 ## Theming
 
 Without extra setup the kit follows your Mantine primary color, fonts and color scheme. Wrap kit

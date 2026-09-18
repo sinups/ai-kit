@@ -28,7 +28,10 @@ export interface InputPopoverProps {
   style?: React.CSSProperties;
 }
 
-type TriggerProps = { onClick?: (event: React.MouseEvent<HTMLElement>) => void };
+type TriggerProps = {
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
+};
 
 function toPosition(side: PopoverSide, align: PopoverAlign): FloatingPosition {
   return align === 'center' ? side : (`${side}-${align}` as FloatingPosition);
@@ -53,6 +56,25 @@ export function InputPopover({
     finalValue: false,
     onChange: onOpenChange,
   });
+  const toggle = (event: React.MouseEvent<HTMLElement>) => {
+    event.currentTarget.focus();
+    setOpened(!opened);
+  };
+  const closeOnEscape = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (
+      opened &&
+      event.key === 'Escape' &&
+      !event.defaultPrevented &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      setOpened(false);
+    }
+  };
+  const targetProps = {
+    onKeyDown: closeOnEscape,
+    'data-mantine-stop-propagation': opened || undefined,
+  };
 
   return (
     <Popover
@@ -61,6 +83,7 @@ export function InputPopover({
       position={toPosition(side, align)}
       offset={sideOffset}
       withinPortal
+      returnFocus
       shadow="lg"
       radius={10}
       classNames={{ dropdown: cx(classes.dropdown, className) }}
@@ -69,18 +92,29 @@ export function InputPopover({
       <Popover.Target>
         {isValidElement<TriggerProps>(trigger) ? (
           cloneElement(trigger, {
+            ...targetProps,
+            onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
+              trigger.props.onKeyDown?.(event);
+              closeOnEscape(event);
+            },
             onClick: (event: React.MouseEvent<HTMLElement>) => {
               trigger.props.onClick?.(event);
-              setOpened(!opened);
+              toggle(event);
             },
           })
         ) : (
-          <Box component="span" className={classes.target} onClick={() => setOpened(!opened)}>
+          <Box component="span" className={classes.target} {...targetProps} onClick={toggle}>
             {trigger}
           </Box>
         )}
       </Popover.Target>
-      <Popover.Dropdown>{children}</Popover.Dropdown>
+      <Popover.Dropdown
+        onFocusCapture={(event) =>
+          (event.target as HTMLElement).setAttribute('data-mantine-stop-propagation', 'true')
+        }
+      >
+        {children}
+      </Popover.Dropdown>
     </Popover>
   );
 }

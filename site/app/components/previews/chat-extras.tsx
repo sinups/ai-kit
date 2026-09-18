@@ -1,10 +1,23 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Code, Group, Image, Paper, Stack, Text, UnstyledButton } from "@mantine/core";
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Code,
+  Group,
+  Image,
+  Paper,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import {
   ActionRow,
+  AgentChat,
   AgentModeIcon,
+  ChatHeader,
   CodeBlock,
   ContextBreakdown,
   ContextEventRow,
@@ -23,10 +36,12 @@ import {
   SpendThresholdNotice,
   ToolRenderer,
   ToolRowBase,
+  ToolUnavailableNotice,
   TranscriptSearch,
   TurnSummary,
   findTextMatches,
   stepMatchIndex,
+  type ChatMessage,
   type ContextBreakdownGroup,
   type ContextSuggestion,
   type CustomToolRendererProps,
@@ -35,10 +50,16 @@ import {
   type QuestionAnswer,
   type QuestionConfig,
   type StepState,
+  type ToolApprovals,
   type ToolCallStep,
   type ToolPart,
 } from "@sinups/ai-kit";
-import { IconFileText, IconGitBranch } from "@tabler/icons-react";
+import {
+  IconFileText,
+  IconGitBranch,
+  IconLayoutSidebar,
+  IconLayoutSidebarRight,
+} from "@tabler/icons-react";
 import { NarrowFrame, ResultBlock, WideFrame, noop } from "./frames";
 
 const CONTEXT_GROUPS: ContextBreakdownGroup[] = [
@@ -811,6 +832,116 @@ function ToolRendererCustomPreview() {
   );
 }
 
+function ChatHeaderPreview({ narrow }: { narrow?: boolean }) {
+  const [inspector, setInspector] = useState(true);
+  const header = (
+    <ChatHeader
+      title="Flaky upload test in the release pipeline"
+      subtitle="claude-opus-5 · acme workspace"
+      leftSection={
+        <ActionIcon variant="subtle" color="gray" aria-label="Toggle the sidebar">
+          <IconLayoutSidebar size={18} />
+        </ActionIcon>
+      }
+      secondarySection={
+        <Badge size="sm" variant="light" color="teal">
+          3 servers
+        </Badge>
+      }
+      rightSection={
+        <Group gap="sm" wrap="nowrap">
+          <ContextUsage used={128_000} total={200_000} />
+          <ActionIcon
+            variant={inspector ? "light" : "subtle"}
+            color="gray"
+            aria-label="Toggle the inspector"
+            onClick={() => setInspector((open) => !open)}
+          >
+            <IconLayoutSidebarRight size={18} />
+          </ActionIcon>
+        </Group>
+      }
+    />
+  );
+  return narrow ? <NarrowFrame>{header}</NarrowFrame> : <WideFrame>{header}</WideFrame>;
+}
+
+function ToolUnavailablePreview() {
+  const [log, setLog] = useState("");
+  const [visible, setVisible] = useState(true);
+  return (
+    <Stack gap="md" className="w-full max-w-2xl">
+      {visible ? (
+        <ToolUnavailableNotice
+          server="tracker"
+          message="The connection dropped after three attempts."
+          onRetry={() => setLog("retry")}
+          onDismiss={() => setVisible(false)}
+        />
+      ) : (
+        <Button size="xs" variant="default" onClick={() => setVisible(true)}>
+          Show the notice again
+        </Button>
+      )}
+      <ToolUnavailableNotice message="The tool is no longer registered on this server." />
+      <ResultBlock value={log || null} />
+    </Stack>
+  );
+}
+
+const APPROVAL_CALL_ID = "call-create-issue";
+
+const APPROVAL_MESSAGES: ChatMessage[] = [
+  {
+    id: "u1",
+    role: "user",
+    parts: [{ type: "text", text: "File the flaky upload test in the tracker." }],
+  },
+  {
+    id: "a1",
+    role: "assistant",
+    parts: [
+      { type: "text", text: "I will open an issue with the failing run attached." },
+      {
+        type: "tool-mcp__tracker__create_issue",
+        toolCallId: APPROVAL_CALL_ID,
+        state: "input-available",
+        input: { title: "Flaky upload test", project: "pipeline" },
+      },
+    ],
+  },
+];
+
+function AgentChatApprovalsPreview() {
+  const [approvals, setApprovals] = useState<ToolApprovals>({
+    [APPROVAL_CALL_ID]: {
+      isPending: true,
+      reason: "Creates an issue in the tracker workspace",
+      requestedBy: { name: "triage agent", color: "blue" },
+      approveOptions: [
+        { value: "once", label: "Allow once" },
+        { value: "session", label: "Allow for this session" },
+      ],
+      onApprove: (scope) =>
+        setApprovals({ [APPROVAL_CALL_ID]: { outcome: { decision: "approved", scope } } }),
+      onReject: () =>
+        setApprovals({ [APPROVAL_CALL_ID]: { outcome: { decision: "rejected" } } }),
+    },
+  });
+  return (
+    <WideFrame height={420}>
+      <AgentChat
+        messages={APPROVAL_MESSAGES}
+        status="ready"
+        onSend={noop}
+        onStop={noop}
+        contentWidth="100%"
+        approvals={approvals}
+      />
+    </WideFrame>
+  );
+}
+
 export function renderChatExtrasPreview(previewId: string): React.ReactNode | undefined {
   switch (previewId) {
     case "ContextBreakdown":
@@ -838,6 +969,16 @@ export function renderChatExtrasPreview(previewId: string): React.ReactNode | un
     case "PastedTextAttachment":
     case "PastedTextAttachment/basic":
       return <PastedTextAttachmentPreview />;
+    case "ChatHeader":
+    case "ChatHeader/wide":
+      return <ChatHeaderPreview />;
+    case "ChatHeader/narrow":
+      return <ChatHeaderPreview narrow />;
+    case "ToolUnavailableNotice":
+    case "ToolUnavailableNotice/basic":
+      return <ToolUnavailablePreview />;
+    case "AgentChat/approvals":
+      return <AgentChatApprovalsPreview />;
     case "IdleReturnPrompt":
     case "IdleReturnPrompt/wide":
     case "SpendThresholdNotice":

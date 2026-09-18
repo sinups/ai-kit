@@ -1,7 +1,9 @@
 import {
   countNewMessages,
+  createFollowState,
   findStickyPromptTurn,
-  getStickToBottom,
+  followAfterResize,
+  followAfterScroll,
   isNearBottom,
 } from './scroll-follow';
 
@@ -11,6 +13,12 @@ const metrics = (scrollTop: number, scrollHeight = 2000, clientHeight = 600) => 
   clientHeight,
 });
 
+const following = (scrollTop: number, scrollHeight = 2000) =>
+  createFollowState(metrics(scrollTop, scrollHeight), true);
+
+const detached = (scrollTop: number, scrollHeight = 2000) =>
+  createFollowState(metrics(scrollTop, scrollHeight), false);
+
 describe('MessageList/scroll-follow', () => {
   it('detects the bottom within the threshold', () => {
     expect(isNearBottom(metrics(1400))).toBe(true);
@@ -18,14 +26,35 @@ describe('MessageList/scroll-follow', () => {
     expect(isNearBottom(metrics(1300))).toBe(false);
   });
 
-  it('keeps sticking when a collapsing block clamps scrollTop at the bottom', () => {
-    expect(getStickToBottom(true, 1900, metrics(1400))).toBe(true);
+  it('keeps following when content grows under a viewport that sat at the bottom', () => {
+    expect(followAfterScroll(following(1400), metrics(1400, 2400)).following).toBe(true);
   });
 
-  it('stops sticking when the user scrolls up and resumes at the bottom', () => {
-    expect(getStickToBottom(true, 1400, metrics(900))).toBe(false);
-    expect(getStickToBottom(false, 900, metrics(1000))).toBe(false);
-    expect(getStickToBottom(false, 1000, metrics(1400))).toBe(true);
+  it('stops following when content grows while the viewport is up in the transcript', () => {
+    expect(followAfterScroll(detached(400), metrics(400, 2400)).following).toBe(false);
+    expect(followAfterScroll(following(400), metrics(400, 2400)).following).toBe(false);
+  });
+
+  it('does not attach when content shrinks and the browser clamps scrollTop', () => {
+    expect(followAfterScroll(detached(1400), metrics(1400, 1600)).following).toBe(false);
+    expect(followAfterScroll(following(1400), metrics(1000, 1600)).following).toBe(true);
+  });
+
+  it('detaches on an upward scroll and re-attaches at the bottom', () => {
+    expect(followAfterScroll(following(1400), metrics(900)).following).toBe(false);
+    expect(followAfterScroll(detached(900), metrics(800)).following).toBe(false);
+    expect(followAfterScroll(detached(1000), metrics(1400)).following).toBe(true);
+  });
+
+  it('keeps a downward scroll that has not reached the bottom yet attached', () => {
+    expect(followAfterScroll(following(400), metrics(900)).following).toBe(true);
+    expect(followAfterScroll(detached(400), metrics(900)).following).toBe(false);
+  });
+
+  it('pins on growth only', () => {
+    expect(followAfterResize(following(1400), metrics(1400, 2400)).pin).toBe(true);
+    expect(followAfterResize(following(1400), metrics(1400, 1600)).pin).toBe(false);
+    expect(followAfterResize(detached(400), metrics(400, 2400)).pin).toBe(false);
   });
 
   it('finds the turn whose prompt scrolled out while its answer is on screen', () => {

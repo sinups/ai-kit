@@ -22,4 +22,9 @@ describe('input/ModelPicker', () => {
     expect(onChange).toHaveBeenCalledWith('qwen-2.5-coder-32b');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('takes the trigger name from labels', () => {
+    render(<ModelPicker models={models} labels={{ trigger: 'Modell wählen' }} />);
+    expect(screen.getByRole('button', { name: 'Modell wählen' })).toBeInTheDocument();
+  });
 });

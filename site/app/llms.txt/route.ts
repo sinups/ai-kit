@@ -18,6 +18,15 @@ export function GET() {
   lines.push("- Styles: import `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css` once at the app root.");
   lines.push(`- Full docs in one file: ${SITE_URL}/llms-full.txt`);
   lines.push("");
+  lines.push("## Transcript options");
+  lines.push("");
+  lines.push("- `presentation`: `'cards'` (default), `rowsPresentation` or `quietPresentation`, imported from the package root.");
+  lines.push("- `approvals` on `AgentChat`, or `ToolApprovalsProvider` around a standalone `MessageList`: Allow/Deny under any tool call by `toolCallId`.");
+  lines.push("- `labels` by component section on `AgentChat`, or `ChatLabelsProvider` around a standalone `MessageList`.");
+  lines.push("- `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`: readable titles, arguments and results of MCP calls.");
+  lines.push("- `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched`: on by default in `AgentChat`, off in `MessageList`; `evenSpacing` off in both.");
+  lines.push("- `InputBar` `contextItems`, `onRemoveContext`, `onRestoreContext`; `ModeSelector` `labels.title`, mode `badge`, `shortcuts`.");
+  lines.push("");
 
   for (const section of SIDEBAR_SECTIONS) {
     lines.push(`## ${section.title}`);

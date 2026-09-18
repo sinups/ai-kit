@@ -38,7 +38,14 @@ export type {
   FilePart,
   ToolPart,
   ToolPartState,
+  ToolCallProgress,
   CompactionPart,
+  TurnSummaryPart,
+  ContextEventPart,
+  ContextEventKind,
+  HookActivityPart,
+  HookActivityStatus,
+  HookRun,
   CollapseToolRunsOptions,
   ChatClassNames,
   ChatSlots,
@@ -50,13 +57,20 @@ export type {
   InputSuggestions,
   AttachedImage,
   AttachedFile,
+  ToolActionHandler,
 } from './types';
 export type { TimelineStep, ToolCallStep, StepState, DiffLine, Turn } from './types/timeline';
 
 export { AgentChat } from './AgentChat/AgentChat';
-export type { ChatWelcomeAction } from './AgentChat/ChatWelcome';
+export { DEFAULT_AGENT_CHAT_LABELS } from './AgentChat/agent-chat-labels';
+export type { AgentChatLabels } from './AgentChat/agent-chat-labels';
+export { ChatLabelsProvider, useChatLabels } from './labels/chat-labels';
+export type { ChatComponentLabels, ChatLabelsProviderProps } from './labels/chat-labels';
+export { DEFAULT_CHAT_WELCOME_LABELS } from './AgentChat/ChatWelcome';
+export type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
 export { MessageList, DEFAULT_MESSAGE_LIST_LABELS } from './MessageList/MessageList';
 export type { MessageListProps, MessageListLabels } from './MessageList/MessageList';
+export type { ToolRunLabels } from './MessageList/tool-runs';
 export { UserMessage, DEFAULT_USER_MESSAGE_LABELS } from './UserMessage/UserMessage';
 export type { UserMessageProps, UserMessageLabels } from './UserMessage/UserMessage';
 export { ErrorMessage, DEFAULT_ERROR_MESSAGE_LABELS } from './ErrorMessage/ErrorMessage';
@@ -66,61 +80,93 @@ export type {
   ErrorMessageLabels,
 } from './ErrorMessage/ErrorMessage';
 export { Markdown } from './Markdown/Markdown';
-export type { MarkdownProps } from './Markdown/Markdown';
-export { ImageLightbox } from './ImageLightbox/ImageLightbox';
-export type { ImageLightboxProps, LightboxImage } from './ImageLightbox/ImageLightbox';
+export type { MarkdownProps, MarkdownTailGranularity } from './Markdown/Markdown';
+export { ImageLightbox, DEFAULT_IMAGE_LIGHTBOX_LABELS } from './ImageLightbox/ImageLightbox';
+export type {
+  ImageLightboxProps,
+  ImageLightboxLabels,
+  LightboxImage,
+} from './ImageLightbox/ImageLightbox';
 
 export { InputBar, DEFAULT_INPUT_BAR_LABELS } from './input/InputBar';
 export type { InputBarProps, QueuedMessage, InputBarLabels } from './input/InputBar';
+export type { InputContextItem } from './input/InputContext';
 export type { CompletionItem, CompletionSource } from './input/use-completion-items';
 
 export type { CompletionToken } from './input/completion-token';
-export { AttachmentButton } from './input/AttachmentButton';
-export type { AttachmentButtonProps, AttachmentButtonIcon } from './input/AttachmentButton';
-export { FileAttachment } from './input/FileAttachment';
-export type { FileAttachmentProps } from './input/FileAttachment';
+export { AttachmentButton, DEFAULT_ATTACHMENT_BUTTON_LABELS } from './input/AttachmentButton';
+export type {
+  AttachmentButtonProps,
+  AttachmentButtonIcon,
+  AttachmentButtonLabels,
+} from './input/AttachmentButton';
+export { FileAttachment, DEFAULT_FILE_ATTACHMENT_LABELS } from './input/FileAttachment';
+export type { FileAttachmentProps, FileAttachmentLabels } from './input/FileAttachment';
 export { SendButton } from './input/SendButton';
 export type { SendButtonProps } from './input/SendButton';
 export { Suggestions } from './input/Suggestions';
 export type { SuggestionsProps, SuggestionItem } from './input/Suggestions';
-export { ModelPicker, ModelBadge } from './input/ModelPicker';
-export type { ModelPickerProps, ModelBadgeProps } from './input/ModelPicker';
-export { ModeSelector } from './input/ModeSelector';
-export type { ModeSelectorProps, ModeOption } from './input/ModeSelector';
+export { ModelPicker, ModelBadge, DEFAULT_MODEL_PICKER_LABELS } from './input/ModelPicker';
+export type { ModelPickerProps, ModelBadgeProps, ModelPickerLabels } from './input/ModelPicker';
+export { ModeSelector, DEFAULT_MODE_SELECTOR_LABELS } from './input/ModeSelector';
+export type { ModeSelectorProps, ModeOption, ModeSelectorLabels } from './input/ModeSelector';
 export { InputPopover } from './input/InputPopover';
 export type { InputPopoverProps, PopoverSide, PopoverAlign } from './input/InputPopover';
-export { QuestionPrompt } from './question/QuestionPrompt';
+export { QuestionPrompt, DEFAULT_QUESTION_PROMPT_LABELS } from './question/QuestionPrompt';
+export { QuestionHeader, DEFAULT_QUESTION_HEADER_LABELS } from './question/QuestionHeader';
+export type { QuestionHeaderProps, QuestionHeaderLabels } from './question/QuestionHeader';
 export type {
   QuestionPromptProps,
+  QuestionPromptLabels,
   QuestionConfig,
   QuestionOption,
+  QuestionOptionPreview,
   QuestionAnswer,
 } from './question/QuestionPrompt';
-export { QuestionTool } from './question/QuestionTool';
-export type { QuestionToolProps, QuestionToolPart } from './question/QuestionTool';
+export { QuestionTool, DEFAULT_QUESTION_TOOL_LABELS } from './question/QuestionTool';
+export type {
+  QuestionToolProps,
+  QuestionToolPart,
+  QuestionToolLabels,
+} from './question/QuestionTool';
 
 export { ToolRenderer } from './tools/ToolRenderer';
 export type { ToolRendererProps } from './tools/ToolRenderer';
-export { BashTool, BashToolTerminalCard } from './tools/BashTool';
-export type { BashToolProps, BashToolTerminalCardProps } from './tools/BashTool';
-export { EditTool, EditToolDiffCard } from './tools/EditTool';
-export type { EditToolProps, EditToolDiffCardProps } from './tools/EditTool';
+export { BashTool, BashToolTerminalCard, DEFAULT_BASH_TOOL_LABELS } from './tools/BashTool';
+export type { BashToolLabels, BashToolProps, BashToolTerminalCardProps } from './tools/BashTool';
+export { DEFAULT_EDIT_TOOL_LABELS, EditTool, EditToolDiffCard } from './tools/EditTool';
+export type { EditToolDiffCardProps, EditToolLabels, EditToolProps } from './tools/EditTool';
+export { DEFAULT_TOOL_CARD_LABELS } from './tools/tool-card-labels';
+export type { ToolCardLabels } from './tools/tool-card-labels';
 export { DiffView } from './tools/DiffView';
 export type { DiffViewProps } from './tools/DiffView';
-export { SearchTool, SearchGroupRich } from './tools/SearchTool';
-export type { SearchToolProps, SearchGroupRichProps, SearchResult } from './tools/SearchTool';
+export { SearchTool, SearchGroupRich, DEFAULT_SEARCH_TOOL_LABELS } from './tools/SearchTool';
+export type {
+  SearchToolProps,
+  SearchGroupRichProps,
+  SearchToolLabels,
+  SearchResult,
+} from './tools/SearchTool';
 export { TodoTool } from './tools/TodoTool';
 export type { TodoToolProps, TodoItem, TodoChange, DetectedChanges } from './tools/TodoTool';
-export { PlanTool } from './tools/PlanTool';
-export type { PlanToolProps, Plan } from './tools/PlanTool';
-export { ToolGroup } from './tools/ToolGroup';
-export type { ToolGroupProps } from './tools/ToolGroup';
+export { PlanTool, DEFAULT_PLAN_TOOL_LABELS } from './tools/PlanTool';
+export type { PlanToolProps, PlanToolLabels, Plan } from './tools/PlanTool';
+export { ToolGroup, DEFAULT_TOOL_GROUP_LABELS } from './tools/ToolGroup';
+export type { ToolGroupProps, ToolGroupLabels } from './tools/ToolGroup';
 export { SubagentTool } from './tools/SubagentTool';
 export type { SubagentToolProps } from './tools/SubagentTool';
-export { McpTool, unwrapMcpOutput } from './tools/McpTool';
-export type { McpToolProps } from './tools/McpTool';
-export { ThinkingTool, ThinkingCollapsed } from './tools/ThinkingTool';
-export type { ThinkingToolProps, ThinkingCollapsedProps } from './tools/ThinkingTool';
+export { DEFAULT_MCP_TOOL_LABELS, McpTool, unwrapMcpOutput } from './tools/McpTool';
+export type { McpToolLabels, McpToolProps } from './tools/McpTool';
+export {
+  ThinkingTool,
+  ThinkingCollapsed,
+  DEFAULT_THINKING_TOOL_LABELS,
+} from './tools/ThinkingTool';
+export type {
+  ThinkingToolProps,
+  ThinkingCollapsedProps,
+  ThinkingToolLabels,
+} from './tools/ThinkingTool';
 export { GenericTool, GenericToolRow } from './tools/GenericTool';
 export type { GenericToolProps, GenericToolRowProps } from './tools/GenericTool';
 export { ActionRow } from './tools/ActionRow';
@@ -128,11 +174,86 @@ export type { ActionRowProps } from './tools/ActionRow';
 export { ToolApprovalFooter, DEFAULT_TOOL_APPROVAL_LABELS } from './tools/ToolApprovalFooter';
 export type {
   ToolApproval,
+  ToolApprovalExplanation,
   ToolApprovalFooterProps,
   ToolApprovalOption,
   ToolApprovalLabels,
+  ToolApprovalRisk,
+  ToolApprovalRuleSuggestion,
+  ToolApprovalRequester,
 } from './tools/ToolApprovalFooter';
-export { toolRegistry, parseMcpToolType } from './tools/tool-registry';
+export {
+  createToolCallLookups,
+  deriveToolCallState,
+  DEFAULT_TOOL_CALL_STATE_LABELS,
+} from './tools/tool-call-state';
+export type {
+  ToolCallState,
+  ToolCallLookups,
+  ToolCallStateLabels,
+  DeriveToolCallStateOptions,
+} from './tools/tool-call-state';
+export { ToolCallRow } from './rows/ToolCallRow';
+export type { ToolCallRowProps } from './rows/ToolCallRow';
+export { ResponseRow } from './rows/ResponseRow';
+export type { ResponseRowProps, ResponseRowTone } from './rows/ResponseRow';
+export { ToolPartRow, DEFAULT_TOOL_PART_ROW_LABELS } from './rows/ToolPartRow';
+export { rowsPresentation } from './rows/rows-presentation';
+export type {
+  TranscriptPresentation,
+  PresentationContext,
+  PresentationEntry,
+} from './MessageList/transcript-presentation';
+export { quietPresentation } from './quiet/quiet-presentation';
+export type { QuietPresentation } from './quiet/quiet-presentation';
+export { QuietToolRow } from './quiet/QuietToolRow';
+export type { QuietToolRowProps } from './quiet/QuietToolRow';
+export { QuietToolRun } from './quiet/QuietToolRun';
+export type { QuietToolRunProps } from './quiet/QuietToolRun';
+export type { RowsPresentation } from './rows/rows-presentation';
+export type { ToolPartRowProps, ToolPartRowLabels } from './rows/ToolPartRow';
+export {
+  summarizeToolOutput,
+  formatOutputValue,
+  getToolOutputValue,
+  unwrapToolOutput,
+  DEFAULT_TOOL_OUTPUT_LABELS,
+} from './rows/tool-output';
+export type {
+  ToolOutputFormatter,
+  ToolOutputFormatters,
+  ToolOutputContext,
+  ToolOutputLabels,
+  SummarizeOptions,
+} from './rows/tool-output';
+export {
+  ToolPresentationProvider,
+  useToolPresentation,
+  findToolCatalogEntry,
+  getToolCatalogTitle,
+} from './tools/tool-presentation';
+export type {
+  ToolCatalog,
+  ToolCatalogEntry,
+  ToolPresentation,
+  ToolPresentationProviderProps,
+} from './tools/tool-presentation';
+export { unfoldToolArgs, summarizeToolArgs } from './tools/tool-args';
+export type {
+  ToolArgsFormatter,
+  ToolArgsFormatters,
+  ToolArgsContext,
+  SummarizeArgsOptions,
+} from './tools/tool-args';
+export { ToolActivity } from './tools/ToolActivity';
+export { formatDuration, formatElapsedTime, DEFAULT_DURATION_UNITS } from './utils/format-elapsed';
+export type { DurationUnits } from './utils/format-elapsed';
+export type { ToolActivityProps } from './tools/ToolActivity';
+export { getToolProgress, getToolProgressRatio, formatToolProgress } from './tools/tool-progress';
+export { ToolCardBoundary } from './tools/ToolCardBoundary';
+export type { ToolCardBoundaryProps, ToolCardBoundaryState } from './tools/ToolCardBoundary';
+export { DEFAULT_TOOL_TITLE_LABELS, parseMcpToolType, toolRegistry } from './tools/tool-registry';
+export type { ToolTitleLabels } from './tools/tool-registry';
 export type { ToolMeta, ToolVariant, McpToolInfo } from './tools/tool-registry';
 export { routeToolCall } from './tools/tool-router';
 
@@ -157,6 +278,10 @@ export type {
   ElicitationContent,
   ElicitationValue,
   ElicitationField,
+  ElicitationFieldBase,
+  ElicitationEnumOption,
+  ElicitationOption,
+  ElicitationDraft,
 } from './elicitation/elicitation-schema';
 
 export { AgentStatus, DEFAULT_AGENT_STATUS_LABELS } from './AgentStatus/AgentStatus';
@@ -281,12 +406,35 @@ export {
   envKeyValidator,
   headerKeyValidator,
 } from './primitives/KeyValueEditor/key-value';
-export type { KeyValuePair, KeyValidator } from './primitives/KeyValueEditor/key-value';
+export type {
+  KeyValuePair,
+  KeyValidator,
+  KeyValueErrorLabels,
+} from './primitives/KeyValueEditor/key-value';
 
 export { SchemaView, DEFAULT_SCHEMA_VIEW_LABELS } from './primitives/SchemaView/SchemaView';
 export type { SchemaViewProps, SchemaViewLabels } from './primitives/SchemaView/SchemaView';
 export { flattenSchema, getSchemaTypeLabel } from './primitives/SchemaView/schema';
 export type { JsonSchema, JsonSchemaType, SchemaRow } from './primitives/SchemaView/schema';
+
+export { SchemaValues, DEFAULT_SCHEMA_VALUES_LABELS } from './primitives/SchemaView/SchemaValues';
+export type { SchemaValuesProps, SchemaValuesLabels } from './primitives/SchemaView/SchemaValues';
+export {
+  flattenSchemaValues,
+  formatSchemaValue,
+  resolveValueSchema,
+} from './primitives/SchemaView/schema-values';
+export type { SchemaValueRow, SchemaValueKind } from './primitives/SchemaView/schema-values';
+
+export {
+  ChatInspectorLayout,
+  DEFAULT_CHAT_INSPECTOR_LAYOUT_LABELS,
+} from './primitives/ChatInspectorLayout/ChatInspectorLayout';
+export type {
+  ChatInspectorLayoutProps,
+  ChatInspectorLayoutLabels,
+  ChatInspectorPanel,
+} from './primitives/ChatInspectorLayout/ChatInspectorLayout';
 
 export {
   ConfirmDialog,
@@ -296,7 +444,13 @@ export type {
   ConfirmDialogLabels,
   ConfirmDialogProps,
 } from './primitives/ConfirmDialog/ConfirmDialog';
-export type { PendingActionOptions, UsePendingActionsReturn } from './hooks/use-pending-actions';
+export type {
+  PendingAction,
+  PendingActionOptions,
+  RunPendingAction,
+  TryRunPendingAction,
+  UsePendingActionsReturn,
+} from './hooks/use-pending-actions';
 
 export { DEFAULT_MCP_SERVER_DETAIL_LABELS, McpServerDetail } from './mcp/McpServerDetail';
 export type {
@@ -315,6 +469,7 @@ export type {
   McpServerWizardLabels,
   McpServerWizardModalProps,
   McpServerWizardProps,
+  McpServerWizardSubmitHandler,
 } from './mcp/McpServerWizard';
 export { DEFAULT_MCP_SETTINGS_PANEL_LABELS, McpSettingsPanel } from './mcp/McpSettingsPanel';
 export type { McpSettingsPanelLabels, McpSettingsPanelProps } from './mcp/McpSettingsPanel';
@@ -355,6 +510,7 @@ export type {
   McpPromptArgument,
   McpResource,
   McpServer,
+  McpServerAction,
   McpServerCandidate,
   McpServerCapabilities,
   McpServerDraft,
@@ -527,6 +683,7 @@ export type {
   AgentIdentityFieldsProps,
   AgentModelFieldsProps,
   AgentPromptFieldProps,
+  AgentDraftPatchHandler,
 } from './agents/AgentFields/AgentFields';
 export { AgentList, DEFAULT_AGENT_LIST_LABELS } from './agents/AgentList/AgentList';
 export type { AgentListLabels, AgentListProps } from './agents/AgentList/AgentList';
@@ -784,6 +941,8 @@ export {
 } from './diff/file-tree';
 export type { FileTreeNode } from './diff/file-tree';
 
+export { DEFAULT_DIFF_LABELS } from './diff/labels';
+
 export type {
   DiffLabels,
   DiffSource,
@@ -818,7 +977,34 @@ export type {
   SpendThresholdNoticeLabels,
   SpendThresholdNoticeProps,
 } from './ChatNotices/SpendThresholdNotice';
+export {
+  DEFAULT_TOOL_UNAVAILABLE_NOTICE_LABELS,
+  ToolUnavailableNotice,
+} from './ChatNotices/ToolUnavailableNotice';
+export type {
+  ToolUnavailableNoticeLabels,
+  ToolUnavailableNoticeProps,
+} from './ChatNotices/ToolUnavailableNotice';
 export { formatAwayDuration, formatSpend } from './ChatNotices/chat-notices';
+export { ChatHeader, DEFAULT_CHAT_HEADER_LABELS } from './ChatHeader/ChatHeader';
+export type { ChatHeaderLabels, ChatHeaderProps } from './ChatHeader/ChatHeader';
+export {
+  DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS,
+  ToolApprovalSlot,
+  ToolApprovalsProvider,
+  useToolApproval,
+  useToolApprovals,
+  getToolApprovalOutcomeText,
+} from './approvals/tool-approvals';
+export type {
+  ToolApprovalDecision,
+  ToolApprovalOutcome,
+  ToolApprovalOutcomeLabels,
+  ToolApprovalRequest,
+  ToolApprovals,
+  ToolApprovalSlotProps,
+  ToolApprovalsProviderProps,
+} from './approvals/tool-approvals';
 export { CodeBlock, DEFAULT_CODE_BLOCK_LABELS } from './CodeBlock/CodeBlock';
 export type { CodeBlockLabels, CodeBlockProps } from './CodeBlock/CodeBlock';
 export { countCodeLines, getCollapsedLineCount } from './CodeBlock/code-lines';
@@ -981,6 +1167,7 @@ export type {
   SyntaxHighlighter,
   HighlightedLinesState,
   ShikiHighlighterLike,
+  ShikiFontStyle,
 } from './utils/highlighter';
 export {
   byteLength,
@@ -1009,9 +1196,17 @@ export {
   AiKitHostScope,
   AiKitProvider,
   useAiKitTheme,
+  useAiKitThemePreview,
+  useAiKitThemeSetting,
   useOptionalAiKitTheme,
 } from './theme/AiKitProvider';
-export type { AiKitProviderProps, AiKitThemeContextValue } from './theme/AiKitProvider';
+export type {
+  AiKitProviderProps,
+  AiKitResolvedColorScheme,
+  AiKitThemeContextValue,
+  AiKitThemePreviewValue,
+  AiKitThemeSettingValue,
+} from './theme/AiKitProvider';
 export {
   AiKitThemeCustomizer,
   DEFAULT_AI_KIT_THEME_CUSTOMIZER_LABELS,

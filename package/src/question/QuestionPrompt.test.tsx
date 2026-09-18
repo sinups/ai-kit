@@ -167,4 +167,23 @@ describe('question/QuestionPrompt', () => {
       notes: 'local only',
     });
   });
+
+  it('takes the actions and placeholders from labels', () => {
+    render(
+      <QuestionPrompt
+        questions={[{ kind: 'text', title: 'Anything else?', allowNotes: true }]}
+        onSubmit={() => {}}
+        labels={{
+          submit: 'Senden',
+          skip: 'Überspringen',
+          answerPlaceholder: 'Antwort eingeben',
+          notesPlaceholder: 'Notiz',
+        }}
+      />
+    );
+    expect(screen.getByText('Senden')).toBeInTheDocument();
+    expect(screen.getByText('Überspringen')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Antwort eingeben')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Notiz')).toBeInTheDocument();
+  });
 });

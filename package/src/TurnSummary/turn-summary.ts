@@ -1,4 +1,4 @@
-import { formatDuration } from '../utils/format-elapsed';
+import { formatDuration, type DurationUnits } from '../utils/format-elapsed';
 import { formatTokens } from '../utils/format-tokens';
 
 export type TurnSummaryLabels = {
@@ -15,9 +15,10 @@ export const DEFAULT_TURN_SUMMARY_LABELS: TurnSummaryLabels = {
 
 export function getTurnSummarySegments(
   summary: { durationMs: number; tokens?: number; tokenBudget?: number; backgroundTasks?: number },
-  labels: TurnSummaryLabels = DEFAULT_TURN_SUMMARY_LABELS
+  labels: TurnSummaryLabels = DEFAULT_TURN_SUMMARY_LABELS,
+  units?: Partial<DurationUnits>
 ): string[] {
-  const segments = [labels.worked(formatDuration(summary.durationMs))];
+  const segments = [labels.worked(formatDuration(summary.durationMs, units))];
   if (summary.tokens !== undefined) {
     segments.push(
       labels.tokens(

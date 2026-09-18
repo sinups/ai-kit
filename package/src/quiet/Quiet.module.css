@@ -1,0 +1,30 @@
+.quiet {
+  --ae-tool-label-color: var(--ae-fg-muted);
+}
+
+.details {
+  padding-inline-start: var(--ae-space-lg);
+  font-size: var(--ae-font-size-xs);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+}
+
+.run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ae-space-2xs);
+  padding-inline-start: var(--ae-space-lg);
+}
+
+.waiting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ae-block-gap);
+  padding-block-start: var(--ae-block-gap);
+}

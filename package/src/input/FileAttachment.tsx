@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
 import { Box, UnstyledButton } from '@mantine/core';
 import { IconFileCode, IconFileText, IconFileTypeJs, IconPhoto, IconX } from '@tabler/icons-react';
-import { ImageLightbox } from '../ImageLightbox/ImageLightbox';
+import { ImageLightbox, type ImageLightboxLabels } from '../ImageLightbox/ImageLightbox';
 import { cx } from '../utils/cx';
 import classes from './FileAttachment.module.css';
+
+export interface FileAttachmentLabels {
+  /** Accessible label of the image thumbnail, `Preview image` by default */
+  preview: string;
+  /** Accessible label of the remove button, `Remove attachment` by default */
+  remove: string;
+  /** File size under the name, `1.2 KB` by default */
+  size: (bytes: number) => string;
+  /** Labels of the fullscreen image preview */
+  lightbox: Partial<ImageLightboxLabels>;
+}
+
+export const DEFAULT_FILE_ATTACHMENT_LABELS: FileAttachmentLabels = {
+  preview: 'Preview image',
+  remove: 'Remove attachment',
+  size: formatFileSize,
+  lightbox: {},
+};
 
 export interface FileAttachmentProps {
   id: string;
@@ -19,6 +37,8 @@ export interface FileAttachmentProps {
   display?: 'chip' | 'image-only';
   /** Opens the image thumbnail in a fullscreen preview on click, `true` by default */
   enableImagePreview?: boolean;
+  /** Overrides of the default English labels */
+  labels?: Partial<FileAttachmentLabels>;
   style?: React.CSSProperties;
 }
 
@@ -86,11 +106,13 @@ function Thumb({
   className,
   canPreview,
   onOpen,
+  previewLabel,
   children,
 }: {
   className: string;
   canPreview: boolean;
   onOpen: (event: React.MouseEvent) => void;
+  previewLabel: string;
   children: React.ReactNode;
 }) {
   if (canPreview) {
@@ -99,7 +121,7 @@ function Thumb({
         className={cx(classes.thumb, className)}
         data-preview
         onClick={onOpen}
-        aria-label="Preview image"
+        aria-label={previewLabel}
       >
         {children}
       </UnstyledButton>
@@ -119,8 +141,10 @@ export function FileAttachment({
   className,
   display = 'chip',
   enableImagePreview = true,
+  labels: labelsProp,
   style,
 }: FileAttachmentProps) {
+  const labels = { ...DEFAULT_FILE_ATTACHMENT_LABELS, ...labelsProp };
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const iconName = getFileIconName(filename, isImage);
   const isImageOnly = display === 'image-only' && isImage && !!url;
@@ -138,13 +162,23 @@ export function FileAttachment({
       style={style}
     >
       {isImageOnly ? (
-        <Thumb className={classes.thumbSquare} canPreview={canPreview} onOpen={openLightbox}>
+        <Thumb
+          className={classes.thumbSquare}
+          canPreview={canPreview}
+          onOpen={openLightbox}
+          previewLabel={labels.preview}
+        >
           <img src={url} alt={filename} className={classes.img} />
         </Thumb>
       ) : (
         <>
           {isImage && url ? (
-            <Thumb className={classes.thumbStretch} canPreview={canPreview} onOpen={openLightbox}>
+            <Thumb
+              className={classes.thumbStretch}
+              canPreview={canPreview}
+              onOpen={openLightbox}
+              previewLabel={labels.preview}
+            >
               <img src={url} alt={filename} className={cx(classes.img, classes.imgSquare)} />
             </Thumb>
           ) : (
@@ -155,7 +189,7 @@ export function FileAttachment({
             <span className={classes.name} title={filename}>
               {filename}
             </span>
-            {size !== undefined && <span className={classes.size}>{formatFileSize(size)}</span>}
+            {size !== undefined && <span className={classes.size}>{labels.size(size)}</span>}
           </div>
         </>
       )}
@@ -167,7 +201,7 @@ export function FileAttachment({
             onRemove();
           }}
           className={classes.remove}
-          aria-label="Remove attachment"
+          aria-label={labels.remove}
         >
           <IconX size={12} />
         </UnstyledButton>
@@ -178,6 +212,7 @@ export function FileAttachment({
           open={isLightboxOpen}
           onClose={() => setIsLightboxOpen(false)}
           images={[{ id, url, filename }]}
+          labels={labels.lightbox}
         />
       )}
     </Box>

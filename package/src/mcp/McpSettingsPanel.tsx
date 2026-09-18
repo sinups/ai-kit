@@ -6,9 +6,7 @@ import { McpServerDetail, type McpServerDetailLabels } from './McpServerDetail';
 import { McpServerList, type McpServerListLabels } from './McpServerList';
 import { McpServerWizardModal, type McpServerWizardLabels } from './McpServerWizard';
 import { McpToolDetail, type McpToolDetailLabels } from './McpToolDetail';
-import type { McpServer, McpServerDraft, McpToolDefinition } from './types';
-
-type ServerAction = (server: McpServer) => void | Promise<void>;
+import type { McpServer, McpServerAction, McpServerDraft, McpToolDefinition } from './types';
 
 export type McpSettingsPanelLabels = {
   /** Labels of the server list */
@@ -55,15 +53,15 @@ export interface McpSettingsPanelProps {
   /** Enables editing through the wizard; `draft.id` is the edited server id */
   onUpdate?: (draft: McpServerDraft) => void | Promise<void>;
   /** Adds a "Reconnect" action to servers that are not disabled */
-  onReconnect?: ServerAction;
+  onReconnect?: McpServerAction;
   /** Adds an "Authenticate" action to servers that need auth */
-  onAuthenticate?: ServerAction;
+  onAuthenticate?: McpServerAction;
   /** Adds an "Enable" action to disabled servers */
-  onEnable?: ServerAction;
+  onEnable?: McpServerAction;
   /** Adds a "Disable" action to enabled servers */
-  onDisable?: ServerAction;
+  onDisable?: McpServerAction;
   /** Adds a "Remove" action that asks for confirmation first */
-  onRemove?: ServerAction;
+  onRemove?: McpServerAction;
   /** Renders a "Try tool" button in the tool detail */
   onTryTool?: (server: McpServer, tool: McpToolDefinition) => void;
   /** Overrides of the default English labels of the list, detail, tool detail and wizard */
@@ -114,7 +112,7 @@ export const McpSettingsPanel = memo(function McpSettingsPanel({
     onSelectedIdChange?.(id);
   };
 
-  const handleRemove: ServerAction | undefined = onRemove
+  const handleRemove: McpServerAction | undefined = onRemove
     ? async (target) => {
         await onRemove(target);
         if (target.id === currentId) {

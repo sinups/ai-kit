@@ -5,7 +5,14 @@ import { useElementSize } from '@mantine/hooks';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { cx } from '../utils/cx';
 import type { SyntaxHighlighter } from '../utils/highlighter';
-import { closeUnfinishedMarkdown, hasOpenFence, splitMarkdownStream } from './markdown-stream';
+import { useStreamedText } from '../hooks/use-streamed-text';
+import {
+  closeUnfinishedMarkdown,
+  createMarkdownStreamReader,
+  cutTailToLastLine,
+  hasOpenFence,
+  type MarkdownStreamReader,
+} from './markdown-stream';
 import { shouldStackTable } from './table-layout';
 import classes from './Markdown.module.css';
 
@@ -42,6 +49,9 @@ function normalizeCodeFenceLanguages(text: string): string {
   });
 }
 
+/** How the growing tail of a streamed answer is revealed */
+export type MarkdownTailGranularity = 'char' | 'line';
+
 export type MarkdownProps = {
   /** Markdown source */
   content: string;
@@ -56,6 +66,13 @@ export type MarkdownProps = {
   highlighter?: SyntaxHighlighter;
   /** Content is still arriving: finished blocks are parsed once and only the growing tail is re-parsed */
   streaming?: boolean;
+  /**
+   * Commits arriving text at most once per animation frame while streaming, `false` by default.
+   * A stream that ends, a hidden tab and `prefers-reduced-motion` commit right away.
+   */
+  frameBatched?: boolean;
+  /** Reveals the growing tail by character (`'char'`, the default) or by finished line (`'line'`) */
+  tailGranularity?: MarkdownTailGranularity;
   /** Shows tables with too many columns for the available width as one card per row, `false` by default */
   responsiveTables?: boolean;
 };
@@ -225,6 +242,8 @@ export const Markdown = memo(function Markdown({
   wrapLines = false,
   streaming = false,
   responsiveTables = false,
+  frameBatched = false,
+  tailGranularity = 'char',
 }: MarkdownProps) {
   const showCopy = controls?.code !== false;
   const options = useMemo(
@@ -249,12 +268,19 @@ export const Markdown = memo(function Markdown({
       }),
     [showCopy, wrapLines, highlighter, responsiveTables]
   );
-  const normalized = useMemo(() => normalizeMarkdown(content), [content]);
+  const shownContent = useStreamedText(content, { streaming, enabled: frameBatched });
   // Re-parsing a finished stream as one document would remount every code block and table.
   const streamedRef = useRef(streaming);
   streamedRef.current ||= streaming;
+  const streamed = streamedRef.current;
+  const readerRef = useRef<MarkdownStreamReader | null>(null);
+  readerRef.current ??= createMarkdownStreamReader(normalizeMarkdown);
+  const normalized = useMemo(
+    () => (streamed ? '' : normalizeMarkdown(shownContent)),
+    [streamed, shownContent]
+  );
 
-  if (!streamedRef.current) {
+  if (!streamed) {
     return (
       <Box className={cx(classes.root, className)}>
         <MarkdownChunk content={normalized} options={options} />
@@ -262,7 +288,8 @@ export const Markdown = memo(function Markdown({
     );
   }
 
-  const { stable, tail } = splitMarkdownStream(normalized);
+  const { stable, tail } = readerRef.current(shownContent);
+  const shownTail = streaming && tailGranularity === 'line' ? cutTailToLastLine(tail) : tail;
   return (
     <Box className={cx(classes.root, className)} data-streaming={streaming || undefined}>
       {stable.map((block, index) => (
@@ -270,8 +297,8 @@ export const Markdown = memo(function Markdown({
       ))}
       <MarkdownChunk
         key="tail"
-        content={streaming ? closeUnfinishedMarkdown(tail) : tail}
-        options={streaming && hasOpenFence(tail) ? tailOptions : options}
+        content={streaming ? closeUnfinishedMarkdown(shownTail) : shownTail}
+        options={streaming && hasOpenFence(shownTail) ? tailOptions : options}
       />
     </Box>
   );

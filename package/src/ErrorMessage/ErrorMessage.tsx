@@ -1,6 +1,7 @@
 import React, { memo, useMemo, useState } from 'react';
 import { Box, Button, VisuallyHidden } from '@mantine/core';
 import { useCountdown } from '../hooks/use-countdown';
+import { useChatLabels } from '../labels/chat-labels';
 import { cx } from '../utils/cx';
 import { truncateErrorMessage } from './error-message';
 import classes from './ErrorMessage.module.css';
@@ -15,7 +16,7 @@ export type ErrorMessageRetry = {
 };
 
 export type ErrorMessageProps = {
-  /** Card title, `Something went wrong` by default */
+  /** Card title, `labels.title` by default */
   title?: string;
   /** Error details shown under the title */
   message: string;
@@ -36,6 +37,8 @@ export type ErrorMessageProps = {
 };
 
 export interface ErrorMessageLabels {
+  /** Title when the `title` prop is not set, `Something went wrong` by default */
+  title: string;
   /** Retry button, `Retry` by default */
   retry: string;
   /** Countdown text of an automatic retry, `secondsLeft` is `0` once the attempt has started */
@@ -60,6 +63,7 @@ function formatResetsAt(time: string): string {
 }
 
 export const DEFAULT_ERROR_MESSAGE_LABELS: ErrorMessageLabels = {
+  title: 'Something went wrong',
   retry: 'Retry',
   retrying: formatRetrying,
   resetsAt: formatResetsAt,
@@ -69,7 +73,7 @@ export const DEFAULT_ERROR_MESSAGE_LABELS: ErrorMessageLabels = {
 
 /** Inline error card rendered in place of an assistant reply */
 export const ErrorMessage = memo(function ErrorMessage({
-  title = 'Something went wrong',
+  title,
   message,
   variant = 'error',
   retry,
@@ -79,7 +83,8 @@ export const ErrorMessage = memo(function ErrorMessage({
   labels: labelsProp,
   className,
 }: ErrorMessageProps) {
-  const labels = { ...DEFAULT_ERROR_MESSAGE_LABELS, ...labelsProp };
+  const contextLabels = useChatLabels('errorMessage');
+  const labels = { ...DEFAULT_ERROR_MESSAGE_LABELS, ...contextLabels, ...labelsProp };
   const secondsLeft = useCountdown(retry?.retryAt);
   const [expanded, setExpanded] = useState(false);
   const shortened = useMemo(
@@ -103,7 +108,7 @@ export const ErrorMessage = memo(function ErrorMessage({
   return (
     <Box className={cx(classes.root, className)}>
       <div className={classes.card} data-variant={variant}>
-        <div className={classes.title}>{title}</div>
+        <div className={classes.title}>{title ?? labels.title}</div>
         <div className={classes.message} data-collapsible={collapsible || undefined}>
           {shortened.truncated && !expanded ? shortened.text : message}
         </div>

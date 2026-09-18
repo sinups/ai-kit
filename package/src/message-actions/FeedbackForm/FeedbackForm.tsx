@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { Alert, Button, Chip, Group, Stack, Text, Textarea } from '@mantine/core';
 import { IconAlertCircle, IconHeart } from '@tabler/icons-react';
 import type { FeedbackDetails, FeedbackReason, MessageFeedbackValue } from '../types';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 
 export interface FeedbackFormLabels {
   title: string;
@@ -66,7 +66,7 @@ export const FeedbackForm = memo(function FeedbackForm({
   const [selected, setSelected] = useState<string[]>([]);
   const [comment, setComment] = useState('');
   const [sent, setSent] = useState(false);
-  const { pendingKey, error, run } = useAsyncAction(labels.error);
+  const { isPending: actionPending, error, tryRun } = usePendingActions(labels.error);
 
   if (value === 'up' || submitted || sent) {
     return (
@@ -84,14 +84,16 @@ export const FeedbackForm = memo(function FeedbackForm({
     if (!canSubmit) {
       return;
     }
-    const ok = await run('submit', () => onSubmit?.({ reasons: selected, comment: trimmed }));
+    const ok = await tryRun('submit', () => onSubmit?.({ reasons: selected, comment: trimmed }), {
+      exclusive: true,
+    });
     if (ok) {
       setSent(true);
     }
   };
 
   const skip = async () => {
-    const ok = await run('skip', () => onSkip?.());
+    const ok = await tryRun('skip', () => onSkip?.(), { exclusive: true });
     if (ok) {
       setSent(true);
     }
@@ -138,8 +140,8 @@ export const FeedbackForm = memo(function FeedbackForm({
             variant="subtle"
             color="gray"
             onClick={skip}
-            loading={pendingKey === 'skip'}
-            disabled={pendingKey === 'submit'}
+            loading={actionPending('skip')}
+            disabled={actionPending('submit')}
           >
             {labels.skip}
           </Button>
@@ -147,8 +149,8 @@ export const FeedbackForm = memo(function FeedbackForm({
         <Button
           size="xs"
           onClick={submit}
-          disabled={!canSubmit || pendingKey === 'skip'}
-          loading={pendingKey === 'submit'}
+          disabled={!canSubmit || actionPending('skip')}
+          loading={actionPending('submit')}
         >
           {labels.submit}
         </Button>

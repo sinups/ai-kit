@@ -6,7 +6,7 @@ import type {
   AgentToolSelection,
   ToolCatalogItem,
 } from './types';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export const AGENT_NAME_PATTERN = /^[a-z][a-z0-9-]{1,63}$/;
 
@@ -95,7 +95,7 @@ export function validateAgentDraft(
     errors.name = nameError;
   }
   if (draft.description.trim().length < AGENT_DESCRIPTION_MIN_LENGTH) {
-    errors.description = formatTemplate(text.descriptionTooShort, {
+    errors.description = fillTemplate(text.descriptionTooShort, {
       min: AGENT_DESCRIPTION_MIN_LENGTH,
     });
   }
@@ -107,7 +107,7 @@ export function validateAgentDraft(
   } else if (Array.isArray(draft.tools)) {
     const conflicts = draft.tools.filter((tool) => draft.disallowedTools.includes(tool));
     if (conflicts.length > 0) {
-      errors.disallowedTools = formatTemplate(text.toolsConflict, { tools: conflicts.join(', ') });
+      errors.disallowedTools = fillTemplate(text.toolsConflict, { tools: conflicts.join(', ') });
     }
   }
   if (draft.maxTurns !== undefined && (!Number.isInteger(draft.maxTurns) || draft.maxTurns < 1)) {
@@ -138,7 +138,7 @@ export function summarizeTools(
   if (tools.length === 0) {
     return text.none;
   }
-  const count = tools.length === 1 ? text.one : formatTemplate(text.many, { count: tools.length });
+  const count = tools.length === 1 ? text.one : fillTemplate(text.many, { count: tools.length });
   const groups = new Set<string>();
   for (const name of tools) {
     const item = catalog.find((tool) => tool.name === name);
@@ -147,10 +147,10 @@ export function summarizeTools(
     }
   }
   if (groups.size === 1) {
-    return formatTemplate(text.oneGroup, { count, group: [...groups][0] });
+    return fillTemplate(text.oneGroup, { count, group: [...groups][0] });
   }
   if (groups.size > 1) {
-    return formatTemplate(text.manyGroups, { count: tools.length, groups: groups.size });
+    return fillTemplate(text.manyGroups, { count: tools.length, groups: groups.size });
   }
   return count;
 }

@@ -13,14 +13,20 @@ import {
 import { getHotkeyHandler } from '@mantine/hooks';
 import { IconX } from '@tabler/icons-react';
 import { useInputTyping } from '../hooks/use-input-typing';
-import { QuestionHeader } from '../question/QuestionHeader';
-import { QuestionAnswer, QuestionConfig, QuestionPrompt } from '../question/QuestionPrompt';
+import { QuestionHeader, type QuestionHeaderLabels } from '../question/QuestionHeader';
+import {
+  QuestionAnswer,
+  QuestionConfig,
+  QuestionPrompt,
+  type QuestionPromptLabels,
+} from '../question/QuestionPrompt';
 import type { AttachedFile, AttachedImage, ChatStatus, InputSuggestions } from '../types';
 import { getContentWidthStyle, type ContentWidth } from '../utils/content-width';
 import { cx } from '../utils/cx';
-import { AttachmentButton } from './AttachmentButton';
+import { AttachmentButton, type AttachmentButtonLabels } from './AttachmentButton';
 import { applyCompletion, CompletionToken, findCompletionToken } from './completion-token';
-import { FileAttachment } from './FileAttachment';
+import { FileAttachment, type FileAttachmentLabels } from './FileAttachment';
+import { InputContext, type InputContextItem } from './InputContext';
 import { PastedTextAttachment } from './PastedTextAttachment';
 import {
   DEFAULT_PASTE_LABEL,
@@ -63,6 +69,24 @@ export interface InputBarLabels {
   removeQueuedMessage: string;
   /** Labels of the prompt history search dialog */
   historySearch: Partial<PromptHistorySearchLabels>;
+  /** Accessible label of the send button, `Send` by default */
+  send: string;
+  /** Accessible label of the send button while the agent answers, `Stop` by default */
+  stop: string;
+  /** Accessible label of the close button of the info bar, `Close` by default */
+  closeInfoBar: string;
+  /** Accessible label of the attach button */
+  attach: Partial<AttachmentButtonLabels>;
+  /** Labels of the staged file and image chips */
+  attachment: Partial<FileAttachmentLabels>;
+  /** Labels of the question bar: submit, skip, placeholders */
+  question: Partial<QuestionPromptLabels>;
+  /** Labels of the question bar header: caption and navigation */
+  questionHeader: Partial<QuestionHeaderLabels>;
+  /** Accessible label of the remove button of a context chip, `{label}` is replaced */
+  removeContext: string;
+  /** Line that brings a removed context item back, `{label}` is replaced */
+  restoreContext: string;
 }
 
 export const DEFAULT_INPUT_BAR_LABELS: InputBarLabels = {
@@ -72,6 +96,15 @@ export const DEFAULT_INPUT_BAR_LABELS: InputBarLabels = {
   queued: 'Queued',
   removeQueuedMessage: 'Remove queued message',
   historySearch: {},
+  send: 'Send',
+  stop: 'Stop',
+  closeInfoBar: 'Close',
+  attach: {},
+  attachment: {},
+  question: {},
+  questionHeader: {},
+  removeContext: 'Remove {label}',
+  restoreContext: 'Add back: {label}',
 };
 
 export interface InputBarProps {
@@ -91,6 +124,12 @@ export interface InputBarProps {
   onRemoveImage?: (id: string) => void;
   onRemoveFile?: (id: string) => void;
   onPaste?: (e: React.ClipboardEvent) => void;
+  /** Context chips above the text, for example the open document; the host keeps `removed` */
+  contextItems?: InputContextItem[];
+  /** Renders a remove button on every context chip */
+  onRemoveContext?: (id: string) => void;
+  /** Shows removed context items as a line that brings them back */
+  onRestoreContext?: (id: string) => void;
   /** Highlights the field border while files are dragged over it */
   isDragOver?: boolean;
   /** Opens a staged image attachment in a fullscreen lightbox on click, `true` by default */
@@ -194,6 +233,9 @@ export const InputBar = memo(function InputBar({
   onRemoveImage,
   onRemoveFile,
   onPaste,
+  contextItems = [],
+  onRemoveContext,
+  onRestoreContext,
   isDragOver,
   enableImagePreview = true,
   value: controlledValue,
@@ -508,7 +550,7 @@ export const InputBar = memo(function InputBar({
           <UnstyledButton
             onClick={handleInfoBarClose}
             className={classes.infoBarClose}
-            aria-label="Close"
+            aria-label={labels.closeInfoBar}
           >
             <IconX size={14} stroke={2} />
           </UnstyledButton>
@@ -569,6 +611,7 @@ export const InputBar = memo(function InputBar({
           showNavigation={showQuestionNavigation}
           onPrevious={handleQuestionPrevious}
           onNext={handleQuestionNext}
+          labels={labels.questionHeader}
         />
         <QuestionPrompt
           key={`${clampedQuestionIndex}-${activeQuestion.title}`}
@@ -579,6 +622,7 @@ export const InputBar = memo(function InputBar({
           submitLabel={questionBarData.submitLabel}
           skipLabel={questionBarData.skipLabel}
           allowSkip={questionBarData.allowSkip}
+          labels={labels.question}
           onSubmit={(answer) => {
             const answeredIndex = clampedQuestionIndex;
             setQuestionBarAnswers((prev) => ({ ...prev, [answeredIndex]: answer }));
@@ -711,8 +755,12 @@ export const InputBar = memo(function InputBar({
     ) : null;
 
   const hasInput = input.trim().length > 0;
+  const visibleContext = contextItems.filter((item) => !item.removed || onRestoreContext);
   const hasContextItems =
-    attachedImages.length > 0 || attachedFiles.length > 0 || activePastes.length > 0;
+    visibleContext.length > 0 ||
+    attachedImages.length > 0 ||
+    attachedFiles.length > 0 ||
+    activePastes.length > 0;
 
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
     if (!e.currentTarget.contains(e.target as Node)) {
@@ -791,6 +839,15 @@ export const InputBar = memo(function InputBar({
                   <div className={classes.contextClip}>
                     {hasContextItems && (
                       <div className={classes.contextItems}>
+                        {visibleContext.length > 0 && (
+                          <InputContext
+                            items={visibleContext}
+                            onRemove={onRemoveContext}
+                            onRestore={onRestoreContext}
+                            field={textareaRef}
+                            labels={labels}
+                          />
+                        )}
                         {attachedImages.map((img) => (
                           <FileAttachment
                             key={img.id}
@@ -801,6 +858,7 @@ export const InputBar = memo(function InputBar({
                             url={img.url}
                             display="image-only"
                             enableImagePreview={enableImagePreview}
+                            labels={labels.attachment}
                             onRemove={onRemoveImage ? () => onRemoveImage(img.id) : undefined}
                           />
                         ))}
@@ -810,6 +868,7 @@ export const InputBar = memo(function InputBar({
                             id={file.id}
                             filename={file.filename}
                             size={file.size}
+                            labels={labels.attachment}
                             onRemove={onRemoveFile ? () => onRemoveFile(file.id) : undefined}
                           />
                         ))}
@@ -880,14 +939,14 @@ export const InputBar = memo(function InputBar({
 
                 <div className={classes.toolbar}>
                   <div className={cx(classes.toolbarGroup, classes.toolbarLeft)}>
-                    {onAttach && <AttachmentButton onClick={onAttach} />}
+                    {onAttach && <AttachmentButton onClick={onAttach} labels={labels.attach} />}
                     {leftActions}
                   </div>
                   <div className={classes.toolbarGroup}>
                     {rightActions}
                     <UnstyledButton
                       className={classes.sendWrap}
-                      aria-label={isStreaming ? 'Stop' : 'Send'}
+                      aria-label={isStreaming ? labels.stop : labels.send}
                       onClick={() => {
                         if (isStreaming) {
                           onStop();

@@ -47,3 +47,16 @@
   align-items: center;
   min-height: var(--ae-control-height-md);
 }
+
+.chevron {
+  transition: transform 150ms ease;
+
+  &[data-expanded] {
+    transform: rotate(90deg);
+  }
+}
+
+.toolSchema {
+  padding-inline: var(--ae-space-md) var(--ae-space-sm);
+  padding-block-end: var(--ae-space-sm);
+}

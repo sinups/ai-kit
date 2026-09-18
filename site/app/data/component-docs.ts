@@ -1,36 +1,33 @@
-import {
-  AGENTS_COMPONENT_DOCS,
-  SKILLS_COMPONENT_DOCS,
-} from "@/app/data/component-docs-agents";
+import { AGENTS_COMPONENT_DOCS, SKILLS_COMPONENT_DOCS } from '@/app/data/component-docs-agents';
 import {
   CHAT_ACTIONS_COMPONENT_DOCS,
   HELP_COMPONENT_DOCS,
   SESSIONS_COMPONENT_DOCS,
-} from "@/app/data/component-docs-sessions";
+} from '@/app/data/component-docs-sessions';
 import {
   DIFF_COMPONENT_DOCS,
   SETTINGS_COMPONENT_DOCS,
   TASKS_COMPONENT_DOCS,
-} from "@/app/data/component-docs-workspace";
-import { CHAT_EXTRA_COMPONENT_DOCS } from "@/app/data/component-docs-chat";
-import { CONFIG_EXTRA_COMPONENT_DOCS } from "@/app/data/component-docs-config";
-import { PRIMITIVE_COMPONENT_DOCS } from "@/app/data/component-docs-primitives";
+} from '@/app/data/component-docs-workspace';
+import { CHAT_EXTRA_COMPONENT_DOCS } from '@/app/data/component-docs-chat';
+import { CONFIG_EXTRA_COMPONENT_DOCS } from '@/app/data/component-docs-config';
+import { PRIMITIVE_COMPONENT_DOCS } from '@/app/data/component-docs-primitives';
 import {
   HOOKS_COMPONENT_DOCS,
   MCP_COMPONENT_DOCS,
   PERMISSIONS_COMPONENT_DOCS,
-} from "@/app/data/component-docs-settings";
+} from '@/app/data/component-docs-settings';
 
-export type ComponentBlockType = "code" | "usage" | "example";
+export type ComponentBlockType = 'code' | 'usage' | 'example';
 
 export type ComponentTextBlock = {
-  type: "code" | "usage";
+  type: 'code' | 'usage';
   title: string;
   content: string;
 };
 
 export type ComponentExampleBlock = {
-  type: "example";
+  type: 'example';
   title: string;
   previewId: string;
   code: string;
@@ -46,72 +43,68 @@ export type ComponentDoc = {
 export const componentIdFromName = (name: string) =>
   name
     .trim()
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/\s+/g, "-")
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/\s+/g, '-')
     .toLowerCase();
 
 /**
  * Import path for each component. Everything ships from the package root.
  */
 export const COMPONENT_IMPORT_PATH: Record<string, string> = {
-  AgentChat: "@sinups/ai-kit",
-  MessageList: "@sinups/ai-kit",
-  InputBar: "@sinups/ai-kit",
-  Suggestions: "@sinups/ai-kit",
-  ModelPicker: "@sinups/ai-kit",
-  ModelBadge: "@sinups/ai-kit",
-  ModeSelector: "@sinups/ai-kit",
-  UserMessage: "@sinups/ai-kit",
-  ErrorMessage: "@sinups/ai-kit",
-  Markdown: "@sinups/ai-kit",
-  SendButton: "@sinups/ai-kit",
-  AttachmentButton:
-    "@sinups/ai-kit",
-  FileAttachment:
-    "@sinups/ai-kit",
-  TextShimmer: "@sinups/ai-kit",
-  SpiralLoader: "@sinups/ai-kit",
-  BashTool: "@sinups/ai-kit",
-  EditTool: "@sinups/ai-kit",
-  SearchTool: "@sinups/ai-kit",
-  TodoTool: "@sinups/ai-kit",
-  PlanTool: "@sinups/ai-kit",
-  ToolGroup: "@sinups/ai-kit",
-  SubagentTool: "@sinups/ai-kit",
-  McpTool: "@sinups/ai-kit",
-  ThinkingTool: "@sinups/ai-kit",
-  GenericTool: "@sinups/ai-kit",
-  QuestionTool:
-    "@sinups/ai-kit",
-  ElicitationForm: "@sinups/ai-kit",
-  ToolApprovalFooter: "@sinups/ai-kit",
-  AgentStatus: "@sinups/ai-kit",
-  ContextUsage: "@sinups/ai-kit",
-  CompactBoundary: "@sinups/ai-kit",
+  AgentChat: '@sinups/ai-kit',
+  MessageList: '@sinups/ai-kit',
+  InputBar: '@sinups/ai-kit',
+  Suggestions: '@sinups/ai-kit',
+  ModelPicker: '@sinups/ai-kit',
+  ModelBadge: '@sinups/ai-kit',
+  ModeSelector: '@sinups/ai-kit',
+  UserMessage: '@sinups/ai-kit',
+  ErrorMessage: '@sinups/ai-kit',
+  Markdown: '@sinups/ai-kit',
+  SendButton: '@sinups/ai-kit',
+  AttachmentButton: '@sinups/ai-kit',
+  FileAttachment: '@sinups/ai-kit',
+  TextShimmer: '@sinups/ai-kit',
+  SpiralLoader: '@sinups/ai-kit',
+  BashTool: '@sinups/ai-kit',
+  EditTool: '@sinups/ai-kit',
+  SearchTool: '@sinups/ai-kit',
+  TodoTool: '@sinups/ai-kit',
+  PlanTool: '@sinups/ai-kit',
+  ToolGroup: '@sinups/ai-kit',
+  SubagentTool: '@sinups/ai-kit',
+  McpTool: '@sinups/ai-kit',
+  ThinkingTool: '@sinups/ai-kit',
+  GenericTool: '@sinups/ai-kit',
+  QuestionTool: '@sinups/ai-kit',
+  ElicitationForm: '@sinups/ai-kit',
+  ToolApprovalFooter: '@sinups/ai-kit',
+  AgentStatus: '@sinups/ai-kit',
+  ContextUsage: '@sinups/ai-kit',
+  CompactBoundary: '@sinups/ai-kit',
 };
 
 const defaultCodeSnippet = (name: string) => {
-  const path = COMPONENT_IMPORT_PATH[name] ?? "@sinups/ai-kit";
+  const path = COMPONENT_IMPORT_PATH[name] ?? '@sinups/ai-kit';
   return `import { ${name} } from "${path}";\n\nexport function Example() {\n  return (\n    <${name} />\n  );\n}`;
 };
 
-const defaultUsageText = () =>
-  "Use this building block to extend your chat UI.";
+const defaultUsageText = () => 'Use this building block to extend your chat UI.';
 
 export const buildComponentBlocks = (name: string): ComponentBlock[] => [
   {
-    type: "code",
-    title: "Code",
+    type: 'code',
+    title: 'Code',
     content: defaultCodeSnippet(name),
   },
   {
-    type: "usage",
-    title: "Usage",
+    type: 'usage',
+    title: 'Usage',
     content: defaultUsageText(),
   },
   {
-    type: "example",
-    title: "Example",
+    type: 'example',
+    title: 'Example',
     previewId: name,
     code: `export function Example() {\n  return (\n    <${name} />\n  );\n}`,
   },
@@ -119,11 +112,11 @@ export const buildComponentBlocks = (name: string): ComponentBlock[] => [
 
 export const COMPONENT_DOCS: ComponentDoc[] = [
   {
-    name: "AgentChat",
+    name: 'AgentChat',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { AgentChat } from "@sinups/ai-kit";
 import { IconGitPullRequest, IconTestPipe } from "@tabler/icons-react";
 
@@ -160,15 +153,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
           "Create a full chat surface with messages, status, and send/stop handlers. Add `attachments` to wire file/image context, `questionTool` to handle Question tool answers, and `showCopyToolbar` for text copy actions. The same component works as a narrow side widget and as a full-page chat: set `contentWidth` (for example `760` or `'100%'`) so the transcript and composer use the available width, and `collapseToolRuns` to keep long tool sequences compact. Use `emptyState` with `layout: 'welcome'` for an empty chat: avatar, greeting and starter actions placed in the free space above the composer, a little below the middle, and close to the composer in containers narrower than 600px. Suggestions always sit above the composer (`emptySuggestionsPosition='bottom'` is deprecated and behaves as `'top'`).",
       },
       {
-        type: "example",
-        title: "Basic",
-        previewId: "AgentChat/basic",
+        type: 'example',
+        title: 'Basic',
+        previewId: 'AgentChat/basic',
         code: `<AgentChat
   messages={messages}
   status="ready"
@@ -177,9 +170,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Empty centered",
-        previewId: "AgentChat/empty-centered",
+        type: 'example',
+        title: 'Empty centered',
+        previewId: 'AgentChat/empty-centered',
         code: `<AgentChat
   messages={[]}
   status="ready"
@@ -189,9 +182,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Welcome empty state",
-        previewId: "AgentChat/welcome",
+        type: 'example',
+        title: 'Welcome empty state',
+        previewId: 'AgentChat/welcome',
         code: `const actions = [
   { id: "review", label: "Review my pull request", value: "Review the changes in my current branch.", icon: <IconGitPullRequest />, badge: "New" },
   { id: "bug", label: "Find the cause of a bug", value: "Help me find why ", icon: <IconBug /> },
@@ -216,9 +209,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "With attachments",
-        previewId: "AgentChat/attachments",
+        type: 'example',
+        title: 'With attachments',
+        previewId: 'AgentChat/attachments',
         code: `<AgentChat
   messages={messages}
   status="ready"
@@ -234,9 +227,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Copy toolbar",
-        previewId: "AgentChat/copy-toolbar",
+        type: 'example',
+        title: 'Copy toolbar',
+        previewId: 'AgentChat/copy-toolbar',
         code: `<AgentChat
   messages={messages}
   status="ready"
@@ -246,9 +239,149 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Full-page chat",
-        previewId: "AgentChat/full-page",
+        type: 'usage',
+        title: 'Tool approvals',
+        content:
+          "`approvals` attaches a confirmation to a tool call by its `toolCallId` without replacing the card that renders it, so an MCP call gets Allow/Deny with the same renderer. Each entry takes what `ToolApprovalFooter` understands — `reason`, `approveOptions`, `ruleSuggestion`, `matchedRule`, `requestedBy`, `onExplain`, `onApprove`, `onReject`, `onRejectWithFeedback`, `labels` — plus `isPending` while the call is still running. Once the host settles the request, replace the entry with `{ outcome: { decision: 'approved' | 'rejected', scope } }` and the footer gives way to a quiet settled line. An id with no call in the transcript is ignored, and dropping the entry removes the footer. `MessageList` rendered on its own takes the same map through `ToolApprovalsProvider`. The settled line names the scope the call was approved with: set `labels.toolApproval.scopes`, for example `{ session: 'for this session' }`, or it falls back to the label of the matching approve option and then to the scope itself.",
+      },
+      {
+        type: 'example',
+        title: 'Approving an MCP call',
+        previewId: 'AgentChat/approvals',
+        code: `const [approvals, setApprovals] = useState<ToolApprovals>({
+  "call-create-issue": {
+    isPending: true,
+    reason: "Creates an issue in the tracker workspace",
+    requestedBy: { name: "triage agent", color: "blue" },
+    approveOptions: [
+      { value: "once", label: "Allow once" },
+      { value: "session", label: "Allow for this session" },
+    ],
+    onApprove: (scope) =>
+      setApprovals({ "call-create-issue": { outcome: { decision: "approved", scope } } }),
+    onReject: () =>
+      setApprovals({ "call-create-issue": { outcome: { decision: "rejected" } } }),
+  },
+});
+
+<AgentChat
+  messages={messages}
+  status="ready"
+  onSend={send}
+  onStop={stop}
+  approvals={approvals}
+/>`,
+      },
+      {
+        type: 'usage',
+        title: 'Presentation',
+        content:
+          "`presentation` sets how the transcript lays out tool calls. `'cards'`, the default, keeps a card per call. `rowsPresentation` shows the flat transcript of a terminal client: a marker, the call and its answer under a gutter, with even spacing. `quietPresentation` turns MCP calls and thinking into muted lines that open into their arguments and result; the thinking and the finished or running calls a turn makes before its answer fold into one line such as `Thought · used 2 tools · 26s`, and a call that waits for a decision in `approvals` stays outside that line with a frame and its buttons. Other tool parts keep their cards. Both presentations are values imported from the package root, so a host that does not import them does not ship their code.",
+      },
+      {
+        type: 'example',
+        title: 'Cards rows and quiet lines',
+        previewId: 'AgentChat/presentation',
+        code: `import { AgentChat, quietPresentation, rowsPresentation } from "@sinups/ai-kit";
+
+<>
+  <AgentChat
+    messages={messages}
+    status={status}
+    onSend={send}
+    onStop={stop}
+    presentation={quietPresentation}
+    toolCatalog={catalog}
+  />
+  <AgentChat {...chat} presentation={rowsPresentation} />
+</>`,
+      },
+      {
+        type: 'usage',
+        title: 'Tool catalog and formatters',
+        content:
+          "`toolCatalog` takes the tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`; the full part type and the bare tool name also match. Each entry is `title`, `description`, `annotations` and `inputSchema`: a call then reads by the tool title instead of its name, and its arguments by the schema. `toolArgs` and `toolOutputs` format the arguments line and the result of a call. They are keyed like `toolRenderers`, by the full part type or a server-wide `tool-mcp__<server>__*`, and return `null` to keep the summary the kit builds. A formatter receives the part and a context with `state`, `summary` and `locale`, plus `args` and `schema` for arguments, or `output` and `labels` for results. `locale` formats numbers and dates in arguments and results; the runtime locale is the default.",
+      },
+      {
+        type: 'example',
+        title: 'Catalog formatters and locale',
+        previewId: 'AgentChat/tool-catalog',
+        code: `const catalog = {
+  mcp__issues__list_issues: {
+    title: "Find issues",
+    description: "Lists issues that match a filter",
+    annotations: { readOnlyHint: true },
+  },
+  mcp__git__log: { title: "Read the commit log" },
+};
+
+<AgentChat
+  {...chat}
+  presentation={quietPresentation}
+  toolCatalog={catalog}
+  toolArgs={{
+    "tool-mcp__issues__list_issues": (part, { args }) =>
+      args.assignee === "__me__" ? "Open issues assigned to me" : null,
+  }}
+  toolOutputs={{
+    "tool-mcp__issues__*": (part, { state, summary }) =>
+      state === "done" ? summary + " in the tracker" : null,
+  }}
+  locale="de-DE"
+/>`,
+      },
+      {
+        type: 'usage',
+        title: 'Labels',
+        content:
+          "`labels` translates the whole chat. Its sections merge key by key with the English defaults: `messageList` (including `search`, `toolRuns` and `planning`), `inputBar`, `welcome`, `errorMessage`, `turnSummary`, `toolApproval`, the tool sections `toolTitles`, `toolCall`, `toolCard`, `toolRow`, `mcpTool`, `bashTool`, `editTool`, `searchTool`, `todoTool`, `planTool`, `toolGroup` and `thinkingTool`, plus `durationUnits`, `errorTitle` and `placeholder`. `durationUnits` (`hours`, `minutes`, `seconds`, `milliseconds`) applies to every duration in the transcript: the turn summary, the working line, running calls and thinking. `messageList.toolRuns` holds the phrases of folded runs, such as `otherTools` and `thought`; `messageList.planning` is the row shown before the first token when `workingRow` is off. `inputBarProps.labels`, `emptyState.labels` and the `labels` of an approval request win over the matching section. A `MessageList` rendered on its own reads the same sections from `ChatLabelsProvider`.",
+      },
+      {
+        type: 'example',
+        title: 'Translated chat',
+        previewId: 'AgentChat/labels',
+        code: `const labels: Partial<AgentChatLabels> = {
+  placeholder: "Nachricht schreiben…",
+  thinkingTool: {
+    thinking: "Denkt nach",
+    thought: (duration) => (duration ? duration + " nachgedacht" : "Nachgedacht"),
+  },
+  durationUnits: { hours: " Std.", minutes: " Min.", seconds: " s", milliseconds: " ms" },
+  messageList: {
+    planning: "Wird vorbereitet…",
+    toolRuns: { thought: "nachgedacht", otherTools: (count) => count + " Werkzeuge genutzt" },
+  },
+  toolApproval: {
+    approve: "Erlauben",
+    reject: "Ablehnen",
+    approved: "Erlaubt",
+    scopes: { once: "einmal", session: "für diese Sitzung" },
+  },
+};
+
+<AgentChat {...chat} labels={labels} locale="de-DE" approvals={approvals} />`,
+      },
+      {
+        type: 'usage',
+        title: 'Working row and motion',
+        content:
+          "`workingRow` shows a quiet line at the end of the transcript while the agent works between tool calls, `true` by default; pass a node, for example an `AgentStatus` with your own label and token count, to replace it. `toolActivity` shows how long a running call has been going and the progress its MCP server reports, `true` by default. `evenSpacing` puts one gap between every two blocks (prompt, answer text, tool call) instead of the tighter gaps around the prompt, `false` by default and always on with `rowsPresentation`. `animateAppearance` fades a newly arrived message or part in over 150ms, `true` by default; the transcript already on screen at mount never animates, and `prefers-reduced-motion` turns it off. `frameBatched` commits the streaming answer at most once per animation frame, `true` by default; a finished stream, a hidden tab and reduced motion commit right away. `tailGranularity` reveals the streaming tail by character (`'char'`, the default) or by finished line (`'line'`).",
+      },
+      {
+        type: 'example',
+        title: 'Working row and tool activity',
+        previewId: 'AgentChat/working-row',
+        code: `<AgentChat
+  {...chat}
+  status="streaming"
+  toolActivity
+  workingRow={<AgentStatus label="Querying postgres" startedAt={turnStartedAt} tokens={usage.tokens} />}
+/>`,
+      },
+      {
+        type: 'example',
+        title: 'Full-page chat',
+        previewId: 'AgentChat/full-page',
         code: `<AgentChat
   messages={messages}
   status={status}
@@ -261,11 +394,11 @@ export function Example() {
     ],
   },
   {
-    name: "MessageList",
+    name: 'MessageList',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { MessageList } from "@sinups/ai-kit";
 import type { ChatMessage } from "@sinups/ai-kit";
 
@@ -288,15 +421,44 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render the full transcript from ChatMessage[]. Use showCopyToolbar for user/assistant text copy, className for container sizing, and slots/classNames/toolRenderers for custom rendering. contentWidth sets the column width: keep the 420px default in a side widget, pass 720 or \"100%\" in a full-page chat. collapseToolRuns folds three or more consecutive read and search calls into one summary row, and a compaction part renders a CompactBoundary divider.",
+          'Render the full transcript from ChatMessage[]. Use showCopyToolbar for user/assistant text copy, className for container sizing, and slots/classNames/toolRenderers for custom rendering. contentWidth sets the column width: keep the 420px default in a side widget, pass 720 or "100%" in a full-page chat. collapseToolRuns folds three or more consecutive read and search calls into one summary row, and a compaction part renders a CompactBoundary divider.',
       },
       {
-        type: "example",
-        title: "Basic transcript",
-        previewId: "MessageList/basic",
+        type: 'usage',
+        title: 'Presentation and tool context',
+        content:
+          "`MessageList` takes the same transcript props as `AgentChat`: `presentation` (`'cards'`, `rowsPresentation` or `quietPresentation`), `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`, `evenSpacing`, `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched` and `withSearch`. The defaults differ: `AgentChat` turns on `frameBatched`, `animateAppearance`, `workingRow` and `toolActivity`, while a standalone `MessageList` keeps all four off until you pass `true`. Its own `labels` cover the list: `working`, `planning`, `search`, `toolRuns` and the message toolbar. The rows inside a standalone list read their labels from `ChatLabelsProvider` and their approvals from `ToolApprovalsProvider`; `AgentChat` sets up both from its `labels` and `approvals`.",
+      },
+      {
+        type: 'example',
+        title: 'Presentations',
+        previewId: 'MessageList/presentation',
+        code: `import {
+  ChatLabelsProvider,
+  MessageList,
+  ToolApprovalsProvider,
+  quietPresentation,
+} from "@sinups/ai-kit";
+
+<ChatLabelsProvider labels={{ durationUnits: { seconds: " s" } }}>
+  <ToolApprovalsProvider approvals={approvals}>
+    <MessageList
+      messages={messages}
+      status={status}
+      presentation={quietPresentation}
+      toolCatalog={catalog}
+      evenSpacing
+    />
+  </ToolApprovalsProvider>
+</ChatLabelsProvider>`,
+      },
+      {
+        type: 'example',
+        title: 'Basic transcript',
+        previewId: 'MessageList/basic',
         code: `const messages: ChatMessage[] = [
   {
     id: "msg-1",
@@ -338,9 +500,9 @@ export function Example() {
 <MessageList messages={messages} status="ready" />`,
       },
       {
-        type: "example",
-        title: "With timestamps",
-        previewId: "MessageList/timestamps",
+        type: 'example',
+        title: 'With timestamps',
+        previewId: 'MessageList/timestamps',
         code: `const messages: ChatMessage[] = [
   {
     id: "msg-1",
@@ -358,9 +520,9 @@ export function Example() {
 <MessageList messages={messages} status="ready" />`,
       },
       {
-        type: "example",
-        title: "Collapsed tool runs",
-        previewId: "MessageList/tool-runs",
+        type: 'example',
+        title: 'Collapsed tool runs',
+        previewId: 'MessageList/tool-runs',
         code: `<MessageList
   messages={messages}
   status="ready"
@@ -369,9 +531,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Compacted history",
-        previewId: "MessageList/compaction",
+        type: 'example',
+        title: 'Compacted history',
+        previewId: 'MessageList/compaction',
         code: `const messages: ChatMessage[] = [
   {
     id: "cmp-s1",
@@ -393,65 +555,65 @@ export function Example() {
     ],
   },
   {
-    name: "InputBar",
+    name: 'InputBar',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { InputBar } from "@sinups/ai-kit";\n\nexport function Example() {\n  return (\n    <InputBar\n      onSend={({ content }) => console.log(content)}\n      status=\"ready\"\n      onStop={() => {}}\n    />\n  );\n}`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls.",
+          'Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls.',
       },
       {
-        type: "example",
-        title: "Basic input",
-        previewId: "InputBar/basic",
+        type: 'example',
+        title: 'Basic input',
+        previewId: 'InputBar/basic',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n/>`,
       },
       {
-        type: "example",
-        title: "With attachments",
-        previewId: "InputBar/attachments",
+        type: 'example',
+        title: 'With attachments',
+        previewId: 'InputBar/attachments',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  onAttach={onAttach}\n  attachedImages={images}\n  attachedFiles={files}\n  onRemoveImage={onRemoveImage}\n  onRemoveFile={onRemoveFile}\n/>`,
       },
       {
-        type: "example",
-        title: "Focus outline",
-        previewId: "InputBar/outline",
+        type: 'example',
+        title: 'Focus outline',
+        previewId: 'InputBar/outline',
         code: `<div style={{ "--ae-input-focus-outline": "var(--mantine-color-cyan-5)" } as React.CSSProperties }>\n  <InputBar\n    onSend={handleSend}\n    status=\"ready\"\n    onStop={handleStop}\n    autoFocus\n  />\n</div>`,
       },
       {
-        type: "example",
-        title: "Info bar",
-        previewId: "InputBar/info",
+        type: 'example',
+        title: 'Info bar',
+        previewId: 'InputBar/info',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  infoBar={{\n    title: \"Syncing workspace\",\n    description: \"We will keep watching for changes.\",\n    onClose: () => {},\n  }}\n/>`,
       },
       {
-        type: "example",
-        title: "Info bar (bottom)",
-        previewId: "InputBar/info-bottom",
+        type: 'example',
+        title: 'Info bar (bottom)',
+        previewId: 'InputBar/info-bottom',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  infoBar={{\n    title: \"Syncing workspace\",\n    description: \"We will keep watching for changes.\",\n    onClose: () => {},\n    position: \"bottom\",\n  }}\n/>`,
       },
       {
-        type: "example",
-        title: "Question bar",
-        previewId: "InputBar/question",
-        code: `const questions = [\n  {\n    kind: "single",\n    title: "Which direction should I take?",\n    options: [\n      { id: "small", label: "Small patch" },\n      { id: "full", label: "Full refactor" },\n    ],\n    allowCustom: true,\n  },\n  {\n    kind: "single",\n    title: "How cautious should the rollout be?",\n    options: [\n      { id: "safe", label: "Safe and incremental" },\n      { id: "fast", label: "Fast rollout" },\n    ],\n    allowCustom: true,\n  },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  questionBar={{\n    id: \"question-1\",\n    questions,\n    submitLabel: \"Submit\",\n    skipLabel: \"Skip\",\n    onSubmit: (answer) => console.log(answer),\n  }}\n/>`,
+        type: 'example',
+        title: 'Question bar',
+        previewId: 'InputBar/question',
+        code: `const questions = [\n  {\n    kind: "single",\n    title: "Which direction should I take?",\n    options: [\n      { id: "small", label: "Small patch" },\n      { id: "full", label: "Full refactor" },\n    ],\n    allowCustom: true,\n  },\n  {\n    kind: "single",\n    title: "How cautious should the rollout be?",\n    options: [\n      { id: "safe", label: "Safe and incremental" },\n      { id: "fast", label: "Fast rollout" },\n    ],\n    allowCustom: true,\n  },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  questionBar={{\n    id: \"question-1\",\n    questions,\n    submitLabel: \"Submit\",\n    skipLabel: \"Skip\",\n    onSubmit: (answer, { questionIndex }) => console.log(questionIndex, answer),\n    onSkip: ({ questionIndex }) => console.log(\"skipped\", questionIndex),\n  }}\n/>`,
       },
       {
-        type: "example",
-        title: "Toolbar actions (model + mode)",
-        previewId: "InputBar/toolbar-actions",
-        code: `import { InputBar } from "@sinups/ai-kit";\nimport { ModelPicker } from "@sinups/ai-kit";\nimport { ModeSelector } from "@sinups/ai-kit";\nimport { IconCursor, IconBulb } from "@tabler/icons-react";\n\nconst models = [\n  { id: "llama-3.3-70b", name: "Llama 3.3", version: "70B" },\n  { id: "qwen-2.5-coder-32b", name: "Qwen 2.5 Coder", version: "32B" },\n];\n\nconst modes = [\n  { id: "agent", label: "Agent", icon: IconCursor },\n  { id: "plan", label: "Plan", icon: IconBulb },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  leftActions={\n    <>\n      <ModeSelector modes={modes} defaultValue=\"agent\" />\n      <ModelPicker models={models} defaultValue=\"llama-3.3-70b\" />\n    </>\n  }\n/>`,
+        type: 'example',
+        title: 'Toolbar actions (model + mode)',
+        previewId: 'InputBar/toolbar-actions',
+        code: `import { InputBar } from "@sinups/ai-kit";\nimport { ModelPicker } from "@sinups/ai-kit";\nimport { ModeSelector } from "@sinups/ai-kit";\nimport { IconPointer, IconBulb } from "@tabler/icons-react";\n\nconst models = [\n  { id: "llama-3.3-70b", name: "Llama 3.3", version: "70B" },\n  { id: "qwen-2.5-coder-32b", name: "Qwen 2.5 Coder", version: "32B" },\n];\n\nconst modes = [\n  { id: "agent", label: "Agent", icon: IconPointer },\n  { id: "plan", label: "Plan", icon: IconBulb },\n];\n\n<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  leftActions={\n    <>\n      <ModeSelector modes={modes} defaultValue=\"agent\" />\n      <ModelPicker models={models} defaultValue=\"llama-3.3-70b\" />\n    </>\n  }\n/>`,
       },
       {
-        type: "example",
-        title: "Commands and mentions",
-        previewId: "InputBar/completions",
+        type: 'example',
+        title: 'Commands and mentions',
+        previewId: 'InputBar/completions',
         code: `const completions: CompletionSource[] = [
   {
     trigger: "/",
@@ -471,9 +633,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Message queue",
-        previewId: "InputBar/queue",
+        type: 'example',
+        title: 'Message queue',
+        previewId: 'InputBar/queue',
         code: `<InputBar
   status="streaming"
   onSend={handleSend}
@@ -484,9 +646,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Full-width composer",
-        previewId: "InputBar/full-width",
+        type: 'example',
+        title: 'Full-width composer',
+        previewId: 'InputBar/full-width',
         code: `<InputBar
   onSend={handleSend}
   status="ready"
@@ -497,11 +659,11 @@ export function Example() {
     ],
   },
   {
-    name: "Suggestions",
+    name: 'Suggestions',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { InputBar } from "@sinups/ai-kit";
 import { IconCalendar, IconCode, IconPencil, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
@@ -553,15 +715,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Show quick prompt chips and write the selected suggestion into InputBar for fast message drafting. Use disabled to pause interaction and item.className for per-chip styling.",
+          'Show quick prompt chips and write the selected suggestion into InputBar for fast message drafting. Use disabled to pause interaction and item.className for per-chip styling.',
       },
       {
-        type: "example",
-        title: "Icons + text",
-        previewId: "Suggestions/basic",
+        type: 'example',
+        title: 'Icons + text',
+        previewId: 'Suggestions/basic',
         code: `import { IconCalendar, IconCode, IconPencil, IconSearch } from "@tabler/icons-react";
 
 const items = [
@@ -579,9 +741,9 @@ const items = [
 />`,
       },
       {
-        type: "example",
-        title: "Fill InputBar",
-        previewId: "Suggestions/fill",
+        type: 'example',
+        title: 'Fill InputBar',
+        previewId: 'Suggestions/fill',
         code: `const [value, setValue] = useState("");
 
 <InputBar
@@ -600,11 +762,11 @@ const items = [
     ],
   },
   {
-    name: "ModelPicker",
+    name: 'ModelPicker',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ModelPicker } from "@sinups/ai-kit";
 import { useState } from "react";
 
@@ -626,21 +788,21 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Standalone model picker. Drop it into InputBar via leftActions/rightActions, a header, a settings sheet, or anywhere else. It does not depend on InputBar. Supports controlled and uncontrolled modes. Use ModelBadge for a read-only variant.",
+          'Standalone model picker. Drop it into InputBar via leftActions/rightActions, a header, a settings sheet, or anywhere else. It does not depend on InputBar. Supports controlled and uncontrolled modes. Use ModelBadge for a read-only variant.',
       },
       {
-        type: "example",
-        title: "Uncontrolled",
-        previewId: "ModelPicker/basic",
+        type: 'example',
+        title: 'Uncontrolled',
+        previewId: 'ModelPicker/basic',
         code: `<ModelPicker models={models} defaultValue="llama-3.3-70b" />`,
       },
       {
-        type: "example",
-        title: "Inside InputBar",
-        previewId: "ModelPicker/in-input-bar",
+        type: 'example',
+        title: 'Inside InputBar',
+        previewId: 'ModelPicker/in-input-bar',
         code: `<InputBar
   onSend={handleSend}
   status="ready"
@@ -651,25 +813,25 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Read-only badge",
-        previewId: "ModelPicker/badge",
+        type: 'example',
+        title: 'Read-only badge',
+        previewId: 'ModelPicker/badge',
         code: `<ModelBadge models={models} value="qwen-2.5-coder-32b" />`,
       },
     ],
   },
   {
-    name: "ModeSelector",
+    name: 'ModeSelector',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ModeSelector, type ModeOption } from "@sinups/ai-kit";
-import { IconCursor, IconBulb } from "@tabler/icons-react";
+import { IconPointer, IconBulb } from "@tabler/icons-react";
 import { useState } from "react";
 
 const modes: ModeOption[] = [
-  { id: "agent", label: "Agent", icon: IconCursor },
+  { id: "agent", label: "Agent", icon: IconPointer },
   { id: "plan", label: "Plan", icon: IconBulb, description: "Think before acting" },
 ];
 
@@ -679,21 +841,21 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Standalone mode selector: agent mode, plan mode, or any custom set. Bring your own icons or omit them. With a single mode the selector renders a non-interactive label.",
+          'Standalone mode selector: agent mode, plan mode, or any custom set. Bring your own icons or omit them. With a single mode the selector renders a non-interactive label.',
       },
       {
-        type: "example",
-        title: "Uncontrolled",
-        previewId: "ModeSelector/basic",
+        type: 'example',
+        title: 'Uncontrolled',
+        previewId: 'ModeSelector/basic',
         code: `<ModeSelector modes={modes} defaultValue=\"agent\" />`,
       },
       {
-        type: "example",
-        title: "Inside InputBar",
-        previewId: "ModeSelector/in-input-bar",
+        type: 'example',
+        title: 'Inside InputBar',
+        previewId: 'ModeSelector/in-input-bar',
         code: `<InputBar
   onSend={handleSend}
   status="ready"
@@ -704,11 +866,11 @@ export function Example() {
     ],
   },
   {
-    name: "UserMessage",
+    name: 'UserMessage',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { UserMessage } from "@sinups/ai-kit";
 import type { ChatMessage } from "@sinups/ai-kit";
 
@@ -723,15 +885,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a single user bubble. Supports text, image parts (image/data-image/image file), and file attachments.",
+          'Render a single user bubble. Supports text, image parts (image/data-image/image file), and file attachments.',
       },
       {
-        type: "example",
-        title: "Text only",
-        previewId: "UserMessage/basic",
+        type: 'example',
+        title: 'Text only',
+        previewId: 'UserMessage/basic',
         code: `const message: ChatMessage = {
   id: "user-1",
   role: "user",
@@ -741,9 +903,9 @@ export function Example() {
 <UserMessage message={message} />`,
       },
       {
-        type: "example",
-        title: "With image",
-        previewId: "UserMessage/images",
+        type: 'example',
+        title: 'With image',
+        previewId: 'UserMessage/images',
         code: `const message: ChatMessage = {
   id: "user-2",
   role: "user",
@@ -758,14 +920,14 @@ export function Example() {
     ],
   },
   {
-    name: "Markdown",
+    name: 'Markdown',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { Markdown } from "@sinups/ai-kit";\n\n' +
-          "const content = [\n" +
+          'const content = [\n' +
           '  "# Release notes",\n' +
           '  "",\n' +
           '  "- Added streaming markdown",\n' +
@@ -778,23 +940,23 @@ export function Example() {
           '  "```ts",\n' +
           '  "console.log(\\"Hello from markdown\\");",\n' +
           '  "```",\n' +
-          '].join(\\"\\n\\");\n\n' +
-          "export function Example() {\n" +
-          "  return <Markdown content={content} />;\n" +
-          "}",
+          '].join("\\n");\n\n' +
+          'export function Example() {\n' +
+          '  return <Markdown content={content} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render streaming markdown with headings, lists, tables, blockquotes, and code fences. External links get safe target/rel handling.",
+          'Render streaming markdown with headings, lists, tables, blockquotes, and code fences. External links get safe target/rel handling.',
       },
       {
-        type: "example",
-        title: "Release note snippet",
-        previewId: "Markdown/release",
+        type: 'example',
+        title: 'Release note snippet',
+        previewId: 'Markdown/release',
         code:
-          "const content = [\n" +
+          'const content = [\n' +
           '  "# Release notes",\n' +
           '  "",\n' +
           '  "- Added streaming markdown",\n' +
@@ -807,32 +969,32 @@ export function Example() {
           '  "```ts",\n' +
           '  "console.log(\\"Hello from markdown\\");",\n' +
           '  "```",\n' +
-          '].join(\\"\\n\\");\n\n' +
-          "<Markdown content={content} />",
+          '].join("\\n");\n\n' +
+          '<Markdown content={content} />',
       },
       {
-        type: "example",
-        title: "Tables + links",
-        previewId: "Markdown/table",
+        type: 'example',
+        title: 'Tables + links',
+        previewId: 'Markdown/table',
         code:
-          "const content = [\n" +
+          'const content = [\n' +
           '  "| Tool | Status |",\n' +
           '  "| --- | --- |",\n' +
           '  "| Search | Ready |",\n' +
           '  "| Bash | Ready |",\n' +
           '  "",\n' +
           '  "Visit [docs](https://example.com) for details.",\n' +
-          '].join(\\"\\n\\");\n\n' +
-          "<Markdown content={content} />",
+          '].join("\\n");\n\n' +
+          '<Markdown content={content} />',
       },
       {
-        type: "example",
-        title: "Streaming update",
-        previewId: "Markdown/streaming",
+        type: 'example',
+        title: 'Streaming update',
+        previewId: 'Markdown/streaming',
         code:
           'import { useEffect, useState } from "react";\n' +
-          "\n" +
-          "const fullContent = [\n" +
+          '\n' +
+          'const fullContent = [\n' +
           '  "### Working plan",\n' +
           '  "",\n' +
           '  "- Parse input context",\n' +
@@ -853,59 +1015,59 @@ export function Example() {
           '  "| Draft | Running |",\n' +
           '  "",\n' +
           '  "Final answer coming next...",\n' +
-          '].join(\\"\\n\\");\n' +
-          "\n" +
-          "export function Example() {\n" +
-          '  const [content, setContent] = useState(\\"\\");\n' +
-          "  const [isStreaming, setIsStreaming] = useState(false);\n" +
-          "\n" +
-          "  const runStream = () => {\n" +
-          '    setContent(\\"\\");\n' +
-          "    setIsStreaming(true);\n" +
-          "    let i = 0;\n" +
-          "    const tick = () => {\n" +
-          "      i += 1;\n" +
-          "      setContent(fullContent.slice(0, i));\n" +
-          "      if (i >= fullContent.length) {\n" +
-          "        setIsStreaming(false);\n" +
-          "        return;\n" +
-          "      }\n" +
-          "      setTimeout(tick, 18);\n" +
-          "    };\n" +
-          "    setTimeout(tick, 120);\n" +
-          "  };\n" +
-          "\n" +
-          "  useEffect(() => {\n" +
-          "    runStream();\n" +
-          "  }, []);\n" +
-          "\n" +
-          "  return (\n" +
-          '    <div className=\\"space-y-2\\">\n' +
-          '      <div className=\\"flex items-center justify-between\\">\n' +
-          '        <div className=\\"text-xs text-muted-foreground\\">\n' +
-          '          {isStreaming ? \\"Streaming...\\" : \\"Idle\\"}\n' +
-          "        </div>\n" +
-          "        <button\n" +
-          '          type=\\"button\\"\n' +
-          "          onClick={runStream}\n" +
-          '          className=\\"text-xs px-2 py-1 rounded-md border border-border bg-background hover:bg-muted transition-colors\\"\n' +
-          "        >\n" +
-          "          Replay\n" +
-          "        </button>\n" +
-          "      </div>\n" +
-          "      <Markdown content={content} />\n" +
-          "    </div>\n" +
-          "  );\n" +
-          "}",
+          '].join("\\n");\n' +
+          '\n' +
+          'export function Example() {\n' +
+          '  const [content, setContent] = useState("");\n' +
+          '  const [isStreaming, setIsStreaming] = useState(false);\n' +
+          '\n' +
+          '  const runStream = () => {\n' +
+          '    setContent("");\n' +
+          '    setIsStreaming(true);\n' +
+          '    let i = 0;\n' +
+          '    const tick = () => {\n' +
+          '      i += 1;\n' +
+          '      setContent(fullContent.slice(0, i));\n' +
+          '      if (i >= fullContent.length) {\n' +
+          '        setIsStreaming(false);\n' +
+          '        return;\n' +
+          '      }\n' +
+          '      setTimeout(tick, 18);\n' +
+          '    };\n' +
+          '    setTimeout(tick, 120);\n' +
+          '  };\n' +
+          '\n' +
+          '  useEffect(() => {\n' +
+          '    runStream();\n' +
+          '  }, []);\n' +
+          '\n' +
+          '  return (\n' +
+          '    <div className="space-y-2">\n' +
+          '      <div className="flex items-center justify-between">\n' +
+          '        <div className="text-xs text-muted-foreground">\n' +
+          '          {isStreaming ? "Streaming..." : "Idle"}\n' +
+          '        </div>\n' +
+          '        <button\n' +
+          '          type="button"\n' +
+          '          onClick={runStream}\n' +
+          '          className="text-xs px-2 py-1 rounded-md border border-border bg-background hover:bg-muted transition-colors"\n' +
+          '        >\n' +
+          '          Replay\n' +
+          '        </button>\n' +
+          '      </div>\n' +
+          '      <Markdown content={content} />\n' +
+          '    </div>\n' +
+          '  );\n' +
+          '}',
       },
     ],
   },
   {
-    name: "AttachmentButton",
+    name: 'AttachmentButton',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { AttachmentButton } from "@sinups/ai-kit";
 
 export function Example() {
@@ -913,37 +1075,37 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render the round plus attachment trigger used by InputBar. Use onClick to open your picker action.",
+          'Render the round plus attachment trigger used by InputBar. Use onClick to open your picker action.',
       },
       {
-        type: "example",
-        title: "Default",
-        previewId: "AttachmentButton/basic",
+        type: 'example',
+        title: 'Default',
+        previewId: 'AttachmentButton/basic',
         code: `<AttachmentButton onClick={() => {}} />`,
       },
       {
-        type: "example",
-        title: "Paperclip icon",
-        previewId: "AttachmentButton/paperclip",
+        type: 'example',
+        title: 'Paperclip icon',
+        previewId: 'AttachmentButton/paperclip',
         code: `<AttachmentButton onClick={() => {}} icon="paperclip" />`,
       },
       {
-        type: "example",
-        title: "Without handler",
-        previewId: "AttachmentButton/passive",
+        type: 'example',
+        title: 'Without handler',
+        previewId: 'AttachmentButton/passive',
         code: `<AttachmentButton />`,
       },
     ],
   },
   {
-    name: "SendButton",
+    name: 'SendButton',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { SendButton } from "@sinups/ai-kit";
 
 export function Example() {
@@ -953,37 +1115,36 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
-        content:
-          "Render the send/stop control. Use state=idle | typing | streaming.",
+        type: 'usage',
+        title: 'Usage',
+        content: 'Render the send/stop control. Use state=idle | typing | streaming.',
       },
       {
-        type: "example",
-        title: "Idle",
-        previewId: "SendButton/idle",
+        type: 'example',
+        title: 'Idle',
+        previewId: 'SendButton/idle',
         code: `<SendButton state="idle" />`,
       },
       {
-        type: "example",
-        title: "Typing",
-        previewId: "SendButton/typing",
+        type: 'example',
+        title: 'Typing',
+        previewId: 'SendButton/typing',
         code: `<SendButton state="typing" />`,
       },
       {
-        type: "example",
-        title: "Streaming",
-        previewId: "SendButton/streaming",
+        type: 'example',
+        title: 'Streaming',
+        previewId: 'SendButton/streaming',
         code: `<SendButton state="streaming" />`,
       },
     ],
   },
   {
-    name: "FileAttachment",
+    name: 'FileAttachment',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { FileAttachment } from "@sinups/ai-kit";
 
 export function Example() {
@@ -998,15 +1159,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
           'Render a file/image chip. Use isImage + url for thumbnails, display="image-only" for previews, and onRemove to show the close control.',
       },
       {
-        type: "example",
-        title: "File + image",
-        previewId: "FileAttachment/basic",
+        type: 'example',
+        title: 'File + image',
+        previewId: 'FileAttachment/basic',
         code: `<FileAttachment id="file-1" filename="report.pdf" size={23000} />
 <FileAttachment
   id="file-2"
@@ -1017,9 +1178,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Image only",
-        previewId: "FileAttachment/image",
+        type: 'example',
+        title: 'Image only',
+        previewId: 'FileAttachment/image',
         code: `<FileAttachment
   id="img-1"
   filename="hero.png"
@@ -1030,9 +1191,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Removable file",
-        previewId: "FileAttachment/removable",
+        type: 'example',
+        title: 'Removable file',
+        previewId: 'FileAttachment/removable',
         code: `<FileAttachment
   id="file-3"
   filename="notes.md"
@@ -1043,11 +1204,11 @@ export function Example() {
     ],
   },
   {
-    name: "TextShimmer",
+    name: 'TextShimmer',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { TextShimmer } from "@sinups/ai-kit";
 
 export function Example() {
@@ -1059,31 +1220,30 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
-        content:
-          "Render shimmering status text. Tune duration, spread, and delay.",
+        type: 'usage',
+        title: 'Usage',
+        content: 'Render shimmering status text. Tune duration, spread, and delay.',
       },
       {
-        type: "example",
-        title: "Inline status",
-        previewId: "TextShimmer/inline",
+        type: 'example',
+        title: 'Inline status',
+        previewId: 'TextShimmer/inline',
         code: `<TextShimmer as="span" duration={1.4} spread={80}>
   Syncing metadata
 </TextShimmer>`,
       },
       {
-        type: "example",
-        title: "Delayed shimmer",
-        previewId: "TextShimmer/delayed",
+        type: 'example',
+        title: 'Delayed shimmer',
+        previewId: 'TextShimmer/delayed',
         code: `<TextShimmer as="span" duration={2.2} spread={140} delay={0.6}>
   Calculating risk score
 </TextShimmer>`,
       },
       {
-        type: "example",
-        title: "Fast shimmer",
-        previewId: "TextShimmer/fast",
+        type: 'example',
+        title: 'Fast shimmer',
+        previewId: 'TextShimmer/fast',
         code: `<TextShimmer as="span" duration={0.9} spread={60}>
   Rapid sync
 </TextShimmer>`,
@@ -1091,11 +1251,11 @@ export function Example() {
     ],
   },
   {
-    name: "SpiralLoader",
+    name: 'SpiralLoader',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { SpiralLoader } from "@sinups/ai-kit";
 
 export function Example() {
@@ -1103,15 +1263,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render the spiral loader. Use size to control the square canvas and className for layout styling.",
+          'Render the spiral loader. Use size to control the square canvas and className for layout styling.',
       },
       {
-        type: "example",
-        title: "Sizes",
-        previewId: "SpiralLoader/sizes",
+        type: 'example',
+        title: 'Sizes',
+        previewId: 'SpiralLoader/sizes',
         code: `<div className="flex items-center gap-4">
   <SpiralLoader size={16} />
   <SpiralLoader size={24} />
@@ -1121,528 +1281,528 @@ export function Example() {
     ],
   },
   {
-    name: "BashTool",
+    name: 'BashTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { BashTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-Bash",\n' +
           '  toolCallId: "bash-1",\n' +
           '  state: "output-available",\n' +
           '  input: { command: "ls -la" },\n' +
           '  output: { stdout: "app\\nlib\\nREADME.md" },\n' +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <BashTool part={part} />;\n" +
-          "}",
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <BashTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a command tool card. Provide input.command and optional output.stdout; use input.approval for the footer.",
+          'Render a command tool card. Provide input.command and optional output.stdout; use input.approval for the footer.',
       },
       {
-        type: "example",
-        title: "Terminal card",
-        previewId: "BashTool/terminal",
+        type: 'example',
+        title: 'Terminal card',
+        previewId: 'BashTool/terminal',
         code: `<BashTool
   part={part}
 />`,
       },
       {
-        type: "example",
-        title: "Running state",
-        previewId: "BashTool/pending",
+        type: 'example',
+        title: 'Running state',
+        previewId: 'BashTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-Bash",\n' +
           '  toolCallId: "bash-2",\n' +
           '  state: "input-streaming",\n' +
           '  input: { command: "git status" },\n' +
-          "};\n\n" +
-          "<BashTool part={pendingPart} />",
+          '};\n\n' +
+          '<BashTool part={pendingPart} />',
       },
       {
-        type: "example",
-        title: "Approval footer",
-        previewId: "BashTool/approval",
+        type: 'example',
+        title: 'Approval footer',
+        previewId: 'BashTool/approval',
         code:
-          "const approvalPart = {\n" +
+          'const approvalPart = {\n' +
           '  type: "tool-Bash",\n' +
           '  toolCallId: "bash-3",\n' +
           '  state: "input-available",\n' +
-          "  input: {\n" +
+          '  input: {\n' +
           '    command: "pnpm test --filter ./apps/web -- --runInBand",\n' +
           '    approval: { labels: { approve: "Run", reject: "Skip" } },\n' +
-          "  },\n" +
-          "};\n\n" +
-          "<BashTool part={approvalPart} />",
+          '  },\n' +
+          '};\n\n' +
+          '<BashTool part={approvalPart} />',
       },
     ],
   },
   {
-    name: "EditTool",
+    name: 'EditTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { EditTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-1",\n' +
           '  state: "output-available",\n' +
           '  input: { file_path: "/app/page.tsx" },\n' +
-          "  output: {\n" +
-          "    old_content: \"export const metadata = { title: 'Old' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n\",\n" +
-          "    content: \"export const metadata = { title: 'Updated' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <h1>Release notes</h1>\\n      <p>New layout applied.</p>\\n    </div>\\n  );\\n}\\n\",\n" +
-          "  },\n" +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <EditTool part={part} />;\n" +
-          "}",
+          '  output: {\n' +
+          '    old_content: "export const metadata = { title: \'Old\' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n",\n' +
+          '    content: "export const metadata = { title: \'Updated\' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <h1>Release notes</h1>\\n      <p>New layout applied.</p>\\n    </div>\\n  );\\n}\\n",\n' +
+          '  },\n' +
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <EditTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a diff card for file edits. Supply input.file_path plus diff content (old/new or structuredPatch); use input.approval for the footer.",
+          'Render a diff card for file edits. Supply input.file_path plus diff content (old/new or structuredPatch); use input.approval for the footer.',
       },
       {
-        type: "example",
-        title: "Diff card",
-        previewId: "EditTool/diff",
+        type: 'example',
+        title: 'Diff card',
+        previewId: 'EditTool/diff',
         code: `<EditTool
   part={part}
 />`,
       },
       {
-        type: "example",
-        title: "Approval footer",
-        previewId: "EditTool/approval",
+        type: 'example',
+        title: 'Approval footer',
+        previewId: 'EditTool/approval',
         code:
-          "const approvalPart = {\n" +
+          'const approvalPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-7",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
+          '  input: {\n' +
           '    file_path: "/app/page.tsx",\n' +
           '    approval: { labels: { approve: "Apply", reject: "Skip" } },\n' +
-          "  },\n" +
-          "  output: {\n" +
-          "    old_content: \"export const metadata = { title: 'Old' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n\",\n" +
-          "    content: \"export const metadata = { title: 'Updated' };\\n\\nexport default function Page() {\\n  return <div>New content</div>;\\n}\\n\",\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<EditTool part={approvalPart} />",
+          '  },\n' +
+          '  output: {\n' +
+          '    old_content: "export const metadata = { title: \'Old\' };\\n\\nexport default function Page() {\\n  return <div>Old content</div>;\\n}\\n",\n' +
+          '    content: "export const metadata = { title: \'Updated\' };\\n\\nexport default function Page() {\\n  return <div>New content</div>;\\n}\\n",\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<EditTool part={approvalPart} />',
       },
       {
-        type: "example",
-        title: "Collapsible diff",
-        previewId: "EditTool/collapsible",
+        type: 'example',
+        title: 'Collapsible diff',
+        previewId: 'EditTool/collapsible',
         code:
-          "const longPart = {\n" +
+          'const longPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-1b",\n' +
           '  state: "output-available",\n' +
           '  input: { file_path: "/app/page.tsx" },\n' +
-          "  output: {\n" +
-          "    old_content: \"export const metadata = { title: 'Old' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <h1>Dashboard</h1>\\n      <p>Old copy here.</p>\\n      <section>\\n        <h2>Highlights</h2>\\n        <ul>\\n          <li>Shipping ETA</li>\\n          <li>Billing status</li>\\n          <li>Support inbox</li>\\n        </ul>\\n      </section>\\n      <section>\\n        <h2>Activity</h2>\\n        <p>Recent items...</p>\\n      </section>\\n    </div>\\n  );\\n}\\n\",\n" +
-          "    content: \"export const metadata = { title: 'Updated' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <header>\\n        <h1>Release notes</h1>\\n        <p>New layout applied.</p>\\n      </header>\\n      <section>\\n        <h2>Highlights</h2>\\n        <ul>\\n          <li>Sync latency improvements</li>\\n          <li>Workspace search redesign</li>\\n          <li>Billing transparency</li>\\n        </ul>\\n      </section>\\n      <section>\\n        <h2>Activity</h2>\\n        <p>Recent items with timestamps...</p>\\n      </section>\\n      <section>\\n        <h2>More</h2>\\n        <p>Additional details and links.</p>\\n      </section>\\n    </div>\\n  );\\n}\\n\",\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<EditTool part={longPart} isCollapsible />",
+          '  output: {\n' +
+          '    old_content: "export const metadata = { title: \'Old\' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <h1>Dashboard</h1>\\n      <p>Old copy here.</p>\\n      <section>\\n        <h2>Highlights</h2>\\n        <ul>\\n          <li>Shipping ETA</li>\\n          <li>Billing status</li>\\n          <li>Support inbox</li>\\n        </ul>\\n      </section>\\n      <section>\\n        <h2>Activity</h2>\\n        <p>Recent items...</p>\\n      </section>\\n    </div>\\n  );\\n}\\n",\n' +
+          '    content: "export const metadata = { title: \'Updated\' };\\n\\nexport default function Page() {\\n  return (\\n    <div>\\n      <header>\\n        <h1>Release notes</h1>\\n        <p>New layout applied.</p>\\n      </header>\\n      <section>\\n        <h2>Highlights</h2>\\n        <ul>\\n          <li>Sync latency improvements</li>\\n          <li>Workspace search redesign</li>\\n          <li>Billing transparency</li>\\n        </ul>\\n      </section>\\n      <section>\\n        <h2>Activity</h2>\\n        <p>Recent items with timestamps...</p>\\n      </section>\\n      <section>\\n        <h2>More</h2>\\n        <p>Additional details and links.</p>\\n      </section>\\n    </div>\\n  );\\n}\\n",\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<EditTool part={longPart} isCollapsible />',
       },
       {
-        type: "example",
-        title: "Pending edit",
-        previewId: "EditTool/pending",
+        type: 'example',
+        title: 'Pending edit',
+        previewId: 'EditTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-2",\n' +
           '  state: "input-streaming",\n' +
-          "  input: {\n" +
+          '  input: {\n' +
           '    file_path: "/app/page.tsx",\n' +
-          "    old_string: \"const title = 'Old';\\n\",\n" +
-          "    new_string: \"const title = 'Updated';\\n\",\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<EditTool part={pendingPart} />",
+          '    old_string: "const title = \'Old\';\\n",\n' +
+          '    new_string: "const title = \'Updated\';\\n",\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<EditTool part={pendingPart} />',
       },
       {
-        type: "example",
-        title: "Waiting for diff",
-        previewId: "EditTool/placeholder",
+        type: 'example',
+        title: 'Waiting for diff',
+        previewId: 'EditTool/placeholder',
         code:
-          "const placeholderPart = {\n" +
+          'const placeholderPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-2b",\n' +
           '  state: "input-streaming",\n' +
-          "  input: {},\n" +
-          "};\n\n" +
-          "<EditTool part={placeholderPart} />",
+          '  input: {},\n' +
+          '};\n\n' +
+          '<EditTool part={placeholderPart} />',
       },
       {
-        type: "example",
-        title: "Structured patch",
-        previewId: "EditTool/patch",
+        type: 'example',
+        title: 'Structured patch',
+        previewId: 'EditTool/patch',
         code:
-          "const patchPart = {\n" +
+          'const patchPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-3",\n' +
           '  state: "output-available",\n' +
           '  input: { file_path: "/app/page.tsx" },\n' +
-          "  output: {\n" +
-          "    structuredPatch: [\n" +
-          "      {\n" +
-          "        lines: [\n" +
-          "          \"-const title = 'Old';\",\n" +
-          "          \"+const title = 'Updated';\",\n" +
-          "        ],\n" +
-          "      },\n" +
-          "    ],\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<EditTool part={patchPart} />",
+          '  output: {\n' +
+          '    structuredPatch: [\n' +
+          '      {\n' +
+          '        lines: [\n' +
+          '          "-const title = \'Old\';",\n' +
+          '          "+const title = \'Updated\';",\n' +
+          '        ],\n' +
+          '      },\n' +
+          '    ],\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<EditTool part={patchPart} />',
       },
       {
-        type: "example",
-        title: "Write tool",
-        previewId: "EditTool/write",
+        type: 'example',
+        title: 'Write tool',
+        previewId: 'EditTool/write',
         code:
-          "const writePart = {\n" +
+          'const writePart = {\n' +
           '  type: "tool-Write",\n' +
           '  toolCallId: "write-1",\n' +
           '  state: "output-available",\n' +
           '  input: { file_path: "/app/new.tsx" },\n' +
           '  output: { content: "export const Demo = () => null\\n" },\n' +
-          "};\n\n" +
-          "<EditTool part={writePart} />",
+          '};\n\n' +
+          '<EditTool part={writePart} />',
       },
       {
-        type: "example",
-        title: "Missing file path",
-        previewId: "EditTool/missing-path",
+        type: 'example',
+        title: 'Missing file path',
+        previewId: 'EditTool/missing-path',
         code:
-          "const noPathPart = {\n" +
+          'const noPathPart = {\n' +
           '  type: "tool-Edit",\n' +
           '  toolCallId: "edit-4",\n' +
           '  state: "output-available",\n' +
           '  input: { old_string: "foo", new_string: "bar" },\n' +
-          "};\n\n" +
-          "<EditTool part={noPathPart} />",
+          '};\n\n' +
+          '<EditTool part={noPathPart} />',
       },
     ],
   },
   {
-    name: "SearchTool",
+    name: 'SearchTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { SearchTool } from "@sinups/ai-kit";\n\n' +
-          "const mockResults = {\n" +
-          "  results: [\n" +
+          'const mockResults = {\n' +
+          '  results: [\n' +
           '    { source: "google", title: "United UA837 SFO→NRT · $1,105 economy", date: "google.com/flights" },\n' +
           '    { source: "expedia", title: "SFO–Tokyo · 14 results from $1,089", date: "expedia.com" },\n' +
-          "  ],\n" +
-          "};\n\n" +
-          "const part = {\n" +
+          '  ],\n' +
+          '};\n\n' +
+          'const part = {\n' +
           '  type: "tool-WebSearch",\n' +
           '  toolCallId: "search-1",\n' +
           '  state: "output-available",\n' +
           '  input: { query: "best flights to Tokyo" },\n' +
-          "  output: mockResults,\n" +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <SearchTool part={part} />;\n" +
-          "}",
+          '  output: mockResults,\n' +
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <SearchTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render grouped search results. Provide input.query/pattern and output.results (or pass results directly with the results prop). Use defaultOpen to keep it expanded.",
+          'Render grouped search results. Provide input.query/pattern and output.results (or pass results directly with the results prop). Use defaultOpen to keep it expanded.',
       },
       {
-        type: "example",
-        title: "Rich results",
-        previewId: "SearchTool/rich",
+        type: 'example',
+        title: 'Rich results',
+        previewId: 'SearchTool/rich',
         code: `<SearchTool
   part={part}
 />`,
       },
       {
-        type: "example",
-        title: "Pending search",
-        previewId: "SearchTool/pending",
+        type: 'example',
+        title: 'Pending search',
+        previewId: 'SearchTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-WebSearch",\n' +
           '  toolCallId: "search-2",\n' +
           '  state: "input-streaming",\n' +
           '  input: { query: "redis sliding window rate limiting" },\n' +
-          "};\n\n" +
-          "<SearchTool part={pendingPart} />",
+          '};\n\n' +
+          '<SearchTool part={pendingPart} />',
       },
       {
-        type: "example",
-        title: "Alt source set",
-        previewId: "SearchTool/alt",
+        type: 'example',
+        title: 'Alt source set',
+        previewId: 'SearchTool/alt',
         code:
-          "const altResults = {\n" +
-          "  results: [\n" +
+          'const altResults = {\n' +
+          '  results: [\n' +
           '    { source: "arxiv", title: "Quantum error correction below threshold · Acharya 2024", date: "arxiv.org" },\n' +
           '    { source: "scholar", title: "Utility of quantum computing · Kim et al · 567 cites", date: "scholar.google.com" },\n' +
-          "  ],\n" +
-          "};\n\n" +
-          "const altPart = {\n" +
+          '  ],\n' +
+          '};\n\n' +
+          'const altPart = {\n' +
           '  type: "tool-WebSearch",\n' +
           '  toolCallId: "search-3",\n' +
           '  state: "output-available",\n' +
           '  input: { query: "quantum error correction" },\n' +
-          "  output: altResults,\n" +
-          "};\n\n" +
-          "<SearchTool part={altPart} />",
+          '  output: altResults,\n' +
+          '};\n\n' +
+          '<SearchTool part={altPart} />',
       },
     ],
   },
   {
-    name: "TodoTool",
+    name: 'TodoTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { TodoTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-TodoWrite",\n' +
           '  toolCallId: "todo-1",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    todos: [\n" +
+          '  input: {\n' +
+          '    todos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "in_progress", activeForm: "Tightening spacing" },\n' +
           '      { content: "Ship updates", status: "pending" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "  output: { oldTodos: [] },\n" +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <TodoTool part={part} />;\n" +
-          "}",
+          '    ],\n' +
+          '  },\n' +
+          '  output: { oldTodos: [] },\n' +
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <TodoTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render task list changes from input.todos, optionally diffed against output.oldTodos.",
+          'Render task list changes from input.todos, optionally diffed against output.oldTodos.',
       },
       {
-        type: "example",
-        title: "New list",
-        previewId: "TodoTool/new",
+        type: 'example',
+        title: 'New list',
+        previewId: 'TodoTool/new',
         code:
-          "const newListPart = {\n" +
+          'const newListPart = {\n' +
           '  type: "tool-TodoWrite",\n' +
           '  toolCallId: "todo-1",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    todos: [\n" +
+          '  input: {\n' +
+          '    todos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "in_progress", activeForm: "Tightening spacing" },\n' +
           '      { content: "Ship updates", status: "pending" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "  output: { oldTodos: [] },\n" +
-          "};\n\n" +
-          "<TodoTool part={newListPart} />",
+          '    ],\n' +
+          '  },\n' +
+          '  output: { oldTodos: [] },\n' +
+          '};\n\n' +
+          '<TodoTool part={newListPart} />',
       },
       {
-        type: "example",
-        title: "Single update",
-        previewId: "TodoTool/single",
+        type: 'example',
+        title: 'Single update',
+        previewId: 'TodoTool/single',
         code:
-          "const singleUpdatePart = {\n" +
+          'const singleUpdatePart = {\n' +
           '  type: "tool-TodoWrite",\n' +
           '  toolCallId: "todo-2",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    todos: [\n" +
+          '  input: {\n' +
+          '    todos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "completed" },\n' +
           '      { content: "Ship updates", status: "pending" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "  output: {\n" +
-          "    oldTodos: [\n" +
+          '    ],\n' +
+          '  },\n' +
+          '  output: {\n' +
+          '    oldTodos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "in_progress" },\n' +
           '      { content: "Ship updates", status: "pending" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<TodoTool part={singleUpdatePart} />",
+          '    ],\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<TodoTool part={singleUpdatePart} />',
       },
       {
-        type: "example",
-        title: "Multiple updates",
-        previewId: "TodoTool/multiple",
+        type: 'example',
+        title: 'Multiple updates',
+        previewId: 'TodoTool/multiple',
         code:
-          "const multipleUpdatePart = {\n" +
+          'const multipleUpdatePart = {\n' +
           '  type: "tool-TodoWrite",\n' +
           '  toolCallId: "todo-3",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    todos: [\n" +
+          '  input: {\n' +
+          '    todos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "completed" },\n' +
           '      { content: "Ship updates", status: "in_progress" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "  output: {\n" +
-          "    oldTodos: [\n" +
+          '    ],\n' +
+          '  },\n' +
+          '  output: {\n' +
+          '    oldTodos: [\n' +
           '      { content: "Audit components", status: "completed" },\n' +
           '      { content: "Tighten spacing", status: "pending" },\n' +
           '      { content: "Ship updates", status: "pending" },\n' +
-          "    ],\n" +
-          "  },\n" +
-          "};\n\n" +
-          "<TodoTool part={multipleUpdatePart} />",
+          '    ],\n' +
+          '  },\n' +
+          '};\n\n' +
+          '<TodoTool part={multipleUpdatePart} />',
       },
       {
-        type: "example",
-        title: "Pending update",
-        previewId: "TodoTool/pending",
+        type: 'example',
+        title: 'Pending update',
+        previewId: 'TodoTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-TodoWrite",\n' +
           '  toolCallId: "todo-4",\n' +
           '  state: "input-streaming",\n' +
           '  input: { todos: [{ content: "Ship updates", status: "in_progress" }] },\n' +
           '  output: { oldTodos: [{ content: "Ship updates", status: "pending" }] },\n' +
-          "};\n\n" +
-          "<TodoTool part={pendingPart} />",
+          '};\n\n' +
+          '<TodoTool part={pendingPart} />',
       },
     ],
   },
   {
-    name: "PlanTool",
+    name: 'PlanTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { PlanTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-PlanWrite",\n' +
           '  toolCallId: "plan-1",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    plan: {\n" +
+          '  input: {\n' +
+          '    plan: {\n' +
           '      id: "plan-1",\n' +
           '      title: "Refresh UI previews",\n' +
           '      summary: "Unify tool card spacing and interaction patterns so docs previews feel cohesive across all tool components.\\n\\n1. Standardize card chrome (header height, borders, radius, and muted labels) for Plan, Approval, Edit, Search, and Todo previews.\\n2. Align content density and typography so title, metadata, and body text read consistently at a glance.\\n3. Normalize interaction states: loading shimmer, pending indicators, hover affordances, and disabled action buttons.\\n4. Validate responsive behavior on narrow widths, including truncation rules and action-row wrapping.\\n5. Run a visual QA pass in both light and dark themes and tighten spacing where cards feel too loose or cramped.\\n\\nOutcome: preview gallery feels intentionally designed, easier to scan, and stable across viewport sizes.",\n' +
-          "    },\n" +
-          "  },\n" +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <PlanTool part={part} />;\n" +
-          "}",
+          '    },\n' +
+          '  },\n' +
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <PlanTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Display a plan title and summary with expand/collapse. Set input.approved to hide approval controls.",
+          'Display a plan title and summary with expand/collapse. Set input.approved to hide approval controls.',
       },
       {
-        type: "example",
-        title: "In progress",
-        previewId: "PlanTool/in-progress",
+        type: 'example',
+        title: 'In progress',
+        previewId: 'PlanTool/in-progress',
         code: `<PlanTool
   part={planInProgressPart}
 />`,
       },
       {
-        type: "example",
-        title: "Approved",
-        previewId: "PlanTool/approved",
+        type: 'example',
+        title: 'Approved',
+        previewId: 'PlanTool/approved',
         code:
-          "const approvedPart = {\n" +
+          'const approvedPart = {\n' +
           '  type: "tool-PlanWrite",\n' +
           '  toolCallId: "plan-2",\n' +
           '  state: "output-available",\n' +
-          "  input: {\n" +
-          "    approved: true,\n" +
+          '  input: {\n' +
+          '    approved: true,\n' +
           '    plan: { id: "plan-2", title: "Gateway rollout", summary: "Plan approved and ready to execute." },\n' +
-          "  },\n" +
-          "};\n\n" +
-          "<PlanTool part={approvedPart} />",
+          '  },\n' +
+          '};\n\n' +
+          '<PlanTool part={approvedPart} />',
       },
       {
-        type: "example",
-        title: "Pending update",
-        previewId: "PlanTool/pending",
+        type: 'example',
+        title: 'Pending update',
+        previewId: 'PlanTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-PlanWrite",\n' +
           '  toolCallId: "plan-4",\n' +
           '  state: "input-streaming",\n' +
           '  input: { plan: { id: "plan-4", title: "Expand tool docs", summary: "Drafting an updated plan..." } },\n' +
-          "};\n\n" +
+          '};\n\n' +
           '<PlanTool part={pendingPart} chatStatus="streaming" />',
       },
     ],
   },
   {
-    name: "ToolGroup",
+    name: 'ToolGroup',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { ToolGroup } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-Task",\n' +
           '  toolCallId: "task-1",\n' +
           '  state: "output-available",\n' +
           '  input: { description: "Collect previews", subagent_type: "explore" },\n' +
-          "  output: { totalDurationMs: 6200 },\n" +
-          "};\n\n" +
-          "const nestedTools = [\n" +
+          '  output: { totalDurationMs: 6200 },\n' +
+          '};\n\n' +
+          'const nestedTools = [\n' +
           '  { type: "tool-Bash", state: "output-available", input: { command: "pnpm lint" } },\n' +
           '  { type: "tool-Grep", state: "output-available", input: { pattern: "InputBar" } },\n' +
           '  { type: "tool-Read", state: "output-available", input: { file_path: "/package/src/input/InputBar.tsx" } },\n' +
-          "];\n\n" +
-          "export function Example() {\n" +
-          "  return (\n" +
-          "    <ToolGroup\n" +
-          "      part={part}\n" +
-          "      nestedTools={nestedTools}\n" +
+          '];\n\n' +
+          'export function Example() {\n' +
+          '  return (\n' +
+          '    <ToolGroup\n' +
+          '      part={part}\n' +
+          '      nestedTools={nestedTools}\n' +
           '      completeLabel="Task completed"\n' +
           '      shimmerLabel="Running task"\n' +
           '      interruptedLabel="Task interrupted"\n' +
-          "    />\n" +
-          "  );\n" +
-          "}",
+          '    />\n' +
+          '  );\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Summarize task runs with optional nested tools. Use defaultOpen for initial expand state, maxVisibleTools for streaming height, and showElapsed to hide/show elapsed time.",
+          'Summarize task runs with optional nested tools. Use defaultOpen for initial expand state, maxVisibleTools for streaming height, and showElapsed to hide/show elapsed time.',
       },
       {
-        type: "example",
-        title: "Completed with tools",
-        previewId: "ToolGroup/completed",
+        type: 'example',
+        title: 'Completed with tools',
+        previewId: 'ToolGroup/completed',
         code: `<ToolGroup
   part={taskCompletedPart}
   nestedTools={nestedToolGroupTools}
@@ -1652,9 +1812,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Streaming demo",
-        previewId: "ToolGroup/streaming",
+        type: 'example',
+        title: 'Streaming demo',
+        previewId: 'ToolGroup/streaming',
         code: `<ToolGroup
   part={taskPendingPart}
   nestedTools={nestedToolGroupTools}
@@ -1665,9 +1825,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Interrupted",
-        previewId: "ToolGroup/interrupted",
+        type: 'example',
+        title: 'Interrupted',
+        previewId: 'ToolGroup/interrupted',
         code: `<ToolGroup
   part={taskInterruptedPart}
   chatStatus="ready"
@@ -1679,48 +1839,48 @@ export function Example() {
     ],
   },
   {
-    name: "SubagentTool",
+    name: 'SubagentTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { SubagentTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-Task",\n' +
           '  toolCallId: "task-1",\n' +
           '  state: "output-available",\n' +
           '  input: { description: "Collect previews", subagent_type: "explore" },\n' +
-          "  output: { totalDurationMs: 6200 },\n" +
-          "};\n\n" +
-          "const nestedTools = [\n" +
+          '  output: { totalDurationMs: 6200 },\n' +
+          '};\n\n' +
+          'const nestedTools = [\n' +
           '  { type: "tool-Bash", state: "output-available", input: { command: "pnpm lint" } },\n' +
           '  { type: "tool-Grep", state: "output-available", input: { pattern: "InputBar" } },\n' +
           '  { type: "tool-Read", state: "output-available", input: { file_path: "/package/src/input/InputBar.tsx" } },\n' +
-          "];\n\n" +
-          "export function Example() {\n" +
-          "  return <SubagentTool part={part} nestedTools={nestedTools} />;\n" +
-          "}",
+          '];\n\n' +
+          'export function Example() {\n' +
+          '  return <SubagentTool part={part} nestedTools={nestedTools} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a task with nested tool calls. Shows elapsed time and the last nested tool while running.",
+          'Render a task with nested tool calls. Shows elapsed time and the last nested tool while running.',
       },
       {
-        type: "example",
-        title: "Completed",
-        previewId: "SubagentTool/completed",
+        type: 'example',
+        title: 'Completed',
+        previewId: 'SubagentTool/completed',
         code: `<SubagentTool
   part={taskCompletedPart}
   nestedTools={nestedToolGroupTools}
 />`,
       },
       {
-        type: "example",
-        title: "Pending",
-        previewId: "SubagentTool/pending",
+        type: 'example',
+        title: 'Pending',
+        previewId: 'SubagentTool/pending',
         code: `<SubagentTool
   part={taskPendingPart}
   nestedTools={nestedToolGroupTools}
@@ -1728,9 +1888,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Interrupted",
-        previewId: "SubagentTool/interrupted",
+        type: 'example',
+        title: 'Interrupted',
+        previewId: 'SubagentTool/interrupted',
         code: `<SubagentTool
   part={taskInterruptedPart}
   chatStatus="ready"
@@ -1739,116 +1899,128 @@ export function Example() {
     ],
   },
   {
-    name: "McpTool",
+    name: 'McpTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { McpTool } from "@sinups/ai-kit";\n' +
           'import { parseMcpToolType } from "@sinups/ai-kit";\n\n' +
           'const mcpInfo = parseMcpToolType("tool-ListMcpResources");\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-ListMcpResources",\n' +
           '  toolCallId: "mcp-1",\n' +
           '  state: "output-available",\n' +
           '  input: { query: "resources" },\n' +
-          "  output: [\n" +
+          '  output: [\n' +
           '    { type: "text", text: "[{\\"id\\":\\"res_1\\",\\"name\\":\\"Billing\\"},{\\"id\\":\\"res_2\\",\\"name\\":\\"Support\\"}]" },\n' +
-          "  ],\n" +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <McpTool part={part} mcpInfo={mcpInfo} />;\n" +
-          "}",
+          '  ],\n' +
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <McpTool part={part} mcpInfo={mcpInfo} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render MCP tool calls with expandable output. Provide part + mcpInfo from parseMcpToolType, use chatStatus to reflect streaming/interrupted state, and defaultOpen to keep output expanded.",
+          'Render MCP tool calls with expandable output. Provide part + mcpInfo from parseMcpToolType, use chatStatus to reflect streaming/interrupted state, and defaultOpen to keep output expanded.',
       },
       {
-        type: "example",
-        title: "Completed output",
-        previewId: "McpTool/complete",
+        type: 'example',
+        title: 'Completed output',
+        previewId: 'McpTool/complete',
         code: `<McpTool
   part={part}
   mcpInfo={mcpInfo}
 />`,
       },
       {
-        type: "example",
-        title: "Pending",
-        previewId: "McpTool/pending",
+        type: 'example',
+        title: 'Pending',
+        previewId: 'McpTool/pending',
         code:
-          "const pendingPart = {\n" +
+          'const pendingPart = {\n' +
           '  type: "tool-ListMcpResources",\n' +
           '  toolCallId: "mcp-2",\n' +
           '  state: "input-streaming",\n' +
           '  input: { query: "resources" },\n' +
-          "};\n\n" +
+          '};\n\n' +
           '<McpTool part={pendingPart} mcpInfo={mcpInfo} chatStatus="streaming" />',
       },
       {
-        type: "example",
-        title: "Interrupted",
-        previewId: "McpTool/interrupted",
+        type: 'example',
+        title: 'Interrupted',
+        previewId: 'McpTool/interrupted',
         code:
-          "const interruptedPart = {\n" +
+          'const interruptedPart = {\n' +
           '  type: "tool-ListMcpResources",\n' +
           '  toolCallId: "mcp-3",\n' +
           '  state: "input-streaming",\n' +
           '  input: { query: "resources" },\n' +
-          "};\n\n" +
+          '};\n\n' +
           '<McpTool part={interruptedPart} mcpInfo={mcpInfo} chatStatus="ready" />',
       },
     ],
   },
   {
-    name: "ThinkingTool",
+    name: 'ThinkingTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { ThinkingTool } from "@sinups/ai-kit";\n\n' +
-          "const part = {\n" +
+          'const part = {\n' +
           '  type: "tool-Thinking",\n' +
           '  toolCallId: "think-1",\n' +
           '  state: "output-available",\n' +
           '  input: { thought: "Reviewing component coverage and preview density." },\n' +
-          "};\n\n" +
-          "export function Example() {\n" +
-          "  return <ThinkingTool part={part} />;\n" +
-          "}",
+          '};\n\n' +
+          'export function Example() {\n' +
+          '  return <ThinkingTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render assistant reasoning in a collapsible row. Use defaultOpen for uncontrolled expand, or expanded + onToggleExpand for controlled state. You can also render from mapped step/state/onComplete instead of part.",
+          'Render assistant reasoning in a collapsible row. Use defaultOpen for uncontrolled expand, or expanded + onToggleExpand for controlled state. You can also render from mapped step/state/onComplete instead of part. The row reads `Thinking` with a running timer while the part streams and `Thought for 4s` once it is complete; the duration is measured from when the part first rendered until it finished. `labels.thinking` and `labels.thought(duration)` translate the row, and `duration` is an empty string when the time is unknown. Inside `AgentChat` pass the same keys as `labels.thinkingTool`; the units come from `labels.durationUnits`.',
       },
       {
-        type: "example",
-        title: "Streaming text",
-        previewId: "ThinkingTool/streaming",
+        type: 'example',
+        title: 'Streaming text',
+        previewId: 'ThinkingTool/streaming',
         code:
-          "const streamingPart = {\n" +
+          'const streamingPart = {\n' +
           '  type: "tool-Thinking",\n' +
           '  toolCallId: "think-2",\n' +
           '  state: "input-streaming",\n' +
-          "  input: {\n" +
+          '  input: {\n' +
           '    thought: "Drafting a response with tool coverage and previews.\\n" +\n' +
           '      "First outline the sections, then refine the examples and polish copy.\\n" +\n' +
           '      "Keep the final response concise and actionable.",\n' +
-          "  },\n" +
-          "};\n\n" +
-          "<ThinkingTool part={streamingPart} defaultOpen />",
+          '  },\n' +
+          '};\n\n' +
+          '<ThinkingTool part={streamingPart} defaultOpen />',
       },
       {
-        type: "example",
-        title: "Collapsed",
-        previewId: "ThinkingTool/collapsed",
+        type: 'example',
+        title: 'Custom labels',
+        previewId: 'ThinkingTool/labels',
+        code: `<ThinkingTool
+  part={part}
+  labels={{
+    thinking: "Reasoning",
+    thought: (duration) => (duration ? "Reasoned for " + duration : "Reasoned"),
+  }}
+/>`,
+      },
+      {
+        type: 'example',
+        title: 'Collapsed',
+        previewId: 'ThinkingTool/collapsed',
         code: `<ThinkingTool
   part={part}
 />`,
@@ -1856,33 +2028,33 @@ export function Example() {
     ],
   },
   {
-    name: "GenericTool",
+    name: 'GenericTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { GenericTool } from "@sinups/ai-kit";\n\n' +
-          "export function Example() {\n" +
-          "  return (\n" +
-          "    <GenericTool\n" +
+          'export function Example() {\n' +
+          '  return (\n' +
+          '    <GenericTool\n' +
           '      title="Custom tool"\n' +
           '      subtitle="Preview"\n' +
-          "      isPending={false}\n" +
-          "    />\n" +
-          "  );\n" +
-          "}",
+          '      isPending={false}\n' +
+          '    />\n' +
+          '  );\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a simple tool row for custom tools. Provide title/subtitle and control loading with isPending. icon lets you pass a custom icon component.",
+          'Render a simple tool row for custom tools. Provide title/subtitle and control loading with isPending. icon lets you pass a custom icon component.',
       },
       {
-        type: "example",
-        title: "Completed",
-        previewId: "GenericTool/completed",
+        type: 'example',
+        title: 'Completed',
+        previewId: 'GenericTool/completed',
         code: `<GenericTool
   title="Custom tool"
   subtitle="Preview"
@@ -1890,9 +2062,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Pending",
-        previewId: "GenericTool/pending",
+        type: 'example',
+        title: 'Pending',
+        previewId: 'GenericTool/pending',
         code: `<GenericTool
   title="Fetching records"
   subtitle="db.orders"
@@ -1900,9 +2072,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Compatibility flag",
-        previewId: "GenericTool/error",
+        type: 'example',
+        title: 'Compatibility flag',
+        previewId: 'GenericTool/error',
         code: `<GenericTool
   title="Webhook dispatch"
   subtitle="events/git"
@@ -1913,83 +2085,83 @@ export function Example() {
     ],
   },
   {
-    name: "QuestionTool",
+    name: 'QuestionTool',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content:
           'import { useState } from "react";\n' +
           'import { QuestionTool } from "@sinups/ai-kit";\n\n' +
-          "const questions = [\n" +
-          "  {\n" +
+          'const questions = [\n' +
+          '  {\n' +
           '    kind: "single",\n' +
           '    title: "Which direction should I take?",\n' +
-          "    options: [\n" +
+          '    options: [\n' +
           '      { id: "small", label: "Small patch" },\n' +
           '      { id: "full", label: "Full refactor" },\n' +
-          "    ],\n" +
-          "    allowCustom: true,\n" +
-          "  },\n" +
-          "  {\n" +
+          '    ],\n' +
+          '    allowCustom: true,\n' +
+          '  },\n' +
+          '  {\n' +
           '    kind: "single",\n' +
           '    title: "How cautious should the rollout be?",\n' +
-          "    options: [\n" +
+          '    options: [\n' +
           '      { id: "safe", label: "Safe and incremental" },\n' +
           '      { id: "fast", label: "Fast rollout" },\n' +
-          "    ],\n" +
-          "    allowCustom: true,\n" +
-          "  },\n" +
-          "];\n\n" +
-          "export function Example() {\n" +
-          "  const [questionIndex, setQuestionIndex] = useState(1);\n" +
-          "  const totalQuestions = questions.length;\n\n" +
-          "  const part = {\n" +
+          '    ],\n' +
+          '    allowCustom: true,\n' +
+          '  },\n' +
+          '];\n\n' +
+          'export function Example() {\n' +
+          '  const [questionIndex, setQuestionIndex] = useState(1);\n' +
+          '  const totalQuestions = questions.length;\n\n' +
+          '  const part = {\n' +
           '    type: "tool-Question",\n' +
           '    toolCallId: "question-1",\n' +
           '    state: "input-available",\n' +
-          "    input: {\n" +
-          "      questions,\n" +
-          "      questionIndex,\n" +
-          "      totalQuestions,\n" +
-          "      onPreviousQuestion: () =>\n" +
-          "        setQuestionIndex((prev) => Math.max(1, prev - 1)),\n" +
-          "      onNextQuestion: () =>\n" +
-          "        setQuestionIndex((prev) => Math.min(totalQuestions, prev + 1)),\n" +
+          '    input: {\n' +
+          '      questions,\n' +
+          '      questionIndex,\n' +
+          '      totalQuestions,\n' +
+          '      onPreviousQuestion: () =>\n' +
+          '        setQuestionIndex((prev) => Math.max(1, prev - 1)),\n' +
+          '      onNextQuestion: () =>\n' +
+          '        setQuestionIndex((prev) => Math.min(totalQuestions, prev + 1)),\n' +
           '      submitLabel: "Submit",\n' +
           '      skipLabel: "Skip",\n' +
-          "      onSubmitAnswer: (answer) => console.log(answer),\n" +
-          "    },\n" +
-          "  };\n\n" +
-          "  return <QuestionTool part={part} />;\n" +
-          "}",
+          '      onSubmitAnswer: (answer) => console.log(answer),\n' +
+          '    },\n' +
+          '  };\n\n' +
+          '  return <QuestionTool part={part} />;\n' +
+          '}',
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Support single, multi, and free-text questions. It auto-advances and summarizes by default; wire questionIndex + totalQuestions for controlled navigation.",
+          'Support single, multi, and free-text questions. It auto-advances and summarizes by default; wire questionIndex + totalQuestions for controlled navigation.',
       },
       {
-        type: "example",
-        title: "Single choice",
-        previewId: "QuestionTool/single",
+        type: 'example',
+        title: 'Single choice',
+        previewId: 'QuestionTool/single',
         code: `<QuestionTool
   part={questionSinglePart}
 />`,
       },
       {
-        type: "example",
-        title: "Multiple choice",
-        previewId: "QuestionTool/multi",
+        type: 'example',
+        title: 'Multiple choice',
+        previewId: 'QuestionTool/multi',
         code: `<QuestionTool
   part={questionMultiPart}
 />`,
       },
       {
-        type: "example",
-        title: "Text answer",
-        previewId: "QuestionTool/text",
+        type: 'example',
+        title: 'Text answer',
+        previewId: 'QuestionTool/text',
         code: `<QuestionTool
   part={questionTextPart}
 />`,
@@ -1997,11 +2169,11 @@ export function Example() {
     ],
   },
   {
-    name: "ElicitationForm",
+    name: 'ElicitationForm',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ElicitationForm } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2034,15 +2206,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Answer MCP elicitation requests. Pass the server's requestedSchema and the form builds Mantine fields for strings (email, uri, date, date-time), numbers, booleans, single and multi-select enums, validates required fields and bounds, and calls onAccept with only the filled values. Use mode=\"url\" when the server asks the user to open a link. Short fields go into two columns once the form itself is wider than 520px, so the same component fits a narrow widget and a full-page chat.",
+          'Answer MCP elicitation requests. Pass the server\'s requestedSchema and the form builds Mantine fields for strings (email, uri, date, date-time), numbers, booleans, single and multi-select enums, validates required fields and bounds, and calls onAccept with only the filled values. Use mode="url" when the server asks the user to open a link. Short fields go into two columns once the form itself is wider than 520px, so the same component fits a narrow widget and a full-page chat.',
       },
       {
-        type: "example",
-        title: "Form request",
-        previewId: "ElicitationForm/form",
+        type: 'example',
+        title: 'Form request',
+        previewId: 'ElicitationForm/form',
         code: `<ElicitationForm
   serverName="deploy-server"
   message="Choose where to deploy the new build."
@@ -2053,9 +2225,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "URL request",
-        previewId: "ElicitationForm/url",
+        type: 'example',
+        title: 'URL request',
+        previewId: 'ElicitationForm/url',
         code: `<ElicitationForm
   mode="url"
   serverName="git"
@@ -2066,9 +2238,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Disabled",
-        previewId: "ElicitationForm/disabled",
+        type: 'example',
+        title: 'Disabled',
+        previewId: 'ElicitationForm/disabled',
         code: `<ElicitationForm
   disabled
   message="Waiting for the previous request."
@@ -2078,11 +2250,11 @@ export function Example() {
     ],
   },
   {
-    name: "ToolApprovalFooter",
+    name: 'ToolApprovalFooter',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ToolApprovalFooter } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2103,15 +2275,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Ask the user to confirm a tool call. approveOptions adds a menu next to the approve button so the user can pick a scope (once, session, always) that arrives in onApprove(scope); the main button still calls onApprove() without a scope. reason explains why confirmation is needed, and onRejectWithFeedback lets the user reject with instructions for the agent. BashTool and EditTool accept the same fields through their approval prop.",
+          'Ask the user to confirm a tool call. approveOptions adds a menu next to the approve button so the user can pick a scope (once, session, always) that arrives in onApprove(scope); the main button still calls onApprove() without a scope. reason explains why confirmation is needed, and onRejectWithFeedback lets the user reject with instructions for the agent. BashTool and EditTool accept the same fields through their approval prop.',
       },
       {
-        type: "example",
-        title: "Approval scopes and feedback",
-        previewId: "ToolApprovalFooter/scopes",
+        type: 'example',
+        title: 'Approval scopes and feedback',
+        previewId: 'ToolApprovalFooter/scopes',
         code: `<ToolApprovalFooter
   labels={{ approve: "Allow", reject: "Deny" }}
   reason="Runs a shell command"
@@ -2125,9 +2297,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Basic and pending",
-        previewId: "ToolApprovalFooter/basic",
+        type: 'example',
+        title: 'Basic and pending',
+        previewId: 'ToolApprovalFooter/basic',
         code: `<>
   <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={approve} />
   <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
@@ -2136,11 +2308,11 @@ export function Example() {
     ],
   },
   {
-    name: "ErrorMessage",
+    name: 'ErrorMessage',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ErrorMessage } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2155,24 +2327,24 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Render a failed assistant turn. retry shows a live countdown to the next automatic attempt, onRetry adds a button to retry right away, and variant=\"warning\" with resetsAt fits usage limits that lift at a known time.",
+          'Render a failed assistant turn. retry shows a live countdown to the next automatic attempt, onRetry adds a button to retry right away, and variant="warning" with resetsAt fits usage limits that lift at a known time.',
       },
       {
-        type: "example",
-        title: "Basic",
-        previewId: "ErrorMessage/basic",
+        type: 'example',
+        title: 'Basic',
+        previewId: 'ErrorMessage/basic',
         code: `<ErrorMessage
   title="Request failed"
   message="Network error: failed to fetch (status 502 Bad Gateway)"
 />`,
       },
       {
-        type: "example",
-        title: "Retry countdown",
-        previewId: "ErrorMessage/retry",
+        type: 'example',
+        title: 'Retry countdown',
+        previewId: 'ErrorMessage/retry',
         code: `<ErrorMessage
   title="API overloaded"
   message="The provider is temporarily overloaded."
@@ -2181,9 +2353,9 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Usage limit",
-        previewId: "ErrorMessage/limit",
+        type: 'example',
+        title: 'Usage limit',
+        previewId: 'ErrorMessage/limit',
         code: `<ErrorMessage
   variant="warning"
   title="Usage limit reached"
@@ -2194,11 +2366,11 @@ export function Example() {
     ],
   },
   {
-    name: "AgentStatus",
+    name: 'AgentStatus',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { AgentStatus } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2214,15 +2386,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Show that the agent is working: a shimmering label, live elapsed time and received tokens. Update lastActivityAt on every streamed chunk; when nothing arrives for stallAfterMs (3 seconds by default) the line fades to the error color so the user knows the response is stuck. Set paused while tools run, since silence is expected then.",
+          'Show that the agent is working: a shimmering label, live elapsed time and received tokens. Update lastActivityAt on every streamed chunk; when nothing arrives for stallAfterMs (3 seconds by default) the line fades to the error color so the user knows the response is stuck. Set paused while tools run, since silence is expected then.',
       },
       {
-        type: "example",
-        title: "Live and stalled",
-        previewId: "AgentStatus/live",
+        type: 'example',
+        title: 'Live and stalled',
+        previewId: 'AgentStatus/live',
         code: `<AgentStatus
   startedAt={startedAt}
   tokens={tokens}
@@ -2232,19 +2404,19 @@ export function Example() {
 />`,
       },
       {
-        type: "example",
-        title: "Paused while tools run",
-        previewId: "AgentStatus/paused",
+        type: 'example',
+        title: 'Paused while tools run',
+        previewId: 'AgentStatus/paused',
         code: `<AgentStatus label="Running tools" startedAt={startedAt} paused />`,
       },
     ],
   },
   {
-    name: "ContextUsage",
+    name: 'ContextUsage',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { ContextUsage, InputBar } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2270,15 +2442,15 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Show how full the context window is. The ring is split by segments below warnAt (80%), turns yellow at warnAt and red at dangerAt (95%). Hover or click opens the breakdown; with onCompact the details offer to compact the conversation once usage is high. Sized to sit in InputBar rightActions.",
+          'Show how full the context window is. The ring is split by segments below warnAt (80%), turns yellow at warnAt and red at dangerAt (95%). Hover or click opens the breakdown; with onCompact the details offer to compact the conversation once usage is high. Sized to sit in InputBar rightActions.',
       },
       {
-        type: "example",
-        title: "Usage levels",
-        previewId: "ContextUsage/levels",
+        type: 'example',
+        title: 'Usage levels',
+        previewId: 'ContextUsage/levels',
         code: `<>
   <ContextUsage used={45_200} total={200_000} segments={segments} withLabel />
   <ContextUsage used={168_000} total={200_000} withLabel onCompact={compact} />
@@ -2286,9 +2458,9 @@ export function Example() {
 </>`,
       },
       {
-        type: "example",
-        title: "Inside InputBar",
-        previewId: "ContextUsage/in-input-bar",
+        type: 'example',
+        title: 'Inside InputBar',
+        previewId: 'ContextUsage/in-input-bar',
         code: `<InputBar
   status="ready"
   onSend={handleSend}
@@ -2302,11 +2474,11 @@ export function Example() {
     ],
   },
   {
-    name: "CompactBoundary",
+    name: 'CompactBoundary',
     blocks: [
       {
-        type: "code",
-        title: "Code",
+        type: 'code',
+        title: 'Code',
         content: `import { CompactBoundary } from "@sinups/ai-kit";
 
 export function Example() {
@@ -2320,21 +2492,21 @@ export function Example() {
 }`,
       },
       {
-        type: "usage",
-        title: "Usage",
+        type: 'usage',
+        title: 'Usage',
         content:
-          "Mark the place where earlier history was replaced by a summary. MessageList renders it automatically for a { type: \"compaction\", summary, tokensBefore, tokensAfter } part, including inside a system message; the summary opens on click.",
+          'Mark the place where earlier history was replaced by a summary. MessageList renders it automatically for a { type: "compaction", summary, tokensBefore, tokensAfter } part, including inside a system message; the summary opens on click.',
       },
       {
-        type: "example",
-        title: "With summary",
-        previewId: "CompactBoundary/summary",
+        type: 'example',
+        title: 'With summary',
+        previewId: 'CompactBoundary/summary',
         code: `<CompactBoundary tokensBefore={182_400} tokensAfter={12_300} summary={summary} />`,
       },
       {
-        type: "example",
-        title: "Without summary",
-        previewId: "CompactBoundary/plain",
+        type: 'example',
+        title: 'Without summary',
+        previewId: 'CompactBoundary/plain',
         code: `<>
   <CompactBoundary tokensAfter={9_800} />
   <CompactBoundary label="History trimmed" />

@@ -3,7 +3,13 @@ import { Button, MantineProvider, Portal } from '@mantine/core';
 import { render, screen } from '@mantine-tests/core';
 import { render as renderWithProvider } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AiKitHostScope, AiKitProvider, useAiKitTheme } from './AiKitProvider';
+import {
+  AiKitHostScope,
+  AiKitProvider,
+  useAiKitTheme,
+  useAiKitThemePreview,
+  useAiKitThemeSetting,
+} from './AiKitProvider';
 import { AI_KIT_SCOPE_CLASS, mergeAiKitTheme } from './create-ai-kit-theme';
 
 function Probe() {
@@ -21,8 +27,48 @@ function Probe() {
   );
 }
 
+function PreviewProbe() {
+  const { setting, resolvedColorScheme } = useAiKitThemeSetting();
+  const { settings } = useAiKitTheme();
+  const { preview, setPreview, savePreview, cancelPreview } = useAiKitThemePreview();
+  return (
+    <>
+      <span data-testid="setting">{JSON.stringify(setting)}</span>
+      <span data-testid="shown">{JSON.stringify(settings)}</span>
+      <span data-testid="preview">{JSON.stringify(preview)}</span>
+      <span data-testid="scheme">{resolvedColorScheme}</span>
+      <button type="button" onClick={() => setPreview({ radius: 'round' })}>
+        preview round
+      </button>
+      <button type="button" onClick={savePreview}>
+        save
+      </button>
+      <button type="button" onClick={cancelPreview}>
+        cancel
+      </button>
+    </>
+  );
+}
+
+function mockSystemScheme(scheme: 'light' | 'dark') {
+  window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+    matches: query.includes('dark') && scheme === 'dark',
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })) as unknown as typeof window.matchMedia;
+}
+
 describe('theme/AiKitProvider', () => {
-  afterEach(() => window.localStorage.clear());
+  const matchMedia = window.matchMedia;
+  afterEach(() => {
+    window.localStorage.clear();
+    window.matchMedia = matchMedia;
+  });
 
   it('themes stock components inside its subtree only', () => {
     render(
@@ -97,6 +143,58 @@ describe('theme/AiKitProvider', () => {
     await userEvent.click(screen.getByRole('button', { name: 'reset' }));
     expect(screen.getByTestId('settings')).toHaveTextContent('{"density":"compact"}');
     expect(window.localStorage.getItem('kit-theme')).toBeNull();
+  });
+
+  it('follows the system scheme while the setting is auto', () => {
+    mockSystemScheme('dark');
+    render(
+      <AiKitProvider colorScheme="auto">
+        <PreviewProbe />
+      </AiKitProvider>
+    );
+    expect(screen.getByTestId('setting')).toHaveTextContent('{"colorScheme":"auto"}');
+    expect(screen.getByTestId('scheme')).toHaveTextContent('dark');
+  });
+
+  it('resolves an explicit scheme without asking the system', () => {
+    mockSystemScheme('dark');
+    render(
+      <AiKitProvider colorScheme="light">
+        <PreviewProbe />
+      </AiKitProvider>
+    );
+    expect(screen.getByTestId('scheme')).toHaveTextContent('light');
+  });
+
+  it('shows a preview without storing it and restores it on cancel', async () => {
+    render(
+      <AiKitProvider density="compact" persistKey="kit-theme">
+        <PreviewProbe />
+      </AiKitProvider>
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'preview round' }));
+    expect(screen.getByTestId('shown')).toHaveTextContent('{"density":"compact","radius":"round"}');
+    expect(screen.getByTestId('setting')).toHaveTextContent('{"density":"compact"}');
+    expect(window.localStorage.getItem('kit-theme')).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    expect(screen.getByTestId('shown')).toHaveTextContent('{"density":"compact"}');
+    expect(screen.getByTestId('preview')).toHaveTextContent('null');
+  });
+
+  it('stores the preview on save', async () => {
+    render(
+      <AiKitProvider persistKey="kit-theme">
+        <PreviewProbe />
+      </AiKitProvider>
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'preview round' }));
+    await userEvent.click(screen.getByRole('button', { name: 'save' }));
+    expect(screen.getByTestId('setting')).toHaveTextContent('{"radius":"round"}');
+    expect(screen.getByTestId('preview')).toHaveTextContent('null');
+    expect(window.localStorage.getItem('kit-theme')).toBe('{"radius":"round"}');
   });
 
   it('restores persisted settings', () => {

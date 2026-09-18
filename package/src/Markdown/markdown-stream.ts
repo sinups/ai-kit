@@ -48,17 +48,32 @@ function continuesList(blockLines: string[], nextLine: string): boolean {
   return false;
 }
 
-/**
- * Splits streamed markdown at blank lines outside code fences. A block is stable once a blank line
- * follows it and the next line starts a new top-level block: not an indented continuation and not
- * the next item of the same list. Reference definitions resolve across the whole document, so
- * content that has them is never split.
- */
-export function splitMarkdownStream(content: string): MarkdownStreamParts {
-  if (LINK_DEFINITION_RE.test(content)) {
-    return { stable: [], tail: content };
+const DANGLING_ORDERED_MARKER_RE = /^\d+\.\s*$/;
+
+function endsWithDanglingOrderedMarker(blockLines: string[]): boolean {
+  for (let index = blockLines.length - 1; index >= 0; index--) {
+    const line = blockLines[index];
+    if (line.trim() !== '') {
+      return DANGLING_ORDERED_MARKER_RE.test(line);
+    }
   }
+  return false;
+}
+
+interface BlockScan {
+  stable: string[];
+  /** Character offset in `content` where the still growing part starts */
+  tailStart: number;
+}
+
+function scanBlocks(content: string): BlockScan {
   const lines = content.split('\n');
+  const offsets: number[] = new Array(lines.length);
+  let offset = 0;
+  for (let index = 0; index < lines.length; index++) {
+    offsets[index] = offset;
+    offset += lines[index].length + 1;
+  }
   const stable: string[] = [];
   let blockStart = 0;
   let fence: FenceState | null = null;
@@ -80,7 +95,13 @@ export function splitMarkdownStream(content: string): MarkdownStreamParts {
     if (/^\s/.test(lines[next]) || continuesList(lines.slice(blockStart, index), lines[next])) {
       continue;
     }
-    const block = lines.slice(blockStart, index).join('\n');
+    const blockLines = lines.slice(blockStart, index);
+    // A block ending in a bare `1.` is joined with what follows, so committing here would freeze a
+    // split that the finished text never has.
+    if (endsWithDanglingOrderedMarker(blockLines)) {
+      continue;
+    }
+    const block = blockLines.join('\n');
     if (block.trim()) {
       stable.push(block);
     }
@@ -88,7 +109,76 @@ export function splitMarkdownStream(content: string): MarkdownStreamParts {
     index = next - 1;
   }
 
-  return { stable, tail: lines.slice(blockStart).join('\n') };
+  return { stable, tailStart: offsets[blockStart] };
+}
+
+/**
+ * Splits streamed markdown at blank lines outside code fences. A block is stable once a blank line
+ * follows it and the next line starts a new top-level block: not an indented continuation and not
+ * the next item of the same list. Reference definitions resolve across the whole document, so
+ * content that has them is never split.
+ */
+export function splitMarkdownStream(content: string): MarkdownStreamParts {
+  if (LINK_DEFINITION_RE.test(content)) {
+    return { stable: [], tail: content };
+  }
+  const { stable, tailStart } = scanBlocks(content);
+  return { stable, tail: content.slice(tailStart) };
+}
+
+/** Cuts the still growing tail at its last complete line, so the unfinished one is held back */
+export function cutTailToLastLine(tail: string): string {
+  const lastBreak = tail.lastIndexOf('\n');
+  return lastBreak === -1 ? '' : tail.slice(0, lastBreak + 1);
+}
+
+export type MarkdownStreamReader = (content: string) => MarkdownStreamParts;
+
+/**
+ * Stateful reader for one growing answer: it keeps the stable prefix it has already split, scans
+ * only what arrived since, and runs `normalize` once per part. Content that no longer starts with
+ * the prefix resets the reader, so a reused instance still returns what a fresh split would.
+ */
+export function createMarkdownStreamReader(
+  normalize: (part: string) => string = (part) => part
+): MarkdownStreamReader {
+  let seen: string | null = null;
+  let consumed = 0;
+  let scannedFrom = 0;
+  let referenced = false;
+  let stable: string[] = [];
+  let parts: MarkdownStreamParts = { stable, tail: '' };
+
+  return (content) => {
+    if (content === seen) {
+      return parts;
+    }
+    if (seen === null || !content.startsWith(seen)) {
+      consumed = 0;
+      scannedFrom = 0;
+      referenced = false;
+      stable = [];
+    }
+    seen = content;
+    if (!referenced) {
+      const region = content.slice(scannedFrom);
+      referenced = LINK_DEFINITION_RE.test(region);
+      if (!referenced) {
+        scannedFrom += region.lastIndexOf('\n') + 1;
+      }
+    }
+    if (referenced) {
+      parts = { stable: [], tail: normalize(content) };
+      return parts;
+    }
+    const scan = scanBlocks(content.slice(consumed));
+    if (scan.stable.length > 0) {
+      stable = [...stable, ...scan.stable.map(normalize)];
+    }
+    consumed += scan.tailStart;
+    parts = { stable, tail: normalize(content.slice(consumed)) };
+    return parts;
+  };
 }
 
 function getOpenFence(lines: string[]): FenceState | null {

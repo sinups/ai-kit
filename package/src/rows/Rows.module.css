@@ -1,0 +1,119 @@
+.call {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+  color: var(--ae-fg);
+}
+
+.callLine {
+  display: grid;
+  grid-template-columns: var(--ae-rows-marker-width) minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.callText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  height: var(--ae-line-height-sm);
+
+  &::before {
+    content: '';
+    width: rem(6px);
+    height: rem(6px);
+    border-radius: 50%;
+    background-color: var(--ae-fg-subtle);
+  }
+
+  &[data-state='running']::before {
+    animation: var(--ae-anim-blink) 1s step-end infinite;
+  }
+
+  &[data-state='done']::before {
+    background-color: var(--ae-success);
+  }
+
+  &[data-state='error']::before {
+    background-color: var(--ae-danger);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state='running']::before {
+      animation: none;
+    }
+  }
+}
+
+.name {
+  font-weight: 600;
+}
+
+.args {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.trailing {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: var(--ae-space-xs);
+}
+
+.response {
+  display: flex;
+  align-items: flex-start;
+  font-size: var(--ae-font-size-sm);
+  line-height: var(--ae-line-height-sm);
+}
+
+.gutter {
+  flex: 0 0 var(--ae-rows-gutter-width);
+  color: var(--ae-fg-subtle);
+  user-select: none;
+}
+
+.responseBody {
+  min-width: 0;
+  flex: 1;
+  color: var(--ae-fg-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  &[data-tone='error'] {
+    color: var(--ae-danger);
+  }
+}
+
+.hiddenLines {
+  display: block;
+  color: var(--ae-fg-subtle);
+}
+
+.outputToggle {
+  display: block;
+  width: 100%;
+  text-align: start;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  border-radius: var(--ae-row-radius);
+
+  @mixin hover {
+    & .hiddenLines {
+      color: var(--ae-fg-muted);
+    }
+  }
+}
+
+.outputDetail {
+  padding-block-start: var(--ae-space-2xs);
+  color: var(--ae-fg);
+  white-space: normal;
+}

@@ -1,26 +1,26 @@
-import Link from "next/link";
-import { DocCodeBlock } from "@/app/components/doc-code-block";
-import { DocNavButton } from "@/app/components/doc-nav-button";
-import { DocPageShell } from "@/app/components/doc-page-shell";
-import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
-import { getDocNav } from "@/app/utils/doc-nav";
-import { buildPageMetadata } from "@/app/utils/page-metadata";
-import { INTRODUCTION_DESCRIPTION } from "@/app/lib/doc-pages";
-import { UPSTREAM_URL } from "@/app/lib/site";
+import Link from 'next/link';
+import { DocCodeBlock } from '@/app/components/doc-code-block';
+import { DocNavButton } from '@/app/components/doc-nav-button';
+import { DocPageShell } from '@/app/components/doc-page-shell';
+import { SIDEBAR_SECTIONS } from '@/app/data/sidebar';
+import { getDocNav } from '@/app/utils/doc-nav';
+import { buildPageMetadata } from '@/app/utils/page-metadata';
+import { INTRODUCTION_DESCRIPTION } from '@/app/lib/doc-pages';
+import { UPSTREAM_URL } from '@/app/lib/site';
 
 export const metadata = buildPageMetadata({
-  title: "Introduction",
+  title: 'Introduction',
   description: INTRODUCTION_DESCRIPTION,
-  path: "/docs",
+  path: '/docs',
   keywords: [
-    "AI UI Kit introduction",
-    "Mantine agent UI",
-    "AI chat components",
-    "React agent UI",
-    "tool call UI",
-    "streaming chat UI",
-    "ai-elements alternative",
-    "prompt-kit alternative",
+    'AI UI Kit introduction',
+    'Mantine agent UI',
+    'AI chat components',
+    'React agent UI',
+    'tool call UI',
+    'streaming chat UI',
+    'ai-elements alternative',
+    'prompt-kit alternative',
   ],
 });
 
@@ -60,10 +60,10 @@ export default function Chat() {
 const RECIPE_COMPOSER = `"use client";
 
 import { InputBar, ModeSelector, ModelPicker } from "@sinups/ai-kit";
-import { IconBulb, IconCursor } from "@tabler/icons-react";
+import { IconBulb, IconPointer } from "@tabler/icons-react";
 
 const modes = [
-  { id: "agent", label: "Agent", icon: IconCursor },
+  { id: "agent", label: "Agent", icon: IconPointer },
   { id: "plan", label: "Plan", icon: IconBulb },
 ];
 
@@ -89,30 +89,28 @@ export default function Composer() {
 }`;
 
 const COMPONENT_GROUPS = SIDEBAR_SECTIONS.filter((section) => section.components).map(
-  (section) => ({ title: section.title, items: section.items }),
+  (section) => ({ title: section.title, items: section.items })
 );
 
 const COMPONENT_COUNT = COMPONENT_GROUPS.reduce((count, group) => count + group.items.length, 0);
 
 export default function IntroductionPage() {
-  const { previousHref, nextHref } = getDocNav("/docs");
+  const { previousHref, nextHref } = getDocNav('/docs');
 
   return (
     <DocPageShell
       sections={[
-        { id: "overview", label: "Overview" },
-        { id: "at-a-glance", label: "At a glance" },
-        { id: "quick-start", label: "Quick start" },
-        { id: "recipes", label: "Composition recipes" },
-        { id: "works-with", label: "Works with" },
-        { id: "credits", label: "Credits" },
+        { id: 'overview', label: 'Overview' },
+        { id: 'at-a-glance', label: 'At a glance' },
+        { id: 'quick-start', label: 'Quick start' },
+        { id: 'recipes', label: 'Composition recipes' },
+        { id: 'works-with', label: 'Works with' },
+        { id: 'credits', label: 'Credits' },
       ]}
     >
       <header id="overview" className="space-y-2 scroll-mt-8">
         <div className="flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h1 className="text-2xl font-medium text-an-foreground">
-            Introduction
-          </h1>
+          <h1 className="text-2xl font-medium text-an-foreground">Introduction</h1>
           <DocNavButton
             title="Introduction"
             description="An open-source chat and agent UI kit built on Mantine."
@@ -121,7 +119,7 @@ export default function IntroductionPage() {
           />
         </div>
         <p className="text-base text-muted-foreground">
-          AI UI Kit is an open-source UI kit for agent products, built on top of{" "}
+          AI UI Kit is an open-source UI kit for agent products, built on top of{' '}
           <a
             href="https://mantine.dev"
             className="text-an-primary-color hover:underline underline-offset-2"
@@ -130,20 +128,18 @@ export default function IntroductionPage() {
           >
             Mantine
           </a>
-          . It covers the chat (messages, tool cards, streaming states, the
-          composer) and the screens around it: settings, MCP servers, agents,
-          skills, permissions, hooks, memory, sessions, background tasks, diff
-          review, a theme provider and an embeddable launcher. Install one
-          package and use the components like any other Mantine extension:
-          they follow your theme, color scheme and fonts.
+          . It covers the chat (messages, tool cards, streaming states, the composer) and the
+          screens around it: settings, MCP servers, agents, skills, permissions, hooks, memory,
+          sessions, background tasks, diff review, a theme provider and an embeddable launcher.
+          Install one package and use the components like any other Mantine extension: they follow
+          your theme, color scheme and fonts.
         </p>
         <p className="text-base text-muted-foreground">
-          The goal is not to be a framework. It gives you the pieces a
-          production agent UI needs (streaming markdown, diffed edits, plan
-          approvals, tool invocations, clarifying questions) so you can focus
-          on the model side. The API is typed around{" "}
-          <code className="code-doc">ChatMessage</code> and{" "}
-          <code className="code-doc">ChatStatus</code> from the{" "}
+          The goal is not to be a framework. It gives you the pieces a production agent UI needs
+          (streaming markdown, diffed edits, plan approvals, tool invocations, clarifying questions)
+          so you can focus on the model side. The API is typed around{' '}
+          <code className="code-doc">ChatMessage</code> and{' '}
+          <code className="code-doc">ChatStatus</code> from the{' '}
           <a
             href="https://sdk.vercel.ai/"
             className="text-an-primary-color hover:underline underline-offset-2"
@@ -152,19 +148,15 @@ export default function IntroductionPage() {
           >
             Vercel AI SDK
           </a>
-          , so{" "}
-          <code className="code-doc">useChat</code> plugs in directly.
+          , so <code className="code-doc">useChat</code> plugs in directly.
         </p>
       </header>
 
       <div id="at-a-glance" className="space-y-4 scroll-mt-8">
-        <div className="text-base font-medium text-an-foreground">
-          At a glance
-        </div>
+        <div className="text-base font-medium text-an-foreground">At a glance</div>
         <p className="text-base text-muted-foreground">
-          {COMPONENT_COUNT} documented components grouped by module. Use them
-          individually, or drop in <code className="code-doc">AgentChat</code>{" "}
-          to get the chat pieces wired together.
+          {COMPONENT_COUNT} documented components grouped by module. Use them individually, or drop
+          in <code className="code-doc">AgentChat</code> to get the chat pieces wired together.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {COMPONENT_GROUPS.map((group) => (
@@ -172,16 +164,11 @@ export default function IntroductionPage() {
               key={group.title}
               className="rounded-lg border border-border bg-background p-4 space-y-2"
             >
-              <div className="text-sm font-medium text-an-foreground">
-                {group.title}
-              </div>
+              <div className="text-sm font-medium text-an-foreground">{group.title}</div>
               <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                 {group.items.map((item) => (
                   <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
+                    <Link href={item.href} className="text-muted-foreground hover:text-foreground">
                       {item.label}
                     </Link>
                   </li>
@@ -193,17 +180,15 @@ export default function IntroductionPage() {
       </div>
 
       <div id="quick-start" className="space-y-3 scroll-mt-8">
-        <div className="text-base font-medium text-an-foreground">
-          Quick start
-        </div>
+        <div className="text-base font-medium text-an-foreground">Quick start</div>
         <p className="text-base text-muted-foreground">
-          Head to{" "}
+          Head to{' '}
           <Link
             href="/docs/installation"
             className="text-an-primary-color hover:underline underline-offset-2"
           >
             Installation
-          </Link>{" "}
+          </Link>{' '}
           for prerequisites, styles and your first component. In short:
         </p>
         <DocCodeBlock
@@ -213,20 +198,15 @@ export default function IntroductionPage() {
       </div>
 
       <div id="recipes" className="space-y-4 scroll-mt-8">
-        <div className="text-base font-medium text-an-foreground">
-          Composition recipes
-        </div>
+        <div className="text-base font-medium text-an-foreground">Composition recipes</div>
 
         <div className="space-y-3">
-          <div className="text-base font-medium text-an-foreground">
-            Chat with tool renderers
-          </div>
+          <div className="text-base font-medium text-an-foreground">Chat with tool renderers</div>
           <p className="text-base text-muted-foreground">
-            <code className="code-doc">AgentChat</code> renders built-in cards
-            for Bash, Edit, Search, Todo, Plan, subagent and MCP tool parts on
-            its own. Add your own card with{" "}
-            <code className="code-doc">toolRenderers</code>, keyed by the full
-            part type such as <code className="code-doc">tool-Deploy</code>.
+            <code className="code-doc">AgentChat</code> renders built-in cards for Bash, Edit,
+            Search, Todo, Plan, subagent and MCP tool parts on its own. Add your own card with{' '}
+            <code className="code-doc">toolRenderers</code>, keyed by the full part type such as{' '}
+            <code className="code-doc">tool-Deploy</code>.
           </p>
           <DocCodeBlock code={RECIPE_CHAT_WITH_TOOLS} language="tsx" />
         </div>
@@ -236,21 +216,18 @@ export default function IntroductionPage() {
             Composer with mode + model pickers
           </div>
           <p className="text-base text-muted-foreground">
-            <code className="code-doc">InputBar</code> accepts any React node
-            in <code className="code-doc">leftActions</code> /{" "}
-            <code className="code-doc">rightActions</code>. Drop in{" "}
-            <code className="code-doc">ModeSelector</code> and{" "}
-            <code className="code-doc">ModelPicker</code> for a familiar
-            composer.
+            <code className="code-doc">InputBar</code> accepts any React node in{' '}
+            <code className="code-doc">leftActions</code> /{' '}
+            <code className="code-doc">rightActions</code>. Drop in{' '}
+            <code className="code-doc">ModeSelector</code> and{' '}
+            <code className="code-doc">ModelPicker</code> for a familiar composer.
           </p>
           <DocCodeBlock code={RECIPE_COMPOSER} language="tsx" />
         </div>
       </div>
 
       <div id="works-with" className="space-y-3 scroll-mt-8">
-        <div className="text-base font-medium text-an-foreground">
-          Works with
-        </div>
+        <div className="text-base font-medium text-an-foreground">Works with</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <a
             href="https://sdk.vercel.ai/"
@@ -258,12 +235,10 @@ export default function IntroductionPage() {
             rel="noreferrer"
             className="rounded-lg border border-border bg-background p-4 hover:bg-muted/40 transition-colors"
           >
-            <div className="text-sm font-medium text-an-foreground">
-              Vercel AI SDK
-            </div>
+            <div className="text-sm font-medium text-an-foreground">Vercel AI SDK</div>
             <p className="text-sm text-muted-foreground">
-              Designed around <code className="code-doc">ChatMessage</code>.
-              Drop-in with <code className="code-doc">useChat</code>.
+              Designed around <code className="code-doc">ChatMessage</code>. Drop-in with{' '}
+              <code className="code-doc">useChat</code>.
             </p>
           </a>
           <Link
@@ -279,12 +254,9 @@ export default function IntroductionPage() {
             href="/docs/skills"
             className="rounded-lg border border-border bg-background p-4 hover:bg-muted/40 transition-colors"
           >
-            <div className="text-sm font-medium text-an-foreground">
-              Skills
-            </div>
+            <div className="text-sm font-medium text-an-foreground">Skills</div>
             <p className="text-sm text-muted-foreground">
-              Project-aware context so AI coding assistants compose the
-              components correctly.
+              Project-aware context so AI coding assistants compose the components correctly.
             </p>
           </Link>
         </div>
@@ -293,7 +265,7 @@ export default function IntroductionPage() {
       <div id="credits" className="space-y-3 scroll-mt-8">
         <div className="text-base font-medium text-an-foreground">Credits</div>
         <p className="text-base text-muted-foreground">
-          AI UI Kit is a fork of{" "}
+          AI UI Kit is a fork of{' '}
           <a
             href={UPSTREAM_URL}
             className="text-an-primary-color hover:underline underline-offset-2"
@@ -301,18 +273,16 @@ export default function IntroductionPage() {
             rel="noreferrer"
           >
             Agent Elements
-          </a>{" "}
-          by 21st.dev, released under the MIT license. The component design,
-          behavior, examples and this documentation site come from that
-          project. What changed: the Tailwind and shadcn implementation was
-          replaced with Mantine primitives and theme tokens, the registry-based
-          install became a single npm package, and the parts tied to the
-          21st.dev Agent SDK (relay, sandbox and deploy flows) were removed.
+          </a>{' '}
+          by 21st.dev, released under the MIT license. The component design, behavior, examples and
+          this documentation site come from that project. What changed: the Tailwind and shadcn
+          implementation was replaced with Mantine primitives and theme tokens, the registry-based
+          install became a single npm package, and the parts tied to the 21st.dev Agent SDK (relay,
+          sandbox and deploy flows) were removed.
         </p>
         <p className="text-base text-muted-foreground">
-          If you are on Tailwind and shadcn, use the original. If you are on
-          Mantine, you get the same components without a second styling
-          system.
+          If you are on Tailwind and shadcn, use the original. If you are on Mantine, you get the
+          same components without a second styling system.
         </p>
       </div>
     </DocPageShell>

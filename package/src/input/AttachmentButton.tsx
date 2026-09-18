@@ -6,6 +6,15 @@ import classes from './AttachmentButton.module.css';
 
 export type AttachmentButtonIcon = 'plus' | 'paperclip';
 
+export interface AttachmentButtonLabels {
+  /** Accessible label of the button, `Attach` by default */
+  attach: string;
+}
+
+export const DEFAULT_ATTACHMENT_BUTTON_LABELS: AttachmentButtonLabels = {
+  attach: 'Attach',
+};
+
 export interface AttachmentButtonProps {
   onClick?: () => void;
   /**
@@ -15,6 +24,8 @@ export interface AttachmentButtonProps {
    * - Any ReactNode fully overrides the icon; built-in sizing and color apply only to presets.
    */
   icon?: AttachmentButtonIcon | React.ReactNode;
+  /** Overrides of the default English labels */
+  labels?: Partial<AttachmentButtonLabels>;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -27,9 +38,11 @@ function isIconName(value: unknown): value is AttachmentButtonIcon {
 export const AttachmentButton = memo(function AttachmentButton({
   onClick,
   icon = 'plus',
+  labels: labelsProp,
   className,
   style,
 }: AttachmentButtonProps) {
+  const labels = { ...DEFAULT_ATTACHMENT_BUTTON_LABELS, ...labelsProp };
   let iconNode: React.ReactNode;
   if (isIconName(icon)) {
     iconNode =
@@ -47,7 +60,7 @@ export const AttachmentButton = memo(function AttachmentButton({
       onClick={onClick}
       className={cx(classes.root, className)}
       style={style}
-      aria-label="Attach"
+      aria-label={labels.attach}
     >
       {iconNode}
     </UnstyledButton>

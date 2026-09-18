@@ -28,8 +28,8 @@ import {
   type McpServerFilter,
 } from './mcp-server';
 import { McpTransportIcon } from './McpTransportIcon';
-import type { McpServer, McpServerScope, McpServerStatus } from './types';
-import { formatTemplate } from '../utils/format-template';
+import type { McpServer, McpServerAction, McpServerScope, McpServerStatus } from './types';
+import { fillTemplate } from '../utils/fill-template';
 
 export type McpServerListLabels = {
   addServer: string;
@@ -93,8 +93,6 @@ export const DEFAULT_MCP_SERVER_LIST_LABELS: McpServerListLabels = {
 
 const SERVER_ACTION_KEYS = ['authenticate', 'enable', 'reconnect', 'disable'];
 
-type ServerAction = (server: McpServer) => void | Promise<void>;
-
 export interface McpServerListProps {
   /** Configured servers */
   servers: McpServer[];
@@ -111,15 +109,15 @@ export interface McpServerListProps {
   /** Renders the "Add server" button when set */
   onAdd?: () => void;
   /** Adds a "Reconnect" action to servers that are not disabled */
-  onReconnect?: ServerAction;
+  onReconnect?: McpServerAction;
   /** Adds an "Authenticate" action to servers that need auth */
-  onAuthenticate?: ServerAction;
+  onAuthenticate?: McpServerAction;
   /** Adds an "Enable" action to disabled servers */
-  onEnable?: ServerAction;
+  onEnable?: McpServerAction;
   /** Adds a "Disable" action to enabled servers */
-  onDisable?: ServerAction;
+  onDisable?: McpServerAction;
   /** Adds a "Remove" action that asks for confirmation first */
-  onRemove?: ServerAction;
+  onRemove?: McpServerAction;
   /** Groups servers by scope when they use more than one, `true` by default */
   groupByScope?: boolean;
   /** Shows the search input, `true` by default */
@@ -185,7 +183,7 @@ export const McpServerList = memo(function McpServerList({
       key: string,
       label: string,
       icon: React.ReactNode,
-      callback: ServerAction | undefined,
+      callback: McpServerAction | undefined,
       color?: string
     ) => {
       if (callback) {
@@ -311,7 +309,7 @@ export const McpServerList = memo(function McpServerList({
               descriptionLines={1}
               meta={
                 toolCount !== undefined && server.status !== 'disabled'
-                  ? formatTemplate(labels.tools, { count: toolCount })
+                  ? fillTemplate(labels.tools, { count: toolCount })
                   : undefined
               }
               actions={getActions(server)}
@@ -327,7 +325,7 @@ export const McpServerList = memo(function McpServerList({
           danger
           title={labels.removeTitle}
           message={
-            removeTarget ? formatTemplate(labels.removeMessage, { name: removeTarget.name }) : null
+            removeTarget ? fillTemplate(labels.removeMessage, { name: removeTarget.name }) : null
           }
           labels={{ confirm: labels.remove, cancel: labels.cancel, error: labels.error }}
           onConfirm={() => (removeTarget ? onRemove(removeTarget) : undefined)}

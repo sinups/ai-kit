@@ -18,6 +18,7 @@ import {
   type TodoToolLabels,
 } from './todo-utils';
 import classes from './TodoTool.module.css';
+import { useChatLabels } from '../labels/chat-labels';
 
 export type TodoItem = {
   /** Task text */
@@ -55,7 +56,7 @@ export type TodoChange = {
   index: number;
 };
 
-type ChangeType = 'creation' | 'single' | 'multiple';
+export type ChangeType = 'creation' | 'single' | 'multiple';
 
 export type DetectedChanges = {
   type: ChangeType;
@@ -172,7 +173,8 @@ export const TodoTool = memo(function TodoTool({
   className,
   style,
 }: TodoToolProps) {
-  const labels = { ...DEFAULT_TODO_TOOL_LABELS, ...labelsProp };
+  const contextLabels = useChatLabels('todoTool');
+  const labels = { ...DEFAULT_TODO_TOOL_LABELS, ...contextLabels, ...labelsProp };
   const [showAll, setShowAll] = useState(false);
   const { isPending } = getToolStatus(part, chatStatus);
   const input = getPartInput(part);
@@ -196,7 +198,7 @@ export const TodoTool = memo(function TodoTool({
     return null;
   }
 
-  if (isStreaming || newTodos.length === 0) {
+  if (newTodos.length === 0) {
     return (
       <Box className={cx(classes.root, className)} style={style}>
         <div className={classes.placeholder}>

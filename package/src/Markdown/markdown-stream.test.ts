@@ -1,4 +1,10 @@
-import { closeUnfinishedMarkdown, hasOpenFence, splitMarkdownStream } from './markdown-stream';
+import {
+  closeUnfinishedMarkdown,
+  createMarkdownStreamReader,
+  cutTailToLastLine,
+  hasOpenFence,
+  splitMarkdownStream,
+} from './markdown-stream';
 
 describe('Markdown/splitMarkdownStream', () => {
   it('keeps everything in the tail until a blank line is followed by a new block', () => {
@@ -96,5 +102,73 @@ describe('Markdown/closeUnfinishedMarkdown', () => {
   it('drops a dangling empty list marker', () => {
     expect(closeUnfinishedMarkdown('- one\n- ')).toBe('- one');
     expect(closeUnfinishedMarkdown('1. one\n2.')).toBe('1. one');
+  });
+});
+
+describe('Markdown/createMarkdownStreamReader', () => {
+  it('returns what a fresh split returns while the answer grows', () => {
+    const read = createMarkdownStreamReader();
+    const content = '# A\n\nText\n\n```\nx\n\ny\n```\n\n- item\n\n  nested\n\nEnd';
+    for (let length = 1; length <= content.length; length++) {
+      const grown = content.slice(0, length);
+      expect(read(grown)).toEqual(splitMarkdownStream(grown));
+    }
+  });
+
+  it('scans only the part that arrived since the last call', () => {
+    const seen: string[] = [];
+    const read = createMarkdownStreamReader((part) => {
+      seen.push(part);
+      return part;
+    });
+    read('# Title\n\nFirst');
+    seen.length = 0;
+    expect(read('# Title\n\nFirst paragraph')).toEqual({
+      stable: ['# Title'],
+      tail: 'First paragraph',
+    });
+    expect(seen).toEqual(['First paragraph']);
+  });
+
+  it('normalizes every stable block exactly once', () => {
+    const normalized: string[] = [];
+    const read = createMarkdownStreamReader((part) => {
+      normalized.push(part);
+      return part;
+    });
+    read('One\n\nTwo\n\nThree');
+    read('One\n\nTwo\n\nThree\n\nFour');
+    read('One\n\nTwo\n\nThree\n\nFour\n\nFive');
+    expect(normalized.filter((part) => part === 'One')).toHaveLength(1);
+    expect(normalized.filter((part) => part === 'Two')).toHaveLength(1);
+  });
+
+  it('starts over when the content no longer starts with the stable prefix', () => {
+    const read = createMarkdownStreamReader();
+    expect(read('One\n\nTwo\n\nThree')).toEqual({ stable: ['One', 'Two'], tail: 'Three' });
+    expect(read('Other\n\nAnswer')).toEqual({ stable: ['Other'], tail: 'Answer' });
+    expect(read('One\n\nTwo')).toEqual({ stable: ['One'], tail: 'Two' });
+  });
+
+  it('keeps everything in the tail once a reference definition arrives', () => {
+    const read = createMarkdownStreamReader();
+    expect(read('See [docs][1].\n\nMore')).toEqual({ stable: ['See [docs][1].'], tail: 'More' });
+    const withDefinition = 'See [docs][1].\n\nMore\n\n[1]: https://example.com';
+    expect(read(withDefinition)).toEqual({ stable: [], tail: withDefinition });
+  });
+
+  it('holds a block that ends with a bare ordered marker together with what follows', () => {
+    expect(splitMarkdownStream('1.\n\nStep\n\nNext')).toEqual({
+      stable: ['1.\n\nStep'],
+      tail: 'Next',
+    });
+  });
+});
+
+describe('Markdown/cutTailToLastLine', () => {
+  it('holds back the unfinished last line', () => {
+    expect(cutTailToLastLine('Done line\nhalf wo')).toBe('Done line\n');
+    expect(cutTailToLastLine('half wo')).toBe('');
+    expect(cutTailToLastLine('Done line\n')).toBe('Done line\n');
   });
 });

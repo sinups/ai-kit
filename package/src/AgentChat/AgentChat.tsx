@@ -1,13 +1,19 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Box, rem, Stack, Text } from '@mantine/core';
-import type { AgentChatProps, ChatMessage } from '../types';
+import type { AgentChatProps, ChatMessage, ToolPart, ToolRendererSlotProps } from '../types';
 import type { QuestionAnswer, QuestionConfig } from '../question/QuestionPrompt';
 import { getContentWidthStyle } from '../utils/content-width';
 import { cx } from '../utils/cx';
+import { ToolApprovalSlot, ToolApprovalsProvider } from '../approvals/tool-approvals';
+import { rendersFramedToolCard } from '../tools/tool-registry';
+import { ChatLabelsProvider, type ChatComponentLabels } from '../labels/chat-labels';
+import { mergeLabels } from '../utils/merge-labels';
 import { MessageList } from '../MessageList/MessageList';
+import { ToolRenderer } from '../tools/ToolRenderer';
 import { InputBar } from '../input/InputBar';
 import { Suggestions, type SuggestionItem } from '../input/Suggestions';
 import { ChatWelcome, type ChatWelcomeAction } from './ChatWelcome';
+import { DEFAULT_AGENT_CHAT_LABELS, type AgentChatLabels } from './agent-chat-labels';
 import classes from './AgentChat.module.css';
 
 /** Drop-in chat surface: message list, composer, suggestions and question bar */
@@ -26,6 +32,8 @@ export function AgentChat({
   messageActions,
   onRetry,
   onToolAction,
+  approvals,
+  labels,
   inputBarProps,
   statusBar,
   withSearch = false,
@@ -43,6 +51,18 @@ export function AgentChat({
   topFade,
   wrapLines,
   responsiveTables,
+  frameBatched = true,
+  tailGranularity,
+  animateAppearance = true,
+  toolCallLookups,
+  workingRow = true,
+  toolActivity = true,
+  presentation,
+  toolOutputs,
+  toolCatalog,
+  toolArgs,
+  evenSpacing,
+  locale,
   emptySuggestionsPlacement = 'input',
   emptyStateWidth,
   questionTool,
@@ -69,6 +89,36 @@ export function AgentChat({
   const [searchOpened, setSearchOpened] = useState(false);
 
   const ResolvedInputBar = slots?.InputBar ?? InputBar;
+  const errorTitle = labels?.errorTitle ?? DEFAULT_AGENT_CHAT_LABELS.errorTitle;
+  const inputBarLabels = useMemo(
+    () => mergeLabels(labels?.inputBar, inputBarProps?.labels),
+    [labels?.inputBar, inputBarProps?.labels]
+  );
+  const componentLabels = useMemo<Partial<ChatComponentLabels> | undefined>(
+    () => (labels ? pickComponentLabels(labels) : undefined),
+    [labels]
+  );
+  const hostToolRenderer = slots?.ToolRenderer;
+  const withApprovals = Boolean(approvals);
+  const approvalToolRenderer = useMemo(() => {
+    if (!withApprovals) {
+      return undefined;
+    }
+    const Base = hostToolRenderer ?? ToolRenderer;
+    return function ApprovalToolRenderer(props: ToolRendererSlotProps) {
+      return (
+        <ToolApprovalSlot
+          toolCallId={props.part.toolCallId}
+          framed={!rendersFramedToolCard(resolvePartType(props.part))}
+        >
+          <Base {...props} />
+        </ToolApprovalSlot>
+      );
+    };
+  }, [withApprovals, hostToolRenderer]);
+  const resolvedSlots = approvalToolRenderer
+    ? { ...slots, ToolRenderer: approvalToolRenderer }
+    : slots;
   const isEmpty = !error && messages.length === 0;
   const emptyLayout =
     emptyState?.layout ?? (emptyStatePosition === 'center' ? 'center' : 'welcome');
@@ -137,7 +187,10 @@ export function AgentChat({
       onStop={onStop}
       value={draft}
       onChange={setDraft}
-      placeholder={inputBarProps?.placeholder ?? 'Send a message...'}
+      placeholder={
+        inputBarProps?.placeholder ?? labels?.placeholder ?? DEFAULT_AGENT_CHAT_LABELS.placeholder
+      }
+      labels={inputBarLabels}
       className={cx(
         classNames?.inputBar,
         inputBarProps?.className,
@@ -197,14 +250,14 @@ export function AgentChat({
               parts: [
                 {
                   type: 'error',
-                  title: 'Request failed',
+                  title: errorTitle,
                   message: error.message,
                 },
               ],
             },
           ]
         : messages,
-    [messages, error]
+    [messages, error, errorTitle]
   );
 
   return (
@@ -261,34 +314,52 @@ export function AgentChat({
           description={emptyState.description}
           actions={welcomeActions}
           onAction={handleWelcomeAction}
+          labels={mergeLabels(labels?.welcome, emptyState.labels)}
         />
       ) : (
-        <MessageList
-          messages={listMessages}
-          status={status}
-          classNames={classNames}
-          slots={slots}
-          toolRenderers={toolRenderers}
-          showCopyToolbar={showCopyToolbar}
-          collapseToolRuns={collapseToolRuns}
-          messageActions={messageActions}
-          onRetry={onRetry}
-          onToolAction={onToolAction}
-          withSearch={withSearch}
-          searchOpened={searchOpened}
-          onSearchOpenedChange={setSearchOpened}
-          stickyPrompt={stickyPrompt}
-          topFade={topFade}
-          onScrollbarWidthChange={alignComposer ? setScrollbarWidth : undefined}
-          wrapLines={wrapLines}
-          responsiveTables={responsiveTables}
-          highlighter={highlighter}
-          longMessageThreshold={longMessageThreshold}
-          initialScrollBehavior={initialScrollBehavior}
-          enableImagePreview={enableImagePreview}
-          suppressQuestionTool={Boolean(pendingQuestion) && !pendingQuestion?.toolCallId}
-          suppressQuestionToolCallId={pendingQuestion?.toolCallId}
-        />
+        <ToolApprovalsProvider approvals={approvals} labels={labels?.toolApproval}>
+          <ChatLabelsProvider labels={componentLabels}>
+            <MessageList
+              labels={labels?.messageList}
+              messages={listMessages}
+              status={status}
+              classNames={classNames}
+              slots={resolvedSlots}
+              toolRenderers={toolRenderers}
+              showCopyToolbar={showCopyToolbar}
+              collapseToolRuns={collapseToolRuns}
+              messageActions={messageActions}
+              onRetry={onRetry}
+              onToolAction={onToolAction}
+              withSearch={withSearch}
+              searchOpened={searchOpened}
+              onSearchOpenedChange={setSearchOpened}
+              stickyPrompt={stickyPrompt}
+              topFade={topFade}
+              onScrollbarWidthChange={alignComposer ? setScrollbarWidth : undefined}
+              wrapLines={wrapLines}
+              responsiveTables={responsiveTables}
+              frameBatched={frameBatched}
+              tailGranularity={tailGranularity}
+              animateAppearance={animateAppearance}
+              toolCallLookups={toolCallLookups}
+              workingRow={workingRow}
+              toolActivity={toolActivity}
+              presentation={presentation}
+              toolOutputs={toolOutputs}
+              toolCatalog={toolCatalog}
+              toolArgs={toolArgs}
+              evenSpacing={evenSpacing}
+              locale={locale}
+              highlighter={highlighter}
+              longMessageThreshold={longMessageThreshold}
+              initialScrollBehavior={initialScrollBehavior}
+              enableImagePreview={enableImagePreview}
+              suppressQuestionTool={Boolean(pendingQuestion) && !pendingQuestion?.toolCallId}
+              suppressQuestionToolCallId={pendingQuestion?.toolCallId}
+            />
+          </ChatLabelsProvider>
+        </ToolApprovalsProvider>
       )}
       {statusBar && !isCenteredEmptyState ? (
         <div className={cx(classes.statusBar, alignComposer && classes.alignedStatusBar)}>
@@ -301,6 +372,40 @@ export function AgentChat({
 }
 
 AgentChat.displayName = 'AgentChat';
+
+function resolvePartType(part: ToolPart): string {
+  return part.type === 'dynamic-tool' && typeof part.toolName === 'string'
+    ? `tool-${part.toolName}`
+    : part.type;
+}
+
+const COMPONENT_LABEL_KEYS = {
+  errorMessage: true,
+  turnSummary: true,
+  mcpTool: true,
+  toolCall: true,
+  toolTitles: true,
+  toolCard: true,
+  toolRow: true,
+  bashTool: true,
+  editTool: true,
+  searchTool: true,
+  todoTool: true,
+  planTool: true,
+  toolGroup: true,
+  durationUnits: true,
+  thinkingTool: true,
+} satisfies Record<keyof ChatComponentLabels, true>;
+
+function pickComponentLabels(labels: Partial<AgentChatLabels>): Partial<ChatComponentLabels> {
+  const picked: Record<string, unknown> = {};
+  for (const key of Object.keys(COMPONENT_LABEL_KEYS) as Array<keyof ChatComponentLabels>) {
+    if (labels[key] !== undefined) {
+      picked[key] = labels[key];
+    }
+  }
+  return picked as Partial<ChatComponentLabels>;
+}
 
 function resolveSuggestions(suggestions: AgentChatProps['suggestions']) {
   if (Array.isArray(suggestions)) {

@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { Box, Button, Collapse, Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import { IconBookmark, IconChevronRight } from '@tabler/icons-react';
 import { Markdown } from '../../Markdown/Markdown';
-import { useAsyncAction } from '../use-async-action';
+import { usePendingActions } from '../../hooks/use-pending-actions';
 import { memoryPreview } from './memory-preview';
 import classes from './MemoryNotice.module.css';
 
@@ -55,7 +55,7 @@ export const MemoryNotice = memo(function MemoryNotice({
   const labels = { ...DEFAULT_MEMORY_NOTICE_LABELS, ...labelsProp };
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [undone, setUndone] = useState(false);
-  const { pendingKey, error, run } = useAsyncAction(labels.error);
+  const { isPending: actionPending, error, tryRun } = usePendingActions(labels.error);
   const title = undone ? labels.undone : labels.saved;
 
   return (
@@ -94,9 +94,9 @@ export const MemoryNotice = memo(function MemoryNotice({
                 size="compact-xs"
                 variant="subtle"
                 color="gray"
-                loading={pendingKey !== null}
+                loading={actionPending()}
                 onClick={async () => {
-                  if (await run('undo', onUndo)) {
+                  if (await tryRun('undo', onUndo, { exclusive: true })) {
                     setUndone(true);
                   }
                 }}

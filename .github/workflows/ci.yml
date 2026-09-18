@@ -5,16 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
-  test:
+  build:
+    name: Build package
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -25,7 +30,63 @@ jobs:
         run: yarn build
       - name: Check bundle size
         run: yarn size
+      - name: Upload package build
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-dist
+          path: package/dist
+          retention-days: 1
+
+  test:
+    name: test
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Download package build
+        uses: actions/download-artifact@v8
+        with:
+          name: package-dist
+          path: package/dist
       - name: Test
         run: yarn test
+
+  site:
+    name: Export docs site
+    needs: build
+    # A push to main exports and deploys the site in site.yml instead.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Download package build
+        uses: actions/download-artifact@v8
+        with:
+          name: package-dist
+          path: package/dist
+      - name: Cache Next.js build cache
+        uses: actions/cache@v6
+        with:
+          path: site/.next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-${{ github.sha }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('yarn.lock') }}-
+            next-${{ runner.os }}-
       - name: Export docs site
         run: yarn site:build

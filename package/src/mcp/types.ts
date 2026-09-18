@@ -13,7 +13,12 @@ export type McpServerStatus =
 
 export type McpServerScope = 'user' | 'project' | 'local';
 
+/** Called with the server when the user triggers a row or detail action */
+export type McpServerAction = (server: McpServer) => void | Promise<void>;
+
 export interface McpToolAnnotations {
+  /** Human-readable name of the tool, used when the tool itself has no `title` */
+  title?: string;
   /** The tool does not modify its environment */
   readOnlyHint?: boolean;
   /** The tool may perform destructive updates */

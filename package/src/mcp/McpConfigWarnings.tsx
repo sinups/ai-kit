@@ -4,7 +4,7 @@ import { IconAlertTriangle, IconExternalLink, IconFileAlert } from '@tabler/icon
 import { groupConfigWarnings } from './mcp-import';
 import classes from './Mcp.module.css';
 import type { McpConfigWarning } from './types';
-import { formatTemplate } from '../utils/format-template';
+import { fillTemplate } from '../utils/fill-template';
 
 export type McpConfigWarningsLabels = {
   /** `{count}` is replaced with the number of warnings */
@@ -61,7 +61,7 @@ export const McpConfigWarnings = memo(function McpConfigWarnings({
       <Group gap={6} wrap="nowrap">
         <IconAlertTriangle size={16} className={classes.warningIcon} aria-hidden />
         <Text size="sm" fw={500} className={classes.warningTitle}>
-          {formatTemplate(labels.title, { count: total })}
+          {fillTemplate(labels.title, { count: total })}
         </Text>
       </Group>
       {groups.map((group) => (

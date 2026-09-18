@@ -1,13 +1,12 @@
-import React, { useRef, useState } from 'react';
-import { Box, Drawer, Splitter, Text } from '@mantine/core';
-import type { UseSplitterReturnValue } from '@mantine/hooks';
+import React, { useState } from 'react';
+import { Box, Text } from '@mantine/core';
 import { IconLayoutSidebarRight } from '@tabler/icons-react';
 import { AgentChat } from '../AgentChat/AgentChat';
 import { DiffReview } from '../diff/DiffReview/DiffReview';
 import { DIFF_FIXTURES } from '../diff/fixtures';
 import type { FileChange, FileDecision } from '../diff/types';
 import { conversation } from '../MessageList/fixtures';
-import { OVERLAY_INNER_CLASS } from '../styles/overlay';
+import { ChatInspectorLayout } from '../primitives/ChatInspectorLayout/ChatInspectorLayout';
 import { BackgroundTasksPanel } from '../tasks/BackgroundTasksPanel/BackgroundTasksPanel';
 import { createTaskFixtures } from '../tasks/fixtures';
 import { CHAT_WIDTH, LayoutHeader, useLayoutChat } from './shared';
@@ -34,7 +33,7 @@ function Inspector({ kind }: { kind: 'diff' | 'tasks' }) {
   );
 
   return (
-    <Box className={classes.inspector}>
+    <>
       {kind === 'diff' ? (
         <DiffReview
           changes={DIFF_FIXTURES}
@@ -47,7 +46,7 @@ function Inspector({ kind }: { kind: 'diff' | 'tasks' }) {
       ) : (
         <BackgroundTasksPanel tasks={tasks} header={header} />
       )}
-    </Box>
+    </>
   );
 }
 
@@ -58,16 +57,7 @@ export function ChatWithInspector({
   defaultOpened = false,
 }: ChatWithInspectorProps) {
   const chat = useLayoutChat(conversation);
-  const splitterRef = useRef<UseSplitterReturnValue | null>(null);
-  const [drawerOpened, setDrawerOpened] = useState(defaultOpened);
-
-  const togglePanel = () => {
-    if (compact) {
-      setDrawerOpened((opened) => !opened);
-      return;
-    }
-    splitterRef.current?.toggleCollapse(1);
-  };
+  const [opened, setOpened] = useState(!compact || defaultOpened);
 
   const chatColumn = (
     <Box className={classes.chatColumn}>
@@ -77,7 +67,7 @@ export function ChatWithInspector({
         action={{
           label: inspector === 'diff' ? 'Toggle changes' : 'Toggle tasks',
           icon: <IconLayoutSidebarRight size={18} />,
-          onClick: togglePanel,
+          onClick: () => setOpened((current) => !current),
         }}
       />
       <AgentChat
@@ -92,48 +82,15 @@ export function ChatWithInspector({
     </Box>
   );
 
-  if (compact) {
-    return (
-      <>
-        {chatColumn}
-        <Drawer
-          opened={drawerOpened}
-          onClose={() => setDrawerOpened(false)}
-          position="bottom"
-          size="92%"
-          withCloseButton={false}
-          classNames={{
-            inner: OVERLAY_INNER_CLASS,
-            content: classes.drawerContent,
-            body: classes.drawerBody,
-          }}
-        >
-          <Inspector kind={inspector} />
-        </Drawer>
-      </>
-    );
-  }
-
   return (
-    <Splitter
-      className={classes.splitter}
-      splitterRef={splitterRef}
-      withHandle={false}
-      lineSize={1}
-      handleColor="var(--ae-border)"
+    <ChatInspectorLayout
+      compact={compact}
+      opened={opened}
+      onOpenedChange={setOpened}
+      defaultSize={38}
+      inspector={<Inspector kind={inspector} />}
     >
-      <Splitter.Pane defaultSize={62} min="420px" className={classes.splitterPane}>
-        {chatColumn}
-      </Splitter.Pane>
-      <Splitter.Pane
-        defaultSize={38}
-        min="360px"
-        collapsible
-        collapseThreshold="240px"
-        className={classes.splitterPane}
-      >
-        <Inspector kind={inspector} />
-      </Splitter.Pane>
-    </Splitter>
+      {chatColumn}
+    </ChatInspectorLayout>
   );
 }

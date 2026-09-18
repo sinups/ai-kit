@@ -108,6 +108,40 @@ export function Loading() {
   );
 }
 
+const LONG_NAME_SERVER: McpServer = {
+  ...GIT_SERVER,
+  id: 'tracker',
+  name: 'tracker',
+  tools: [
+    {
+      name: 'workspace_context',
+      title: 'Где я сейчас нахожусь и что открыто в рабочем пространстве',
+      description: 'Возвращает текущее пространство, проект и открытые страницы.',
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: 'workspaces_list',
+      title: 'Мои пространства со всеми участниками и правами доступа',
+      description: 'Список пространств, доступных текущему пользователю.',
+      annotations: { readOnlyHint: true },
+    },
+    {
+      name: 'task_bulk_update',
+      title: 'Массовое обновление задач по фильтру без подтверждения',
+      description: 'Меняет статус, исполнителя и сроки сразу у нескольких задач.',
+      annotations: { destructiveHint: true },
+    },
+  ],
+};
+
+export function LongToolNames() {
+  return (
+    <WidthFrame width={NARROW_WIDTH}>
+      <Demo server={LONG_NAME_SERVER} />
+    </WidthFrame>
+  );
+}
+
 type DetailAction = (server: McpServer) => void | Promise<void>;
 
 interface DetailFlowArgs {

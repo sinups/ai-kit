@@ -64,7 +64,7 @@ export type ElicitationContent = Record<string, ElicitationValue>;
 
 export type ElicitationOption = { value: string; label: string };
 
-type FieldBase = {
+export type ElicitationFieldBase = {
   name: string;
   label: string;
   description?: string;
@@ -72,15 +72,19 @@ type FieldBase = {
 };
 
 export type ElicitationField =
-  | (FieldBase & {
+  | (ElicitationFieldBase & {
       kind: 'text';
       inputType: 'text' | 'email' | 'url' | 'date' | 'datetime-local';
       schema: ElicitationStringSchema;
     })
-  | (FieldBase & { kind: 'number'; schema: ElicitationNumberSchema })
-  | (FieldBase & { kind: 'boolean'; schema: ElicitationBooleanSchema })
-  | (FieldBase & { kind: 'select'; options: ElicitationOption[]; schema: ElicitationStringSchema })
-  | (FieldBase & {
+  | (ElicitationFieldBase & { kind: 'number'; schema: ElicitationNumberSchema })
+  | (ElicitationFieldBase & { kind: 'boolean'; schema: ElicitationBooleanSchema })
+  | (ElicitationFieldBase & {
+      kind: 'select';
+      options: ElicitationOption[];
+      schema: ElicitationStringSchema;
+    })
+  | (ElicitationFieldBase & {
       kind: 'multiselect';
       options: ElicitationOption[];
       schema: ElicitationMultiSelectSchema;
@@ -118,7 +122,7 @@ const INPUT_TYPES = {
 export function getElicitationFields(schema: ElicitationRequestedSchema): ElicitationField[] {
   const required = new Set(schema.required ?? []);
   return Object.entries(schema.properties ?? {}).flatMap(([name, prop]): ElicitationField[] => {
-    const base: FieldBase = {
+    const base: ElicitationFieldBase = {
       name,
       label: prop.title ?? name,
       description: prop.description,

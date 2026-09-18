@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { useToolComplete } from '../hooks/use-tool-complete';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { StepState, ToolCallStep } from '../types/timeline';
+import { cx } from '../utils/cx';
 import classes from './GenericTool.module.css';
 
 export interface GenericToolRowProps {
@@ -45,6 +46,10 @@ export interface GenericToolProps {
   isPending: boolean;
   /** Whether the tool failed, reserved for future styling */
   isError?: boolean;
+  /** `quiet` dims the row for a call that is not running yet, `default` by default */
+  tone?: 'default' | 'quiet';
+  /** Content rendered at the end of the row, for example `ToolActivity` with elapsed time */
+  trailingContent?: React.ReactNode;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -57,6 +62,8 @@ export const GenericTool = memo(function GenericTool({
   title,
   subtitle,
   isPending,
+  tone = 'default',
+  trailingContent,
   className,
   style,
 }: GenericToolProps) {
@@ -69,7 +76,8 @@ export const GenericTool = memo(function GenericTool({
       completeLabel={title}
       isAnimating={isPending}
       detail={subtitle}
-      className={className}
+      trailingContent={trailingContent}
+      className={cx(tone === 'quiet' && classes.quiet, className)}
       style={style}
     />
   );

@@ -119,9 +119,16 @@ function renderEssentials(): string {
     "- `toolRenderers` on `AgentChat`, `MessageList` and `ToolRenderer` adds or replaces cards. Keys are full part types, `tool-<Name>`, such as `tool-Deploy` or `tool-mcp__git__search`; a bare name only matches `mcp__user-tools__<name>`. Renderers receive `CustomToolRendererProps`: `name`, `input`, `output`, `status`, `toolCallId`, `part`, `onAction`. `onAction` reports to `onToolAction`.",
     "- Empty chat: `emptyState` with the default `welcome` layout shows `avatar`, `title`, `description` and starter `actions` (`id`, `label`, `icon`, `badge`) above the composer at the bottom. `layout: \"center\"` centers the greeting and the composer, with suggestion pills above the composer.",
     "- `AgentChat` `emptySuggestionsPosition` is deprecated: suggestions always render above the composer and `\"bottom\"` behaves as `\"top\"`. Remove the prop.",
+    "- `InputBar` `questionBar`: `onSubmit(answer, { questionIndex })` is called for every answered question with a 1-based index, and Skip calls `onSkip({ questionIndex })` and closes the panel.",
     "- `contentWidth` sets the message column and composer width: `420px` by default, a number such as `760` on full pages, `\"100%\"` in panels and widgets. Pass `wrapLines` in narrow containers.",
     "- Layout adapts to the component's own width, from a 360px widget to a 900px page. Data views handle loading, error and empty states.",
     "- Visible text has English defaults overridable through `labels` (`DEFAULT_<NAME>_LABELS` holds them); labels of nested parts sit under a key, for example `labels.wizard`.",
+    "- Transcript layout: `presentation` on `AgentChat` and `MessageList` is `'cards'` by default; `rowsPresentation` gives the flat rows of a terminal client, `quietPresentation` muted MCP lines and one folded line per turn (`Thought · used 2 tools · 26s`). Import them from the package root and pass the value.",
+    "- Tool context: `toolCatalog` takes MCP tool definitions keyed by `mcp__<server>__<tool>` (`title`, `description`, `annotations`, `inputSchema`); `toolArgs` and `toolOutputs` format arguments and results, keyed like `toolRenderers`, `tool-mcp__<server>__*` allowed, `null` keeps the kit summary; `locale` formats numbers and dates.",
+    "- Approvals: `approvals` on `AgentChat` maps `toolCallId` to an approval request (the `ToolApprovalFooter` props plus `isPending` and `outcome`); a standalone `MessageList` reads the same map from `ToolApprovalsProvider`. `labels.toolApproval.scopes` names the scope in the settled line.",
+    "- Labels: `AgentChat` `labels` has one section per component (`messageList`, `inputBar`, `toolApproval`, `mcpTool`, `thinkingTool`, `durationUnits`, ...); a standalone `MessageList` reads them from `ChatLabelsProvider`.",
+    "- Transcript behavior: `workingRow`, `toolActivity`, `animateAppearance` and `frameBatched` are on by default in `AgentChat` and off in a standalone `MessageList`; `evenSpacing` is off in both. `ToolRowBase` and `AgentStatus` keep a status for at least `minStatusMs` (600) before replacing it.",
+    "- Composer context: `InputBar` `contextItems` shows chips above the text; `onRemoveContext` adds a remove button, `onRestoreContext` a line that brings removed items back. `ModeSelector` takes `labels.title` for a menu heading, a `badge` per mode and `shortcuts` for picking a mode by digit.",
   ].join("\n");
 }
 
@@ -202,7 +209,8 @@ function renderWhatsNew(): string {
     "- New chat components: AgentStatus, ContextUsage, ContextBreakdown, CompactBoundary, TurnSummary, ContextEventRow, HookActivity, IdleReturnPrompt, SpendThresholdNotice, TranscriptSearch, PromptHistorySearch, PastedTextAttachment, CodeBlock, ShellOutput.",
     "- AgentChat gained `emptyState`, `statusBar`, `messageActions`, `withSearch`, `stickyPrompt`, `collapseToolRuns`, `alignComposer`, `topFade`, `wrapLines`, `inputBarProps` and more; InputBar gained completions, a message queue, collapsed pastes and prompt history.",
     "- Theming: AiKitProvider, AiKitThemeCustomizer, createAiKitTheme, mergeAiKitTheme. Launcher: ChatLauncher, mountChatLauncher.",
-    "- Deprecated: `emptySuggestionsPosition` (suggestions always render above the composer).",
+    "- Breaking: `InputBar` `questionBar.onSubmit(answer, { questionIndex })` runs for every answered question with a 1-based index; skipping calls `questionBar.onSkip({ questionIndex })` instead of arriving as an answer with `kind: \"skip\"`.",
+    "- Deprecated: `emptySuggestionsPosition` (suggestions always render above the composer); `ToolApproval` `approveLabel` and `rejectLabel` (use `labels.approve` and `labels.reject`).",
   ]);
 }
 

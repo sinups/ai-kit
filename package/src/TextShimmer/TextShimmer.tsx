@@ -1,5 +1,7 @@
 import React from 'react';
 import { Box, BoxProps, ElementProps } from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
+import { useAnimationPhaseDelay } from '../hooks/use-animation-clock';
 import { cx } from '../utils/cx';
 import classes from './TextShimmer.module.css';
 
@@ -26,14 +28,18 @@ export const TextShimmer = React.memo(function TextShimmer({
   style,
   ...others
 }: TextShimmerProps) {
+  const reducedMotion = useReducedMotion();
+  const phaseDelay = useAnimationPhaseDelay(duration);
+
   return (
     <Box
       component={as as any}
       className={cx(classes.root, className)}
+      data-static={reducedMotion || undefined}
       style={{
         '--ae-shimmer-duration': `${duration}s`,
         '--ae-shimmer-spread': `${spread}px`,
-        animationDelay: delay > 0 ? `${delay}s` : undefined,
+        animationDelay: delay > 0 ? `${delay}s` : phaseDelay,
         ...style,
       }}
       {...others}
