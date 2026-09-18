@@ -9,11 +9,11 @@ const entry = path.join(distDir, 'esm/index.mjs');
 const reportPath = path.join(process.cwd(), 'site/app/data/bundle-size.json');
 
 const namedImportBudgets: Record<string, number> = {
-  AgentChat: 92_300,
-  MessageList: 76_300,
-  InputBar: 35_200,
-  Markdown: 15_200,
-  BashTool: 14_100,
+  AgentChat: 94_000,
+  MessageList: 77_500,
+  InputBar: 36_000,
+  Markdown: 16_000,
+  BashTool: 14_600,
   DiffReview: 23_800,
   McpSettingsPanel: 27_500,
   SettingsLayout: 5_000,
@@ -22,6 +22,20 @@ const namedImportBudgets: Record<string, number> = {
   ChatLauncher: 6_300,
   AiKitProvider: 9_600,
   mountChatLauncher: 900,
+  MessageActionButton: 2_000,
+  MarkdownLinksProvider: 1_900,
+  MediaPart: 8_900,
+  ArtifactPanel: 4_000,
+  ArtifactCard: 4_600,
+  FileAttachment: 8_000,
+  filterFiles: 450,
+  useFileIntake: 850,
+  ChatDropZone: 4_150,
+  CommandToggles: 2_500,
+  StarterCategories: 3_100,
+  MicButton: 5_100,
+  VoiceLevel: 2_600,
+  SpeakingIndicator: 4_450,
 };
 
 type Entry = { name: string; source: string; stylesheets: string[]; gzipBudget: number };
@@ -42,7 +56,7 @@ const entries: Entry[] = [
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
     stylesheets: ['styles.css'],
-    gzipBudget: 224_700,
+    gzipBudget: 233_000,
   },
 ];
 

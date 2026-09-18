@@ -30,6 +30,7 @@
 }
 
 .thumb {
+  position: relative;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: var(--attachment-radius-inner);
@@ -132,4 +133,40 @@
   &:active {
     transform: scale(0.97);
   }
+}
+
+.root[data-status='error'] {
+  box-shadow: inset 0 0 0 rem(1px) var(--ae-error-border);
+
+  .size {
+    color: var(--ae-danger);
+  }
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.progress {
+  width: rem(96px);
+  margin-top: rem(4px);
+}
+
+.retry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(24px);
+  height: rem(24px);
+  color: var(--ae-danger);
+}
+
+[data-image-only] > .retry {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  background-color: alpha(var(--ae-bg), 0.7);
 }

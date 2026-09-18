@@ -267,3 +267,12 @@
 .root[data-top-fade] {
   mask-image: linear-gradient(to bottom, transparent 0, black var(--ae-top-fade-size, rem(24px)));
 }
+
+.turn[data-send-scroll] {
+  min-height: calc(var(--chat-container-height, 0px) - var(--ae-space-xl));
+}
+
+.turn[data-lazy] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto rem(240px);
+}

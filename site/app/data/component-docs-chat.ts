@@ -1037,4 +1037,71 @@ export function Example({ part, chatStatus }: { part: ToolPart; chatStatus: stri
       },
     ],
   },
+  {
+    name: 'MediaPart',
+    blocks: [
+      {
+        type: 'code',
+        title: 'Code',
+        content: `import { AgentChat, createMediaPartRenderers } from "@sinups/ai-kit";
+import "@sinups/ai-kit/styles/MediaPart.css";
+
+const media = createMediaPartRenderers({ onOpenFile: (part) => openFile(part) });
+
+export function Chat(props: ChatProps) {
+  return <AgentChat {...props} partRenderers={media} />;
+}`,
+      },
+      {
+        type: 'usage',
+        title: 'Usage',
+        content:
+          '`createMediaPartRenderers()` returns `partRenderers` for `file` parts of an answer; create it once and spread it next to your own renderers. The part is shown by its `mediaType`: an image opens a fullscreen `ImageLightbox`, audio and video play in the native `<audio>` and `<video>` without autoplay (a `captions` WebVTT address adds a track), and any other file is a `FileAttachment` chip that calls `onOpenFile` or downloads a safe `url`. Only `http(s)` addresses and `data:` images, audio and video reach the page; `javascript:`, `blob:` and `data:text/html` never do. `labels` covers `openImage`, `imageAlt`, `audio`, `video`, the names of the chip that opens or downloads (`openFile`, `download`) and `attachment` for the chip itself. `MediaPart` is the same component for a custom layout.',
+      },
+    ],
+  },
+  {
+    name: 'ArtifactPanel',
+    blocks: [
+      {
+        type: 'code',
+        title: 'Code',
+        content: `import {
+  AgentChat,
+  ArtifactPanel,
+  ChatInspectorLayout,
+  createArtifactPartRenderer,
+  Markdown,
+  MarkdownLinksProvider,
+  useArtifactPanel,
+} from "@sinups/ai-kit";
+
+export function Chat(props: ChatProps) {
+  const artifacts = useArtifactPanel();
+  const cards = useMemo(() => createArtifactPartRenderer({ onOpen: artifacts.open }), [artifacts.open]);
+
+  return (
+    <ChatInspectorLayout
+      {...artifacts.layoutProps}
+      inspector={
+        <ArtifactPanel artifact={artifacts.current} onClose={artifacts.close}>
+          {artifacts.current && <Markdown content={loadArtifact(artifacts.current.id)} />}
+        </ArtifactPanel>
+      }
+    >
+      <MarkdownLinksProvider linkSchemes={["artifact"]} onLinkClick={(href) => artifacts.open(findArtifact(href))}>
+        <AgentChat {...props} partRenderers={cards} />
+      </MarkdownLinksProvider>
+    </ChatInspectorLayout>
+  );
+}`,
+      },
+      {
+        type: 'usage',
+        title: 'Usage',
+        content:
+          'Opens a document, code file, table or image the answer produced next to the chat. `ArtifactPanel` is a region with the title, `kind · vN`, your `actions` and a close button over the `children` you load by `artifact.id`; put it in the `inspector` of `ChatInspectorLayout`, which turns it into a drawer on narrow screens. The panel moves the focus to its title when an artifact opens; `useArtifactPanel` keeps the open artifact, gives `layoutProps` to the layout and returns the focus to the card or link on close when nothing else took it. `createArtifactPartRenderer({ onOpen })` renders `{ type: "artifact", id, title, kind, version, status }` parts as `ArtifactCard`, one button with `Writing…` in place of the kind while `status` is `streaming`. A link such as `[notes](artifact:notes)` reaches the panel through `MarkdownLinksProvider`.',
+      },
+    ],
+  },
 ];

@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { Box, UnstyledButton } from '@mantine/core';
-import { IconFileCode, IconFileText, IconFileTypeJs, IconPhoto, IconX } from '@tabler/icons-react';
+import { Box, Loader, Progress, RingProgress, UnstyledButton } from '@mantine/core';
+import {
+  IconFileCode,
+  IconFileText,
+  IconFileTypeJs,
+  IconPhoto,
+  IconRefresh,
+  IconX,
+} from '@tabler/icons-react';
 import { ImageLightbox, type ImageLightboxLabels } from '../ImageLightbox/ImageLightbox';
+import { VisuallyHiddenStatus } from '../primitives/VisuallyHiddenStatus/VisuallyHiddenStatus';
+import type { AttachmentUpload } from '../types';
 import { cx } from '../utils/cx';
 import classes from './FileAttachment.module.css';
 
@@ -14,6 +23,18 @@ export interface FileAttachmentLabels {
   size: (bytes: number) => string;
   /** Labels of the fullscreen image preview */
   lightbox: Partial<ImageLightboxLabels>;
+  /** Accessible label of the upload progress, `Uploading` by default */
+  uploading: string;
+  /** Line under the name when the upload failed without `error`, `Upload failed` by default */
+  uploadFailed: string;
+  /** Announced once when the upload fails, `Upload failed: report.pdf. Too large` by default */
+  uploadFailedStatus: (filename: string, error?: string) => string;
+  /** Accessible label of the × button during an upload, `Cancel upload` by default */
+  cancelUpload: string;
+  /** Accessible label of the retry button, `Retry upload` by default */
+  retryUpload: string;
+  /** Text of the upload progress, `42%` by default */
+  progress: (percent: number) => string;
 }
 
 export const DEFAULT_FILE_ATTACHMENT_LABELS: FileAttachmentLabels = {
@@ -21,9 +42,15 @@ export const DEFAULT_FILE_ATTACHMENT_LABELS: FileAttachmentLabels = {
   remove: 'Remove attachment',
   size: formatFileSize,
   lightbox: {},
+  uploading: 'Uploading',
+  uploadFailed: 'Upload failed',
+  uploadFailedStatus: (filename, error) => `Upload failed: ${filename}${error ? `. ${error}` : ''}`,
+  cancelUpload: 'Cancel upload',
+  retryUpload: 'Retry upload',
+  progress: (percent) => `${percent}%`,
 };
 
-export interface FileAttachmentProps {
+export interface FileAttachmentProps extends AttachmentUpload {
   id: string;
   filename: string;
   /** File size in bytes, shown under the name when provided */
@@ -32,6 +59,10 @@ export interface FileAttachmentProps {
   /** Image URL, required for thumbnails and preview */
   url?: string;
   onRemove?: () => void;
+  /** Stops the upload; the × button calls it instead of `onRemove` while `uploading` */
+  onCancel?: () => void;
+  /** Starts a failed upload again */
+  onRetry?: () => void;
   className?: string;
   /** `'chip'` renders icon + name, `'image-only'` renders a square thumbnail (images with `url` only) */
   display?: 'chip' | 'image-only';
@@ -138,6 +169,11 @@ export function FileAttachment({
   isImage,
   url,
   onRemove,
+  onCancel,
+  onRetry,
+  status,
+  progress,
+  error,
   className,
   display = 'chip',
   enableImagePreview = true,
@@ -148,7 +184,14 @@ export function FileAttachment({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const iconName = getFileIconName(filename, isImage);
   const isImageOnly = display === 'image-only' && isImage && !!url;
-  const canPreview = Boolean(enableImagePreview && isImage && url);
+  const uploading = status === 'uploading';
+  const failed = status === 'error';
+  const canPreview = Boolean(enableImagePreview && isImage && url && !uploading && !failed);
+  const percent =
+    progress === undefined ? undefined : Math.round(Math.min(100, Math.max(0, progress)));
+  const cancels = Boolean(uploading && onCancel);
+  const dismiss = cancels ? onCancel : onRemove;
+  const progressText = percent === undefined ? undefined : labels.progress(percent);
 
   const openLightbox = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -159,6 +202,8 @@ export function FileAttachment({
     <Box
       className={cx(classes.root, className)}
       data-image-only={isImageOnly || undefined}
+      data-status={status}
+      aria-busy={uploading || undefined}
       style={style}
     >
       {isImageOnly ? (
@@ -169,6 +214,28 @@ export function FileAttachment({
           previewLabel={labels.preview}
         >
           <img src={url} alt={filename} className={classes.img} />
+          {uploading &&
+            (percent === undefined ? (
+              <Loader
+                size="xs"
+                className={classes.ring}
+                role="progressbar"
+                aria-label={labels.uploading}
+              />
+            ) : (
+              <RingProgress
+                size={32}
+                thickness={3}
+                sections={[{ value: percent, color: 'var(--ae-primary)' }]}
+                className={classes.ring}
+                role="progressbar"
+                aria-label={labels.uploading}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percent}
+                aria-valuetext={progressText}
+              />
+            ))}
         </Thumb>
       ) : (
         <>
@@ -189,23 +256,48 @@ export function FileAttachment({
             <span className={classes.name} title={filename}>
               {filename}
             </span>
-            {size !== undefined && <span className={classes.size}>{labels.size(size)}</span>}
+            {uploading ? (
+              <Progress.Root size="xs" className={classes.progress}>
+                <Progress.Section
+                  value={percent ?? 100}
+                  animated={percent === undefined}
+                  withAria={percent !== undefined}
+                  role="progressbar"
+                  aria-label={labels.uploading}
+                  aria-valuetext={progressText}
+                />
+              </Progress.Root>
+            ) : failed ? (
+              <span className={classes.size}>{error ?? labels.uploadFailed}</span>
+            ) : (
+              size !== undefined && <span className={classes.size}>{labels.size(size)}</span>
+            )}
           </div>
         </>
       )}
 
-      {onRemove && (
+      {failed && onRetry && (
+        <UnstyledButton className={classes.retry} onClick={onRetry} aria-label={labels.retryUpload}>
+          <IconRefresh size={14} />
+        </UnstyledButton>
+      )}
+
+      {dismiss && (
         <UnstyledButton
           onClick={(e) => {
             e.stopPropagation();
-            onRemove();
+            dismiss();
           }}
           className={classes.remove}
-          aria-label={labels.remove}
+          aria-label={cancels ? labels.cancelUpload : labels.remove}
         >
           <IconX size={12} />
         </UnstyledButton>
       )}
+
+      <VisuallyHiddenStatus>
+        {failed && labels.uploadFailedStatus(filename, error)}
+      </VisuallyHiddenStatus>
 
       {canPreview && url && (
         <ImageLightbox

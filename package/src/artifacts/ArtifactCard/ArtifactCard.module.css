@@ -1,0 +1,49 @@
+.root {
+  max-width: rem(420px);
+  overflow: hidden;
+  border-color: var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+  background-color: var(--ae-bg);
+}
+
+.button {
+  display: block;
+  width: 100%;
+  padding: var(--ae-space-xs) var(--ae-space-sm);
+  transition: background-color 150ms ease-out;
+
+  @mixin hover {
+    background-color: var(--ae-muted);
+  }
+
+  &:focus-visible {
+    outline: rem(2px) solid var(--mantine-primary-color-filled);
+    outline-offset: rem(-2px);
+  }
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: rem(32px);
+  height: rem(32px);
+  border-radius: var(--ae-row-radius);
+  background-color: var(--ae-muted);
+  color: var(--ae-fg-muted);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  font-size: var(--ae-font-size-xs);
+}
+
+.open {
+  flex-shrink: 0;
+  color: var(--ae-fg-muted);
+}

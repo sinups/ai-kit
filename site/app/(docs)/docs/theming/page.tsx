@@ -181,7 +181,12 @@ export default function ThemingPage() {
           </li>
           <li>
             Neutral surfaces (<C>--ae-bg</C>, <C>--ae-fg</C>, <C>--ae-border</C> and the rest) have a
-            light and a dark value and switch with the Mantine color scheme.
+            light and a dark value and switch with the Mantine color scheme. The dark values follow the
+            Mantine dark scale: the page is <C>--mantine-color-body</C>, the composer and code blocks
+            sit one step above it on <C>--mantine-color-dark-6</C>, and borders use{' '}
+            <C>dark-5</C>, so the kit matches a dark host without configuration. White text on
+            accent and danger fills keeps at least 4.5:1, and selected and progress indicators keep
+            3:1 against the background.
           </li>
           <li>
             <C>AiKitProvider</C> applies <C>createAiKitTheme()</C> to its subtree only. Components

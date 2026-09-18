@@ -1,0 +1,8 @@
+.root {
+  width: 100%;
+}
+
+.starters {
+  display: flex;
+  justify-content: center;
+}

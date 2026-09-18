@@ -1,103 +1,115 @@
+import type { JsonSchema } from '../primitives/SchemaView/schema';
 import {
   DEFAULT_TOOL_OUTPUT_LABELS,
   formatOutputValue,
   getToolOutputValue,
+  readCallToolResult,
+  readStructuredResult,
   resolveByPartType,
   summarizeToolOutput,
+  unwrapToolOutput,
 } from './tool-output';
 
+const issuesSchema: JsonSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    required: ['key', 'title'],
+    properties: { key: { type: 'string' }, title: { type: 'string' }, dueAt: { type: 'string' } },
+  },
+};
+
+const issues = [
+  { key: 'TRK-400', title: 'Move the build to oxlint', dueAt: '2026-09-10' },
+  { key: 'TRK-401', title: 'Update the licenses' },
+  { key: 'TRK-402', title: 'Prune old branches' },
+  { key: 'TRK-403', title: 'Check the budgets' },
+];
+
 describe('rows/tool-output', () => {
-  it('counts a list and shows the first entries by their title', () => {
-    const tasks = [
-      { id: 'TRK-400', title: 'Перенести сборку на oxlint', dueAt: '2026-09-10' },
-      { id: 'TRK-401', title: 'Обновить лицензии' },
-      { id: 'TRK-402', title: 'Почистить старые ветки' },
-      { id: 'TRK-403', title: 'Сверить бюджеты' },
-    ];
-
-    expect(summarizeToolOutput(tasks)).toBe(
-      '4 items\nTRK-400 · Перенести сборку на oxlint\nTRK-401 · Обновить лицензии\n2 more'
-    );
+  it('reads a CallToolResult and the bare array of content blocks, nothing else', () => {
+    const content = [{ type: 'text', text: 'Done' }];
+    expect(readCallToolResult({ content, isError: false })?.content).toEqual(content);
+    expect(readCallToolResult(content)).toEqual({ content });
+    expect(readCallToolResult({ items: [] })).toBeNull();
+    expect(readCallToolResult([{ type: 'row' }])).toBeNull();
   });
 
-  it('finds the list inside a result envelope and reports an empty one', () => {
-    expect(summarizeToolOutput({ total: 2, tasks: [{ name: 'Первая' }, { name: 'Вторая' }] })).toBe(
-      '2 items\nПервая\nВторая'
+  it('counts structured content only when the output schema declares an array', () => {
+    const result = { content: [], structuredContent: issues };
+    expect(summarizeToolOutput(result, { schema: issuesSchema })).toBe(
+      '4 items\nTRK-400 · Move the build to oxlint\nTRK-401 · Update the licenses\n2 more'
     );
-    expect(summarizeToolOutput({ total: 12, items: [{ name: 'Первая' }] })).toBe(
-      '12 items\nПервая\n11 more'
-    );
-    expect(summarizeToolOutput({ tasks: [] })).toBe(DEFAULT_TOOL_OUTPUT_LABELS.empty);
-  });
-
-  it('turns a record with an id and a title into one line', () => {
     expect(
-      summarizeToolOutput({ id: 'PAGE-7', title: 'План недели', updatedAt: '2026-09-18' })
-    ).toBe('PAGE-7 · План недели');
+      summarizeToolOutput({ content: [], structuredContent: [] }, { schema: issuesSchema })
+    ).toBe(DEFAULT_TOOL_OUTPUT_LABELS.empty);
+    expect(summarizeToolOutput(result)).not.toMatch(/items/);
   });
 
-  it('keeps text, MCP content and the text of a failure as they are', () => {
-    expect(summarizeToolOutput('Создана задача TRK-482')).toBe('Создана задача TRK-482');
-    expect(summarizeToolOutput({ content: [{ type: 'text', text: '3 задачи' }] })).toBe('3 задачи');
+  it('reads a structured record by the titles and the order of its schema', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      required: ['name'],
+      properties: {
+        projects: { type: 'array', title: 'Projects' },
+        name: { type: 'string', title: 'Workspace' },
+        updatedAt: { type: 'string', format: 'date', title: 'Updated' },
+      },
+    };
+    const structuredContent = {
+      projects: [{}, {}],
+      name: 'Acme',
+      updatedAt: '2026-09-18',
+    };
+    expect(
+      summarizeToolOutput({ content: [], structuredContent }, { schema, locale: 'en-US' })
+    ).toBe('Workspace: Acme · Projects: 2 items · Updated: Sep 18, 2026');
+  });
+
+  it('gives a result of text alone no summary and never parses it without a schema', () => {
+    const page = JSON.stringify({ content: [{ key: 'TRK-1' }], hasMore: false });
+    const blocks = [{ type: 'text', text: page }];
+    expect(summarizeToolOutput(blocks)).toBe('');
+    expect(
+      summarizeToolOutput({ content: [{ type: 'text', text: 'Quota exceeded' }], isError: true })
+    ).toBe('Quota exceeded');
+    expect(unwrapToolOutput(blocks)).toBe(page);
+    expect(getToolOutputValue({ type: 'tool-mcp__tracker__x', output: blocks })).toBe(page);
+  });
+
+  it('parses text only as the serialized structured content its schema describes', () => {
+    const text = [{ type: 'text', text: JSON.stringify(issues) }];
+    expect(readStructuredResult({ content: text as never }, issuesSchema)).toEqual(issues);
+    expect(
+      readStructuredResult({ content: [{ type: 'text', text: '{"a":1}' }] }, issuesSchema)
+    ).toBeUndefined();
+    expect(readStructuredResult({ content: text as never })).toBeUndefined();
+  });
+
+  it('names the resources and media of a result without text', () => {
+    expect(
+      summarizeToolOutput({
+        content: [
+          { type: 'resource_link', uri: 'https://a/spec.pdf', name: 'spec.pdf', title: 'Spec' },
+          { type: 'image', data: 'AAA', mimeType: 'image/png' },
+        ],
+      })
+    ).toBe('Spec, image/png');
+  });
+
+  it('keeps plain outputs and the text of a failure as they are', () => {
+    expect(summarizeToolOutput('Created TRK-482')).toBe('Created TRK-482');
     expect(
       getToolOutputValue({ type: 'tool-Bash', state: 'output-error', errorText: 'Build failed' })
     ).toBe('Build failed');
   });
 
-  it('opens a page of results that arrives as MCP content blocks', () => {
-    const page = {
-      size: 100,
-      offset: 0,
-      totalPages: 1,
-      hasMore: false,
-      page: 0,
-      content: [
-        { key: 'DOCU-1', title: 'Описать кейсы', dueDate: '2026-03-31' },
-        { key: 'TRK-4', title: 'make design' },
-        { key: 'TRK-2', title: 'Загрузка видео' },
-        { key: 'TRK-5', title: 'in progress' },
-        { key: 'TRK-8', title: 'Проверить стриминг' },
-      ],
-    };
-    const blocks = [{ type: 'text', text: JSON.stringify(page) }];
-
-    expect(summarizeToolOutput(blocks)).toBe(
-      '5 items\nDOCU-1 · Описать кейсы\nTRK-4 · make design\n3 more'
+  it('formats numbers by locale, dates only when the schema says so, and clips long values', () => {
+    expect(formatOutputValue(1234567.5, 'ru-RU').replace(/\s/g, ' ')).toBe('1 234 567,5');
+    expect(formatOutputValue('2026-09-18', 'en-US')).toBe('2026-09-18');
+    expect(formatOutputValue('2026-09-18', 'en-US', { type: 'string', format: 'date' })).toBe(
+      'Sep 18, 2026'
     );
-    expect(summarizeToolOutput({ content: blocks })).toBe(summarizeToolOutput(blocks));
-    expect(getToolOutputValue({ type: 'tool-mcp__tracker__x', output: blocks })).toEqual(page);
-  });
-
-  it('reads a record without a title as its facts, collections by their size', () => {
-    const context = {
-      workspaceId: '0b8e2c1a-7f4d-4a55-9d2e-3c1b5a6f7e80',
-      workspaceName: 'Acme',
-      projects: [{ name: 'Core' }, { name: 'Docs' }],
-      members: Array.from({ length: 11 }, (_, index) => ({ name: `user ${index}` })),
-    };
-
-    expect(summarizeToolOutput([{ type: 'text', text: JSON.stringify(context) }])).toBe(
-      'workspaceName: Acme · projects: 2 · members: 11'
-    );
-  });
-
-  it('never leads a line with a UUID and prefers the human key of an item', () => {
-    const tasks = [
-      { id: '9e6a6e0d-3aed-4c1b-9d2e-3c1b5a6f7e80', key: 'TRK-2', title: 'Загрузка видео' },
-      { id: '1b2c3d4e-5f60-4a55-9d2e-3c1b5a6f7e81', title: 'Без ключа' },
-    ];
-
-    expect(summarizeToolOutput(tasks)).toBe('2 items\nTRK-2 · Загрузка видео\nБез ключа');
-  });
-
-  it('falls back to pretty JSON for a shape it does not know', () => {
-    const output = { a: { b: { c: 1 } }, d: null };
-    expect(summarizeToolOutput(output)).toBe(JSON.stringify(output, null, 2));
-  });
-
-  it('formats numbers and dates by locale and clips long values', () => {
-    expect(formatOutputValue(1234567.5, 'ru-RU').replace(/ /g, ' ')).toBe('1 234 567,5');
-    expect(formatOutputValue('2026-09-18', 'en-US')).toBe('Sep 18, 2026');
     expect(formatOutputValue('x'.repeat(200))).toHaveLength(81);
   });
 

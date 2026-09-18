@@ -24,7 +24,7 @@ import { ToolCallRow } from './ToolCallRow';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { clampLines, getToolRowArgs, getToolRowName } from './rows-format';
-import { summarizeToolArgs, unfoldToolArgs } from '../tools/tool-args';
+import { readToolArgs, summarizeToolArgs } from '../tools/tool-args';
 import {
   findToolCatalogEntry,
   getToolCatalogTitle,
@@ -33,13 +33,18 @@ import {
 import {
   DEFAULT_TOOL_OUTPUT_LABELS,
   getToolOutputValue,
-  isListOutput,
+  clipText,
+  MAX_OUTPUT_CHARS,
+  readCallToolResult,
+  readResultText,
+  readStructuredResult,
   resolveByPartType,
   summarizeToolOutput,
   type ToolOutputFormatters,
   type ToolOutputLabels,
 } from './tool-output';
 import { getEditSummary } from './rows-summary';
+import { ToolResultContent } from '../tools/ToolResultContent';
 import classes from './Rows.module.css';
 
 const OUTPUT_LINES = 3;
@@ -146,7 +151,7 @@ export function ToolPartRow({
   const outcomeText =
     hostApproval && outcome ? getToolApprovalOutcomeText(hostApproval, labels) : undefined;
   const isReadable = Boolean(catalogEntry || argsFormatter);
-  const args = isReadable ? unfoldToolArgs(part.input) : {};
+  const args = isReadable ? readToolArgs(part.input) : {};
   const argsSummary = isReadable
     ? summarizeToolArgs(args, {
         schema: catalogEntry?.inputSchema,
@@ -164,15 +169,20 @@ export function ToolPartRow({
     : getToolRowArgs(part);
 
   const editSummary = isSettled ? getEditSummary(part) : undefined;
+  const outputSchema = catalogEntry?.outputSchema;
+  const output = part.state === 'output-error' ? part.errorText : (part.output ?? part.result);
+  const callResult = readCallToolResult(output);
   const rawOutput = isSettled && !editSummary ? getToolOutputValue(part) : undefined;
   const summary =
     isSettled && !editSummary
-      ? summarizeToolOutput(rawOutput, { locale: outputLocale, labels })
+      ? summarizeToolOutput(output, { locale: outputLocale, labels, schema: outputSchema })
       : '';
   const formatted = isSettled
     ? resolveByPartType(outputFormatters, part.type)?.(part, {
         state,
         output: rawOutput,
+        result: callResult ?? undefined,
+        schema: outputSchema,
         summary,
         locale: outputLocale,
         labels,
@@ -184,11 +194,16 @@ export function ToolPartRow({
     isCustomText ? customNode : customNode !== undefined ? '' : summary,
     state === 'error'
       ? ERROR_LINES
-      : customNode === undefined && isListOutput(rawOutput)
+      : customNode === undefined && outputSchema?.type === 'array'
         ? OUTPUT_LINES + 1
         : OUTPUT_LINES
   );
-  const isStructured = typeof rawOutput === 'object' && rawOutput !== null;
+  const structured = callResult ? readStructuredResult(callResult, outputSchema) : rawOutput;
+  const resultText =
+    isSettled && callResult && structured === undefined
+      ? clipText(readResultText(callResult), MAX_OUTPUT_CHARS)
+      : '';
+  const isStructured = typeof structured === 'object' && structured !== null;
   const canExpand =
     customNode === undefined &&
     Boolean(clamped.text) &&
@@ -231,8 +246,31 @@ export function ToolPartRow({
         </ResponseRow>
       )}
       {customNode !== undefined && !isCustomText && <ResponseRow>{customNode}</ResponseRow>}
-      {isSettled && !editSummary && customNode === undefined && !clamped.text && (
+      {isSettled && !editSummary && customNode === undefined && !clamped.text && !resultText && (
         <ResponseRow tone="muted">{labels.noOutput}</ResponseRow>
+      )}
+      {resultText && customNode === undefined && !clamped.text && (
+        <ResponseRow tone="muted">
+          <UnstyledButton
+            className={classes.outputToggle}
+            onClick={() => {
+              setOpened(true);
+              setExpanded((open) => !open);
+            }}
+            aria-expanded={expanded}
+          >
+            <span className={classes.hiddenLines}>{labels.showResult}</span>
+          </UnstyledButton>
+          {opened && (
+            <Collapse
+              expanded={expanded}
+              transitionDuration={150}
+              transitionTimingFunction="ease-out"
+            >
+              <div className={classes.outputDetail}>{resultText}</div>
+            </Collapse>
+          )}
+        </ResponseRow>
       )}
       {clamped.text && (
         <ResponseRow tone={state === 'error' ? 'error' : 'default'}>
@@ -267,13 +305,16 @@ export function ToolPartRow({
               <div className={classes.outputDetail}>
                 {isStructured ? (
                   <CodeBlock
-                    code={JSON.stringify(rawOutput, null, 2)}
+                    code={clipText(JSON.stringify(structured, null, 2), MAX_OUTPUT_CHARS)}
                     language="json"
                     highlighter={highlighter}
                     wrapLines
                   />
                 ) : (
-                  String(rawOutput ?? '')
+                  clipText(String(rawOutput ?? ''), MAX_OUTPUT_CHARS)
+                )}
+                {callResult && (
+                  <ToolResultContent result={callResult} messageId={part.toolCallId ?? part.type} />
                 )}
               </div>
             </Collapse>

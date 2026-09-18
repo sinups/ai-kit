@@ -22,6 +22,7 @@ import {
 import { renderAgentsPreview } from "./previews/agents";
 import { renderChatActionsPreview } from "./previews/chat-actions";
 import { renderChatExtrasPreview } from "./previews/chat-extras";
+import { renderComposerPreview } from "./previews/composer";
 import { renderConfigExtrasPreview } from "./previews/config-extras";
 import { renderLauncherPreview } from "./previews/launcher";
 import { renderTranscriptPreview } from "./previews/transcript";
@@ -580,6 +581,7 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
         renderSettingsPreview(previewId) ??
         renderHelpPreview(previewId) ??
         renderChatExtrasPreview(previewId) ??
+        renderComposerPreview(previewId) ??
         renderConfigExtrasPreview(previewId) ??
         renderLauncherPreview(previewId) ??
         renderTranscriptPreview(previewId)

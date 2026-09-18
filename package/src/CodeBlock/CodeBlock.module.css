@@ -2,7 +2,7 @@
   margin: rem(8px) 0;
   border: rem(1px) solid var(--ae-border);
   border-radius: var(--ae-tool-radius);
-  background: transparent;
+  background: var(--ae-code-block-bg);
   overflow: hidden;
 }
 
@@ -15,7 +15,7 @@
   font-size: var(--ae-font-size-xs);
   line-height: var(--ae-line-height-xs);
   color: var(--ae-fg-muted);
-  background-color: var(--ae-tool-bg);
+  background-color: var(--ae-code-header-bg);
   border-bottom: rem(1px) solid var(--ae-tool-border);
 }
 

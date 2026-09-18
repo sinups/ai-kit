@@ -7,7 +7,7 @@ import { useChatLabels } from '../labels/chat-labels';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { DEFAULT_MCP_TOOL_LABELS } from '../tools/McpTool';
 import { ToolActivity } from '../tools/ToolActivity';
-import { unfoldToolArgs } from '../tools/tool-args';
+import { readToolArgs } from '../tools/tool-args';
 import { DEFAULT_TOOL_CALL_STATE_LABELS, type ToolCallLookups } from '../tools/tool-call-state';
 import {
   findToolCatalogEntry,
@@ -22,9 +22,17 @@ import { useElapsed } from '../tools/use-elapsed';
 import type { ToolPart } from '../types';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { cx } from '../utils/cx';
-import { clipText, MAX_OUTPUT_CHARS } from '../rows/tool-output';
+import {
+  clipText,
+  MAX_OUTPUT_CHARS,
+  readCallToolResult,
+  readResultText,
+  readStructuredResult,
+} from '../rows/tool-output';
+import type { JsonSchema } from '../primitives/SchemaView/schema';
+import { ToolResultContent } from '../tools/ToolResultContent';
 import { getToolRowName } from '../rows/rows-format';
-import { describeQuietItems, readQuietResult, summarizeQuietResult } from './quiet-summary';
+import { summarizeQuietResult } from './quiet-summary';
 import classes from './Quiet.module.css';
 
 export interface QuietToolRowProps {
@@ -79,20 +87,27 @@ export function QuietToolRow({
   const [expanded, setExpanded] = useState(false);
   const [opened, setOpened] = useState(false);
 
+  const outputSchema = findToolCatalogEntry(presentation.catalog, part)?.outputSchema;
   const { summary, hasDetails } = useMemo(() => {
-    const result = state === 'done' || state === 'error' ? readQuietResult(part) : undefined;
+    const isSettled = state === 'done' || state === 'error';
+    const output = part.output ?? part.result;
     return {
-      summary: summarizeQuietResult(part, state, {
-        ...mcpLabels,
-        rejected: callLabels.rejected,
-        queued: callLabels.queued,
-        interrupted: callLabels.interrupted,
-      }),
+      summary: summarizeQuietResult(
+        part,
+        state,
+        {
+          ...mcpLabels,
+          rejected: callLabels.rejected,
+          queued: callLabels.queued,
+          interrupted: callLabels.interrupted,
+        },
+        outputSchema
+      ),
       hasDetails:
-        Object.keys(unfoldToolArgs(part.input)).length > 0 ||
-        (result !== undefined && result !== null && result !== ''),
+        Object.keys(readToolArgs(part.input)).length > 0 ||
+        (isSettled && output !== undefined && output !== null && output !== ''),
     };
-  }, [part, state, mcpContext, callContext]);
+  }, [part, state, mcpContext, callContext, outputSchema]);
 
   if (part.type === 'tool-Thinking') {
     return <ThinkingTool part={part} className={cx(classes.quiet, className)} style={style} />;
@@ -145,7 +160,7 @@ export function QuietToolRow({
           part={part}
           isSettled={state === 'done' || state === 'error'}
           outcome={outcome}
-          locale={presentation.locale}
+          schema={outputSchema}
           labels={mcpLabels}
           highlighter={highlighter}
           wrapLines={wrapLines}
@@ -161,7 +176,7 @@ function QuietToolDetails({
   part,
   isSettled,
   outcome,
-  locale,
+  schema,
   labels,
   highlighter,
   wrapLines,
@@ -169,46 +184,46 @@ function QuietToolDetails({
   part: ToolPart;
   isSettled: boolean;
   outcome: React.ReactNode;
-  locale?: string;
+  schema?: JsonSchema;
   labels: { arguments: string; result: string };
   highlighter?: SyntaxHighlighter;
   wrapLines?: boolean;
 }) {
   const details = useMemo(() => {
-    const args = unfoldToolArgs(part.input);
-    const result = isSettled ? readQuietResult(part) : undefined;
+    const args = readToolArgs(part.input);
+    const output = isSettled ? (part.output ?? part.result) : undefined;
+    const result = readCallToolResult(output);
+    const structured = result ? readStructuredResult(result, schema) : output;
+    const text = result ? readResultText(result) : typeof output === 'string' ? output : '';
     return {
       argsJson: Object.keys(args).length > 0 ? JSON.stringify(args, null, 2) : null,
       result,
-      items: result === undefined ? undefined : describeQuietItems(result, locale),
+      json:
+        structured !== undefined && structured !== null && typeof structured !== 'string'
+          ? clipText(JSON.stringify(structured, null, 2), MAX_OUTPUT_CHARS)
+          : null,
+      text: clipText(text, MAX_OUTPUT_CHARS),
     };
-  }, [part, isSettled, locale]);
-  const { argsJson, result, items } = details;
+  }, [part, isSettled, schema]);
+  const { argsJson, result, json, text } = details;
 
-  const resultNode =
-    result === undefined || result === null || result === '' ? null : typeof result === 'string' ? (
-      <CodeBlock
-        code={clipText(result, MAX_OUTPUT_CHARS)}
-        language="text"
-        title={labels.result}
-        highlighter={highlighter}
-        wrapLines
-      />
-    ) : items ? (
-      <div className={classes.items}>
-        {items.map((line, index) => (
-          <div key={index}>{line}</div>
-        ))}
-      </div>
-    ) : (
-      <CodeBlock
-        code={clipText(JSON.stringify(result, null, 2), MAX_OUTPUT_CHARS)}
-        language="json"
-        title={labels.result}
-        highlighter={highlighter}
-        wrapLines={wrapLines}
-      />
-    );
+  const resultNode = json ? (
+    <CodeBlock
+      code={json}
+      language="json"
+      title={labels.result}
+      highlighter={highlighter}
+      wrapLines={wrapLines}
+    />
+  ) : text ? (
+    <CodeBlock
+      code={text}
+      language="text"
+      title={labels.result}
+      highlighter={highlighter}
+      wrapLines
+    />
+  ) : null;
 
   return (
     <Stack gap="xs" className={classes.details}>
@@ -222,6 +237,7 @@ function QuietToolDetails({
         />
       )}
       {resultNode}
+      {result && <ToolResultContent result={result} messageId={part.toolCallId ?? part.type} />}
       {outcome && (
         <Text size="xs" c="dimmed">
           {outcome}

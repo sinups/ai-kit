@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@mantine-tests/core';
+import { render, screen, userEvent } from '@mantine-tests/core';
+import { AgentChat } from '../AgentChat/AgentChat';
 import { DEFAULT_INPUT_BAR_LABELS, InputBar } from './InputBar';
 
 const noop = () => {};
@@ -53,5 +54,97 @@ describe('input/InputBar labels', () => {
       />
     );
     expect(screen.getByRole('button', { name: 'Закрыть' })).toBeInTheDocument();
+  });
+});
+
+describe('input/InputBar uploads', () => {
+  const uploading = [
+    { id: 'f1', filename: 'report.pdf', status: 'uploading' as const, progress: 30 },
+  ];
+
+  it('keeps Send off while a file uploads and routes cancel and retry by id', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onSend = jest.fn();
+    const onCancelFile = jest.fn();
+    const onRetryFile = jest.fn();
+    const { rerender } = render(
+      <InputBar
+        status="ready"
+        onSend={onSend}
+        onStop={noop}
+        value="Summarize it"
+        attachedFiles={uploading}
+        onCancelFile={onCancelFile}
+        onRetryFile={onRetryFile}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Wait for uploads to finish' }));
+    await user.type(screen.getByRole('textbox'), '{Enter}');
+    expect(onSend).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Cancel upload' }));
+    expect(onCancelFile).toHaveBeenCalledWith('f1');
+
+    rerender(
+      <InputBar
+        status="ready"
+        onSend={onSend}
+        onStop={noop}
+        value="Summarize it"
+        attachedFiles={[{ id: 'f1', filename: 'report.pdf', status: 'error' }]}
+        onCancelFile={onCancelFile}
+        onRetryFile={onRetryFile}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'Retry upload' }));
+    expect(onRetryFile).toHaveBeenCalledWith('f1');
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+    expect(onSend).toHaveBeenCalledWith({ role: 'user', content: 'Summarize it' });
+  });
+
+  it('lets the host send during uploads when it opts out', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onSend = jest.fn();
+    render(
+      <InputBar
+        status="ready"
+        onSend={onSend}
+        onStop={noop}
+        value="Go"
+        attachedFiles={uploading}
+        blockSendWhileUploading={false}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'Send' }));
+    expect(onSend).toHaveBeenCalled();
+  });
+});
+
+describe('AgentChat attachments uploads', () => {
+  it('passes cancel, retry and the send block through to the composer', async () => {
+    const user = userEvent.setup({ delay: null });
+    const onCancelFile = jest.fn();
+    const onRetryFile = jest.fn();
+    render(
+      <AgentChat
+        messages={[]}
+        status="ready"
+        onSend={noop}
+        onStop={noop}
+        attachments={{
+          files: [
+            { id: 'a', filename: 'a.pdf', status: 'uploading', progress: 10 },
+            { id: 'b', filename: 'b.pdf', status: 'error' },
+          ],
+          onCancelFile,
+          onRetryFile,
+        }}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Wait for uploads to finish' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancel upload' }));
+    await user.click(screen.getByRole('button', { name: 'Retry upload' }));
+    expect(onCancelFile).toHaveBeenCalledWith('a');
+    expect(onRetryFile).toHaveBeenCalledWith('b');
   });
 });

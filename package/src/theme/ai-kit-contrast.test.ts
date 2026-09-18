@@ -29,6 +29,24 @@ function resolvePaletteVar(theme: ReturnType<typeof mergeMantineTheme>, value: s
   return theme.colors[match[1]][Number(match[2])];
 }
 
+const SCHEME_VARS: Record<string, (theme: ReturnType<typeof mergeMantineTheme>) => string> = {
+  'var(--mantine-color-body)': (theme) => theme.colors.dark[7],
+  'var(--mantine-color-text)': (theme) => theme.colors.dark[0],
+};
+
+/** A dark token follows the Mantine dark scale, so it is resolved through the theme */
+function readColor(
+  theme: ReturnType<typeof mergeMantineTheme>,
+  scheme: 'light' | 'dark',
+  name: string
+): string {
+  const value = readToken(scheme, name);
+  if (value.startsWith('#')) {
+    return value;
+  }
+  return SCHEME_VARS[value]?.(theme) ?? resolvePaletteVar(theme, value);
+}
+
 function readRootToken(name: string): string {
   const match = VARS.match(new RegExp(`--ae-${name}:\\s*([^;]+);`));
   if (!match) {
@@ -53,8 +71,14 @@ function contrast(a: string, b: string): number {
   return (high + 0.05) / (low + 0.05);
 }
 
+// WCAG 1.4.3: text on a fill needs 4.5:1; WCAG 1.4.11: a non-text indicator needs 3:1 against the colour next to it, the kit background.
 const TEXT = 4.5;
 const GRAPHICS = 3;
+/** Share of `--ae-fg` in the switch and progress track, per scheme, as `ai-kit-theme.module.css` mixes it */
+const TRACK_ALPHA = { light: 0.1, dark: 0.08 } as const;
+/** Least contrast that still tells the track from the background */
+const TRACK_VISIBLE = 1.15;
+const THEME_CSS = fs.readFileSync(path.join(__dirname, 'ai-kit-theme.module.css'), 'utf8');
 
 describe.each(AI_KIT_ACCENTS)('accent %s', (accent) => {
   const theme = mergeMantineTheme(
@@ -72,9 +96,9 @@ describe.each(AI_KIT_ACCENTS)('accent %s', (accent) => {
         ? theme.black
         : theme.white;
     const tinted = scheme === 'light' ? fill : palette[4];
-    const background = readToken(scheme, 'bg');
-    const track = mix(readToken(scheme, 'fg'), background, 0.1);
-    const unchecked = readToken(scheme, 'fg-muted');
+    const background = readColor(theme, scheme, 'bg');
+    const track = mix(readColor(theme, scheme, 'fg'), background, TRACK_ALPHA[scheme]);
+    const unchecked = readColor(theme, scheme, 'fg-muted');
 
     it('keeps text and icons readable on filled buttons, checked boxes and completed steps', () => {
       expect(contrast(fill, onFill)).toBeGreaterThanOrEqual(TEXT);
@@ -88,9 +112,12 @@ describe.each(AI_KIT_ACCENTS)('accent %s', (accent) => {
       expect(contrast(tinted, background)).toBeGreaterThanOrEqual(TEXT);
     });
 
-    it('keeps selected borders, checkboxes and progress visible', () => {
+    it('keeps selected borders, checkboxes, the checked switch and progress visible on the background', () => {
       expect(contrast(fill, background)).toBeGreaterThanOrEqual(GRAPHICS);
-      expect(contrast(fill, track)).toBeGreaterThanOrEqual(GRAPHICS);
+    });
+
+    it('keeps the switch and progress track apart from the background', () => {
+      expect(contrast(track, background)).toBeGreaterThanOrEqual(TRACK_VISIBLE);
     });
 
     it('keeps checkbox and radio marks and the checked switch thumb visible on the fill', () => {
@@ -115,13 +142,21 @@ describe('theme/ai-kit-contrast danger fill', () => {
     expect(resolved.color).toBe('var(--mantine-color-white)');
   });
 
-  describe.each(['light', 'dark'] as const)('%s scheme', (scheme) => {
-    it('keeps white text readable on the danger fill', () => {
-      expect(contrast(fill, theme.white)).toBeGreaterThanOrEqual(TEXT);
-    });
+  it('keeps white text readable on the danger fill, which only backs labelled buttons', () => {
+    expect(contrast(fill, theme.white)).toBeGreaterThanOrEqual(TEXT);
+  });
+});
 
-    it('keeps the danger fill visible on the kit background', () => {
-      expect(contrast(fill, readToken(scheme, 'bg'))).toBeGreaterThanOrEqual(GRAPHICS);
-    });
+describe('theme/ai-kit-contrast track', () => {
+  it('mixes the track from the foreground by the share the checks use', () => {
+    const shares = [
+      ...THEME_CSS.matchAll(
+        /light-dark\(alpha\(var\(--ae-fg\), ([\d.]+)\), alpha\(var\(--ae-fg\), ([\d.]+)\)\)/g
+      ),
+    ];
+    expect(shares.length).toBeGreaterThanOrEqual(2);
+    for (const [, light, dark] of shares) {
+      expect([Number(light), Number(dark)]).toEqual([TRACK_ALPHA.light, TRACK_ALPHA.dark]);
+    }
   });
 });

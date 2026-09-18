@@ -53,10 +53,14 @@ export type {
   AgentChatProps,
   AgentChatEmptyState,
   CustomToolRendererProps,
+  PartRendererProps,
+  PartRenderers,
+  SendScroll,
   ToolRendererSlotProps,
   InputSuggestions,
   AttachedImage,
   AttachedFile,
+  AttachmentUpload,
   ToolActionHandler,
 } from './types';
 export type { TimelineStep, ToolCallStep, StepState, DiffLine, Turn } from './types/timeline';
@@ -68,6 +72,15 @@ export { ChatLabelsProvider, useChatLabels } from './labels/chat-labels';
 export type { ChatComponentLabels, ChatLabelsProviderProps } from './labels/chat-labels';
 export { DEFAULT_CHAT_WELCOME_LABELS } from './AgentChat/ChatWelcome';
 export type { ChatWelcomeAction, ChatWelcomeLabels } from './AgentChat/ChatWelcome';
+export {
+  DEFAULT_STARTER_CATEGORIES_LABELS,
+  StarterCategories,
+} from './AgentChat/StarterCategories';
+export type {
+  StarterCategoriesLabels,
+  StarterCategoriesProps,
+  StarterCategory,
+} from './AgentChat/StarterCategories';
 export { MessageList, DEFAULT_MESSAGE_LIST_LABELS } from './MessageList/MessageList';
 export type { MessageListProps, MessageListLabels } from './MessageList/MessageList';
 export type { ToolRunLabels } from './MessageList/tool-runs';
@@ -80,6 +93,12 @@ export type {
   ErrorMessageLabels,
 } from './ErrorMessage/ErrorMessage';
 export { Markdown } from './Markdown/Markdown';
+export { MarkdownLinksProvider } from './Markdown/markdown-links';
+export type {
+  MarkdownLinks,
+  MarkdownLinkHandler,
+  MarkdownLinksProviderProps,
+} from './Markdown/markdown-links';
 export type { MarkdownProps, MarkdownTailGranularity } from './Markdown/Markdown';
 export { ImageLightbox, DEFAULT_IMAGE_LIGHTBOX_LABELS } from './ImageLightbox/ImageLightbox';
 export type {
@@ -106,6 +125,35 @@ export { SendButton } from './input/SendButton';
 export type { SendButtonProps } from './input/SendButton';
 export { Suggestions } from './input/Suggestions';
 export type { SuggestionsProps, SuggestionItem } from './input/Suggestions';
+export { filterFiles, useFileIntake } from './input/file-intake';
+export type {
+  FileIntake,
+  FileIntakePolicy,
+  FileIntakeResult,
+  FileRejection,
+  FileRejectionReason,
+  UseFileIntakeOptions,
+} from './input/file-intake';
+export { ChatDropZone, DEFAULT_CHAT_DROP_ZONE_LABELS } from './input/ChatDropZone';
+export type { ChatDropZoneLabels, ChatDropZoneProps } from './input/ChatDropZone';
+export { CommandToggles, DEFAULT_COMMAND_TOGGLES_LABELS } from './input/CommandToggles';
+export type {
+  CommandToggle,
+  CommandTogglesLabels,
+  CommandTogglesProps,
+} from './input/CommandToggles';
+export { DEFAULT_MIC_BUTTON_LABELS, MicButton } from './voice/MicButton/MicButton';
+export type { MicButtonLabels, MicButtonProps, MicState } from './voice/MicButton/MicButton';
+export { VoiceLevel } from './voice/VoiceLevel/VoiceLevel';
+export type { VoiceLevelProps } from './voice/VoiceLevel/VoiceLevel';
+export {
+  DEFAULT_SPEAKING_INDICATOR_LABELS,
+  SpeakingIndicator,
+} from './voice/SpeakingIndicator/SpeakingIndicator';
+export type {
+  SpeakingIndicatorLabels,
+  SpeakingIndicatorProps,
+} from './voice/SpeakingIndicator/SpeakingIndicator';
 export { ModelPicker, ModelBadge, DEFAULT_MODEL_PICKER_LABELS } from './input/ModelPicker';
 export type { ModelPickerProps, ModelBadgeProps, ModelPickerLabels } from './input/ModelPicker';
 export { ModeSelector, DEFAULT_MODE_SELECTOR_LABELS } from './input/ModeSelector';
@@ -217,6 +265,7 @@ export {
   formatOutputValue,
   getToolOutputValue,
   unwrapToolOutput,
+  readCallToolResult,
   DEFAULT_TOOL_OUTPUT_LABELS,
 } from './rows/tool-output';
 export type {
@@ -225,6 +274,8 @@ export type {
   ToolOutputContext,
   ToolOutputLabels,
   SummarizeOptions,
+  CallToolResult,
+  McpContentBlock,
 } from './rows/tool-output';
 export {
   ToolPresentationProvider,
@@ -826,6 +877,39 @@ export {
   DEFAULT_MESSAGE_ACTIONS_LABELS,
   MessageActions,
 } from './message-actions/MessageActions/MessageActions';
+export { MessageActionButton } from './message-actions/MessageActionButton/MessageActionButton';
+export {
+  MediaPart,
+  createMediaPartRenderers,
+  DEFAULT_MEDIA_PART_LABELS,
+} from './media/MediaPart/MediaPart';
+export type {
+  MediaPartProps,
+  MediaPartLabels,
+  MediaPartOptions,
+} from './media/MediaPart/MediaPart';
+export {
+  ArtifactPanel,
+  DEFAULT_ARTIFACT_PANEL_LABELS,
+} from './artifacts/ArtifactPanel/ArtifactPanel';
+export type {
+  ArtifactPanelProps,
+  ArtifactPanelLabels,
+} from './artifacts/ArtifactPanel/ArtifactPanel';
+export {
+  ArtifactCard,
+  createArtifactPartRenderer,
+  DEFAULT_ARTIFACT_CARD_LABELS,
+} from './artifacts/ArtifactCard/ArtifactCard';
+export type {
+  ArtifactCardProps,
+  ArtifactCardLabels,
+  ArtifactPartsOptions,
+} from './artifacts/ArtifactCard/ArtifactCard';
+export { useArtifactPanel } from './artifacts/use-artifact-panel';
+export type { UseArtifactPanelReturn } from './artifacts/use-artifact-panel';
+export type { ArtifactRef, ArtifactPart } from './artifacts/types';
+export type { MessageActionButtonProps } from './message-actions/MessageActionButton/MessageActionButton';
 export type {
   MessageActionsLabels,
   MessageActionsProps,

@@ -8,8 +8,9 @@ import { cx } from '../utils/cx';
 import { fillTemplate } from '../utils/fill-template';
 import { useChatLabels } from '../labels/chat-labels';
 import { areToolPropsEqual, getPartInput, getToolStatus } from '../utils/format-tool';
+import type { JsonSchema } from '../primitives/SchemaView/schema';
 import type { McpToolInfo } from './tool-registry';
-import { summarizeToolArgs, unfoldToolArgs } from './tool-args';
+import { readToolArgs, summarizeToolArgs } from './tool-args';
 import { useToolApproval } from '../approvals/approval-context';
 import { deriveToolCallState } from './tool-call-state';
 import {
@@ -22,11 +23,15 @@ import {
   DEFAULT_TOOL_OUTPUT_LABELS,
   getToolOutputValue,
   MAX_OUTPUT_CHARS,
+  readCallToolResult,
+  readResultText,
+  readStructuredResult,
   resolveByPartType,
   summarizeToolOutput,
   unwrapToolOutput,
   type ToolOutputLabels,
 } from '../rows/tool-output';
+import { ToolResultContent } from './ToolResultContent';
 import classes from './McpTool.module.css';
 
 export interface McpToolProps {
@@ -185,7 +190,7 @@ function formatMcpArgs(input: unknown): string {
   return parts.join('  ');
 }
 
-/** Unwraps MCP results (`CallToolResult`, `[{ type: 'text', text }]`) and parses JSON payloads when possible */
+/** `structuredContent` of an MCP result, else the text of its content; see `unwrapToolOutput` */
 export function unwrapMcpOutput(output: any): any {
   return output ? unwrapToolOutput(output) : output;
 }
@@ -199,12 +204,16 @@ function codeFence(text: string): string {
   return '`'.repeat(Math.max(3, longest + 1));
 }
 
-function formatOutputForDisplay(output: unknown): string {
-  const unwrapped = unwrapMcpOutput(output);
-  return clipText(
-    typeof unwrapped === 'string' ? unwrapped : JSON.stringify(unwrapped, null, 2),
-    MAX_OUTPUT_CHARS
-  );
+function formatOutputForDisplay(output: unknown, schema: JsonSchema | undefined): string {
+  const result = readCallToolResult(output);
+  const structured = result ? readStructuredResult(result, schema) : output;
+  const text =
+    structured !== undefined && typeof structured !== 'string'
+      ? JSON.stringify(structured, null, 2)
+      : result
+        ? readResultText(result)
+        : String(structured ?? '');
+  return clipText(text, MAX_OUTPUT_CHARS);
 }
 
 /** Renders `tool-mcp__<server>__<tool>` parts with a verb-conjugated title and JSON output */
@@ -248,12 +257,14 @@ export const McpTool = memo(function McpTool({
 
   const presentation = useToolPresentation();
   const catalogEntry = findToolCatalogEntry(presentation.catalog, part);
+  const result = useMemo(() => readCallToolResult(part.output), [part.output]);
+  const isError = part.state === 'output-error' || result?.isError === true;
   const catalogTitle = getToolCatalogTitle(catalogEntry);
   const argsFormatter = resolveByPartType(presentation.args, part.type);
   const outputFormatter = resolveByPartType(presentation.outputs, part.type);
   const isReadable = Boolean(catalogEntry || argsFormatter || outputFormatter);
   const args = useMemo(
-    () => (isReadable ? unfoldToolArgs(getPartInput(part)) : {}),
+    () => (isReadable ? readToolArgs(getPartInput(part)) : {}),
     [isReadable, part]
   );
 
@@ -299,11 +310,16 @@ export const McpTool = memo(function McpTool({
     ) {
       return null;
     }
-    const output = getToolOutputValue(part);
-    const summary = summarizeToolOutput(output, { labels, locale: presentation.locale });
+    const schema = catalogEntry?.outputSchema;
+    const summary = summarizeToolOutput(
+      part.state === 'output-error' ? part.errorText : part.output,
+      { labels, locale: presentation.locale, schema }
+    );
     const formatted = outputFormatter?.(part, {
-      state: part.state === 'output-error' ? 'error' : 'done',
-      output,
+      state: isError ? 'error' : 'done',
+      output: getToolOutputValue(part),
+      result: result ?? undefined,
+      schema,
       summary,
       locale: presentation.locale,
       labels,
@@ -314,14 +330,25 @@ export const McpTool = memo(function McpTool({
     const text = typeof formatted === 'string' ? formatted : summary;
     const lines = text.split('\n').filter((line) => line.trim());
     return lines.length > 0 && lines.length <= 4 ? lines : null;
-  }, [isReadable, isPending, isRejected, part, labels, presentation.locale, outputFormatter]);
+  }, [
+    isReadable,
+    isPending,
+    isRejected,
+    isError,
+    part,
+    result,
+    catalogEntry,
+    labels,
+    presentation.locale,
+    outputFormatter,
+  ]);
 
   const displayOutput = useMemo(() => {
     if (!part.output) {
       return null;
     }
-    return formatOutputForDisplay(part.output);
-  }, [part.output]);
+    return formatOutputForDisplay(part.output, catalogEntry?.outputSchema);
+  }, [part.output, catalogEntry]);
 
   const codeBlock = useMemo(() => {
     if (!displayOutput || (isReadable && isRejected)) {
@@ -338,7 +365,8 @@ export const McpTool = memo(function McpTool({
 
   const argsJson =
     isReadable && Object.keys(args).length > 0 ? JSON.stringify(args, null, 2) : null;
-  const hasExpandableContent = (!!codeBlock && !isPending) || !!argsJson;
+  const hasMedia = Boolean(result?.content.some((block) => block.type !== 'text'));
+  const hasExpandableContent = ((!!codeBlock || hasMedia) && !isPending) || !!argsJson;
 
   if (isInterrupted && !part.output && !isWaitingForDecision) {
     return (
@@ -372,10 +400,15 @@ export const McpTool = memo(function McpTool({
         {codeBlock && (
           <Markdown content={codeBlock} className={classes.output} controls={{ code: false }} />
         )}
+        {result && hasMedia && (
+          <Box className={classes.output}>
+            <ToolResultContent result={result} messageId={part.toolCallId ?? mcpInfo.toolName} />
+          </Box>
+        )}
       </ToolRowBase>
       {resultLines &&
         (Array.isArray(resultLines) ? (
-          <div className={classes.result} data-error={part.state === 'output-error' || undefined}>
+          <div className={classes.result} data-error={isError || undefined}>
             {resultLines.map((line, index) => (
               <div key={index} className={classes.resultLine} data-head={index === 0 || undefined}>
                 {line}

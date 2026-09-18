@@ -276,6 +276,7 @@ export default function WhatsNewPage() {
   return (
     <DocPageShell
       sections={[
+        { id: 'unreleased', label: 'Unreleased' },
         { id: 'next', label: '0.3.0' },
         { id: 'next-defaults', label: 'Changed defaults in 0.3.0' },
         { id: 'overview', label: 'Overview' },
@@ -305,6 +306,91 @@ export default function WhatsNewPage() {
           ranges move to Mantine 9.4 and React 19.2.
         </P>
       </GuideHeader>
+
+      <GuideSection id="unreleased" title="Unreleased">
+        <Bullets>
+          <li>
+            MCP calls are read strictly by the MCP specification. A result is the{' '}
+            <C>CallToolResult</C> (or its bare content array): <C>structuredContent</C> by the{' '}
+            <C>outputSchema</C> of the catalog, else the content blocks by type — text as it is,
+            images and audio as a preview and a player, resources as chips, <C>isError</C> as a
+            failure. The kit no longer guesses: text is not parsed as JSON, lists are counted only when
+            the schema declares an array, envelope and pagination keys mean nothing, dates are dates
+            only by <C>format</C>. Arguments follow <C>inputSchema</C> and are no longer unfolded from
+            JSON strings (<C>unfoldToolArgs</C> is deprecated). Annotation badges apply the defaults of
+            the specification: without <C>readOnlyHint</C> a tool may be destructive and reach an
+            open world.
+          </li>
+          <li>
+            The dark theme follows the Mantine dark scale: the page is the host body color
+            (<C>--mantine-color-body</C>) instead of near-black, the composer, tool cards and code
+            blocks sit one step above it on <C>dark-6</C>, the header of a code block is only a shade
+            lighter than its body, borders are softer, and the switch and progress track is a little
+            darker. White text on accent and danger fills keeps at least 4.5:1. Dark screenshots
+            change accordingly.
+          </li>
+          <li>
+            <C>partRenderers</C> on <ComponentLink name="AgentChat" /> and{' '}
+            <ComponentLink name="MessageList" /> renders your own part types, keyed by{' '}
+            <C>part.type</C>; parts without a renderer stay hidden as before.
+          </li>
+          <li>
+            <C>draft</C> and <C>onDraftChange</C> control the composer text of <C>AgentChat</C>, for
+            example to ask about a selection; without them the chat keeps its own draft.
+          </li>
+          <li>
+            <C>messageActions.actions</C> and <ComponentLink name="MessageActions" />{' '}
+            <C>actions</C> add your buttons to the message toolbar; <C>MessageActionButton</C>{' '}
+            gives them the look of the built-in ones.
+          </li>
+          <li>
+            <C>sendScroll=&quot;prompt-top&quot;</C> puts a sent question at the top and grows the
+            answer under it; <C>streamingCaret</C> shows a caret after the growing text;{' '}
+            <C>lazyTurns</C> skips layout of finished turns out of view. All are off by default.
+          </li>
+          <li>
+            The transcript is a <C>log</C> that is busy while an answer streams, and screen readers
+            hear <C>labels.answerReady</C>, <C>labels.answerFailed</C> or{' '}
+            <C>labels.answerStopped</C> once when it ends.
+          </li>
+          <li>
+            <C>MarkdownLinksProvider</C> (or <C>onLinkClick</C> and <C>linkSchemes</C> on{' '}
+            <ComponentLink name="Markdown" />) handles link clicks and allows schemes such as{' '}
+            <C>artifact:</C>; <C>javascript:</C>, <C>vbscript:</C>, <C>data:</C>, <C>blob:</C> and{' '}
+            <C>file:</C> links render as text.
+          </li>
+          <li>
+            <ComponentLink name="MediaPart" />: <C>createMediaPartRenderers()</C> shows <C>file</C>{' '}
+            parts of an answer as an image with a preview, a native audio or video player, or a file
+            chip.
+          </li>
+          <li>
+            <ComponentLink name="ArtifactPanel" /> with <C>useArtifactPanel</C> opens an artifact
+            next to the chat or in a drawer, and <C>createArtifactPartRenderer</C> renders{' '}
+            <C>artifact</C> parts as cards that open it.
+          </li>
+          <li>
+            <ComponentLink name="FileAttachment" /> shows uploads: <C>status</C>,{' '}
+            <C>progress</C>, <C>error</C>, <C>onCancel</C> and <C>onRetry</C>.{' '}
+            <ComponentLink name="InputBar" /> passes them through with{' '}
+            <C>onCancelFile</C> and <C>onRetryFile</C> and keeps Send off while a file uploads.
+          </li>
+          <li>
+            <C>filterFiles</C> and <C>useFileIntake</C> apply one <C>accept</C>, <C>maxFiles</C>{' '}
+            and <C>maxFileSize</C> policy to picked, pasted and dropped files;{' '}
+            <ComponentLink name="ChatDropZone" /> takes files dropped anywhere on the chat.
+          </li>
+          <li>
+            Voice controls that leave audio to you: <ComponentLink name="MicButton" />,{' '}
+            <ComponentLink name="VoiceLevel" /> and <ComponentLink name="SpeakingIndicator" />.
+          </li>
+          <li>
+            <ComponentLink name="CommandToggles" /> pins commands to the composer, and{' '}
+            <ComponentLink name="StarterCategories" /> groups starter questions in{' '}
+            <C>emptyState.content</C>, a new slot for host content in an empty chat.
+          </li>
+        </Bullets>
+      </GuideSection>
 
       <GuideSection id="next" title="0.3.0">
         <P>

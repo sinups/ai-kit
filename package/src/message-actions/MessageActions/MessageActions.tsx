@@ -1,5 +1,5 @@
 import React, { memo, useRef, useState } from 'react';
-import { ActionIcon, CopyButton, Group, Popover, Text, Tooltip } from '@mantine/core';
+import { CopyButton, Group, Popover, Text } from '@mantine/core';
 import {
   IconArrowBackUp,
   IconCheck,
@@ -17,6 +17,7 @@ import { getErrorMessage } from '../../utils/error-message';
 import { FeedbackForm, type FeedbackFormLabels } from '../FeedbackForm/FeedbackForm';
 import type { FeedbackDetails, FeedbackReason, MessageFeedbackValue } from '../types';
 import { usePendingActions } from '../../hooks/use-pending-actions';
+import { MessageActionButton } from '../MessageActionButton/MessageActionButton';
 import classes from './MessageActions.module.css';
 
 export interface MessageActionsLabels {
@@ -75,6 +76,8 @@ export interface MessageActionsProps {
   visibility?: 'hover' | 'always';
   /** Horizontal placement of the actions, `start` by default */
   align?: 'start' | 'end';
+  /** Host buttons after the built-in actions, usually `MessageActionButton`s */
+  actions?: React.ReactNode;
   /** Overrides of the default English labels */
   labels?: Partial<MessageActionsLabels>;
   /** Class name added to the root element */
@@ -84,42 +87,6 @@ export interface MessageActionsProps {
 }
 
 const ICON_SIZE = 16;
-
-function ActionButton({
-  label,
-  onClick,
-  loading,
-  disabled,
-  active,
-  action,
-  children,
-}: {
-  action?: string;
-  label: string;
-  onClick?: () => void;
-  loading?: boolean;
-  disabled?: boolean;
-  active?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tooltip label={label} withArrow openDelay={300}>
-      <ActionIcon
-        variant="subtle"
-        color="gray"
-        size="md"
-        aria-label={label}
-        data-action={action}
-        aria-pressed={active}
-        loading={loading}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {children}
-      </ActionIcon>
-    </Tooltip>
-  );
-}
 
 /** Toolbar under a chat message: copy, edit, retry, rewind, branch and feedback, each shown when its callback is set */
 export const MessageActions = memo(function MessageActions({
@@ -136,6 +103,7 @@ export const MessageActions = memo(function MessageActions({
   disabled = false,
   visibility = 'hover',
   align = 'start',
+  actions,
   labels: labelsProp,
   className,
   style,
@@ -173,9 +141,11 @@ export const MessageActions = memo(function MessageActions({
   const copy = text ? (
     <CopyButton value={text} timeout={2000}>
       {({ copied, copy: copyText }) => (
-        <ActionButton label={copied ? labels.copied : labels.copy} onClick={copyText}>
-          {copied ? <IconCheck size={ICON_SIZE} /> : <IconCopy size={ICON_SIZE} />}
-        </ActionButton>
+        <MessageActionButton
+          label={copied ? labels.copied : labels.copy}
+          onClick={copyText}
+          icon={copied ? <IconCheck size={ICON_SIZE} /> : <IconCopy size={ICON_SIZE} />}
+        />
       )}
     </CopyButton>
   ) : null;
@@ -197,30 +167,32 @@ export const MessageActions = memo(function MessageActions({
     >
       <Popover.Target>
         <Group gap={2} wrap="nowrap">
-          <ActionButton
+          <MessageActionButton
             label={labels.good}
             active={rating === 'up'}
             disabled={disabled}
             onClick={() => rate('up')}
-          >
-            {rating === 'up' ? (
-              <IconThumbUpFilled size={ICON_SIZE} />
-            ) : (
-              <IconThumbUp size={ICON_SIZE} />
-            )}
-          </ActionButton>
-          <ActionButton
+            icon={
+              rating === 'up' ? (
+                <IconThumbUpFilled size={ICON_SIZE} />
+              ) : (
+                <IconThumbUp size={ICON_SIZE} />
+              )
+            }
+          />
+          <MessageActionButton
             label={labels.bad}
             active={rating === 'down'}
             disabled={disabled}
             onClick={() => rate('down')}
-          >
-            {rating === 'down' ? (
-              <IconThumbDownFilled size={ICON_SIZE} />
-            ) : (
-              <IconThumbDown size={ICON_SIZE} />
-            )}
-          </ActionButton>
+            icon={
+              rating === 'down' ? (
+                <IconThumbDownFilled size={ICON_SIZE} />
+              ) : (
+                <IconThumbDown size={ICON_SIZE} />
+              )
+            }
+          />
         </Group>
       </Popover.Target>
       <Popover.Dropdown>
@@ -265,42 +237,44 @@ export const MessageActions = memo(function MessageActions({
         </Text>
       )}
       {isUser && onRewind && (
-        <ActionButton
+        <MessageActionButton
           label={labels.rewind}
           disabled={locked}
           loading={actionPending('rewind')}
           onClick={() => run('rewind', onRewind, { exclusive: true })}
-        >
-          <IconArrowBackUp size={ICON_SIZE} />
-        </ActionButton>
+          icon={<IconArrowBackUp size={ICON_SIZE} />}
+        />
       )}
       {isUser && onEdit && (
-        <ActionButton label={labels.edit} action="edit" disabled={locked} onClick={onEdit}>
-          <IconPencil size={ICON_SIZE} />
-        </ActionButton>
+        <MessageActionButton
+          label={labels.edit}
+          action="edit"
+          disabled={locked}
+          onClick={onEdit}
+          icon={<IconPencil size={ICON_SIZE} />}
+        />
       )}
       {copy}
       {!isUser && onRetry && (
-        <ActionButton
+        <MessageActionButton
           label={labels.retry}
           disabled={locked}
           loading={actionPending('retry')}
           onClick={() => run('retry', onRetry, { exclusive: true })}
-        >
-          <IconRefresh size={ICON_SIZE} />
-        </ActionButton>
+          icon={<IconRefresh size={ICON_SIZE} />}
+        />
       )}
       {feedbackButtons}
       {!isUser && onBranch && (
-        <ActionButton
+        <MessageActionButton
           label={labels.branch}
           disabled={locked}
           loading={actionPending('branch')}
           onClick={() => run('branch', onBranch, { exclusive: true })}
-        >
-          <IconGitBranch size={ICON_SIZE} />
-        </ActionButton>
+          icon={<IconGitBranch size={ICON_SIZE} />}
+        />
       )}
+      {actions}
     </Group>
   );
 });

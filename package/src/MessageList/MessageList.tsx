@@ -14,6 +14,8 @@ import type {
   ChatStatus,
   CollapseToolRunsOptions,
   CustomToolRendererProps,
+  PartRenderers,
+  SendScroll,
   ToolActionHandler,
   ToolPart,
   ToolRendererSlotProps,
@@ -23,7 +25,7 @@ import { getContentWidthStyle, type ContentWidth } from '../utils/content-width'
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { cx } from '../utils/cx';
 import { normalizeAssistantToolParts } from '../utils/tool-part-normalizer';
-import { isErrorPart, isTextPart, isV5ToolPart } from '../utils/parts';
+import { isErrorPart, isRecord, isTextPart, isV5ToolPart } from '../utils/parts';
 import { UserMessage } from '../UserMessage/UserMessage';
 import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
@@ -74,6 +76,8 @@ import {
 import { TranscriptSearch, type TranscriptSearchLabels } from './TranscriptSearch';
 import { useTranscriptSearch } from './use-transcript-search';
 import { useAppearanceTracker, type AppearanceTracker } from './appearance';
+import { useUnstableRenderersWarning } from './use-unstable-renderers-warning';
+import { VisuallyHiddenStatus } from '../primitives/VisuallyHiddenStatus/VisuallyHiddenStatus';
 import classes from './MessageList.module.css';
 
 export type MessageListLabels = {
@@ -91,6 +95,12 @@ export type MessageListLabels = {
   copied: string;
   /** Accessible label of the toolbar under a message, `Message actions` by default */
   messageActions: string;
+  /** Announced to screen readers once an answer finishes, `Answer ready` by default */
+  answerReady: string;
+  /** Announced to screen readers once an answer stops with an error, `Answer stopped with an error` by default */
+  answerFailed: string;
+  /** Announced to screen readers once the user stops an answer, see `stopped`, `Answer stopped` by default */
+  answerStopped: string;
   /** Labels of the search bar */
   search?: Partial<TranscriptSearchLabels>;
   /** Summary and progress labels of collapsed tool runs */
@@ -105,6 +115,9 @@ export const DEFAULT_MESSAGE_LIST_LABELS: MessageListLabels = {
   copyMessage: 'Copy message',
   copied: 'Copied',
   messageActions: 'Message actions',
+  answerReady: 'Answer ready',
+  answerFailed: 'Answer stopped with an error',
+  answerStopped: 'Answer stopped',
 };
 
 export type MessageListProps = {
@@ -156,6 +169,16 @@ export type MessageListProps = {
     userMessage?: string;
   };
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  /** Renderers of part types the list does not know, keyed by `part.type`; parts without one stay hidden */
+  partRenderers?: PartRenderers;
+  /** Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question at the top and grows the answer under it */
+  sendScroll?: SendScroll;
+  /** Shows a caret after the growing text while streaming, `false` by default */
+  streamingCaret?: boolean;
+  /** Skips layout and paint of finished turns outside the viewport, `false` by default; a number is the turn count it starts from, `true` means 50 */
+  lazyTurns?: boolean | number;
+  /** The user stopped the latest answer, so its end is announced as `labels.answerStopped`; `AgentChat` sets it from its stop button */
+  stopped?: boolean;
   /** Receives actions reported by custom tool renderers through `onAction` */
   onToolAction?: ToolActionHandler;
   /**
@@ -422,6 +445,11 @@ export const MessageList = memo(function MessageList({
   slots,
   classNames,
   toolRenderers,
+  partRenderers,
+  sendScroll = 'bottom',
+  streamingCaret = false,
+  lazyTurns = false,
+  stopped = false,
   onToolAction,
   toolCallLookups,
   workingRow = false,
@@ -449,6 +477,7 @@ export const MessageList = memo(function MessageList({
   labels: labelsProp,
 }: MessageListProps) {
   const labels = { ...DEFAULT_MESSAGE_LIST_LABELS, ...labelsProp };
+  useUnstableRenderersWarning(partRenderers);
   const appearance = useAppearanceTracker(animateAppearance, messages.length > 0);
   const custom = typeof presentation === 'object' ? presentation : undefined;
   const isRows = custom?.kind === 'rows';
@@ -530,6 +559,22 @@ export const MessageList = memo(function MessageList({
   }, []);
 
   const isStreaming = status === 'streaming' || status === 'submitted';
+  const [announcement, setAnnouncement] = useState('');
+  const wasStreamingRef = useRef(isStreaming);
+  useEffect(() => {
+    if (isStreaming) {
+      setAnnouncement('');
+    } else if (wasStreamingRef.current) {
+      setAnnouncement(
+        status === 'error'
+          ? labels.answerFailed
+          : stopped
+            ? labels.answerStopped
+            : labels.answerReady
+      );
+    }
+    wasStreamingRef.current = isStreaming;
+  }, [isStreaming, status, stopped, labels.answerFailed, labels.answerReady, labels.answerStopped]);
 
   const scrollbarWidthRef = useRef(0);
   const onScrollbarWidthChangeRef = useRef(onScrollbarWidthChange);
@@ -770,15 +815,29 @@ export const MessageList = memo(function MessageList({
 
   const lastUserMessageIdRef = useRef(lastUserMessageId);
   const pendingPlanningScrollUserIdRef = useRef<string | null>(null);
+  const promptTop = sendScroll === 'prompt-top';
   useLayoutEffect(() => {
     if (lastUserMessageId && lastUserMessageId !== lastUserMessageIdRef.current) {
+      lastUserMessageIdRef.current = lastUserMessageId;
+      const container = chatContainerRef.current;
+      const turn = container?.querySelector<HTMLElement>(
+        `[data-turn-key="${CSS.escape(lastUserMessageId)}"]`
+      );
+      const previousLastId = lastMessageIdRef.current;
+      const appended = normalizedMessages.some((message) => message.id === previousLastId);
+      if (promptTop && appended && container && turn) {
+        const top = container.getBoundingClientRect().top;
+        const overlay = container.querySelector<HTMLElement>('[data-sticky-overlay]');
+        const covered = overlay ? Math.max(0, overlay.getBoundingClientRect().bottom - top) : 0;
+        container.scrollTop += turn.getBoundingClientRect().top - top - covered;
+        followRef.current = createFollowState(readMetrics(container), false);
+        return;
+      }
       followRef.current = { ...followRef.current, following: true };
       pendingPlanningScrollUserIdRef.current = lastUserMessageId;
-      const cancel = scrollToBottomSettled();
-      lastUserMessageIdRef.current = lastUserMessageId;
-      return cancel;
+      return scrollToBottomSettled();
     }
-  }, [lastUserMessageId, scrollToBottomSettled]);
+  }, [lastUserMessageId, normalizedMessages, promptTop, scrollToBottomSettled]);
 
   const lastActivityRef = useRef({ messages: normalizedMessages, at: Date.now() });
   if (lastActivityRef.current.messages !== normalizedMessages) {
@@ -801,7 +860,7 @@ export const MessageList = memo(function MessageList({
     Boolean(lastMessageId) &&
     lastMessageId !== lastMessageIdRef.current;
   const showAssistantBreathingSpace =
-    showPlanning || assistantSpaceActiveRef.current || isNewAssistantMessage;
+    !promptTop && (showPlanning || assistantSpaceActiveRef.current || isNewAssistantMessage);
 
   useEffect(() => {
     if (lastMessageRole === 'assistant') {
@@ -814,6 +873,19 @@ export const MessageList = memo(function MessageList({
     }
     lastMessageIdRef.current = lastMessageId;
   }, [lastMessageId, lastMessageRole]);
+
+  const workingNode =
+    showWorkingRow &&
+    (workingRow === true ? (
+      <WorkingLine
+        label={labels.working}
+        since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
+        className={isRows ? classes.workingRowInline : undefined}
+      />
+    ) : (
+      workingRow
+    ));
+  const lazyFrom = lazyTurns === false ? null : lazyTurns === true ? 50 : lazyTurns;
 
   useLayoutEffect(() => {
     if (!showPlanning || !lastUserMessageId) {
@@ -842,11 +914,14 @@ export const MessageList = memo(function MessageList({
         data-top-fade={topFade && isScrolled ? true : undefined}
         className={cx(classes.root, className)}
         style={getContentWidthStyle(contentWidth, style)}
+        role="log"
+        aria-live="off"
+        aria-busy={isStreaming}
       >
         <div ref={contentWrapperRef} className={classes.content}>
           {(isSearchOpen || (stickyPrompt && stickyTurnKey)) && (
             <div className={classes.stickyTop} data-search-ignore>
-              <div className={classes.stickyTopInner}>
+              <div className={classes.stickyTopInner} data-sticky-overlay>
                 {isSearchOpen && (
                   <TranscriptSearch
                     inputRef={searchInputRef}
@@ -912,6 +987,10 @@ export const MessageList = memo(function MessageList({
                   key={turnKey}
                   className={classes.turn}
                   data-turn-key={turnKey}
+                  data-send-scroll={(promptTop && isLastTurn) || undefined}
+                  data-lazy={
+                    (lazyFrom !== null && turns.length >= lazyFrom && !isLastTurn) || undefined
+                  }
                   data-rows={isRows || undefined}
                   data-even={isEven || undefined}
                 >
@@ -970,6 +1049,7 @@ export const MessageList = memo(function MessageList({
                               disabled={isStreaming}
                               onEdit={onEdit && text ? () => setEditingId(userMsg.id) : undefined}
                               onRewind={onRewind ? () => onRewind(userMsg.id) : undefined}
+                              actions={messageActions?.actions?.(userMsg.id, 'user')}
                             />
                           </div>
                         );
@@ -1031,6 +1111,7 @@ export const MessageList = memo(function MessageList({
                           messageRole="assistant"
                           text={showCopyToolbar && assistantText.trim() ? assistantText : undefined}
                           feedbackReasons={messageActions.feedbackReasons}
+                          actions={messageActions.actions?.(firstAssistantId, 'assistant')}
                           feedback={
                             messageActions.feedback
                               ? (messageActions.feedback[firstAssistantId] ?? null)
@@ -1084,6 +1165,8 @@ export const MessageList = memo(function MessageList({
                                   suppressQuestionToolCallId={suppressQuestionToolCallId}
                                   ToolRendererComponent={CustomToolRenderer}
                                   toolRenderers={toolRenderers}
+                                  partRenderers={partRenderers}
+                                  streamingCaret={streamingCaret}
                                   onToolAction={stableToolAction}
                                   onRetry={stableRetry}
                                   toolRunOptions={toolRunOptions}
@@ -1117,6 +1200,7 @@ export const MessageList = memo(function MessageList({
                       );
                     })()}
 
+                  {isLastTurn && promptTop && workingNode}
                   {isLastTurn && showPlanning && !hasWorkingRow && (
                     <ToolRowBase
                       icon={<SpiralLoader size={12} />}
@@ -1128,16 +1212,7 @@ export const MessageList = memo(function MessageList({
                 </div>
               );
             })}
-            {showWorkingRow &&
-              (workingRow === true ? (
-                <WorkingLine
-                  label={labels.working}
-                  since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
-                  className={isRows ? classes.workingRowInline : undefined}
-                />
-              ) : (
-                workingRow
-              ))}
+            {!promptTop && workingNode}
           </div>
           {showAssistantBreathingSpace && (
             <div aria-hidden="true" className={classes.breathingSpace} />
@@ -1158,6 +1233,7 @@ export const MessageList = memo(function MessageList({
           )}
         </div>
       </Box>
+      <VisuallyHiddenStatus>{announcement}</VisuallyHiddenStatus>
     </ToolPresentationProvider>
   );
 });
@@ -1177,6 +1253,8 @@ type AssistantPartsProps = {
   suppressQuestionToolCallId?: string;
   ToolRendererComponent: React.ComponentType<ToolRendererSlotProps>;
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  partRenderers?: PartRenderers;
+  streamingCaret: boolean;
   onToolAction?: ToolActionHandler;
   onRetry?: () => void;
   toolRunOptions?: ResolvedToolRunOptions | null;
@@ -1190,6 +1268,13 @@ type AssistantPartsProps = {
   evenSpacing: boolean;
 };
 
+function findPartRenderer(renderers: PartRenderers | undefined, part: unknown) {
+  const type = isRecord(part) ? part.type : undefined;
+  return renderers && typeof type === 'string' && Object.hasOwn(renderers, type)
+    ? renderers[type]
+    : undefined;
+}
+
 function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
   if (previous === next) {
     return true;
@@ -1200,9 +1285,9 @@ function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
   return previous.every((part, index) => part === next[index]);
 }
 
-function sameToolRenderers(
-  previous: AssistantPartsProps['toolRenderers'],
-  next: AssistantPartsProps['toolRenderers']
+function sameRenderers(
+  previous: Record<string, unknown> | undefined,
+  next: Record<string, unknown> | undefined
 ): boolean {
   if (previous === next) {
     return true;
@@ -1258,7 +1343,9 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.turnStartedAt === next.turnStartedAt &&
     previous.toolOutputs === next.toolOutputs &&
     previous.evenSpacing === next.evenSpacing &&
-    sameToolRenderers(previous.toolRenderers, next.toolRenderers)
+    previous.streamingCaret === next.streamingCaret &&
+    sameRenderers(previous.toolRenderers, next.toolRenderers) &&
+    sameRenderers(previous.partRenderers, next.partRenderers)
   );
 }
 
@@ -1275,6 +1362,8 @@ const AssistantParts = memo(function AssistantParts({
   suppressQuestionToolCallId,
   ToolRendererComponent,
   toolRenderers,
+  partRenderers,
+  streamingCaret,
   onToolAction,
   onRetry,
   toolRunOptions,
@@ -1310,7 +1399,7 @@ const AssistantParts = memo(function AssistantParts({
         }
         return;
       }
-      if (isErrorPart(part) || isFeedPart(part)) {
+      if (isErrorPart(part) || isFeedPart(part) || findPartRenderer(partRenderers, part)) {
         visible.push({ part, index });
         return;
       }
@@ -1332,6 +1421,18 @@ const AssistantParts = memo(function AssistantParts({
     });
 
     const renderEntry = ({ part, index }: { part: unknown; index: number }): React.ReactNode => {
+      const PartRenderer = findPartRenderer(partRenderers, part);
+      if (PartRenderer) {
+        return (
+          <PartRenderer
+            key={`${msg.id}-part-${index}`}
+            part={part}
+            messageId={msg.id}
+            index={index}
+            chatStatus={chatStreamingStatus}
+          />
+        );
+      }
       if (isTextPart(part)) {
         return (
           <div key={`${msg.id}-text-${index}`} className={classes.assistantText}>
@@ -1343,6 +1444,7 @@ const AssistantParts = memo(function AssistantParts({
               frameBatched={frameBatched}
               tailGranularity={tailGranularity}
               streaming={isRowTextStreaming && index === lastTextIndex ? true : undefined}
+              streamingCaret={streamingCaret}
             />
           </div>
         );
@@ -1509,6 +1611,8 @@ const AssistantParts = memo(function AssistantParts({
     turnStartedAt,
     toolOutputs,
     approvals,
+    partRenderers,
+    streamingCaret,
   ]);
 
   return (

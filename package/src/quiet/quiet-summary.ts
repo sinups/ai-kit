@@ -1,19 +1,14 @@
 import type { ToolPart } from '../types';
 import type { ToolCallState } from '../tools/tool-call-state';
+import type { JsonSchema } from '../primitives/SchemaView/schema';
 import {
   clipText,
-  describeItem,
-  findList,
-  getToolOutputValue,
-  readTotal,
+  readCallToolResult,
+  readResultText,
   summarizeToolOutput,
-  unwrapToolOutput,
   type ToolOutputLabels,
 } from '../rows/tool-output';
 import { isRecord } from '../utils/parts';
-
-const MAX_DETAIL_ITEMS = 50;
-const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+/;
 
 export interface QuietSummaryLabels extends ToolOutputLabels {
   /** Short state of a failed call, `Error` by default */
@@ -52,32 +47,16 @@ function firstLine(text: string): string {
   return clipText(line ?? '');
 }
 
-/** Result a quiet row reads: an envelope of one text field such as `{ result }` gives its text */
-export function readQuietResult(part: ToolPart): unknown {
-  const value = getToolOutputValue(part);
-  if (isRecord(value)) {
-    const entries = Object.entries(value);
-    if (entries.length === 1 && typeof entries[0][1] === 'string') {
-      return unwrapToolOutput(entries[0][1]);
-    }
-  }
-  return value;
-}
-
-/** Items of a markdown list in a text result, empty when the text is not a list */
-export function readMarkdownList(text: string): string[] {
-  const items = text.split('\n').filter((line) => LIST_ITEM.test(line));
-  return items.length >= 2 ? items : [];
-}
-
 /**
- * The one line a finished call leaves in the transcript: the size of a list, the first line of a
- * text, the state of a refused or failed call. Everything else stays in the opened details.
+ * The one line a finished call leaves in the transcript, read from the MCP result: the summary of
+ * its structured content or the first line of its text, the state of a refused or failed call.
+ * Everything else stays in the opened details.
  */
 export function summarizeQuietResult(
   part: ToolPart,
   state: ToolCallState,
-  labels: QuietSummaryLabels
+  labels: QuietSummaryLabels,
+  schema?: JsonSchema
 ): string {
   if (state === 'rejected') {
     return labels.rejected;
@@ -88,31 +67,20 @@ export function summarizeQuietResult(
   if (state === 'interrupted') {
     return labels.interrupted;
   }
+  const output = part.output ?? part.result;
+  const result = readCallToolResult(output);
   if (state === 'error') {
-    const reason = firstLine(readErrorReason(getToolOutputValue(part)));
+    const reason = firstLine(
+      typeof part.errorText === 'string'
+        ? part.errorText
+        : result
+          ? readResultText(result)
+          : readErrorReason(output)
+    );
     return reason ? `${labels.failed} · ${reason}` : labels.failed;
   }
   if (state !== 'done') {
     return '';
   }
-  const value = readQuietResult(part);
-  if (typeof value === 'string') {
-    const list = readMarkdownList(value);
-    return list.length > 0 ? labels.items(list.length) : firstLine(value);
-  }
-  return firstLine(summarizeToolOutput(value, { labels }));
-}
-
-/** Entries of a list result as lines, for the opened details */
-export function describeQuietItems(value: unknown, locale?: string): string[] | undefined {
-  const list = findList(value);
-  if (!list) {
-    return undefined;
-  }
-  const lines = list
-    .slice(0, MAX_DETAIL_ITEMS)
-    .map((item) => describeItem(item, locale))
-    .filter(Boolean);
-  const total = readTotal(value) ?? list.length;
-  return total > lines.length ? [...lines, '…'] : lines;
+  return firstLine(summarizeToolOutput(output, { labels, schema }));
 }

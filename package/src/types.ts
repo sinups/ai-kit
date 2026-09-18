@@ -139,6 +139,8 @@ export type FilePart = {
   filename?: string;
   name?: string;
   size?: number;
+  /** `http(s)` address of WebVTT captions for an audio or video file */
+  captions?: string;
 };
 
 /** Any message part. Unknown part types are ignored by the renderer. */
@@ -198,6 +200,24 @@ export type CustomToolRendererProps = {
   onAction?: (action: string, payload?: unknown) => void;
 };
 
+/** Props a renderer of a custom part type receives from `partRenderers` */
+export type PartRendererProps<P = { type: string; [key: string]: unknown }> = {
+  /** The part itself */
+  part: P;
+  /** Id of the message the part belongs to */
+  messageId: string;
+  /** Position of the part in `parts` */
+  index: number;
+  /** `streaming` while the message grows, `ready` after it */
+  chatStatus?: 'streaming' | 'ready';
+};
+
+/** Renderers of part types the list does not know, keyed by `part.type` */
+export type PartRenderers = Record<string, React.ComponentType<PartRendererProps<any>>>;
+
+/** Where the list scrolls when the user sends: to the bottom, or the question to the top */
+export type SendScroll = 'bottom' | 'prompt-top';
+
 export type ToolRendererSlotProps = {
   part: ToolPart;
   nestedTools?: ToolPart[];
@@ -232,14 +252,24 @@ export type ModelOption = {
   version?: string;
 };
 
-export type AttachedImage = {
+/** Upload state of a staged attachment; the host uploads, the kit only shows it */
+export type AttachmentUpload = {
+  /** `uploading` shows progress and blocks sending, `error` offers a retry, `done` by default */
+  status?: 'uploading' | 'done' | 'error';
+  /** Upload progress from 0 to 100; an unknown amount animates while `uploading` */
+  progress?: number;
+  /** Why the upload failed, shown for `error` */
+  error?: string;
+};
+
+export type AttachedImage = AttachmentUpload & {
   id: string;
   filename: string;
   url: string;
   size?: number;
 };
 
-export type AttachedFile = {
+export type AttachedFile = AttachmentUpload & {
   id: string;
   filename: string;
   size?: number;
@@ -258,6 +288,8 @@ export type AgentChatEmptyState = {
   title?: React.ReactNode;
   /** Text under the greeting */
   description?: React.ReactNode;
+  /** Host content under the greeting, in both layouts, for example `StarterCategories` */
+  content?: React.ReactNode;
   /** Starter actions listed under the greeting, `welcome` layout only */
   actions?: ChatWelcomeAction[];
   /**
@@ -280,6 +312,18 @@ export type AgentChatProps = {
   classNames?: Partial<ChatClassNames>;
   slots?: Partial<ChatSlots>;
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  /** Renderers of part types the list does not know, keyed by `part.type`; parts without one stay hidden */
+  partRenderers?: PartRenderers;
+  /** Controlled composer text; the chat keeps its own draft when omitted */
+  draft?: string;
+  /** Called on every composer change, including clearing after send */
+  onDraftChange?: (draft: string) => void;
+  /** Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question at the top and grows the answer under it */
+  sendScroll?: SendScroll;
+  /** Shows a caret after the growing text while streaming, `false` by default */
+  streamingCaret?: boolean;
+  /** Skips layout and paint of finished turns outside the viewport, `false` by default; a number is the turn count it starts from, `true` means 50 */
+  lazyTurns?: boolean | number;
 
   /** Attachment configuration */
   attachments?: {
@@ -288,6 +332,12 @@ export type AgentChatProps = {
     files?: AttachedFile[];
     onRemoveImage?: (id: string) => void;
     onRemoveFile?: (id: string) => void;
+    /** Stops the upload of a staged image or file */
+    onCancelFile?: (id: string) => void;
+    /** Starts a failed upload of a staged image or file again */
+    onRetryFile?: (id: string) => void;
+    /** Keeps Send off while an attachment uploads, `true` by default */
+    blockSendWhileUploading?: boolean;
     onPaste?: (e: React.ClipboardEvent) => void;
     isDragOver?: boolean;
   };

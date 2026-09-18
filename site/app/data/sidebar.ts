@@ -16,7 +16,10 @@ export const COMPONENT_GROUPS: Array<{ title: string; components: string[] }> = 
     components: [
       "AgentChat",
       "ChatHeader",
+      "StarterCategories",
       "MessageList",
+      "MediaPart",
+      "ArtifactPanel",
       "UserMessage",
       "ErrorMessage",
       "Markdown",
@@ -79,11 +82,17 @@ export const COMPONENT_GROUPS: Array<{ title: string; components: string[] }> = 
       "SendButton",
       "AttachmentButton",
       "FileAttachment",
+      "ChatDropZone",
+      "CommandToggles",
       "PastedTextAttachment",
       "PromptHistorySearch",
       "InputPopover",
       "QuestionPrompt",
     ],
+  },
+  {
+    title: "Voice",
+    components: ["MicButton", "VoiceLevel", "SpeakingIndicator"],
   },
   {
     title: "Primitives",

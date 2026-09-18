@@ -1,0 +1,32 @@
+.root {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &[data-state='processing'] {
+    cursor: progress;
+  }
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: alpha(var(--ae-primary), 0.25);
+  transform: scale(calc(1 + var(--mic-level, 0) * 0.45));
+  transition: transform 80ms linear;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    transform: none;
+    transition: none;
+  }
+}

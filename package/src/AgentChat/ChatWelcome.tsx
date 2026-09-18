@@ -34,6 +34,8 @@ export interface ChatWelcomeProps {
   title?: React.ReactNode;
   /** Text under the greeting */
   description?: React.ReactNode;
+  /** Host content under the greeting, before the actions, for example `StarterCategories` */
+  content?: React.ReactNode;
   /** Actions listed under the greeting */
   actions?: ChatWelcomeAction[];
   /** Called for an action without its own `onSelect` */
@@ -51,6 +53,7 @@ export const ChatWelcome = memo(function ChatWelcome({
   avatar,
   title,
   description,
+  content,
   actions = [],
   onAction,
   labels: labelsProp,
@@ -102,6 +105,7 @@ export const ChatWelcome = memo(function ChatWelcome({
             </Text>
           )}
         </Stack>
+        {content && <div className={classes.hostContent}>{content}</div>}
         {actions.length > 0 && (
           <Stack
             ref={listRef}

@@ -28,6 +28,33 @@ function thinkingDelta(event: StreamEvent): string | null {
   return event.delta.thinking ?? null;
 }
 
+type CallToolResult = {
+  content: unknown[];
+  structuredContent?: unknown;
+  isError: boolean;
+};
+
+/**
+ * The MCP `CallToolResult` of a call. The SDK hands the model a string and keeps the result of the
+ * server in `tool_use_result`: `content`, as a string, and `structuredContent` when the server sent one
+ */
+function callToolResult(
+  sdkResult: unknown,
+  modelContent: unknown,
+  isError: boolean
+): CallToolResult {
+  const result =
+    typeof sdkResult === 'object' && sdkResult !== null
+      ? (sdkResult as { content?: unknown; structuredContent?: unknown })
+      : undefined;
+  const raw = result?.content ?? modelContent;
+  const content =
+    typeof raw === 'string' ? [{ type: 'text', text: raw }] : Array.isArray(raw) ? raw : [];
+  return result && 'structuredContent' in result
+    ? { content, structuredContent: result.structuredContent, isError }
+    : { content, isError };
+}
+
 /** Tells the model which file the user keeps open, so "this file" has a referent */
 export function withContext(prompt: string, contextFile: string | undefined): string {
   if (!contextFile || contextFile.includes('/') || contextFile.includes('..')) {
@@ -178,15 +205,19 @@ export function runAgent(
               }
             }
           } else if (message.type === 'user' && Array.isArray(message.message.content)) {
-            for (const block of message.message.content) {
-              if (block.type === 'tool_result') {
-                emit({
-                  kind: 'tool-end',
-                  toolCallId: block.tool_use_id,
-                  output: block.content,
-                  isError: block.is_error === true,
-                });
-              }
+            const results = message.message.content.filter((block) => block.type === 'tool_result');
+            for (const block of results) {
+              const isError = block.is_error === true;
+              emit({
+                kind: 'tool-end',
+                toolCallId: block.tool_use_id,
+                output: callToolResult(
+                  results.length === 1 ? message.tool_use_result : undefined,
+                  block.content,
+                  isError
+                ),
+                isError,
+              });
             }
           } else if (message.type === 'result') {
             const usage = message.usage;

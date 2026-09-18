@@ -1,0 +1,14 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.overlay {
+  border: rem(2px) dashed var(--ae-primary);
+  border-radius: var(--ae-input-radius);
+  background-color: alpha(var(--ae-bg), 0.85);
+  color: var(--ae-fg);
+  pointer-events: none;
+}

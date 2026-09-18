@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Box, rem, Stack, Text } from '@mantine/core';
+import { useUncontrolled } from '@mantine/hooks';
 import type { AgentChatProps, ChatMessage, ToolPart, ToolRendererSlotProps } from '../types';
 import type { QuestionAnswer, QuestionConfig } from '../question/QuestionPrompt';
 import { getContentWidthStyle } from '../utils/content-width';
@@ -26,6 +27,12 @@ export function AgentChat({
   classNames,
   slots,
   toolRenderers,
+  partRenderers,
+  draft: draftProp,
+  onDraftChange,
+  sendScroll,
+  streamingCaret,
+  lazyTurns,
   attachments,
   showCopyToolbar,
   collapseToolRuns,
@@ -69,7 +76,21 @@ export function AgentChat({
   className,
   style,
 }: AgentChatProps) {
-  const [draft, setDraft] = useState('');
+  const isBusy = status === 'streaming' || status === 'submitted';
+  const [stopped, setStopped] = useState(false);
+  const [wasBusy, setWasBusy] = useState(isBusy);
+  if (wasBusy !== isBusy) {
+    setWasBusy(isBusy);
+    if (isBusy) {
+      setStopped(false);
+    }
+  }
+  const [draft, setDraft] = useUncontrolled({
+    value: draftProp,
+    defaultValue: '',
+    finalValue: '',
+    onChange: onDraftChange,
+  });
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const resolvedEmptyStateWidth = emptyStateWidth ?? (emptyState ? 600 : undefined);
   const rootStyle: React.CSSProperties | undefined = {
@@ -184,7 +205,10 @@ export function AgentChat({
       {...inputBarProps}
       onSend={onSend}
       status={status}
-      onStop={onStop}
+      onStop={() => {
+        setStopped(true);
+        onStop();
+      }}
       value={draft}
       onChange={setDraft}
       placeholder={
@@ -202,6 +226,11 @@ export function AgentChat({
       attachedFiles={attachments?.files ?? inputBarProps?.attachedFiles}
       onRemoveImage={attachments?.onRemoveImage ?? inputBarProps?.onRemoveImage}
       onRemoveFile={attachments?.onRemoveFile ?? inputBarProps?.onRemoveFile}
+      onCancelFile={attachments?.onCancelFile ?? inputBarProps?.onCancelFile}
+      onRetryFile={attachments?.onRetryFile ?? inputBarProps?.onRetryFile}
+      blockSendWhileUploading={
+        attachments?.blockSendWhileUploading ?? inputBarProps?.blockSendWhileUploading
+      }
       onPaste={attachments?.onPaste ?? inputBarProps?.onPaste}
       isDragOver={attachments?.isDragOver ?? inputBarProps?.isDragOver}
       suggestions={showInputSuggestions ? (suggestions ?? inputBarProps?.suggestions) : []}
@@ -303,6 +332,9 @@ export function AgentChat({
                 )}
               </Stack>
             )}
+            {emptyState?.content && (
+              <div className={classes.emptyStateContent}>{emptyState.content}</div>
+            )}
             {emptySuggestionsNode}
             {inputBarNode}
           </div>
@@ -312,6 +344,7 @@ export function AgentChat({
           avatar={emptyState.avatar}
           title={emptyState.title}
           description={emptyState.description}
+          content={emptyState.content}
           actions={welcomeActions}
           onAction={handleWelcomeAction}
           labels={mergeLabels(labels?.welcome, emptyState.labels)}
@@ -326,6 +359,11 @@ export function AgentChat({
               classNames={classNames}
               slots={resolvedSlots}
               toolRenderers={toolRenderers}
+              partRenderers={partRenderers}
+              sendScroll={sendScroll}
+              streamingCaret={streamingCaret}
+              lazyTurns={lazyTurns}
+              stopped={stopped}
               showCopyToolbar={showCopyToolbar}
               collapseToolRuns={collapseToolRuns}
               messageActions={messageActions}

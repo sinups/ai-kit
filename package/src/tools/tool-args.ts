@@ -1,6 +1,6 @@
 import type { JsonSchema } from '../primitives/SchemaView/schema';
 import type { ToolPart } from '../types';
-import { clipText, formatOutputValue, UUID } from '../rows/tool-output';
+import { clipText, formatOutputValue } from '../rows/tool-output';
 import { isRecord } from '../utils/parts';
 import type { ToolCallState } from './tool-call-state';
 
@@ -10,7 +10,7 @@ const MAX_VALUE_CHARS = 40;
 export type ToolArgsContext = {
   /** Visible state of the call, see `deriveToolCallState` */
   state: ToolCallState;
-  /** Arguments with every string argument that holds a JSON object unfolded into its fields */
+  /** Arguments of the call as the tool received them */
   args: Record<string, unknown>;
   /** Text the kit shows without a formatter */
   summary: string;
@@ -40,8 +40,9 @@ function parseJsonObject(value: string): Record<string, unknown> | undefined {
 }
 
 /**
- * Arguments as the tool meant them: a string argument that holds a JSON object, as some servers
- * pass their whole payload, is replaced by its fields.
+ * Arguments with every string argument that holds a JSON object replaced by its fields.
+ * @deprecated The kit reads arguments by the `inputSchema` of the tool and no longer unfolds
+ * strings: a string argument is a string. Unfold them yourself in `toolArgs` if a server needs it.
  */
 export function unfoldToolArgs(input: unknown): Record<string, unknown> {
   const source = typeof input === 'string' ? parseJsonObject(input) : input;
@@ -60,34 +61,33 @@ export function unfoldToolArgs(input: unknown): Record<string, unknown> {
   return args;
 }
 
-function isNoise(value: unknown): boolean {
+/** Arguments of a call as the tool received them, an empty record for anything but an object */
+export function readToolArgs(input: unknown): Record<string, unknown> {
+  return isRecord(input) ? input : {};
+}
+
+function isEmpty(value: unknown): boolean {
   if (value === undefined || value === null || value === '' || value === false) {
     return true;
   }
-  if (typeof value === 'string' && UUID.test(value)) {
-    return true;
-  }
   if (Array.isArray(value)) {
-    return value.length === 0 || value.every(isNoise);
+    return value.length === 0;
   }
   return isRecord(value) && Object.keys(value).length === 0;
 }
 
-function formatArgValue(value: unknown, locale?: string): string {
+function formatArgValue(value: unknown, schema: JsonSchema | undefined, locale?: string): string {
   if (Array.isArray(value)) {
     return value
-      .filter((item) => !isNoise(item))
-      .map((item) => formatArgValue(item, locale))
+      .filter((item) => !isEmpty(item))
+      .map((item) => formatArgValue(item, schema?.items, locale))
       .filter(Boolean)
       .join(', ');
   }
   if (isRecord(value)) {
-    const first = Object.values(value).find(
-      (item) => typeof item === 'string' || typeof item === 'number'
-    );
-    return first === undefined ? '' : formatArgValue(first, locale);
+    return clipText(JSON.stringify(value), MAX_VALUE_CHARS);
   }
-  return clipText(formatOutputValue(value, locale), MAX_VALUE_CHARS);
+  return clipText(formatOutputValue(value, locale, schema), MAX_VALUE_CHARS);
 }
 
 function orderKeys(args: Record<string, unknown>, schema?: JsonSchema): string[] {
@@ -105,13 +105,14 @@ function orderKeys(args: Record<string, unknown>, schema?: JsonSchema): string[]
 }
 
 export type SummarizeArgsOptions = {
+  /** Input schema of the tool: order, titles and value formats of the arguments come from it */
   schema?: JsonSchema;
   locale?: string;
 };
 
 /**
- * A few significant arguments as `key: value · key: value`: identifiers, empty values and
- * `false` flags are skipped, a `true` flag shows its name alone.
+ * A few arguments as `title: value · title: value`, in the order and with the titles of the input
+ * schema: required first, empty values and `false` flags skipped, a `true` flag shows its title alone.
  */
 export function summarizeToolArgs(
   args: Record<string, unknown>,
@@ -123,16 +124,18 @@ export function summarizeToolArgs(
       break;
     }
     const value = args[key];
-    if (isNoise(value)) {
+    if (isEmpty(value)) {
       continue;
     }
+    const property = schema?.properties?.[key];
+    const title = property?.title ?? key;
     if (value === true) {
-      fields.push(key);
+      fields.push(title);
       continue;
     }
-    const text = formatArgValue(value, locale);
+    const text = formatArgValue(value, property, locale);
     if (text) {
-      fields.push(`${key}: ${text}`);
+      fields.push(`${title}: ${text}`);
     }
   }
   return fields.join(' · ');

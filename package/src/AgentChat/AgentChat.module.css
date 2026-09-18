@@ -24,6 +24,10 @@
   justify-content: center;
 }
 
+.emptyStateContent {
+  margin-bottom: var(--ae-space-md);
+}
+
 .emptySuggestionsTop {
   margin-bottom: rem(12px);
 }

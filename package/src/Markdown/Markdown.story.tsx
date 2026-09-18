@@ -260,3 +260,33 @@ export function CodeWrapNarrow() {
     </WidthFrame>
   );
 }
+
+const CARET_TEXT = 'The caret follows the last word of the answer while it streams';
+
+function StreamingCaretDemo() {
+  const [shown, setShown] = useState(12);
+  const streaming = shown < CARET_TEXT.length;
+  useEffect(() => {
+    if (!streaming) {
+      return;
+    }
+    const timer = setTimeout(() => setShown((count) => count + 2), 60);
+    return () => clearTimeout(timer);
+  }, [shown, streaming]);
+  return (
+    <Stack p="xl" maw={560} gap="xs">
+      <Button size="xs" w="fit-content" onClick={() => setShown(12)}>
+        Replay
+      </Button>
+      <Markdown content={CARET_TEXT.slice(0, shown)} streaming={streaming} streamingCaret />
+    </Stack>
+  );
+}
+
+export function StreamingCaret() {
+  return <StreamingCaretDemo />;
+}
+
+StreamingCaret.play = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+  await expect(canvasElement.querySelector('[data-caret]')).not.toBeNull();
+};

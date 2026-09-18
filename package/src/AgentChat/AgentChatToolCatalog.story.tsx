@@ -13,23 +13,58 @@ const catalog: ToolCatalog = {
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
+      required: ['assignee'],
       properties: {
-        assignee: { type: 'string' },
-        overdue: { type: 'boolean' },
-        size: { type: 'number' },
+        assignee: { type: 'string', title: 'Assignee' },
+        overdue: { type: 'boolean', title: 'Overdue only' },
+        size: { type: 'number', title: 'Page size' },
         sorting: { type: 'array', items: { type: 'object' } },
       },
     },
+    outputSchema: {
+      type: 'object',
+      required: ['issues'],
+      properties: {
+        issues: {
+          type: 'array',
+          title: 'Issues',
+          items: {
+            type: 'object',
+            required: ['id', 'title'],
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              dueDate: { type: 'string', format: 'date', title: 'Due' },
+            },
+          },
+        },
+        total: { type: 'number', title: 'Total' },
+      },
+    },
+  },
+  mcp__tracker__tracker_issue_files: {
+    title: 'Files of an issue',
+    annotations: { readOnlyHint: true },
   },
   mcp__tracker__tracker_issue_update: {
     title: 'Update an issue',
     description: 'Changes the state, the assignee or the due date of an issue.',
     annotations: { destructiveHint: false },
+    inputSchema: {
+      type: 'object',
+      properties: {
+        issue: { type: 'string', title: 'Issue' },
+        dueDate: { type: 'string', format: 'date', title: 'Due' },
+      },
+    },
   },
 };
 
-function mcpText(value: unknown) {
-  return { content: [{ type: 'text', text: JSON.stringify(value) }] };
+function mcpResult(structuredContent: unknown) {
+  return {
+    content: [{ type: 'text', text: JSON.stringify(structuredContent) }],
+    structuredContent,
+  };
 }
 
 const messages: ChatMessage[] = [
@@ -48,16 +83,13 @@ const messages: ChatMessage[] = [
         toolCallId: 'mine',
         state: 'output-available',
         input: {
-          payload: JSON.stringify({
-            assignee: 'alice',
-            size: 100,
-            sorting: [{ field: 'dueDate', direction: 'asc' }],
-            workspaceId: '0b8e2c1a-7f4d-4a55-9d2e-3c1b5a6f7e80',
-          }),
+          assignee: 'alice',
+          size: 100,
+          sorting: [{ field: 'dueDate', direction: 'asc' }],
         },
-        output: mcpText({
+        output: mcpResult({
           total: 12,
-          items: [
+          issues: [
             { id: 'TRK-400', title: 'Move the build to oxlint', dueDate: '2026-09-10' },
             { id: 'TRK-401', title: 'Update the licenses', dueDate: '2026-09-12' },
             { id: 'TRK-405', title: 'Prepare the 0.3 release', dueDate: '2026-09-25' },
@@ -68,14 +100,38 @@ const messages: ChatMessage[] = [
         type: 'tool-mcp__tracker__tracker_issue_search',
         toolCallId: 'overdue',
         state: 'output-available',
-        input: { payload: JSON.stringify({ assignee: 'alice', overdue: true }) },
-        output: mcpText({
+        input: { assignee: 'alice', overdue: true },
+        output: mcpResult({
           total: 2,
-          items: [
+          issues: [
             { id: 'TRK-400', title: 'Move the build to oxlint', dueDate: '2026-09-10' },
             { id: 'TRK-401', title: 'Update the licenses', dueDate: '2026-09-12' },
           ],
         }),
+      },
+      {
+        type: 'tool-mcp__tracker__tracker_issue_files',
+        toolCallId: 'files',
+        state: 'output-available',
+        input: { issue: 'TRK-400' },
+        output: {
+          content: [
+            {
+              type: 'image',
+              mimeType: 'image/svg+xml',
+              data: btoa(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120"><rect width="240" height="120" fill="aliceblue"/><text x="20" y="66" font-size="20" fill="steelblue">build.log</text></svg>'
+              ),
+            },
+            {
+              type: 'resource_link',
+              uri: 'https://example.com/files/build-report.pdf',
+              name: 'build-report.pdf',
+              title: 'Build report',
+              mimeType: 'application/pdf',
+            },
+          ],
+        },
       },
       {
         type: 'text',
@@ -85,7 +141,7 @@ const messages: ChatMessage[] = [
         type: 'tool-mcp__tracker__tracker_issue_update',
         toolCallId: 'move',
         state: 'input-available',
-        input: { payload: JSON.stringify({ issue: 'TRK-400', dueDate: '2026-09-25' }) },
+        input: { issue: 'TRK-400', dueDate: '2026-09-25' },
       },
     ],
   },

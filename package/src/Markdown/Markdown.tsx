@@ -6,6 +6,7 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { cx } from '../utils/cx';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { useStreamedText } from '../hooks/use-streamed-text';
+import { isSafeLinkUrl, readUrlScheme } from '../utils/safe-url';
 import {
   closeUnfinishedMarkdown,
   createMarkdownStreamReader,
@@ -14,6 +15,7 @@ import {
   type MarkdownStreamReader,
 } from './markdown-stream';
 import { shouldStackTable } from './table-layout';
+import { MarkdownLinksProvider, useMarkdownLinks, type MarkdownLinks } from './markdown-links';
 import classes from './Markdown.module.css';
 
 function fixNumberedListBreaks(text: string): string {
@@ -75,7 +77,9 @@ export type MarkdownProps = {
   tailGranularity?: MarkdownTailGranularity;
   /** Shows tables with too many columns for the available width as one card per row, `false` by default */
   responsiveTables?: boolean;
-};
+  /** Shows a caret after the growing text while `streaming`, `false` by default */
+  streamingCaret?: boolean;
+} & MarkdownLinks;
 
 function Anchor({
   href,
@@ -84,10 +88,14 @@ function Anchor({
 }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   children?: React.ReactNode;
 }) {
-  if (!href) {
+  const { onLinkClick, linkSchemes = [] } = useMarkdownLinks();
+  if (!href || !isSafeLinkUrl(href)) {
     return <span>{children}</span>;
   }
   const isExternal = href.startsWith('http') || href.startsWith('mailto:');
+  const scheme = readUrlScheme(href);
+  const isHostScheme =
+    scheme !== null && linkSchemes.some((own) => own.trim().toLowerCase() === scheme);
   return (
     <a
       {...props}
@@ -95,6 +103,16 @@ function Anchor({
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       className={classes.link}
+      onClick={
+        onLinkClick || isHostScheme
+          ? (event) => {
+              if (isHostScheme) {
+                event.preventDefault();
+              }
+              onLinkClick?.(href, event);
+            }
+          : undefined
+      }
     >
       {children}
     </a>
@@ -244,6 +262,9 @@ export const Markdown = memo(function Markdown({
   responsiveTables = false,
   frameBatched = false,
   tailGranularity = 'char',
+  streamingCaret = false,
+  onLinkClick,
+  linkSchemes,
 }: MarkdownProps) {
   const showCopy = controls?.code !== false;
   const options = useMemo(
@@ -280,8 +301,17 @@ export const Markdown = memo(function Markdown({
     [streamed, shownContent]
   );
 
+  const withLinks = (node: React.ReactElement) =>
+    onLinkClick || linkSchemes ? (
+      <MarkdownLinksProvider onLinkClick={onLinkClick} linkSchemes={linkSchemes}>
+        {node}
+      </MarkdownLinksProvider>
+    ) : (
+      node
+    );
+
   if (!streamed) {
-    return (
+    return withLinks(
       <Box className={cx(classes.root, className)}>
         <MarkdownChunk content={normalized} options={options} />
       </Box>
@@ -290,8 +320,12 @@ export const Markdown = memo(function Markdown({
 
   const { stable, tail } = readerRef.current(shownContent);
   const shownTail = streaming && tailGranularity === 'line' ? cutTailToLastLine(tail) : tail;
-  return (
-    <Box className={cx(classes.root, className)} data-streaming={streaming || undefined}>
+  return withLinks(
+    <Box
+      className={cx(classes.root, className)}
+      data-streaming={streaming || undefined}
+      data-caret={(streaming && streamingCaret) || undefined}
+    >
       {stable.map((block, index) => (
         <MarkdownChunk key={index} content={block} options={options} />
       ))}
