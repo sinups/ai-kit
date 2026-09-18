@@ -88,6 +88,7 @@ export function useAgentChat() {
   const sessionId = useRef<string | undefined>(undefined);
   const [chatId] = useState(() => `chat-${Math.random().toString(36).slice(2)}`);
   const abort = useRef<AbortController | null>(null);
+  const toolStarts = useRef<Map<string, number>>(new Map());
 
   const decide = useCallback(async (requestId: string, choice: ApprovalChoice) => {
     await fetch('/api/approvals', {
@@ -156,6 +157,7 @@ export function useAgentChat() {
               );
               break;
             case 'tool-start':
+              toolStarts.current.set(event.toolCallId, Date.now());
               setMessages((current) =>
                 withParts(current, (parts) => [
                   ...parts,
@@ -173,6 +175,8 @@ export function useAgentChat() {
                 withParts(current, (parts) =>
                   updateTool(parts, event.toolCallId, {
                     state: event.isError ? 'output-error' : 'output-available',
+                    durationMs:
+                      Date.now() - (toolStarts.current.get(event.toolCallId) ?? Date.now()),
                     output: event.output,
                     errorText: event.isError ? String(event.output) : undefined,
                   })

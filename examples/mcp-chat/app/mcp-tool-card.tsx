@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Stack, Text } from '@mantine/core';
+import { Accordion, Stack, Text } from '@mantine/core';
 import {
   type CustomToolRendererProps,
   McpTool,
@@ -76,6 +76,40 @@ function headerArgs(input: Record<string, unknown>): Record<string, unknown> {
   return picked;
 }
 
+function readableValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  if (Array.isArray(value)) {
+    const items = value.map(readableValue).filter(Boolean);
+    return items.length > 0 ? items.join(', ') : null;
+  }
+  if (typeof value === 'object') {
+    return null;
+  }
+  const text = String(value).replace(/^__|__$/g, '');
+  return text.length > 40 ? `${text.slice(0, 39)}…` : text;
+}
+
+function argumentSummary(values: Record<string, unknown>): string | null {
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(values)) {
+    const text = readableValue(value);
+    if (text) {
+      parts.push(`${key}: ${text}`);
+    }
+    if (parts.length === 3) {
+      break;
+    }
+  }
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+function describesValues(definition: McpToolDefinition | undefined): boolean {
+  const properties = definition?.inputSchema?.properties;
+  return Boolean(properties && Object.keys(properties).length > 0);
+}
+
 function countItems(value: unknown, depth = 3): number | null {
   if (Array.isArray(value)) {
     return value.length;
@@ -100,14 +134,13 @@ function summarize(output: unknown): string | null {
     return null;
   }
   const items = countItems(output);
-  if (items) {
-    return `${items} ${items === 1 ? 'item' : 'items'}`;
-  }
-  return text.length >= 1024 ? `${Math.round(text.length / 1024)} KB` : `${text.length} chars`;
+  const size =
+    text.length >= 1024 ? `${Math.round(text.length / 1024)} KB` : `${text.length} chars`;
+  return items ? `${items} ${items === 1 ? 'item' : 'items'} · ${size}` : size;
 }
 
 export function McpToolCard({ part, input, output, status }: CustomToolRendererProps) {
-  const { approvals, decide, serverName, definitions } = use(ApprovalContext);
+  const { approvals, decide, definitions } = use(ApprovalContext);
   const mcpInfo = parseMcpToolType(part.type);
   const approval = part.toolCallId ? approvals[part.toolCallId] : undefined;
   const running = status === 'pending' || status === 'streaming';
@@ -120,7 +153,9 @@ export function McpToolCard({ part, input, output, status }: CustomToolRendererP
     return null;
   }
 
-  const meta = [serverName];
+  const values = flatten(input);
+  const summary = argumentSummary(values);
+  const meta: string[] = [];
   if (definition?.annotations?.destructiveHint) {
     meta.push('writes');
   } else if (definition?.annotations?.readOnlyHint) {
@@ -129,39 +164,63 @@ export function McpToolCard({ part, input, output, status }: CustomToolRendererP
   if (approval?.outcome) {
     meta.push(OUTCOME_LABELS[approval.outcome]);
   }
+  if (typeof part.durationMs === 'number') {
+    meta.push(`${(part.durationMs / 1000).toFixed(1)}s`);
+  }
   if (!running && !failed) {
-    const summary = summarize(output);
-    if (summary) {
-      meta.push(summary);
+    const result = summarize(output);
+    if (result) {
+      meta.push(result);
     }
   }
 
   return (
-    <Stack gap={6}>
+    <Stack gap={0} className={classes.call}>
       <McpTool
         part={{ ...part, input: headerArgs(input) }}
         mcpInfo={mcpInfo}
         chatStatus={running ? 'streaming' : 'ready'}
         className={classes.card}
       />
-      <Group gap={6} wrap="nowrap">
-        <Text size="xs" c="dimmed">
+      {meta.length > 0 && (
+        <Text size="xs" c="dimmed" className={classes.meta}>
           {meta.join(' · ')}
         </Text>
-      </Group>
+      )}
+      {asking && summary && (
+        <Accordion variant="unstyled" chevronPosition="left" className={classes.arguments}>
+          <Accordion.Item value="arguments">
+            <Accordion.Control>
+              <Text size="xs" c="dimmed" lineClamp={1}>
+                {summary}
+              </Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              {describesValues(definition) && definition?.inputSchema ? (
+                <SchemaValues
+                  schema={definition.inputSchema}
+                  values={values}
+                  hideMissing
+                  className={classes.table}
+                />
+              ) : (
+                <Stack gap={2}>
+                  {Object.entries(values).map(([key, value]) => (
+                    <Text key={key} size="xs" c="dimmed">
+                      {key}: {readableValue(value) ?? JSON.stringify(value)}
+                    </Text>
+                  ))}
+                </Stack>
+              )}
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      )}
       {failed && (
         <ToolResultNotice
           variant="error"
           toolName={mcpInfo.displayName}
           errorText={typeof output === 'string' ? output : JSON.stringify(output, null, 2)}
-        />
-      )}
-      {asking && definition?.inputSchema && (
-        <SchemaValues
-          schema={definition.inputSchema}
-          values={flatten(input)}
-          hideMissing
-          className={classes.arguments}
         />
       )}
       {asking && details && (

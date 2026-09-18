@@ -1,9 +1,26 @@
+.call {
+  margin-block: var(--mantine-spacing-xs);
+}
+
 .card pre {
   max-height: 18rem;
   overflow: auto;
 }
 
+.meta {
+  padding-inline-start: var(--mantine-spacing-md);
+}
+
 .arguments {
+  padding-inline-start: var(--mantine-spacing-xs);
+}
+
+.arguments button {
+  padding-block: 2px;
+  padding-inline: var(--mantine-spacing-xs);
+}
+
+.table {
   max-height: 16rem;
   overflow: auto;
 }

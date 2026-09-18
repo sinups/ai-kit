@@ -84,6 +84,23 @@ export default function Page() {
     [server]
   );
 
+  const panelServer = useMemo(() => {
+    if (!server?.tools) {
+      return server;
+    }
+    return {
+      ...server,
+      tools: server.tools.map((tool) => ({
+        ...tool,
+        annotations: tool.annotations?.destructiveHint
+          ? { destructiveHint: true }
+          : tool.annotations?.readOnlyHint
+            ? { readOnlyHint: true }
+            : undefined,
+      })),
+    };
+  }, [server]);
+
   const toolTypes = useMemo(() => {
     const types = new Set<string>();
     for (const message of messages) {
@@ -150,7 +167,7 @@ export default function Page() {
   const inspector = useMemo(
     () => (
       <Inspector
-        server={server}
+        server={panelServer}
         loading={loadingServer}
         rules={permissions.rules}
         onReconnect={reconnect}
@@ -158,7 +175,7 @@ export default function Page() {
         onDeleteRule={removeRule}
       />
     ),
-    [server, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
+    [panelServer, loadingServer, permissions.rules, reconnect, saveRule, removeRule]
   );
 
   return (
