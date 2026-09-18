@@ -45,6 +45,8 @@ export function AgentChat({
   responsiveTables,
   frameBatched = true,
   tailGranularity,
+  animateAppearance = true,
+  toolCallLookups,
   emptySuggestionsPlacement = 'input',
   emptyStateWidth,
   questionTool,
@@ -287,6 +289,8 @@ export function AgentChat({
           responsiveTables={responsiveTables}
           frameBatched={frameBatched}
           tailGranularity={tailGranularity}
+          animateAppearance={animateAppearance}
+          toolCallLookups={toolCallLookups}
           highlighter={highlighter}
           longMessageThreshold={longMessageThreshold}
           initialScrollBehavior={initialScrollBehavior}

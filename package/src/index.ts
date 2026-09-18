@@ -172,6 +172,20 @@ export type {
   ToolApprovalRuleSuggestion,
   ToolApprovalRequester,
 } from './tools/ToolApprovalFooter';
+export {
+  createToolCallLookups,
+  deriveToolCallState,
+  DEFAULT_TOOL_CALL_STATE_LABELS,
+} from './tools/tool-call-state';
+export type {
+  ToolCallState,
+  ToolCallLookups,
+  ToolCallStateLabels,
+  DeriveToolCallStateOptions,
+} from './tools/tool-call-state';
+export { ToolCardBoundary } from './tools/ToolCardBoundary';
+export type { ToolCardBoundaryProps } from './tools/ToolCardBoundary';
+export { parsePartialJson, parsePartialRecord } from './utils/partial-json';
 export { toolRegistry, parseMcpToolType } from './tools/tool-registry';
 export type { ToolMeta, ToolVariant, McpToolInfo } from './tools/tool-registry';
 export { routeToolCall } from './tools/tool-router';
@@ -1096,9 +1110,17 @@ export {
   AiKitHostScope,
   AiKitProvider,
   useAiKitTheme,
+  useAiKitThemePreview,
+  useAiKitThemeSetting,
   useOptionalAiKitTheme,
 } from './theme/AiKitProvider';
-export type { AiKitProviderProps, AiKitThemeContextValue } from './theme/AiKitProvider';
+export type {
+  AiKitProviderProps,
+  AiKitResolvedColorScheme,
+  AiKitThemeContextValue,
+  AiKitThemePreviewValue,
+  AiKitThemeSettingValue,
+} from './theme/AiKitProvider';
 export {
   AiKitThemeCustomizer,
   DEFAULT_AI_KIT_THEME_CUSTOMIZER_LABELS,

@@ -8,6 +8,10 @@ function Settings() {
   return <span data-testid="settings">{JSON.stringify(useAiKitTheme().settings)}</span>;
 }
 
+function Stored() {
+  return <span data-testid="stored">{JSON.stringify(useAiKitTheme().setting)}</span>;
+}
+
 describe('theme/AiKitThemeCustomizer', () => {
   it('changes the nearest provider and resets it', async () => {
     render(
@@ -26,6 +30,41 @@ describe('theme/AiKitThemeCustomizer', () => {
     expect(screen.getByRole('button', { name: 'violet' })).toHaveAttribute('aria-pressed', 'true');
 
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getByTestId('settings')).toHaveTextContent('{}');
+  });
+
+  it('previews a hovered option and restores the theme when it is left', async () => {
+    render(
+      <AiKitProvider>
+        <AiKitThemeCustomizer preview />
+        <Settings />
+        <Stored />
+      </AiKitProvider>
+    );
+
+    const round = screen.getByRole('button', { name: 'Round' });
+    await userEvent.hover(round);
+    expect(screen.getByTestId('settings')).toHaveTextContent('{"radius":"round"}');
+    expect(screen.getByTestId('stored')).toHaveTextContent('{}');
+
+    await userEvent.unhover(round);
+    expect(screen.getByTestId('settings')).toHaveTextContent('{}');
+    expect(round).toHaveAttribute('aria-pressed', 'false');
+
+    await userEvent.click(round);
+    expect(screen.getByTestId('stored')).toHaveTextContent('{"radius":"round"}');
+    expect(round).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('leaves the theme alone on hover without the preview prop', async () => {
+    render(
+      <AiKitProvider>
+        <AiKitThemeCustomizer />
+        <Settings />
+      </AiKitProvider>
+    );
+
+    await userEvent.hover(screen.getByRole('button', { name: 'Round' }));
     expect(screen.getByTestId('settings')).toHaveTextContent('{}');
   });
 

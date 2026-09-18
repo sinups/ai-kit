@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { QuestionTool, type QuestionToolPart } from '../question/QuestionTool';
 import type { CustomToolRendererProps, ToolActionHandler, ToolPart } from '../types';
 import { getPartInput, getToolStatus } from '../utils/format-tool';
+import { parsePartialRecord } from '../utils/partial-json';
 import { BashTool } from './BashTool';
 import { EditTool } from './EditTool';
 import { GenericTool } from './GenericTool';
@@ -10,6 +11,14 @@ import { PlanTool } from './PlanTool';
 import { SearchTool } from './SearchTool';
 import { ThinkingTool } from './ThinkingTool';
 import { TodoTool } from './TodoTool';
+import {
+  DEFAULT_TOOL_CALL_STATE_LABELS,
+  deriveToolCallState,
+  type ToolCallLookups,
+  type ToolCallState,
+  type ToolCallStateLabels,
+} from './tool-call-state';
+import { ToolCardBoundary } from './ToolCardBoundary';
 import { parseMcpToolType, toolRegistry } from './tool-registry';
 import { ToolGroup } from './ToolGroup';
 
@@ -26,6 +35,12 @@ export interface ToolRendererProps {
   onToolAction?: ToolActionHandler;
   /** Wraps long lines in diffs instead of scrolling them sideways */
   wrapLines?: boolean;
+  /** Transcript lookups behind the visible state of the call, see `createToolCallLookups` */
+  lookups?: ToolCallLookups;
+  /** Overrides of the default English labels of the derived states */
+  labels?: Partial<ToolCallStateLabels>;
+  /** Called when a card throws and degrades to the generic row */
+  onRenderError?: (error: unknown, part: ToolPart) => void;
 }
 
 function deriveToolStatus(part: ToolPart, chatStatus?: string): CustomToolRendererProps['status'] {
@@ -42,6 +57,21 @@ function deriveToolStatus(part: ToolPart, chatStatus?: string): CustomToolRender
   return isPending ? 'pending' : 'success';
 }
 
+/** Registry titles read raw tool input, so a malformed entry must not escape as an exception */
+function safeText(read: () => string | undefined): string | undefined {
+  try {
+    return read();
+  } catch {
+    return undefined;
+  }
+}
+
+/** Whether the host attached its own approval request to the call, which the card renders itself */
+function hasApprovalFooter(part: ToolPart): boolean {
+  const approval = getPartInput(part).approval;
+  return Boolean(approval) && typeof approval === 'object';
+}
+
 /** Dispatches a tool part to the matching card by `part.type` (`dynamic-tool` parts by `tool-${toolName}`) */
 export const ToolRenderer = memo(function ToolRenderer({
   part: rawPart,
@@ -50,12 +80,17 @@ export const ToolRenderer = memo(function ToolRenderer({
   toolRenderers,
   onToolAction,
   wrapLines,
+  lookups,
+  labels: labelsProp,
+  onRenderError,
 }: ToolRendererProps) {
   const isDynamic = rawPart.type === 'dynamic-tool' && typeof rawPart.toolName === 'string';
-  const part = useMemo<ToolPart>(
-    () => (isDynamic ? { ...rawPart, type: `tool-${rawPart.toolName}` } : rawPart),
-    [isDynamic, rawPart]
-  );
+  const part = useMemo<ToolPart>(() => {
+    const typed = isDynamic ? { ...rawPart, type: `tool-${rawPart.toolName}` } : rawPart;
+    const parsedInput =
+      typeof typed.input === 'string' ? parsePartialRecord(typed.input) : undefined;
+    return parsedInput ? { ...typed, input: parsedInput } : typed;
+  }, [isDynamic, rawPart]);
   const partType = part.type;
   const toolName = partType.startsWith('tool-') ? partType.slice(5) : partType;
   const mcpInfo = parseMcpToolType(partType);
@@ -67,6 +102,97 @@ export const ToolRenderer = memo(function ToolRenderer({
         ? mcpInfo.toolName
         : null;
 
+  const labels = { ...DEFAULT_TOOL_CALL_STATE_LABELS, ...labelsProp };
+  const callState = deriveToolCallState(part, { chatStatus, lookups });
+  const settledElsewhere =
+    callState === 'done' &&
+    part.state !== 'output-available' &&
+    part.state !== 'output-error' &&
+    Boolean(part.toolCallId && lookups?.hasResult?.(part.toolCallId));
+  const cardPart = useMemo(
+    () => (settledElsewhere ? { ...part, state: 'output-available' } : part),
+    [part, settledElsewhere]
+  );
+  const meta = toolRegistry[partType];
+  const registryTitle = (meta ? safeText(() => meta.title(part)) : undefined) || toolName;
+  const registrySubtitle = safeText(() => meta?.subtitle?.(part));
+
+  const quietRow = (title: string, subtitle?: string) => (
+    <GenericTool
+      icon={meta?.icon}
+      title={title}
+      subtitle={subtitle}
+      isPending={false}
+      tone="quiet"
+    />
+  );
+
+  if (callState === 'queued' || (callState === 'awaiting-permission' && !hasApprovalFooter(part))) {
+    const label = callState === 'queued' ? labels.queued : labels.awaitingPermission;
+    return quietRow(label, registrySubtitle || registryTitle);
+  }
+
+  const card = renderToolCard({
+    part: cardPart,
+    partType,
+    toolName,
+    mcpInfo,
+    meta,
+    registryTitle,
+    registrySubtitle,
+    customKey,
+    toolRenderers,
+    chatStatus,
+    nestedTools,
+    onToolAction,
+    wrapLines,
+    callState,
+  });
+
+  return (
+    <ToolCardBoundary
+      resetKey={`${part.toolCallId ?? partType}:${part.state ?? ''}`}
+      onError={onRenderError ? (error) => onRenderError(error, part) : undefined}
+      fallback={quietRow(registryTitle, labels.renderError)}
+    >
+      {card}
+    </ToolCardBoundary>
+  );
+});
+
+type ToolCardOptions = {
+  part: ToolPart;
+  partType: string;
+  toolName: string;
+  mcpInfo: ReturnType<typeof parseMcpToolType>;
+  meta: (typeof toolRegistry)[string] | undefined;
+  registryTitle: string;
+  registrySubtitle: string | undefined;
+  customKey: string | null;
+  toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  chatStatus?: string;
+  nestedTools?: ToolPart[];
+  onToolAction?: ToolActionHandler;
+  wrapLines?: boolean;
+  callState: ToolCallState;
+};
+
+function renderToolCard({
+  part,
+  partType,
+  toolName,
+  mcpInfo,
+  meta,
+  registryTitle,
+  registrySubtitle,
+  customKey,
+  toolRenderers,
+  chatStatus,
+  nestedTools,
+  onToolAction,
+  wrapLines,
+  callState,
+}: ToolCardOptions): React.ReactNode {
   if (toolRenderers && customKey !== null) {
     const CustomRenderer = toolRenderers[customKey];
     const toolCallId = part.toolCallId;
@@ -76,6 +202,7 @@ export const ToolRenderer = memo(function ToolRenderer({
         input={getPartInput(part)}
         output={mcpInfo ? (part.output ? unwrapMcpOutput(part.output) : undefined) : part.output}
         status={deriveToolStatus(part, chatStatus)}
+        callState={callState}
         toolCallId={toolCallId}
         part={part}
         onAction={
@@ -128,20 +255,18 @@ export const ToolRenderer = memo(function ToolRenderer({
     return <McpTool part={part} mcpInfo={mcpInfo} chatStatus={chatStatus} />;
   }
 
-  const meta = toolRegistry[partType];
+  const { isPending, isError } = getToolStatus(part, chatStatus);
   if (meta) {
-    const { isPending, isError } = getToolStatus(part, chatStatus);
     return (
       <GenericTool
-        title={meta.title(part)}
-        subtitle={meta.subtitle?.(part)}
+        title={registryTitle}
+        subtitle={registrySubtitle}
         isPending={isPending}
         isError={isError}
       />
     );
   }
 
-  const { isPending, isError } = getToolStatus(part, chatStatus);
   return (
     <GenericTool
       title={isPending ? `Running ${toolName}` : toolName}
@@ -149,6 +274,6 @@ export const ToolRenderer = memo(function ToolRenderer({
       isError={isError}
     />
   );
-});
+}
 
 ToolRenderer.displayName = 'ToolRenderer';

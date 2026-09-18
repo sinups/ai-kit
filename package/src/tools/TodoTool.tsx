@@ -196,7 +196,7 @@ export const TodoTool = memo(function TodoTool({
     return null;
   }
 
-  if (isStreaming || newTodos.length === 0) {
+  if (newTodos.length === 0) {
     return (
       <Box className={cx(classes.root, className)} style={style}>
         <div className={classes.placeholder}>

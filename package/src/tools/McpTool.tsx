@@ -4,7 +4,7 @@ import { Markdown } from '../Markdown/Markdown';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import type { ToolPart } from '../types';
 import { cx } from '../utils/cx';
-import { areToolPropsEqual, getToolStatus } from '../utils/format-tool';
+import { areToolPropsEqual, getPartInput, getToolStatus } from '../utils/format-tool';
 import type { McpToolInfo } from './tool-registry';
 import classes from './McpTool.module.css';
 
@@ -210,12 +210,7 @@ export const McpTool = memo(function McpTool({
     return conjugate(mcpInfo, COMPLETED_VERBS);
   }, [part.state, isPending, mcpInfo]);
 
-  const subtitle = useMemo(() => {
-    if (part.state === 'input-streaming') {
-      return '';
-    }
-    return formatMcpArgs(part.input);
-  }, [part.input, part.state]);
+  const subtitle = useMemo(() => formatMcpArgs(getPartInput(part)), [part]);
 
   const displayOutput = useMemo(() => {
     if (!part.output) {

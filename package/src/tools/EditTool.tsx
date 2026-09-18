@@ -100,7 +100,7 @@ export function EditToolDiffCard({
       <div className={classes.header} data-bordered={!isPending || !!diffContents || undefined}>
         <div className={classes.headerContent}>
           {hasFileName && <FileExtIcon filename={fileName} size={12} />}
-          {isPending && !diffContents ? (
+          {isPending && !hasFileName ? (
             <TextShimmer as="span" duration={1.2} className={classes.shimmer}>
               Generating...
             </TextShimmer>

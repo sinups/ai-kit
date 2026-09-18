@@ -1,4 +1,5 @@
 import type { ToolPart } from '../types';
+import { parsePartialRecord } from './partial-json';
 
 function arePartsEqual(prev: ToolPart, next: ToolPart): boolean {
   if (prev === next) {
@@ -79,9 +80,13 @@ export function getLegacyToolState(part: ToolPart): 'partial-call' | 'call' | 'r
   return 'call';
 }
 
+/** Tool input as an object, tolerating a missing input and one that is still streaming as text */
 export function getPartInput(part: ToolPart): Record<string, any> {
   const input = (part.input ?? part.args) as Record<string, any> | undefined;
-  return input && typeof input === 'object' ? input : {};
+  if (input && typeof input === 'object') {
+    return input;
+  }
+  return parsePartialRecord(input) ?? {};
 }
 
 export function getPartOutput(part: ToolPart): any {

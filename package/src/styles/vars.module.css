@@ -52,6 +52,7 @@
   --ae-anim-blink: ae-blink;
   --ae-anim-loading-dots: ae-loading-dots;
   --ae-anim-spin: ae-spin;
+  --ae-anim-appear: ae-appear;
 
   --ae-hover: var(--mantine-color-default-hover);
   --ae-primary: var(--mantine-primary-color-filled);
@@ -171,5 +172,12 @@
 @keyframes :global(ae-spin) {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes :global(ae-appear) {
+  from {
+    opacity: 0;
+    transform: translateY(var(--ae-space-2xs));
   }
 }

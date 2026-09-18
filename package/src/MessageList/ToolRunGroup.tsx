@@ -7,6 +7,7 @@ import type {
   ToolPart,
   ToolRendererSlotProps,
 } from '../types';
+import type { ToolCallLookups } from '../tools/tool-call-state';
 import { getToolStatus } from '../utils/format-tool';
 import {
   DEFAULT_TOOL_RUN_LABELS,
@@ -27,6 +28,8 @@ export interface ToolRunGroupProps {
   onToolAction?: ToolActionHandler;
   /** Wraps long lines in diffs instead of scrolling them sideways */
   wrapLines?: boolean;
+  /** Transcript lookups behind the visible state of a call, see `createToolCallLookups` */
+  lookups?: ToolCallLookups;
   /** Summary and progress labels, English by default */
   labels?: ToolRunLabels;
   /** Class name added to the root element */
@@ -43,6 +46,7 @@ export const ToolRunGroup = memo(function ToolRunGroup({
   toolRenderers,
   onToolAction,
   wrapLines,
+  lookups,
   labels = DEFAULT_TOOL_RUN_LABELS,
   className,
   style,
@@ -73,6 +77,7 @@ export const ToolRunGroup = memo(function ToolRunGroup({
             toolRenderers={toolRenderers}
             onToolAction={onToolAction}
             wrapLines={wrapLines}
+            lookups={lookups}
           />
         ))}
       </Stack>

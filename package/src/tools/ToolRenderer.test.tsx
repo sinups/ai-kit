@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, userEvent } from '@mantine-tests/core';
 import type { CustomToolRendererProps } from '../types';
+import { createToolCallLookups } from './tool-call-state';
 import { ToolRenderer } from './ToolRenderer';
 
 describe('tools/ToolRenderer', () => {
@@ -215,5 +216,148 @@ describe('tools/ToolRenderer', () => {
       />
     );
     expect(container.textContent).not.toContain('Updating to-dos');
+  });
+  it('renders the header of a call whose input is still streaming', () => {
+    render(
+      <ToolRenderer
+        chatStatus="streaming"
+        part={{
+          type: 'tool-Bash',
+          toolCallId: 'b3',
+          state: 'input-streaming',
+          input: '{"command": "yarn jest pack',
+        }}
+      />
+    );
+    expect(screen.getByText('Running command: yarn')).toBeInTheDocument();
+  });
+
+  it('names the file of an edit whose arguments are half there', () => {
+    render(
+      <ToolRenderer
+        chatStatus="streaming"
+        part={{
+          type: 'tool-Edit',
+          toolCallId: 'e2',
+          state: 'input-streaming',
+          input: '{"file_path": "/repo/src/greet.ts", "old_str',
+        }}
+      />
+    );
+    expect(screen.getByText(/Editing greet\.ts/)).toBeInTheDocument();
+  });
+
+  it('says a call is waiting for a decision', () => {
+    const waiting = {
+      type: 'tool-Bash',
+      toolCallId: 'p1',
+      state: 'input-available',
+      input: { command: 'rm -rf build' },
+    };
+    const lookups = { isAwaitingPermission: (id: string) => id === 'p1' };
+    render(<ToolRenderer part={waiting} chatStatus="streaming" lookups={lookups} />);
+    expect(screen.getByText('Waiting for permission')).toBeInTheDocument();
+    expect(screen.queryByText('Running command: rm')).toBeNull();
+  });
+
+  it('marks the calls after the running one as queued', () => {
+    const first = {
+      type: 'tool-Read',
+      toolCallId: 'q1',
+      state: 'input-available',
+      input: { file_path: '/repo/a.ts' },
+    };
+    const second = {
+      type: 'tool-Read',
+      toolCallId: 'q2',
+      state: 'input-available',
+      input: { file_path: '/repo/b.ts' },
+    };
+    const lookups = createToolCallLookups([
+      { id: 'm1', role: 'assistant' as const, parts: [first, second] },
+    ]);
+    render(
+      <>
+        <ToolRenderer part={first} chatStatus="streaming" lookups={lookups} />
+        <ToolRenderer part={second} chatStatus="streaming" lookups={lookups} />
+      </>
+    );
+    expect(screen.getByText('Reading')).toBeInTheDocument();
+    expect(screen.getByText('Queued')).toBeInTheDocument();
+  });
+
+  it('does not show a restored call as running when its result came later', () => {
+    const pending = {
+      type: 'tool-Bash',
+      toolCallId: 'r9',
+      state: 'input-available',
+      input: { command: 'yarn build' },
+    };
+    const lookups = createToolCallLookups([
+      { id: 'm1', role: 'assistant' as const, parts: [pending] },
+      {
+        id: 'm2',
+        role: 'assistant' as const,
+        parts: [{ ...pending, state: 'output-available', output: { stdout: 'done', exitCode: 0 } }],
+      },
+    ]);
+    render(<ToolRenderer part={pending} chatStatus="streaming" lookups={lookups} />);
+    expect(screen.getByText('Ran command: yarn')).toBeInTheDocument();
+    expect(screen.queryByText('Running command: yarn')).toBeNull();
+  });
+
+  it('renders a card whose input is malformed JSON', () => {
+    render(
+      <ToolRenderer
+        part={{
+          type: 'tool-Bash',
+          toolCallId: 'b4',
+          state: 'output-available',
+          input: 'not json at all',
+          output: { stdout: 'ok', exitCode: 0 },
+        }}
+      />
+    );
+    expect(screen.getByText('Ran command:')).toBeInTheDocument();
+  });
+
+  it('survives an output of an unexpected shape', () => {
+    render(
+      <ToolRenderer
+        part={{
+          type: 'tool-Grep',
+          toolCallId: 'g9',
+          state: 'output-available',
+          input: { pattern: 'ToolRowBase' },
+          output: ['unexpected', 42],
+        }}
+      />
+    );
+    expect(screen.getByText('No matches')).toBeInTheDocument();
+  });
+
+  it('degrades a throwing custom renderer to the generic card', () => {
+    const onRenderError = jest.fn();
+    function Boom(): React.ReactElement {
+      throw new Error('renderer exploded');
+    }
+    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <ToolRenderer
+        part={{
+          type: 'tool-Read',
+          toolCallId: 'x1',
+          state: 'output-available',
+          input: { file_path: '/repo/a.ts' },
+          output: 'content',
+        }}
+        toolRenderers={{ 'tool-Read': Boom }}
+        onRenderError={onRenderError}
+      />
+    );
+    error.mockRestore();
+    expect(screen.getByText('Read')).toBeInTheDocument();
+    expect(screen.getByText('Could not display this tool call')).toBeInTheDocument();
+    expect(onRenderError).toHaveBeenCalled();
   });
 });

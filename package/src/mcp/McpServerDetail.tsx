@@ -272,6 +272,7 @@ function ToolRow({
     <Stack gap={4}>
       <EntityListItem
         title={getMcpToolDisplayName(tool)}
+        titleLines={2}
         description={tool.description}
         icon={<IconTool size={16} />}
         badges={

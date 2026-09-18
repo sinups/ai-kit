@@ -47,6 +47,8 @@ export interface EntityListItemProps {
   disabled?: boolean;
   /** Maximum number of description lines, `2` by default */
   descriptionLines?: number;
+  /** Maximum number of title lines before the ellipsis, `1` by default; `2` suits long names */
+  titleLines?: number;
   /** Called when a standalone row is clicked and makes it focusable; ignored inside `EntityList`, which selects through `onSelect` */
   onClick?: () => void;
   /** Overrides of the default English labels */
@@ -88,6 +90,7 @@ export const EntityListItem = memo(function EntityListItem({
   selected = false,
   disabled = false,
   descriptionLines = 2,
+  titleLines = 1,
   onClick,
   className,
   style,
@@ -167,7 +170,15 @@ export const EntityListItem = memo(function EntityListItem({
       classNames={{ body: classes.itemBody, label: classes.itemLabel }}
       label={
         <Group gap={6} wrap="nowrap" className={classes.labelRow}>
-          <Text component="span" size="sm" fw={500} truncate="end" className={classes.title}>
+          <Text
+            component="span"
+            size="sm"
+            fw={500}
+            truncate={titleLines > 1 ? undefined : 'end'}
+            lineClamp={titleLines > 1 ? titleLines : undefined}
+            data-lines={titleLines > 1 ? titleLines : undefined}
+            className={classes.title}
+          >
             {title}
           </Text>
           {(status || badges) && (

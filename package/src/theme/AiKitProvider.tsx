@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
   mergeMantineTheme,
   mergeThemeOverrides,
   MantineThemeProvider,
+  useComputedColorScheme,
   useMantineColorScheme,
   useMantineTheme,
   type MantineTheme,
@@ -43,15 +45,40 @@ export interface AiKitProviderProps extends AiKitThemeSettings {
   children?: React.ReactNode;
 }
 
-export interface AiKitThemeContextValue {
-  /** Effective settings: props with the changes made through `setSettings` on top */
-  settings: AiKitThemeSettings;
+/** Color scheme in effect: the stored setting with `auto` resolved against the system preference */
+export type AiKitResolvedColorScheme = 'light' | 'dark';
+
+/** The stored theme setting, as opposed to the theme currently shown (which a preview can change) */
+export interface AiKitThemeSettingValue {
+  /** Stored settings: props with the saved changes on top; `colorScheme` may still be `auto` */
+  setting: AiKitThemeSettings;
   /** Settings passed as props, the target of `reset` */
   defaults: AiKitThemeSettings;
+  /** Merges a partial change into the stored settings and persists it; `undefined` values fall back to the props */
+  setSetting: (patch: AiKitThemeSettings) => void;
+  /** Drops every stored change */
+  reset: () => void;
+  /** `setting.colorScheme` with `auto` resolved against the system preference */
+  resolvedColorScheme: AiKitResolvedColorScheme;
+}
+
+/** Settings shown on top of the stored ones until they are saved or cancelled */
+export interface AiKitThemePreviewValue {
+  /** Settings previewed on top of the stored ones, `null` while nothing is previewed */
+  preview: AiKitThemeSettings | null;
+  /** Shows a partial change live without storing it; `null` ends the preview */
+  setPreview: (patch: AiKitThemeSettings | null) => void;
+  /** Stores the current preview through `setSetting` and ends the preview */
+  savePreview: () => void;
+  /** Ends the preview and restores the stored settings */
+  cancelPreview: () => void;
+}
+
+export interface AiKitThemeContextValue extends AiKitThemeSettingValue, AiKitThemePreviewValue {
+  /** Effective settings: props with the changes made through `setSettings` and the preview on top */
+  settings: AiKitThemeSettings;
   /** Merges a partial change into the settings; `undefined` values fall back to the props */
   setSettings: (patch: AiKitThemeSettings) => void;
-  /** Drops every change made through `setSettings` */
-  reset: () => void;
   /** Theme of the host `MantineProvider` above the kit */
   hostTheme: MantineTheme;
   /** Class that restores host CSS variables, used by `AiKitHostScope` */
@@ -64,20 +91,43 @@ export function useOptionalAiKitTheme(): AiKitThemeContextValue | null {
   return useContext(AiKitThemeContext);
 }
 
+function useAiKitThemeContext(hook: string): AiKitThemeContextValue {
+  const context = useContext(AiKitThemeContext);
+  if (!context) {
+    throw new Error(`${hook} must be used inside AiKitProvider`);
+  }
+  return context;
+}
+
 /** Reads and changes the settings of the nearest `AiKitProvider`; `aiKit` is `theme.other.aiKit` resolved from `useMantineTheme()` */
 export function useAiKitTheme(): AiKitThemeContextValue & { aiKit: AiKitThemeOther } {
-  const context = useContext(AiKitThemeContext);
+  const context = useAiKitThemeContext('useAiKitTheme');
   const theme = useMantineTheme();
-  if (!context) {
-    throw new Error('useAiKitTheme must be used inside AiKitProvider');
-  }
   return { ...context, aiKit: getAiKitOther(theme) };
+}
+
+/** Reads and changes what the nearest `AiKitProvider` stores, ignoring any running preview */
+export function useAiKitThemeSetting(): AiKitThemeSettingValue {
+  const { setting, defaults, setSetting, reset, resolvedColorScheme } =
+    useAiKitThemeContext('useAiKitThemeSetting');
+  return { setting, defaults, setSetting, reset, resolvedColorScheme };
+}
+
+/** Shows settings live in the nearest `AiKitProvider` before they are stored, with `savePreview` and `cancelPreview` */
+export function useAiKitThemePreview(): AiKitThemePreviewValue {
+  const { preview, setPreview, savePreview, cancelPreview } =
+    useAiKitThemeContext('useAiKitThemePreview');
+  return { preview, setPreview, savePreview, cancelPreview };
 }
 
 function withoutUndefined(settings: AiKitThemeSettings): AiKitThemeSettings {
   return Object.fromEntries(
     Object.entries(settings).filter(([, value]) => value !== undefined)
   ) as AiKitThemeSettings;
+}
+
+function applyPatch(base: AiKitThemeSettings, patch: AiKitThemeSettings): AiKitThemeSettings {
+  return withoutUndefined({ ...base, ...patch });
 }
 
 /**
@@ -108,15 +158,12 @@ export function AiKitProvider({
     setChanges(readAiKitSettings(persistKey));
   }
 
+  const [preview, setPreview] = useState<AiKitThemeSettings | null>(null);
+
   const setSettings = useCallback(
     (patch: AiKitThemeSettings) =>
       setChanges((previous) => {
-        const next = withoutUndefined({ ...previous, ...patch });
-        for (const key of Object.keys(patch) as (keyof AiKitThemeSettings)[]) {
-          if (patch[key] === undefined) {
-            delete next[key];
-          }
-        }
+        const next = applyPatch(previous, patch);
         writeAiKitSettings(persistKey, next);
         return next;
       }),
@@ -125,18 +172,44 @@ export function AiKitProvider({
 
   const reset = useCallback(() => {
     writeAiKitSettings(persistKey, {});
+    setPreview(null);
     setChanges({});
   }, [persistKey]);
 
-  const settings = useMemo(() => ({ ...defaults, ...changes }), [defaults, changes]);
+  const setting = useMemo(() => ({ ...defaults, ...changes }), [defaults, changes]);
+  const settings = useMemo(
+    () => (preview ? applyPatch(setting, preview) : setting),
+    [setting, preview]
+  );
+
+  const previewRef = useRef(preview);
+  previewRef.current = preview;
+
+  const savePreview = useCallback(() => {
+    if (previewRef.current) {
+      setSettings(previewRef.current);
+    }
+    setPreview(null);
+  }, [setSettings]);
+
+  const cancelPreview = useCallback(() => setPreview(null), []);
+
   const hostTheme = useMantineTheme();
   const { colorScheme: activeScheme, setColorScheme } = useMantineColorScheme();
+  const computedScheme = useComputedColorScheme('light');
+  const activeSchemeRef = useRef(activeScheme);
+  activeSchemeRef.current = activeScheme;
+  const hostSchemeRef = useRef(activeScheme);
 
   useEffect(() => {
-    if (settings.colorScheme && settings.colorScheme !== activeScheme) {
-      setColorScheme(settings.colorScheme);
+    const next = settings.colorScheme ?? hostSchemeRef.current;
+    if (next !== activeSchemeRef.current) {
+      setColorScheme(next);
     }
   }, [settings.colorScheme]);
+
+  const resolvedColorScheme: AiKitResolvedColorScheme =
+    setting.colorScheme && setting.colorScheme !== 'auto' ? setting.colorScheme : computedScheme;
 
   const scope = `ae-kit-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
@@ -162,8 +235,34 @@ export function AiKitProvider({
   }, [hostTheme, kitOverride, scope, tokens]);
 
   const contextValue = useMemo(
-    () => ({ settings, defaults, setSettings, reset, hostTheme, hostScope: `${scope}-host` }),
-    [settings, defaults, setSettings, reset, hostTheme, scope]
+    () => ({
+      settings,
+      setting,
+      defaults,
+      setSettings,
+      setSetting: setSettings,
+      reset,
+      resolvedColorScheme,
+      preview,
+      setPreview,
+      savePreview,
+      cancelPreview,
+      hostTheme,
+      hostScope: `${scope}-host`,
+    }),
+    [
+      settings,
+      setting,
+      defaults,
+      setSettings,
+      reset,
+      resolvedColorScheme,
+      preview,
+      savePreview,
+      cancelPreview,
+      hostTheme,
+      scope,
+    ]
   );
 
   return (
