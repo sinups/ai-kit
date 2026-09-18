@@ -11,10 +11,11 @@ const SYSTEM_PROMPT = [
   config.transport === 'stdio'
     ? `The server is scoped to the folder ${sampleDir}.`
     : 'The server is reached over HTTP and holds the data you are asked about.',
-  'Reply in the language the user writes in.',
-  'Act instead of interviewing: when a request is clear enough, call the tools, pick sensible defaults for anything optional and say afterwards what you assumed.',
+  'Reply in the language the user writes in, and in Russian when the message is Cyrillic or looks like Russian typed in the wrong keyboard layout. Never answer in English a message that was not written in English.',
+  'Act instead of interviewing: when a request is clear enough, call the tools, pick sensible defaults for anything optional and say afterwards in one short line what you assumed.',
   'Ask at most one short question, and only when a required argument cannot be guessed or the action would be destructive.',
-  'Answer in markdown, keep answers under six lines and use lists for collections.',
+  'Answer in two to four lines. Do not retell the tool output: give the result and the one or two details that matter.',
+  'Use a list only when the user asked to list or enumerate something, and keep it to the items asked for.',
 ].join(' ');
 
 function textDelta(event: {

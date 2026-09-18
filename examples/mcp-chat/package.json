@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4200",
-    "dev:lan": "next dev -p 4200 -H 0.0.0.0",
-    "build": "next build",
+    "build:kit": "yarn --cwd ../.. build",
+    "dev": "yarn build:kit && next dev -p 4200",
+    "dev:lan": "yarn build:kit && next dev -p 4200 -H 0.0.0.0",
+    "build": "yarn build:kit && next build",
     "start": "next start -p 4200",
     "typecheck": "tsc --noEmit"
   },
@@ -15,7 +16,7 @@
     "@mantine/core": "^9.6.1",
     "@mantine/hooks": "^9.6.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@sinups/ai-kit": "^0.2.0",
+    "@sinups/ai-kit": "portal:../../package",
     "@tabler/icons-react": "^3.40.0",
     "next": "16.2.2",
     "react": "19.2.4",

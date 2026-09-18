@@ -541,9 +541,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinups/ai-kit@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@sinups/ai-kit@npm:0.2.0"
+"@sinups/ai-kit@portal:../../package::locator=ai-kit-example-mcp-chat%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@sinups/ai-kit@portal:../../package::locator=ai-kit-example-mcp-chat%40workspace%3A."
   dependencies:
     markdown-to-jsx: "npm:^7.7.13"
   peerDependencies:
@@ -552,9 +552,8 @@ __metadata:
     "@tabler/icons-react": ^3.0.0
     react: ^19.2.0
     react-dom: ^19.2.0
-  checksum: 10c0/f4436d9706d5071dd06a5188c1e1239681c3d732609a38a184bdad77e04e2492d0cb9f55dc17b7a68143f68b1c9227ea740d746a0484851bccd0170b0ad72bc4
   languageName: node
-  linkType: hard
+  linkType: soft
 
 "@stablelib/base64@npm:^1.0.0":
   version: 1.0.1
@@ -636,7 +635,7 @@ __metadata:
     "@mantine/core": "npm:^9.6.1"
     "@mantine/hooks": "npm:^9.6.1"
     "@modelcontextprotocol/sdk": "npm:^1.30.0"
-    "@sinups/ai-kit": "npm:^0.2.0"
+    "@sinups/ai-kit": "portal:../../package"
     "@tabler/icons-react": "npm:^3.40.0"
     "@types/node": "npm:^22.15.24"
     "@types/react": "npm:^19"

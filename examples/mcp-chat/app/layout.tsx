@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@sinups/ai-kit/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import { AiKitProvider } from '@sinups/ai-kit';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
@@ -16,7 +17,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="auto">{children}</MantineProvider>
+        <MantineProvider defaultColorScheme="auto">
+          <AiKitProvider>{children}</AiKitProvider>
+        </MantineProvider>
       </body>
     </html>
   );

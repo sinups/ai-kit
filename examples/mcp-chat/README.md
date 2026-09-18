@@ -12,8 +12,12 @@ What it shows:
   `ToolApprovalFooter` under the card;
 - tool errors, a chat-level error card, and the composer with suggestions.
 
-The example depends on `@sinups/ai-kit` from npm, not on the workspace copy, so running it proves the
-published build works in a plain app.
+The example runs against the kit **in this repository**, not the published package: `yarn dev`
+rebuilds `package/dist` and Next resolves `@sinups/ai-kit` to it through a yarn portal. That is a
+development setup — it lets the example use work that has not been released yet, such as the
+streaming smoothing, and it means `node_modules` of the example and of the repository both exist, so
+`next.config.ts` pins React, Mantine and the icons to the example's own copies. An app outside this
+repository installs `@sinups/ai-kit` from npm and needs none of that.
 
 ## Prerequisites
 

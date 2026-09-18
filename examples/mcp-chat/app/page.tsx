@@ -116,11 +116,10 @@ export default function Page() {
     () => ({
       approvals,
       decide,
-      transport,
       serverName: serverStatus?.server ?? 'mcp',
       definitions,
     }),
-    [approvals, decide, transport, serverStatus?.server, definitions]
+    [approvals, decide, serverStatus?.server, definitions]
   );
 
   const awaitingApproval = useMemo(
