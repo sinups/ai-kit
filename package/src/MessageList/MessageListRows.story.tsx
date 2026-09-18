@@ -1,34 +1,19 @@
 import React from 'react';
-import { Paper } from '@mantine/core';
 import type { ChatMessage, ToolPart } from '../types';
 import { MessageList } from './MessageList';
 
 export default { title: 'MessageList/rows' };
 
-function Frame({ width = 520, children }: { width?: number; children: React.ReactNode }) {
-  return (
-    <Paper
-      withBorder
-      radius={0}
-      style={{
-        height: '80vh',
-        width,
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {children}
-    </Paper>
-  );
+function Feed({ width = 520, children }: { width?: number; children: React.ReactNode }) {
+  return <div style={{ height: '80vh', width, margin: '0 auto', display: 'flex' }}>{children}</div>;
 }
 
-const readCall: ToolPart = {
-  type: 'tool-Read',
-  toolCallId: 'r1',
+const workspaceContext: ToolPart = {
+  type: 'tool-mcp__layers__workspace_context',
+  toolCallId: 'w1',
   state: 'output-available',
-  input: { file_path: 'src/app.ts' },
-  output: 'export const app = createApp();\nexport default app;',
+  input: {},
+  output: 'Пространство Layers, проект «Релиз 0.3», открыта страница «План недели»',
 };
 
 const taskList: ToolPart = {
@@ -38,6 +23,14 @@ const taskList: ToolPart = {
   input: { overdue: true, workspace: 'Layers', limit: 20 },
   output:
     'Перенести сборку на oxlint — просрочена на 4 дня\nОбновить лицензии — просрочена на 2 дня\nПочистить старые ветки — просрочена на 1 день\nСверить бюджеты бандла — просрочена на 1 день\nПроверить фикстуры — просрочена сегодня',
+};
+
+const taskCreate: ToolPart = {
+  type: 'tool-mcp__layers__task_create',
+  toolCallId: 'm2',
+  state: 'output-available',
+  input: { project: 'Релиз 0.3', title: 'Разобрать просроченное', assignee: 'Sinups' },
+  output: 'Создана задача LAY-482 «Разобрать просроченное»',
 };
 
 function turn(parts: Array<ToolPart | { type: 'text'; text: string }>): ChatMessage[] {
@@ -53,115 +46,106 @@ function turn(parts: Array<ToolPart | { type: 'text'; text: string }>): ChatMess
 
 const conversation = turn([
   { type: 'text', text: 'Сначала посмотрю, что просрочено в рабочем пространстве.' },
-  readCall,
+  workspaceContext,
   taskList,
   { type: 'text', text: 'Нашёл **5 просроченных задач**. Собираю из них одну со списком.' },
 ]);
 
 const series = turn([
-  { type: 'text', text: 'Проверю несколько файлов подряд.' },
-  readCall,
+  { type: 'text', text: 'Пройдусь по пространству и соберу картину.' },
+  workspaceContext,
   {
-    type: 'tool-Grep',
-    toolCallId: 'g1',
+    type: 'tool-mcp__layers__projects_tree_by_workspace',
+    toolCallId: 'p1',
     state: 'output-available',
-    input: { pattern: 'createApp', path: 'src' },
-    output: 'src/app.ts:1\nsrc/main.ts:12',
-  },
-  {
-    type: 'tool-Bash',
-    toolCallId: 'b1',
-    state: 'output-available',
-    input: { command: 'yarn oxlint' },
-    output: { stdout: 'Found 0 warnings and 0 errors.', exitCode: 0 },
-  },
-  {
-    type: 'tool-Edit',
-    toolCallId: 'e1',
-    state: 'output-available',
-    input: {
-      file_path: 'src/app.ts',
-      old_string: 'export default app;',
-      new_string: 'export default withRetry(app);\nexport const retries = 3;',
-    },
-    output: {},
+    input: { workspace: 'Layers' },
+    output: 'Релиз 0.3 · Документация · Поддержка',
   },
   taskList,
+  {
+    type: 'tool-mcp__layers__search',
+    toolCallId: 's1',
+    state: 'output-available',
+    input: { query: 'просрочено', scope: 'workspace' },
+    output: 'Страница «План недели» — 3 совпадения\nЗадача LAY-311 — 1 совпадение',
+  },
+  taskCreate,
+  { type: 'text', text: 'Готово: **5 просроченных задач** собраны в задачу LAY-482.' },
 ]);
 
 export function Usage() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={conversation}
         status="ready"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function Series() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={series}
         status="ready"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function Narrow() {
   return (
-    <Frame width={390}>
+    <Feed width={390}>
       <MessageList
         messages={series}
         status="ready"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function Error() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={turn([
-          { type: 'text', text: 'Запускаю сборку.' },
+          { type: 'text', text: 'Создам задачу в проекте «Релиз 0.3».' },
           {
-            type: 'tool-Bash',
-            toolCallId: 'b2',
+            type: 'tool-mcp__layers__task_create',
+            toolCallId: 'm3',
             state: 'output-error',
-            input: { command: 'yarn build' },
+            input: { project: 'Релиз 0.3', title: 'Разобрать просроченное' },
             errorText:
-              'error TS2322: Type string is not assignable to type number.\n  src/app.ts:14:3\n  src/app.ts:18:7\nBuild failed with 3 errors.',
+              'Ошибка сервера: проект «Релиз 0.3» доступен только для чтения\n  workspace: Layers\n  требуется роль: редактор\nЗадача не создана.',
           },
         ])}
         status="ready"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function Rejected() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={turn([
-          { type: 'text', text: 'Хочу удалить каталог сборки.' },
+          { type: 'text', text: 'Хочу удалить черновик страницы.' },
           {
-            type: 'tool-Bash',
-            toolCallId: 'b3',
+            type: 'tool-mcp__layers__page_delete',
+            toolCallId: 'm4',
             state: 'output-error',
-            input: { command: 'rm -rf build' },
+            input: { page: 'Черновик плана' },
             errorText: 'Rejected by the user',
           },
         ])}
@@ -169,71 +153,80 @@ export function Rejected() {
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function AwaitingPermission() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={turn([
-          { type: 'text', text: 'Нужно почистить каталог сборки.' },
+          { type: 'text', text: 'Нужно закрыть просроченные задачи пачкой.' },
           {
-            type: 'tool-Bash',
-            toolCallId: 'b4',
+            type: 'tool-mcp__layers__task_bulk_update',
+            toolCallId: 'm5',
             state: 'input-available',
-            input: { command: 'rm -rf build', approval: { decision: null } },
+            input: { filter: 'overdue', status: 'Закрыта', approval: { decision: null } },
           },
           {
-            type: 'tool-Read',
-            toolCallId: 'r9',
+            type: 'tool-mcp__layers__task_list',
+            toolCallId: 'm6',
             state: 'input-available',
-            input: { file_path: 'src/queued.ts' },
+            input: { project: 'Релиз 0.3' },
+          },
+          {
+            type: 'tool-mcp__layers__page_get',
+            toolCallId: 'm7',
+            state: 'input-available',
+            input: { page: 'План недели' },
           },
         ])}
         status="streaming"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function LongOutput() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={turn([
-          { type: 'text', text: 'Покажу содержимое каталога.' },
+          { type: 'text', text: 'Покажу задачи проекта целиком.' },
           {
-            type: 'tool-Bash',
-            toolCallId: 'b5',
+            type: 'tool-mcp__layers__task_list',
+            toolCallId: 'm8',
             state: 'output-available',
-            input: { command: 'ls -la packages/shared/src/components' },
-            output: {
-              stdout: Array.from({ length: 24 }, (_, index) => `component-${index + 1}.tsx`).join(
-                '\n'
-              ),
-              exitCode: 0,
-            },
+            input: { project: 'Релиз 0.3', limit: 50 },
+            output: Array.from(
+              { length: 24 },
+              (_, index) => `LAY-${400 + index} — задача ${index + 1}`
+            ).join('\n'),
           },
         ])}
         status="ready"
         presentation="rows"
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
 export function Working() {
   return (
-    <Frame>
+    <Feed>
       <MessageList
         messages={turn([
           { type: 'text', text: 'Сначала посмотрю, что просрочено.' },
-          { ...taskList, state: 'input-available', output: undefined },
+          {
+            ...taskList,
+            state: 'input-available',
+            output: undefined,
+            progress: { progress: 3, total: 10, message: 'Читаю задачи' },
+          },
         ])}
         status="streaming"
         presentation="rows"
@@ -241,7 +234,7 @@ export function Working() {
         toolActivity
         initialScrollBehavior="top"
       />
-    </Frame>
+    </Feed>
   );
 }
 
