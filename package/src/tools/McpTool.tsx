@@ -13,6 +13,8 @@ export interface McpToolProps {
   part: ToolPart;
   /** Parsed server/tool names, see `parseMcpToolType` */
   mcpInfo: McpToolInfo;
+  /** Content rendered at the end of the row, for example `ToolActivity` with elapsed time */
+  trailingContent?: React.ReactNode;
   /** Chat status from `useChat()`, used to tell a pending tool from an interrupted one */
   chatStatus?: string;
   /** Initial expanded state of the output panel */
@@ -193,6 +195,7 @@ function formatOutputForDisplay(output: unknown): string {
 export const McpTool = memo(function McpTool({
   part,
   mcpInfo,
+  trailingContent,
   chatStatus,
   defaultOpen,
   className,
@@ -249,7 +252,7 @@ export const McpTool = memo(function McpTool({
         completeLabel={title}
         isAnimating={isPending}
         detail={subtitle || undefined}
-        trailingContent={undefined}
+        trailingContent={trailingContent}
         expandable={hasExpandableContent}
         defaultOpen={defaultOpen}
       >

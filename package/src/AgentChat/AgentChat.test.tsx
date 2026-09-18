@@ -524,6 +524,65 @@ describe('AgentChat/AgentChat', () => {
     });
   });
 
+  describe('working row', () => {
+    const betweenCalls: ChatMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Find the overdue tasks' }] },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-Read',
+            toolCallId: 't1',
+            state: 'output-available',
+            input: { file_path: '/repo/tasks.ts' },
+            output: 'done',
+          },
+        ],
+      },
+    ] as ChatMessage[];
+
+    it('shows the working line between tool calls by default', () => {
+      render(
+        <AgentChat
+          messages={betweenCalls}
+          status="streaming"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+
+      expect(screen.getByText('Working')).toBeInTheDocument();
+    });
+
+    it('can be turned off and replaced by a node of the host', () => {
+      const { rerender } = render(
+        <AgentChat
+          messages={betweenCalls}
+          status="streaming"
+          workingRow={false}
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+      expect(screen.queryByText('Working')).toBeNull();
+
+      rerender(
+        <AgentChat
+          messages={betweenCalls}
+          status="streaming"
+          workingRow={<span>Reading tasks</span>}
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+      expect(screen.getByText('Reading tasks')).toBeInTheDocument();
+    });
+  });
+
   describe('tool call state', () => {
     const openCalls: ChatMessage[] = [
       { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Read both files' }] },
@@ -583,6 +642,42 @@ describe('AgentChat/AgentChat', () => {
 
       expect(screen.queryByText('Queued')).toBeNull();
       expect(screen.getByText('Waiting for permission')).toBeInTheDocument();
+    });
+    it('counts the time of a running call by default', () => {
+      jest.useFakeTimers();
+      const { container } = render(
+        <AgentChat
+          messages={
+            [
+              { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Find the overdue tasks' }] },
+              {
+                id: 'a1',
+                role: 'assistant',
+                parts: [
+                  {
+                    type: 'tool-mcp__layers__task_list',
+                    toolCallId: 'c1',
+                    state: 'input-available',
+                    input: { overdue: true },
+                    progress: { progress: 3, total: 10 },
+                  },
+                ],
+              },
+            ] as ChatMessage[]
+          }
+          status="streaming"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+
+      expect(screen.getByText('30%')).toBeInTheDocument();
+      act(() => {
+        jest.advanceTimersByTime(2500);
+      });
+      expect(container.querySelector('[data-tool-elapsed]')).toHaveTextContent('2s');
+      jest.useRealTimers();
     });
   });
 

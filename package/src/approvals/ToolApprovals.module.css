@@ -1,0 +1,21 @@
+.slot {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.footer {
+  border: rem(1px) solid var(--ae-tool-border);
+  border-top-width: 0;
+  border-end-start-radius: var(--ae-tool-radius);
+  border-end-end-radius: var(--ae-tool-radius);
+}
+
+.outcome {
+  margin: 0;
+  padding: var(--ae-space-2xs) var(--ae-space-md);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-tool-color-muted);
+}

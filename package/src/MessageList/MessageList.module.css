@@ -18,6 +18,10 @@
   display: flex;
   flex-direction: column;
   gap: rem(8px);
+
+  &[data-rows] {
+    gap: var(--ae-rows-block-gap);
+  }
 }
 
 .turn {
@@ -25,6 +29,10 @@
   display: flex;
   flex-direction: column;
   gap: rem(8px);
+
+  &[data-rows] {
+    gap: var(--ae-rows-block-gap);
+  }
 }
 
 .group {
@@ -40,6 +48,10 @@
   display: flex;
   flex-direction: column;
   gap: rem(12px);
+
+  &[data-rows] {
+    gap: var(--ae-rows-block-gap);
+  }
 }
 
 .assistantParts {
@@ -47,6 +59,12 @@
     display: flex;
     flex-direction: column;
     gap: rem(12px);
+  }
+
+  &[data-rows] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ae-rows-block-gap);
   }
 }
 
@@ -58,6 +76,15 @@
   .appear {
     animation: none;
   }
+}
+
+.workingRow {
+  padding-block: var(--ae-space-2xs);
+}
+
+.workingRowInline {
+  padding-block: 0;
+  padding-inline-start: var(--ae-rows-marker-width);
 }
 
 .assistantText {

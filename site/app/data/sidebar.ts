@@ -15,6 +15,7 @@ export const COMPONENT_GROUPS: Array<{ title: string; components: string[] }> = 
     title: "Chat",
     components: [
       "AgentChat",
+      "ChatHeader",
       "MessageList",
       "UserMessage",
       "ErrorMessage",
@@ -33,6 +34,7 @@ export const COMPONENT_GROUPS: Array<{ title: string; components: string[] }> = 
       "TranscriptSearch",
       "IdleReturnPrompt",
       "SpendThresholdNotice",
+      "ToolUnavailableNotice",
       "MessageActions",
       "EditMessageComposer",
       "FeedbackForm",

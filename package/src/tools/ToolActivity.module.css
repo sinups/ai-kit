@@ -1,0 +1,21 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--ae-space-xs);
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  font-variant-numeric: tabular-nums;
+  color: alpha(var(--ae-fg-muted), 0.6);
+}
+
+.bar {
+  width: rem(48px);
+}
+
+.message {
+  max-width: rem(160px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

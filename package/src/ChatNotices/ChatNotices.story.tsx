@@ -5,6 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { InputBar } from '../input/InputBar';
 import { IdleReturnPrompt } from './IdleReturnPrompt';
 import { SpendThresholdNotice } from './SpendThresholdNotice';
+import { ToolUnavailableNotice } from './ToolUnavailableNotice';
 
 export default { title: 'ChatNotices' };
 
@@ -26,6 +27,12 @@ function Notices() {
           { label: 'View usage', onClick: () => setLog('View usage'), kind: 'primary' },
           { label: 'Set a limit', onClick: () => setLog('Set a limit') },
         ]}
+        onDismiss={() => setLog('Dismissed')}
+      />
+      <ToolUnavailableNotice
+        server="tracker"
+        message="The connection dropped after three attempts."
+        onRetry={() => setLog('Try again')}
         onDismiss={() => setLog('Dismissed')}
       />
       {log && (
@@ -62,7 +69,7 @@ export function Wide() {
 }
 
 export function AboveInputBar() {
-  const [notice, setNotice] = useState<'idle' | 'spend' | null>('idle');
+  const [notice, setNotice] = useState<'idle' | 'spend' | 'unavailable' | null>('idle');
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <Stack gap="xs">
@@ -76,7 +83,15 @@ export function AboveInputBar() {
           />
         )}
         {notice === 'spend' && (
-          <SpendThresholdNotice amount={5.2} onDismiss={() => setNotice(null)} />
+          <SpendThresholdNotice amount={5.2} onDismiss={() => setNotice('unavailable')} />
+        )}
+        {notice === 'unavailable' && (
+          <ToolUnavailableNotice
+            server="tracker"
+            message="The connection dropped after three attempts."
+            onRetry={() => setNotice('idle')}
+            onDismiss={() => setNotice(null)}
+          />
         )}
         {notice === null && (
           <Button variant="default" size="xs" onClick={() => setNotice('idle')}>
@@ -130,6 +145,35 @@ export const SpendThresholdFlow = {
     await userEvent.click(canvas.getByRole('button', { name: 'View usage' }));
     await userEvent.click(canvas.getByRole('button', { name: 'Dismiss' }));
     await expect(args.onViewUsage).toHaveBeenCalledTimes(1);
+    await expect(args.onDismiss).toHaveBeenCalledTimes(1);
+  },
+};
+
+type ToolUnavailableArgs = { onRetry: () => void; onDismiss: () => void };
+
+export const ToolUnavailableFlow = {
+  args: { onRetry: fn(), onDismiss: fn() },
+  render: (args: ToolUnavailableArgs) => (
+    <Stack p="xl" maw={520}>
+      <ToolUnavailableNotice
+        server="tracker"
+        message="The connection dropped after three attempts."
+        {...args}
+      />
+    </Stack>
+  ),
+  play: async ({
+    canvasElement,
+    args,
+  }: {
+    canvasElement: HTMLElement;
+    args: ToolUnavailableArgs;
+  }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('tracker is unavailable.')).toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: 'Try again' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Dismiss' }));
+    await expect(args.onRetry).toHaveBeenCalledTimes(1);
     await expect(args.onDismiss).toHaveBeenCalledTimes(1);
   },
 };

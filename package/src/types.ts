@@ -8,6 +8,7 @@ import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 import type { MarkdownTailGranularity } from './Markdown/Markdown';
 import type { ToolCallLookups, ToolCallState } from './tools/tool-call-state';
+import type { ToolApprovals } from './approvals/tool-approvals';
 
 /** Chat status, structurally compatible with `ChatStatus` from the Vercel AI SDK */
 export type ChatStatus = 'submitted' | 'streaming' | 'ready' | 'error';
@@ -20,6 +21,18 @@ export type ToolPartState =
   | 'output-error'
   | (string & {});
 
+/** Latest MCP `notifications/progress` of a long call */
+export type ToolCallProgress = {
+  /** Work done so far, in the units the server chose */
+  progress: number;
+  /** Work expected in total; without it the card shows the raw count and no bar */
+  total?: number;
+  /** Short status the server sent with the notification */
+  message?: string;
+  /** Token the request was started with, `progressToken` of the MCP request */
+  progressToken?: string | number;
+};
+
 /** Minimal shape of a tool invocation part (`tool-<Name>` or `dynamic-tool`) */
 export type ToolPart = {
   type: string;
@@ -30,6 +43,8 @@ export type ToolPart = {
   output?: unknown;
   result?: unknown;
   errorText?: string;
+  /** Latest progress notification of the call, see `getToolProgress` */
+  progress?: ToolCallProgress;
   [key: string]: unknown;
 };
 
@@ -189,6 +204,8 @@ export type ToolRendererSlotProps = {
   wrapLines?: boolean;
   /** Transcript lookups behind the visible state of a call, see `createToolCallLookups` */
   lookups?: ToolCallLookups;
+  /** Shows how long a running call has been going and the progress its server reports */
+  showActivity?: boolean;
 };
 
 /** Component slot overrides */
@@ -284,6 +301,14 @@ export type AgentChatProps = {
   onToolAction?: ToolActionHandler;
 
   /**
+   * Approval requests keyed by `toolCallId`. The approve/reject footer is rendered under the card
+   * of that call whatever renders it, so an MCP call can ask for confirmation without replacing
+   * its renderer. An entry with an `outcome` shows a quiet settled line instead; an id with no
+   * call in the transcript is ignored.
+   */
+  approvals?: ToolApprovals;
+
+  /**
    * Extra props for the composer: `completions`, `leftActions`, `rightActions`, `placeholder`,
    * `onQueue`, `queuedMessages`, `onRemoveQueued`, `labels` and the rest of `InputBarProps`.
    * `AgentChat` owns `onSend`, `status`, `onStop`, the draft value and the question bar;
@@ -353,6 +378,22 @@ export type AgentChatProps = {
    * refused, already answered. Built from `messages` when omitted, see `createToolCallLookups`.
    */
   toolCallLookups?: ToolCallLookups;
+  /**
+   * Quiet line at the end of the transcript while the agent works between tool calls, `true` by
+   * default. A node replaces the kit row, for example an `AgentStatus` of the host carrying its own
+   * label and token count.
+   */
+  workingRow?: React.ReactNode | boolean;
+  /**
+   * Shows how long a running tool call has been going and the progress its MCP server reports,
+   * `true` by default.
+   */
+  toolActivity?: boolean;
+  /**
+   * How the transcript is laid out: `cards` (the default) keeps the tool cards, `rows` shows the
+   * flat transcript of a terminal client — a marker, the call and its answer under a gutter.
+   */
+  presentation?: 'cards' | 'rows';
   emptySuggestionsPlacement?: 'input' | 'empty' | 'both';
   /**
    * @deprecated Suggestions are always rendered above the composer; `bottom` is treated as `top`.

@@ -5,9 +5,9 @@
       "styles/base.css",
       "styles/AgentChat.css"
     ],
-    "jsGzip": 71415,
-    "cssGzip": 10557,
-    "totalGzip": 81972
+    "jsGzip": 74923,
+    "cssGzip": 11157,
+    "totalGzip": 86080
   },
   {
     "name": "MessageList",
@@ -15,9 +15,9 @@
       "styles/base.css",
       "styles/MessageList.css"
     ],
-    "jsGzip": 59162,
-    "cssGzip": 8611,
-    "totalGzip": 67773
+    "jsGzip": 62514,
+    "cssGzip": 9201,
+    "totalGzip": 71715
   },
   {
     "name": "InputBar",
@@ -25,9 +25,9 @@
       "styles/base.css",
       "styles/InputBar.css"
     ],
-    "jsGzip": 26497,
-    "cssGzip": 5704,
-    "totalGzip": 32201
+    "jsGzip": 26500,
+    "cssGzip": 5735,
+    "totalGzip": 32235
   },
   {
     "name": "Markdown",
@@ -35,9 +35,9 @@
       "styles/base.css",
       "styles/Markdown.css"
     ],
-    "jsGzip": 11945,
-    "cssGzip": 2538,
-    "totalGzip": 14483
+    "jsGzip": 11944,
+    "cssGzip": 2569,
+    "totalGzip": 14513
   },
   {
     "name": "BashTool",
@@ -45,9 +45,9 @@
       "styles/base.css",
       "styles/BashTool.css"
     ],
-    "jsGzip": 10704,
-    "cssGzip": 2775,
-    "totalGzip": 13479
+    "jsGzip": 10709,
+    "cssGzip": 2806,
+    "totalGzip": 13515
   },
   {
     "name": "DiffReview",
@@ -55,9 +55,9 @@
       "styles/base.css",
       "styles/DiffReview.css"
     ],
-    "jsGzip": 18960,
-    "cssGzip": 2792,
-    "totalGzip": 21752
+    "jsGzip": 18966,
+    "cssGzip": 2823,
+    "totalGzip": 21789
   },
   {
     "name": "McpSettingsPanel",
@@ -66,8 +66,8 @@
       "styles/McpSettingsPanel.css"
     ],
     "jsGzip": 22502,
-    "cssGzip": 2602,
-    "totalGzip": 25104
+    "cssGzip": 2633,
+    "totalGzip": 25135
   },
   {
     "name": "SettingsLayout",
@@ -76,8 +76,8 @@
       "styles/SettingsLayout.css"
     ],
     "jsGzip": 2556,
-    "cssGzip": 1983,
-    "totalGzip": 4539
+    "cssGzip": 2014,
+    "totalGzip": 4570
   },
   {
     "name": "CommandPalette",
@@ -86,8 +86,8 @@
       "styles/CommandPalette.css"
     ],
     "jsGzip": 4299,
-    "cssGzip": 1567,
-    "totalGzip": 5866
+    "cssGzip": 1598,
+    "totalGzip": 5897
   },
   {
     "name": "Wizard",
@@ -95,9 +95,9 @@
       "styles/base.css",
       "styles/Wizard.css"
     ],
-    "jsGzip": 4019,
-    "cssGzip": 1665,
-    "totalGzip": 5684
+    "jsGzip": 4018,
+    "cssGzip": 1696,
+    "totalGzip": 5714
   },
   {
     "name": "ChatLauncher",
@@ -106,8 +106,8 @@
       "styles/ChatLauncher.css"
     ],
     "jsGzip": 3503,
-    "cssGzip": 2210,
-    "totalGzip": 5713
+    "cssGzip": 2241,
+    "totalGzip": 5744
   },
   {
     "name": "AiKitProvider",
@@ -116,23 +116,23 @@
       "styles/AiKitProvider.css"
     ],
     "jsGzip": 5890,
-    "cssGzip": 3044,
-    "totalGzip": 8934
+    "cssGzip": 3075,
+    "totalGzip": 8965
   },
   {
     "name": "mountChatLauncher",
     "stylesheets": [],
-    "jsGzip": 777,
+    "jsGzip": 778,
     "cssGzip": 0,
-    "totalGzip": 777
+    "totalGzip": 778
   },
   {
     "name": "import *",
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 187096,
-    "cssGzip": 17792,
-    "totalGzip": 204888
+    "jsGzip": 190593,
+    "cssGzip": 18412,
+    "totalGzip": 209005
   }
 ]

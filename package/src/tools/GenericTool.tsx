@@ -48,6 +48,8 @@ export interface GenericToolProps {
   isError?: boolean;
   /** `quiet` dims the row for a call that is not running yet, `default` by default */
   tone?: 'default' | 'quiet';
+  /** Content rendered at the end of the row, for example `ToolActivity` with elapsed time */
+  trailingContent?: React.ReactNode;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -61,6 +63,7 @@ export const GenericTool = memo(function GenericTool({
   subtitle,
   isPending,
   tone = 'default',
+  trailingContent,
   className,
   style,
 }: GenericToolProps) {
@@ -73,6 +76,7 @@ export const GenericTool = memo(function GenericTool({
       completeLabel={title}
       isAnimating={isPending}
       detail={subtitle}
+      trailingContent={trailingContent}
       className={cx(tone === 'quiet' && classes.quiet, className)}
       style={style}
     />

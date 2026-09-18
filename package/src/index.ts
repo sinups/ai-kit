@@ -38,6 +38,7 @@ export type {
   FilePart,
   ToolPart,
   ToolPartState,
+  ToolCallProgress,
   CompactionPart,
   CollapseToolRunsOptions,
   ChatClassNames,
@@ -128,9 +129,13 @@ export type { ActionRowProps } from './tools/ActionRow';
 export { ToolApprovalFooter, DEFAULT_TOOL_APPROVAL_LABELS } from './tools/ToolApprovalFooter';
 export type {
   ToolApproval,
+  ToolApprovalExplanation,
   ToolApprovalFooterProps,
   ToolApprovalOption,
   ToolApprovalLabels,
+  ToolApprovalRequester,
+  ToolApprovalRisk,
+  ToolApprovalRuleSuggestion,
 } from './tools/ToolApprovalFooter';
 export {
   createToolCallLookups,
@@ -143,6 +148,16 @@ export type {
   ToolCallStateLabels,
   DeriveToolCallStateOptions,
 } from './tools/tool-call-state';
+export { ToolCallRow } from './rows/ToolCallRow';
+export type { ToolCallRowProps } from './rows/ToolCallRow';
+export { ResponseRow } from './rows/ResponseRow';
+export type { ResponseRowProps, ResponseRowTone } from './rows/ResponseRow';
+export { ToolPartRow, DEFAULT_TOOL_PART_ROW_LABELS } from './rows/ToolPartRow';
+export type { ToolPartRowProps, ToolPartRowLabels } from './rows/ToolPartRow';
+export { getToolRowName, getToolRowArgs, getToolRowOutput, clampLines } from './rows/rows-format';
+export { ToolActivity } from './tools/ToolActivity';
+export type { ToolActivityProps } from './tools/ToolActivity';
+export { getToolProgress, getToolProgressRatio, formatToolProgress } from './tools/tool-progress';
 export { ToolCardBoundary } from './tools/ToolCardBoundary';
 export type { ToolCardBoundaryProps } from './tools/ToolCardBoundary';
 export { parsePartialJson, parsePartialRecord } from './utils/partial-json';
@@ -832,7 +847,32 @@ export type {
   SpendThresholdNoticeLabels,
   SpendThresholdNoticeProps,
 } from './ChatNotices/SpendThresholdNotice';
+export {
+  DEFAULT_TOOL_UNAVAILABLE_NOTICE_LABELS,
+  ToolUnavailableNotice,
+} from './ChatNotices/ToolUnavailableNotice';
+export type {
+  ToolUnavailableNoticeLabels,
+  ToolUnavailableNoticeProps,
+} from './ChatNotices/ToolUnavailableNotice';
 export { formatAwayDuration, formatSpend } from './ChatNotices/chat-notices';
+export { ChatHeader, DEFAULT_CHAT_HEADER_LABELS } from './ChatHeader/ChatHeader';
+export type { ChatHeaderLabels, ChatHeaderProps } from './ChatHeader/ChatHeader';
+export {
+  DEFAULT_TOOL_APPROVAL_OUTCOME_LABELS,
+  ToolApprovalSlot,
+  ToolApprovalsProvider,
+  useToolApproval,
+} from './approvals/tool-approvals';
+export type {
+  ToolApprovalDecision,
+  ToolApprovalOutcome,
+  ToolApprovalOutcomeLabels,
+  ToolApprovalRequest,
+  ToolApprovals,
+  ToolApprovalSlotProps,
+  ToolApprovalsProviderProps,
+} from './approvals/tool-approvals';
 export { CodeBlock, DEFAULT_CODE_BLOCK_LABELS } from './CodeBlock/CodeBlock';
 export type { CodeBlockLabels, CodeBlockProps } from './CodeBlock/CodeBlock';
 export { countCodeLines, getCollapsedLineCount } from './CodeBlock/code-lines';

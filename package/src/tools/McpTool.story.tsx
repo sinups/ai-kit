@@ -1,6 +1,7 @@
 import React from 'react';
 import { Stack } from '@mantine/core';
 import { McpTool } from './McpTool';
+import { ToolRenderer } from './ToolRenderer';
 import { parseMcpToolType } from './tool-registry';
 
 export default { title: 'tools/McpTool' };
@@ -75,3 +76,45 @@ export function Usage() {
     </Stack>
   );
 }
+
+export function Progress() {
+  return (
+    <Stack p="xl" gap="xs" maw={520}>
+      <ToolRenderer
+        part={{
+          type: 'tool-mcp__layers__search_tasks',
+          toolCallId: 'p1',
+          state: 'input-available',
+          input: { query: 'overdue' },
+          progress: { progress: 3, total: 10, message: 'Reading tasks' },
+        }}
+        chatStatus="streaming"
+        showActivity
+      />
+      <ToolRenderer
+        part={{
+          type: 'tool-mcp__layers__search_tasks',
+          toolCallId: 'p2',
+          state: 'input-available',
+          input: { query: 'overdue' },
+          progress: { progress: 7 },
+        }}
+        chatStatus="streaming"
+        showActivity
+      />
+      <ToolRenderer
+        part={{
+          type: 'tool-mcp__layers__search_tasks',
+          toolCallId: 'p3',
+          state: 'output-available',
+          input: { query: 'overdue' },
+          output: '3 tasks',
+          progress: { progress: 10, total: 10 },
+        }}
+        chatStatus="ready"
+      />
+    </Stack>
+  );
+}
+
+Progress.parameters = { visual: { skip: true } };
