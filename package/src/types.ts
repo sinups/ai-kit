@@ -7,6 +7,7 @@ import type { ChatWelcomeAction } from './AgentChat/ChatWelcome';
 import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 import type { MarkdownTailGranularity } from './Markdown/Markdown';
+import type { ToolCallLookups, ToolCallState } from './tools/tool-call-state';
 
 /** Chat status, structurally compatible with `ChatStatus` from the Vercel AI SDK */
 export type ChatStatus = 'submitted' | 'streaming' | 'ready' | 'error';
@@ -167,6 +168,8 @@ export type CustomToolRendererProps = {
   input: Record<string, unknown>;
   output: unknown | undefined;
   status: 'pending' | 'streaming' | 'success' | 'error';
+  /** State derived from the transcript: adds `queued`, `awaiting-permission` and `rejected` to `status` */
+  callState?: ToolCallState;
   /** Id of the tool call */
   toolCallId?: string;
   /** Raw tool part */
@@ -184,6 +187,8 @@ export type ToolRendererSlotProps = {
   onToolAction?: ToolActionHandler;
   /** Wraps long lines in diffs instead of scrolling them sideways */
   wrapLines?: boolean;
+  /** Transcript lookups behind the visible state of a call, see `createToolCallLookups` */
+  lookups?: ToolCallLookups;
 };
 
 /** Component slot overrides */
@@ -337,6 +342,17 @@ export type AgentChatProps = {
   frameBatched?: boolean;
   /** Reveals the growing tail of the streaming answer by character (`'char'`, the default) or by finished line (`'line'`) */
   tailGranularity?: MarkdownTailGranularity;
+  /**
+   * Fades a newly arrived message or part in over 150ms with a few pixels of travel, `true` by
+   * default. The transcript already on screen at mount never animates, and `prefers-reduced-motion`
+   * turns the animation off.
+   */
+  animateAppearance?: boolean;
+  /**
+   * Transcript lookups behind the visible state of a tool call: queued, waiting for permission,
+   * refused, already answered. Built from `messages` when omitted, see `createToolCallLookups`.
+   */
+  toolCallLookups?: ToolCallLookups;
   emptySuggestionsPlacement?: 'input' | 'empty' | 'both';
   /**
    * @deprecated Suggestions are always rendered above the composer; `bottom` is treated as `top`.

@@ -79,6 +79,8 @@ export interface AiKitThemeCustomizerProps {
   sections?: Partial<Record<'color' | 'radius' | 'density' | 'mode', boolean>>;
   /** Overrides of the default English labels */
   labels?: Partial<AiKitThemeCustomizerLabels>;
+  /** Shows an option live while it is hovered or focused and restores the stored theme when it is left; needs an `AiKitProvider` */
+  preview?: boolean;
 }
 
 interface OptionProps {
@@ -86,9 +88,18 @@ interface OptionProps {
   onClick: () => void;
   children: React.ReactNode;
   leftSection?: React.ReactNode;
+  onPreview?: () => void;
+  onEndPreview?: () => void;
 }
 
-function Option({ selected, onClick, children, leftSection }: OptionProps) {
+function Option({
+  selected,
+  onClick,
+  children,
+  leftSection,
+  onPreview,
+  onEndPreview,
+}: OptionProps) {
   return (
     <Button
       classNames={{ root: classes.option, section: classes.optionSection }}
@@ -110,6 +121,10 @@ function Option({ selected, onClick, children, leftSection }: OptionProps) {
       aria-pressed={selected}
       leftSection={leftSection}
       onClick={onClick}
+      onMouseEnter={onPreview}
+      onFocus={onPreview}
+      onMouseLeave={onEndPreview}
+      onBlur={onEndPreview}
     >
       {children}
     </Button>
@@ -142,6 +157,7 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
   accents = AI_KIT_ACCENTS,
   sections,
   labels: labelOverrides,
+  preview = false,
 }: AiKitThemeCustomizerProps) {
   const labels = { ...DEFAULT_AI_KIT_THEME_CUSTOMIZER_LABELS, ...labelOverrides };
   const provider = useOptionalAiKitTheme();
@@ -150,19 +166,31 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
   const computedScheme = useComputedColorScheme('light');
   const [local, setLocal] = useState<AiKitThemeSettings>(defaultValue ?? {});
   const usesProvider = value === undefined && defaultValue === undefined && provider !== null;
-  const settings = value ?? (usesProvider ? provider.settings : local);
+  const settings = value ?? (usesProvider ? provider.setting : local);
+  const previews = preview && usesProvider;
 
   const update = useCallback(
     (patch: AiKitThemeSettings) => {
       const next = { ...settings, ...patch };
       if (usesProvider) {
         provider.setSettings(patch);
+        provider.cancelPreview();
       } else if (value === undefined) {
         setLocal(next);
       }
       onChange?.(next);
     },
     [settings, usesProvider, provider, value, onChange]
+  );
+
+  const startPreview = useCallback(
+    (patch: AiKitThemeSettings) => (previews ? () => provider.setPreview(patch) : undefined),
+    [previews, provider]
+  );
+
+  const endPreview = useCallback(
+    () => (previews ? provider.cancelPreview() : undefined),
+    [previews, provider]
   );
 
   const reset = useCallback(() => {
@@ -210,7 +238,12 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
       <Stack gap="md">
         {show.color && (
           <Section label={labels.color}>
-            <Option selected={!settings.accent} onClick={() => update({ accent: undefined })}>
+            <Option
+              selected={!settings.accent}
+              onClick={() => update({ accent: undefined })}
+              onPreview={startPreview({ accent: undefined })}
+              onEndPreview={endPreview}
+            >
               {labels.defaultAccent}
             </Option>
             {accents.map((accent) => (
@@ -218,6 +251,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
                 key={accent}
                 selected={settings.accent === accent}
                 onClick={() => update({ accent })}
+                onPreview={startPreview({ accent })}
+                onEndPreview={endPreview}
                 leftSection={
                   <ColorSwatch
                     color={accentSwatchColor(accent, computedScheme)}
@@ -238,6 +273,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
                 key={option}
                 selected={radius === option}
                 onClick={() => update({ radius: option })}
+                onPreview={startPreview({ radius: option })}
+                onEndPreview={endPreview}
               >
                 {labels[option]}
               </Option>
@@ -251,6 +288,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
                 key={option}
                 selected={density === option}
                 onClick={() => update({ density: option })}
+                onPreview={startPreview({ density: option })}
+                onEndPreview={endPreview}
               >
                 {labels[option]}
               </Option>
@@ -262,6 +301,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
             <Option
               selected={scheme === 'light'}
               onClick={() => update({ colorScheme: 'light' })}
+              onPreview={startPreview({ colorScheme: 'light' })}
+              onEndPreview={endPreview}
               leftSection={<IconSun size={14} />}
             >
               {labels.light}
@@ -269,6 +310,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
             <Option
               selected={scheme === 'dark'}
               onClick={() => update({ colorScheme: 'dark' })}
+              onPreview={startPreview({ colorScheme: 'dark' })}
+              onEndPreview={endPreview}
               leftSection={<IconMoon size={14} />}
             >
               {labels.dark}
@@ -276,6 +319,8 @@ export const AiKitThemeCustomizer = memo(function AiKitThemeCustomizer({
             <Option
               selected={scheme === 'auto'}
               onClick={() => update({ colorScheme: 'auto' })}
+              onPreview={startPreview({ colorScheme: 'auto' })}
+              onEndPreview={endPreview}
               leftSection={<IconDeviceDesktop size={14} />}
             >
               {labels.auto}

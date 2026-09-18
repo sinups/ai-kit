@@ -56,6 +56,7 @@
 }
 
 .label {
+  color: var(--ae-fg);
   font-weight: 450;
   white-space: nowrap;
   flex-shrink: 0;

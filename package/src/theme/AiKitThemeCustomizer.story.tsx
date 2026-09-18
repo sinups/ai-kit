@@ -7,6 +7,7 @@ import { ToolApprovalFooter } from '../tools/ToolApprovalFooter';
 import type { ChatMessage } from '../types';
 import { UserMessage } from '../UserMessage/UserMessage';
 import type { AiKitThemeSettings } from './ai-kit-settings';
+import { AiKitProvider, useAiKitTheme } from './AiKitProvider';
 import { AiKitThemeCustomizer } from './AiKitThemeCustomizer';
 
 export default { title: 'theme/ThemeCustomizer' };
@@ -80,5 +81,39 @@ export function Controlled() {
         </Text>
       </Stack>
     </WidthFrame>
+  );
+}
+
+function ShownSettings() {
+  const { setting, settings, preview } = useAiKitTheme();
+  return (
+    <Text size="xs" c="dimmed">
+      shown {JSON.stringify(settings)} · stored {JSON.stringify(setting)} · preview{' '}
+      {JSON.stringify(preview)}
+    </Text>
+  );
+}
+
+export function PreviewAndCancel() {
+  return (
+    <Box p="xl" maw={1100}>
+      <AiKitProvider>
+        <Grid gap="xl">
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            <Stack gap="xs">
+              <AiKitThemeCustomizer preview sections={{ mode: false }} />
+              <Text size="xs" c="dimmed">
+                Hover an option to see it live; move the pointer away to cancel and get the stored
+                theme back. Clicking applies it.
+              </Text>
+              <ShownSettings />
+            </Stack>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 7 }}>
+            <Preview />
+          </Grid.Col>
+        </Grid>
+      </AiKitProvider>
+    </Box>
   );
 }

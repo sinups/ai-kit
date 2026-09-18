@@ -13,20 +13,17 @@ import type {
   ChatMessage,
   ChatStatus,
   CollapseToolRunsOptions,
-  CompactionPart,
-  ContextEventPart,
   CustomToolRendererProps,
-  HookActivityPart,
   ToolActionHandler,
   ToolPart,
   ToolRendererSlotProps,
-  TurnSummaryPart,
 } from '../types';
+import { createToolCallLookups, type ToolCallLookups } from '../tools/tool-call-state';
 import { getContentWidthStyle, type ContentWidth } from '../utils/content-width';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { cx } from '../utils/cx';
 import { normalizeAssistantToolParts } from '../utils/tool-part-normalizer';
-import { isErrorPart, isRecord, isTextPart, isV5ToolPart } from '../utils/parts';
+import { isErrorPart, isTextPart, isV5ToolPart } from '../utils/parts';
 import { UserMessage } from '../UserMessage/UserMessage';
 import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
@@ -58,8 +55,19 @@ import {
   type FollowState,
   type TurnBounds,
 } from './scroll-follow';
+import {
+  getMessagePartIndex,
+  hasUnresolvedToolCalls,
+  indexTranscript,
+  isCompactionPart,
+  isContextEventPart,
+  isFeedPart,
+  isHookActivityPart,
+  isTurnSummaryPart,
+} from './transcript-index';
 import { TranscriptSearch, type TranscriptSearchLabels } from './TranscriptSearch';
 import { useTranscriptSearch } from './use-transcript-search';
+import { useAppearanceTracker, type AppearanceTracker } from './appearance';
 import classes from './MessageList.module.css';
 
 export type MessageListLabels = {
@@ -128,6 +136,11 @@ export type MessageListProps = {
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
   /** Receives actions reported by custom tool renderers through `onAction` */
   onToolAction?: ToolActionHandler;
+  /**
+   * Transcript lookups behind the visible state of a tool call: queued, waiting for permission,
+   * refused, already answered. Built from `messages` when omitted, see `createToolCallLookups`.
+   */
+  toolCallLookups?: ToolCallLookups;
   /** Adds a retry button to error parts */
   onRetry?: () => void;
   /** Adds the conversation search, opened with Mod+F while focus is inside the list, `false` by default */
@@ -153,6 +166,12 @@ export type MessageListProps = {
   frameBatched?: boolean;
   /** Reveals the growing tail of the streaming answer by character (`'char'`, the default) or by finished line (`'line'`) */
   tailGranularity?: MarkdownTailGranularity;
+  /**
+   * Fades a newly arrived message or part in over 150ms with a few pixels of travel, `false` by
+   * default. The transcript already on screen at mount never animates, and `prefers-reduced-motion`
+   * turns the animation off.
+   */
+  animateAppearance?: boolean;
   /** Called with the width in px of the vertical scrollbar whenever it appears, disappears or resizes */
   onScrollbarWidthChange?: (width: number) => void;
   /** Syntax highlighter for code blocks in answers and compaction summaries; plain code blocks when omitted */
@@ -160,31 +179,6 @@ export type MessageListProps = {
   /** Overrides of the default English labels */
   labels?: Partial<MessageListLabels>;
 };
-
-function isCompactionPart(part: unknown): part is CompactionPart {
-  return isRecord(part) && part.type === 'compaction';
-}
-
-function isTurnSummaryPart(part: unknown): part is TurnSummaryPart {
-  return isRecord(part) && part.type === 'turn-summary';
-}
-
-function isContextEventPart(part: unknown): part is ContextEventPart {
-  return isRecord(part) && part.type === 'context-event';
-}
-
-function isHookActivityPart(part: unknown): part is HookActivityPart {
-  return isRecord(part) && part.type === 'hook-activity';
-}
-
-function isFeedPart(part: unknown): boolean {
-  return (
-    isCompactionPart(part) ||
-    isTurnSummaryPart(part) ||
-    isContextEventPart(part) ||
-    isHookActivityPart(part)
-  );
-}
 
 function isModKey(event: React.KeyboardEvent) {
   return event.metaKey || event.ctrlKey;
@@ -217,32 +211,6 @@ function normalizeMessages(messages: ChatMessage[]): ChatMessage[] {
     } as ChatMessage;
   });
   return changed ? normalized : messages;
-}
-
-function getLastAssistantHasContent(messages: ChatMessage[]) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const msg = messages[i];
-    if (msg?.role !== 'assistant') {
-      continue;
-    }
-    return (msg.parts ?? []).some((part) => {
-      if (isTextPart(part)) {
-        return part.text.trim().length > 0;
-      }
-      return isV5ToolPart(part);
-    });
-  }
-  return false;
-}
-
-function getLastUserMessageId(messages: ChatMessage[]) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const msg = messages[i];
-    if (msg?.role === 'user') {
-      return msg.id;
-    }
-  }
-  return null;
 }
 
 function getTextFromParts(parts: unknown[], joiner: string): string {
@@ -322,44 +290,6 @@ function MessageToolbar({
   );
 }
 
-type Turn = { userMsg?: ChatMessage; assistantMsgs: ChatMessage[] };
-
-function hasFeedPart(msg: ChatMessage): boolean {
-  return (msg.parts ?? []).some(isFeedPart);
-}
-
-/** Group flat messages into turns (user message + following assistant messages) */
-function groupMessagesIntoTurns(messages: ChatMessage[]) {
-  const turns: Turn[] = [];
-  let current: Turn | null = null;
-
-  for (const msg of messages) {
-    if (msg.role === 'user') {
-      if (current) {
-        turns.push(current);
-      }
-      current = { userMsg: msg, assistantMsgs: [] };
-    } else if (msg.role === 'assistant') {
-      if (!current) {
-        current = { assistantMsgs: [] };
-      }
-      current.assistantMsgs.push(msg);
-    } else if (hasFeedPart(msg)) {
-      if (!current) {
-        current = { assistantMsgs: [] };
-      }
-      current.assistantMsgs.push({
-        ...msg,
-        parts: msg.parts.filter(isFeedPart),
-      });
-    }
-  }
-  if (current) {
-    turns.push(current);
-  }
-  return turns;
-}
-
 /** Scrollable conversation view with turn grouping, tool rendering and copy toolbars */
 export const MessageList = memo(function MessageList({
   messages,
@@ -379,6 +309,7 @@ export const MessageList = memo(function MessageList({
   classNames,
   toolRenderers,
   onToolAction,
+  toolCallLookups,
   onRetry,
   withSearch = false,
   searchOpened: searchOpenedProp,
@@ -391,10 +322,13 @@ export const MessageList = memo(function MessageList({
   responsiveTables,
   frameBatched,
   tailGranularity,
+  animateAppearance = false,
   onScrollbarWidthChange,
   labels: labelsProp,
 }: MessageListProps) {
   const labels = { ...DEFAULT_MESSAGE_LIST_LABELS, ...labelsProp };
+  const appearance = useAppearanceTracker(animateAppearance);
+  const appearClass = (key: string) => (appearance.isNew(key) ? classes.appear : undefined);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const chatContainerObserverRef = useRef<ResizeObserver | null>(null);
@@ -692,10 +626,13 @@ export const MessageList = memo(function MessageList({
   const lastMessage = normalizedMessages[normalizedMessages.length - 1];
   const lastMessageId = lastMessage?.id ?? null;
   const lastMessageRole = lastMessage?.role ?? null;
-  const lastUserMessageId = useMemo(
-    () => getLastUserMessageId(normalizedMessages),
+  const transcript = useMemo(() => indexTranscript(normalizedMessages), [normalizedMessages]);
+  const derivedToolCallLookups = useMemo(
+    () => createToolCallLookups(normalizedMessages),
     [normalizedMessages]
   );
+  const lookups = toolCallLookups ?? derivedToolCallLookups;
+  const { turns, lastUserMessageId } = transcript;
 
   const lastUserMessageIdRef = useRef(lastUserMessageId);
   const pendingPlanningScrollUserIdRef = useRef<string | null>(null);
@@ -710,14 +647,10 @@ export const MessageList = memo(function MessageList({
   }, [lastUserMessageId, scrollToBottomSettled]);
 
   const planningLabel = 'Processing...';
-  const turns = useMemo(() => groupMessagesIntoTurns(normalizedMessages), [normalizedMessages]);
-  const showPlanning = useMemo(() => {
-    const last = normalizedMessages[normalizedMessages.length - 1];
-    if (!last) {
-      return false;
-    }
-    return isStreaming && (last.role === 'user' || !getLastAssistantHasContent(normalizedMessages));
-  }, [isStreaming, normalizedMessages]);
+  const showPlanning =
+    Boolean(lastMessage) &&
+    isStreaming &&
+    (lastMessageRole === 'user' || !transcript.lastAssistantHasContent);
   const isNewAssistantMessage =
     lastMessageRole === 'assistant' &&
     Boolean(lastMessageId) &&
@@ -855,7 +788,7 @@ export const MessageList = memo(function MessageList({
                       }
                       return (
                         <div
-                          className={classes.group}
+                          className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
                           data-message-actions-host
                           data-message-id={userMsg.id}
                           data-turn-prompt
@@ -880,7 +813,10 @@ export const MessageList = memo(function MessageList({
                       );
                     }
                     return (
-                      <div className={classes.group} data-turn-prompt>
+                      <div
+                        className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
+                        data-turn-prompt
+                      >
                         <CustomUserMessage
                           message={userMsg}
                           className={classNames?.userMessage}
@@ -970,9 +906,8 @@ export const MessageList = memo(function MessageList({
                               <AssistantParts
                                 key={msg.id}
                                 msg={msg}
-                                isLast={isLastMsg}
-                                isStreaming={isStreaming}
-                                isTextStreaming={status === 'streaming'}
+                                isRowStreaming={isLastMsg && isStreaming}
+                                isRowTextStreaming={isLastMsg && status === 'streaming'}
                                 highlighter={highlighter}
                                 wrapLines={wrapLines}
                                 responsiveTables={responsiveTables}
@@ -985,6 +920,8 @@ export const MessageList = memo(function MessageList({
                                 onToolAction={stableToolAction}
                                 onRetry={stableRetry}
                                 toolRunOptions={toolRunOptions}
+                                appearance={appearance}
+                                lookups={lookups}
                               />
                             );
                           })}
@@ -1042,9 +979,8 @@ MessageList.displayName = 'MessageList';
 
 type AssistantPartsProps = {
   msg: ChatMessage;
-  isLast: boolean;
-  isStreaming: boolean;
-  isTextStreaming: boolean;
+  isRowStreaming: boolean;
+  isRowTextStreaming: boolean;
   highlighter?: SyntaxHighlighter;
   wrapLines?: boolean;
   responsiveTables?: boolean;
@@ -1057,6 +993,8 @@ type AssistantPartsProps = {
   onToolAction?: ToolActionHandler;
   onRetry?: () => void;
   toolRunOptions?: ResolvedToolRunOptions | null;
+  appearance: AppearanceTracker;
+  lookups: ToolCallLookups;
 };
 
 function samePartList(previous: unknown[] = [], next: unknown[] = []): boolean {
@@ -1085,8 +1023,19 @@ function sameToolRenderers(
   );
 }
 
-/** A finished message keeps its element tree while the streaming one grows a part per token. */
+/**
+ * A finished message keeps its element tree while the streaming one grows a part per token.
+ * Only a row that can no longer move on its own is allowed to bail out: it must not be streaming
+ * and every tool call it holds must already have a result. Whole-transcript facts never reach this
+ * comparator, they arrive as booleans derived from the row itself.
+ */
 function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPartsProps): boolean {
+  if (next.isRowStreaming || next.isRowTextStreaming) {
+    return false;
+  }
+  if (hasUnresolvedToolCalls(next.msg.parts)) {
+    return false;
+  }
   if (previous.msg !== next.msg) {
     if (previous.msg.id !== next.msg.id || previous.msg.role !== next.msg.role) {
       return false;
@@ -1096,9 +1045,8 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     }
   }
   return (
-    previous.isLast === next.isLast &&
-    previous.isStreaming === next.isStreaming &&
-    previous.isTextStreaming === next.isTextStreaming &&
+    previous.isRowStreaming === next.isRowStreaming &&
+    previous.isRowTextStreaming === next.isRowTextStreaming &&
     previous.highlighter === next.highlighter &&
     previous.wrapLines === next.wrapLines &&
     previous.responsiveTables === next.responsiveTables &&
@@ -1110,15 +1058,15 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.onToolAction === next.onToolAction &&
     previous.onRetry === next.onRetry &&
     previous.toolRunOptions === next.toolRunOptions &&
+    previous.appearance === next.appearance &&
     sameToolRenderers(previous.toolRenderers, next.toolRenderers)
   );
 }
 
 const AssistantParts = memo(function AssistantParts({
   msg,
-  isLast,
-  isStreaming,
-  isTextStreaming,
+  isRowStreaming,
+  isRowTextStreaming,
   highlighter,
   wrapLines,
   responsiveTables,
@@ -1131,54 +1079,22 @@ const AssistantParts = memo(function AssistantParts({
   onToolAction,
   onRetry,
   toolRunOptions,
+  appearance,
+  lookups,
 }: AssistantPartsProps) {
   const parts = useMemo(
     () => normalizeAssistantToolParts(msg.parts ?? []) as unknown[],
     [msg.parts]
   );
 
+  const liveLookups = useMemo(
+    () => (hasUnresolvedToolCalls(parts) ? lookups : undefined),
+    [parts, lookups]
+  );
+
   const elements = useMemo(() => {
-    const taskPartIds = new Set(
-      parts
-        .filter(
-          (p): p is ToolPart =>
-            isV5ToolPart(p) &&
-            (p.type === 'tool-Task' || p.type === 'tool-Agent') &&
-            typeof p.toolCallId === 'string'
-        )
-        .map((p) => p.toolCallId as string)
-    );
-    const nestedToolsMap = new Map<string, ToolPart[]>();
-    const nestedToolIds = new Set<string>();
-
-    for (const part of parts) {
-      if (!isV5ToolPart(part)) {
-        continue;
-      }
-      if (part.type === 'tool-TaskOutput') {
-        continue;
-      }
-      if (!part.toolCallId || !part.toolCallId.includes(':')) {
-        continue;
-      }
-      const parentId = part.toolCallId.split(':')[0];
-      if (!taskPartIds.has(parentId)) {
-        continue;
-      }
-      if (!nestedToolsMap.has(parentId)) {
-        nestedToolsMap.set(parentId, []);
-      }
-      nestedToolsMap.get(parentId)!.push(part);
-      nestedToolIds.add(part.toolCallId);
-    }
-
-    const chatStreamingStatus = isLast && isStreaming ? 'streaming' : undefined;
-    let lastTextIndex = -1;
-    parts.forEach((part, index) => {
-      if (isTextPart(part)) {
-        lastTextIndex = index;
-      }
-    });
+    const { siblingsByParentId, nestedToolCallIds, lastTextIndex } = getMessagePartIndex(parts);
+    const chatStreamingStatus = isRowStreaming ? 'streaming' : undefined;
     const visible: Array<{ part: unknown; index: number }> = [];
 
     parts.forEach((part, index) => {
@@ -1203,7 +1119,7 @@ const AssistantParts = memo(function AssistantParts({
       ) {
         return;
       }
-      if (part.toolCallId && nestedToolIds.has(part.toolCallId)) {
+      if (part.toolCallId && nestedToolCallIds.has(part.toolCallId)) {
         return;
       }
       visible.push({ part, index });
@@ -1220,7 +1136,7 @@ const AssistantParts = memo(function AssistantParts({
               responsiveTables={responsiveTables}
               frameBatched={frameBatched}
               tailGranularity={tailGranularity}
-              streaming={isLast && isTextStreaming && index === lastTextIndex ? true : undefined}
+              streaming={isRowTextStreaming && index === lastTextIndex ? true : undefined}
             />
           </div>
         );
@@ -1285,7 +1201,7 @@ const AssistantParts = memo(function AssistantParts({
       const toolCallId = toolPart.toolCallId;
       const nestedTools =
         (toolPart.type === 'tool-Task' || toolPart.type === 'tool-Agent') && toolCallId
-          ? nestedToolsMap.get(toolCallId) || []
+          ? siblingsByParentId.get(toolCallId) || []
           : undefined;
       return (
         <ToolRendererComponent
@@ -1296,12 +1212,27 @@ const AssistantParts = memo(function AssistantParts({
           toolRenderers={toolRenderers}
           onToolAction={onToolAction}
           wrapLines={wrapLines}
+          lookups={liveLookups}
         />
       );
     };
 
+    const appear = (node: React.ReactNode): React.ReactNode => {
+      if (!appearance.enabled || !React.isValidElement(node) || node.key === null) {
+        return node;
+      }
+      if (!appearance.isNew(`${msg.id}:${node.key}`)) {
+        return node;
+      }
+      return (
+        <div key={node.key} className={classes.appear}>
+          {node}
+        </div>
+      );
+    };
+
     if (!toolRunOptions) {
-      return visible.map(renderEntry);
+      return visible.map((entry) => appear(renderEntry(entry)));
     }
 
     return groupToolRuns(
@@ -1310,11 +1241,11 @@ const AssistantParts = memo(function AssistantParts({
       toolRunOptions.minRun
     ).map((segment) => {
       if (segment.kind === 'single') {
-        return renderEntry(segment.item);
+        return appear(renderEntry(segment.item));
       }
       const runParts = segment.items.map((entry) => entry.part as ToolPart);
       const first = segment.items[0];
-      return (
+      return appear(
         <ToolRunGroup
           key={`run-${runParts[0].toolCallId ?? `${msg.id}-${first.index}`}`}
           parts={runParts}
@@ -1323,6 +1254,7 @@ const AssistantParts = memo(function AssistantParts({
           toolRenderers={toolRenderers}
           onToolAction={onToolAction}
           wrapLines={wrapLines}
+          lookups={liveLookups}
           labels={toolRunOptions.labels}
         />
       );
@@ -1330,9 +1262,8 @@ const AssistantParts = memo(function AssistantParts({
   }, [
     parts,
     msg.id,
-    isLast,
-    isStreaming,
-    isTextStreaming,
+    isRowStreaming,
+    isRowTextStreaming,
     highlighter,
     wrapLines,
     responsiveTables,
@@ -1345,6 +1276,8 @@ const AssistantParts = memo(function AssistantParts({
     onToolAction,
     onRetry,
     toolRunOptions,
+    appearance,
+    liveLookups,
   ]);
 
   return (

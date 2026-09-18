@@ -40,7 +40,7 @@ export interface PlanToolProps {
 }
 
 function getPlanFileName(plan: Plan) {
-  const rawId = plan.id?.trim();
+  const rawId = typeof plan.id === 'string' ? plan.id.trim() : '';
   if (!rawId) {
     return 'plan-working.md';
   }
@@ -63,12 +63,12 @@ export const PlanTool = memo(function PlanTool({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
-  if (!plan) {
+  if (!plan || typeof plan !== 'object') {
     return null;
   }
 
   const fileName = getPlanFileName(plan);
-  const summary = plan.summary?.trim() ?? '';
+  const summary = typeof plan.summary === 'string' ? plan.summary.trim() : '';
   const hasSummary = summary.length > 0;
 
   const approveLabel = input.approveLabel ?? 'Approve';

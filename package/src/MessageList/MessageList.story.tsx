@@ -1,5 +1,6 @@
 import React from 'react';
-import { Paper } from '@mantine/core';
+import { Button, Paper, Stack } from '@mantine/core';
+import type { ChatMessage } from '../types';
 import {
   compactedConversation,
   conversation,
@@ -143,5 +144,36 @@ export function CompactionWide() {
     <WidthFrame width={900}>
       <MessageList messages={compactedConversation} status="ready" initialScrollBehavior="top" />
     </WidthFrame>
+  );
+}
+
+export function AnimatedAppearance() {
+  const [messages, setMessages] = React.useState<ChatMessage[]>(conversation);
+  const send = () => {
+    const turn = messages.length;
+    setMessages((current) => [
+      ...current,
+      {
+        id: `appear-u${turn}`,
+        role: 'user',
+        parts: [{ type: 'text', text: `And what about step ${turn}?` }],
+      },
+      {
+        id: `appear-a${turn}`,
+        role: 'assistant',
+        parts: [
+          { type: 'text', text: 'Here is the next part of the answer, faded in on arrival.' },
+        ],
+      },
+    ]);
+  };
+
+  return (
+    <Stack gap="sm" align="center">
+      <Frame>
+        <MessageList messages={messages} status="ready" animateAppearance />
+      </Frame>
+      <Button onClick={send}>Add a turn</Button>
+    </Stack>
   );
 }

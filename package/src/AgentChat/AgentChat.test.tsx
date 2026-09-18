@@ -18,6 +18,24 @@ const messages: ChatMessage[] = [
   { id: 'a1', role: 'assistant', parts: [{ type: 'text', text: 'First answer' }] },
 ];
 
+function withFakeFrames(run: (flush: () => void) => void) {
+  const frames: FrameRequestCallback[] = [];
+  const request = jest
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation((callback: FrameRequestCallback) => frames.push(callback));
+  const cancel = jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+  try {
+    run(() =>
+      act(() => {
+        frames.splice(0).forEach((frame) => frame(0));
+      })
+    );
+  } finally {
+    request.mockRestore();
+    cancel.mockRestore();
+  }
+}
+
 describe('AgentChat/AgentChat', () => {
   it('calls onSend from the input bar', async () => {
     const onSend = jest.fn();
@@ -506,6 +524,153 @@ describe('AgentChat/AgentChat', () => {
     });
   });
 
+  describe('tool call state', () => {
+    const openCalls: ChatMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Read both files' }] },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          {
+            type: 'tool-Read',
+            toolCallId: 'q1',
+            state: 'input-available',
+            input: { file_path: '/repo/a.ts' },
+          },
+          {
+            type: 'tool-Read',
+            toolCallId: 'q2',
+            state: 'input-available',
+            input: { file_path: '/repo/b.ts' },
+          },
+          {
+            type: 'tool-Bash',
+            toolCallId: 'p1',
+            state: 'input-available',
+            input: { command: 'rm -rf build', approval: { decision: null } },
+          },
+        ],
+      },
+    ] as ChatMessage[];
+
+    it('marks the call after the running one as queued while the answer streams', () => {
+      render(
+        <AgentChat
+          messages={openCalls}
+          status="streaming"
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+
+      expect(screen.getByText('Reading')).toBeInTheDocument();
+      expect(screen.getByText('Queued')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument();
+    });
+
+    it('lets the lookups of the host win over the ones built from the transcript', () => {
+      render(
+        <AgentChat
+          messages={openCalls}
+          status="streaming"
+          toolCallLookups={{ isAwaitingPermission: (id) => id === 'q2' }}
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+        />
+      );
+
+      expect(screen.queryByText('Queued')).toBeNull();
+      expect(screen.getByText('Waiting for permission')).toBeInTheDocument();
+    });
+  });
+
+  describe('appearance', () => {
+    let addTurn: () => void = () => {};
+    let growAnswer: (next: string) => void = () => {};
+
+    function AppearHarness(props: { animateAppearance?: boolean }) {
+      const [live, setLive] = React.useState<ChatMessage[]>([]);
+      const [answer, setAnswer] = React.useState('Second answer');
+      addTurn = () =>
+        setLive([
+          { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'Second question' }] },
+          { id: 'a2', role: 'assistant', parts: [{ type: 'text', text: answer }] },
+        ]);
+      growAnswer = (next: string) => {
+        setAnswer(next);
+        setLive((current) =>
+          current.map((message) =>
+            message.id === 'a2' ? { ...message, parts: [{ type: 'text', text: next }] } : message
+          )
+        );
+      };
+      return (
+        <AgentChat
+          messages={[...messages, ...live]}
+          status={live.length > 0 ? 'streaming' : 'ready'}
+          onSend={() => {}}
+          onStop={() => {}}
+          slots={{ InputBar: StubInputBar }}
+          {...props}
+        />
+      );
+    }
+
+    function appearing(container: HTMLElement) {
+      return Array.from(container.querySelectorAll('.appear'));
+    }
+
+    it('fades a new turn in by default and leaves the transcript of the first render alone', () => {
+      const { container } = render(<AppearHarness />);
+      expect(appearing(container)).toHaveLength(0);
+
+      act(() => addTurn());
+      expect(appearing(container).map((element) => element.textContent)).toEqual([
+        'Second question',
+        'Second answer',
+      ]);
+    });
+
+    it('does not fade anything in under prefers-reduced-motion', () => {
+      const matchMedia = window.matchMedia;
+      window.matchMedia = ((query: string) => ({
+        ...matchMedia(query),
+        matches: query === '(prefers-reduced-motion: reduce)',
+      })) as typeof window.matchMedia;
+
+      const { container } = render(<AppearHarness />);
+      act(() => addTurn());
+
+      expect(appearing(container)).toHaveLength(0);
+      window.matchMedia = matchMedia;
+    });
+
+    it('does not replay the animation while the last part grows frame by frame', () => {
+      withFakeFrames((flush) => {
+        const { container } = render(<AppearHarness />);
+        act(() => addTurn());
+        const [, answer] = appearing(container);
+
+        act(() => growAnswer('Second answer grows'));
+        flush();
+        act(() => growAnswer('Second answer grows further'));
+        flush();
+
+        const stillAnimating = appearing(container);
+        expect(stillAnimating).toHaveLength(2);
+        expect(stillAnimating[1]).toBe(answer);
+      });
+    });
+
+    it('can be turned off', () => {
+      const { container } = render(<AppearHarness animateAppearance={false} />);
+      act(() => addTurn());
+      expect(appearing(container)).toHaveLength(0);
+    });
+  });
+
   describe('streaming', () => {
     let setText: (next: string) => void = () => {};
 
@@ -522,24 +687,6 @@ describe('AgentChat/AgentChat', () => {
           slots={{ InputBar: StubInputBar }}
         />
       );
-    }
-
-    function withFakeFrames(run: (flush: () => void) => void) {
-      const frames: FrameRequestCallback[] = [];
-      const request = jest
-        .spyOn(window, 'requestAnimationFrame')
-        .mockImplementation((callback: FrameRequestCallback) => frames.push(callback));
-      const cancel = jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
-      try {
-        run(() =>
-          act(() => {
-            frames.splice(0).forEach((frame) => frame(0));
-          })
-        );
-      } finally {
-        request.mockRestore();
-        cancel.mockRestore();
-      }
     }
 
     it('holds the streamed answer until the next frame', () => {

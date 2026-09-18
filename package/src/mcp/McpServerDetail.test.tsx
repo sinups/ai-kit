@@ -28,6 +28,20 @@ describe('mcp/McpServerDetail', () => {
     );
   });
 
+  it('lets a long tool name wrap to two lines', () => {
+    const longName = 'Где я сейчас нахожусь в рабочем пространстве и что открыто';
+    render(
+      <McpServerDetail
+        server={{
+          ...GIT_SERVER,
+          tools: [{ name: 'where_am_i', title: longName, description: 'Текущее место' }],
+        }}
+      />
+    );
+
+    expect(screen.getByText(longName)).toHaveAttribute('data-lines', '2');
+  });
+
   it('does not claim a connected server has no tools before they load', () => {
     render(<McpServerDetail server={{ ...GIT_SERVER, tools: undefined, toolCount: 3 }} />);
     expect(screen.getByRole('tab', { name: /Tools/ })).toHaveTextContent('3');

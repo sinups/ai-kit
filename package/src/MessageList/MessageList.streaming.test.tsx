@@ -169,3 +169,70 @@ describe('MessageList/streaming', () => {
     expect(screen.getByText(/token/)).toBeInTheDocument();
   });
 });
+
+describe('MessageList/render scope', () => {
+  function setup(turns: number) {
+    const renders = new Map<string, number>();
+    function CountingTool({ part }: ToolRendererSlotProps) {
+      const id = String(part.toolCallId);
+      renders.set(id, (renders.get(id) ?? 0) + 1);
+      return <div data-tool-id={id} />;
+    }
+
+    const base = transcript(turns);
+    let setMessages: (next: ChatMessage[]) => void = () => {};
+    let setStatus: (next: 'streaming' | 'ready') => void = () => {};
+
+    function Harness() {
+      const [list, setList] = React.useState<ChatMessage[]>([...base, streamingMessage('token ')]);
+      const [status, setStatusState] = React.useState<'streaming' | 'ready'>('streaming');
+      setMessages = setList;
+      setStatus = setStatusState;
+      return (
+        <MessageList
+          messages={list}
+          status={status}
+          slots={{ ToolRenderer: CountingTool }}
+          onToolAction={() => {}}
+          onRetry={() => {}}
+        />
+      );
+    }
+
+    render(<Harness />);
+    return {
+      base,
+      renders,
+      setMessages: (next: ChatMessage[]) => setMessages(next),
+      setStatus: (next: 'streaming' | 'ready') => setStatus(next),
+    };
+  }
+
+  it('renders each finished row once while 200 deltas stream into the last message', () => {
+    const { base, renders, setMessages } = setup(150);
+    expect(renders.size).toBe(150);
+    expect([...renders.values()].every((count) => count === 1)).toBe(true);
+
+    let text = 'token ';
+    for (let delta = 0; delta < 200; delta += 1) {
+      text += 'token ';
+      act(() => setMessages([...base, streamingMessage(text)]));
+    }
+
+    expect([...renders.entries()].filter(([, count]) => count !== 1)).toEqual([]);
+  });
+
+  it('does not re-render finished rows when the chat status changes', () => {
+    const { renders, setStatus } = setup(150);
+    act(() => setStatus('ready'));
+    expect([...renders.entries()].filter(([, count]) => count !== 1)).toEqual([]);
+  });
+
+  it('keeps updating the streaming row while the finished rows stay put', () => {
+    const { base, renders, setMessages } = setup(20);
+    act(() => setMessages([...base, streamingMessage('token token token ')]));
+
+    expect(screen.getByText('token token token')).toBeInTheDocument();
+    expect([...renders.entries()].filter(([, count]) => count !== 1)).toEqual([]);
+  });
+});

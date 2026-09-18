@@ -121,6 +121,7 @@ primary buttons, picker labels. There are no headings: the largest text is sm/50
 | `--ae-anim-loading-dots` | opacity 0 → 1 → 0, 1.4s, delays 0.2/0.4/0.6s | "Waiting…" dots (`tools/ToolApprovalFooter.module.css`) |
 | `--ae-anim-blink` | 1s step-end | Typing caret (`input/InputBar.module.css`) |
 | `--ae-anim-spin` | 360deg | Spinners |
+| `--ae-anim-appear` | opacity 0 → 1 with 4px of travel, 150ms ease-out | Messages and parts that arrive after mount (`MessageList` with `animateAppearance`) |
 
 Transitions are `150ms ease` for color and background, `150ms ease-out` for expand, collapse and
 chevrons (`ToolRowBase/ToolRowBase.module.css`, `input/InputBar.module.css`), `200ms ease-out`

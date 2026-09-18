@@ -484,6 +484,7 @@ export const McpServerDetail = memo(function McpServerDetail({
               renderItem={(tool) => (
                 <EntityListItem
                   title={getMcpToolDisplayName(tool)}
+                  titleLines={2}
                   description={tool.description}
                   icon={<IconTool size={16} />}
                   badges={
