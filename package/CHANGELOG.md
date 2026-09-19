@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/sinups/ai-kit/compare/v0.3.0...v0.4.0) (2026-09-19)
+
+
+### Features
+
+* media, artifacts, voice and upload ui, mcp protocol tool results ([#17](https://github.com/sinups/ai-kit/issues/17)) ([153a013](https://github.com/sinups/ai-kit/commit/153a01362d6e1209e686b0ff02936bd4bb6f5f54))
+
 ## [0.3.0](https://github.com/sinups/ai-kit/compare/v0.2.0...v0.3.0) (2026-09-18)
 
 
