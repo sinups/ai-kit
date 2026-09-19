@@ -79,13 +79,12 @@ export const CommandToggles = memo(function CommandToggles({
           >
             <Button
               size="compact-sm"
-              radius="xl"
-              variant={picked ? 'light' : 'subtle'}
-              color={picked ? undefined : 'gray'}
+              variant="subtle"
+              color="gray"
               leftSection={command.icon}
               aria-pressed={picked}
               disabled={command.disabled}
-              className={classes.toggle}
+              classNames={{ root: classes.toggle, section: classes.icon }}
               onClick={() => setActive(picked ? null : command.id)}
             >
               {command.label}

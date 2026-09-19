@@ -8,7 +8,7 @@ import { UserMessage } from '../../UserMessage/UserMessage';
 import type { SlashCommandInfo } from '../types';
 import { CommandChip } from './CommandChip';
 
-export default { title: 'message-actions/CommandChip' };
+export default { title: 'Messages/CommandChip' };
 
 const COMMANDS: SlashCommandInfo[] = [
   {

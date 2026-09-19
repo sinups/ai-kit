@@ -7,7 +7,7 @@ import { MCP_SERVERS } from './fixtures';
 import { McpImportDialog } from './McpImportDialog';
 import type { McpServerCandidate } from './types';
 
-export default { title: 'mcp/McpImportDialog' };
+export default { title: 'MCP/McpImportDialog' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const EXISTING = MCP_SERVERS.map((server) => server.name);

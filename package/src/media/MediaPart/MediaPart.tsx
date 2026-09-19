@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react';
-import { Box, Paper, UnstyledButton } from '@mantine/core';
+import { Box, UnstyledButton } from '@mantine/core';
 import { ImageLightbox } from '../../ImageLightbox/ImageLightbox';
 import { FileAttachment, type FileAttachmentLabels } from '../../input/FileAttachment';
 import type { FilePart, PartRendererProps, PartRenderers } from '../../types';
@@ -95,7 +95,7 @@ export const MediaPart = memo(function MediaPart({
   }
   if (url && kind === 'audio') {
     return (
-      <Paper withBorder className={cx(classes.player, className)} style={style}>
+      <Box className={cx(classes.player, className)} style={style}>
         <audio
           controls
           preload="none"
@@ -105,7 +105,7 @@ export const MediaPart = memo(function MediaPart({
         >
           {captions ? <track kind="captions" src={captions} default /> : null}
         </audio>
-      </Paper>
+      </Box>
     );
   }
   if (url && kind === 'video') {

@@ -6,7 +6,7 @@ import { AGENT_MODELS, AGENTS } from '../fixtures';
 import type { AgentDefinition } from '../types';
 import { AgentList, type AgentListProps } from './AgentList';
 
-export default { title: 'agents/AgentList' };
+export default { title: 'Agents & skills/AgentList' };
 
 function Demo(props: Partial<AgentListProps>) {
   const [selectedId, setSelectedId] = useState<string | null>('agent-test-runner');

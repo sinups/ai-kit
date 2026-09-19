@@ -29,7 +29,7 @@ import {
 import { AiKitProvider } from './AiKitProvider';
 import classes from './AiKitThemeMatrix.module.css';
 
-export default { title: 'theme/Matrix', parameters: { layout: 'fullscreen' } };
+export default { title: 'Theme/Matrix', parameters: { layout: 'fullscreen' } };
 
 function Cell({ accent, radius }: { accent?: AiKitAccent; radius: AiKitRadius }) {
   return (

@@ -6,7 +6,7 @@ import type { AttachedFile } from '../types';
 import { FileAttachment } from './FileAttachment';
 import { InputBar } from './InputBar';
 
-export default { title: 'input/FileAttachment' };
+export default { title: 'Input/FileAttachment' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -108,7 +108,7 @@ function UploadingComposer({ onSend }: { onSend: (message: { content: string }) 
   );
 }
 
-export const UploadStates = {
+export const UploadStatesFlow = {
   args: { onSend: fn() },
   render: ({ onSend }: { onSend: (message: { content: string }) => void }) => (
     <WidthFrame width={WIDE_WIDTH}>

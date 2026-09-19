@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { wait } from '../_story-helpers';
 import { MemoryNotice } from './MemoryNotice';
 
-export default { title: 'message-actions/MemoryNotice' };
+export default { title: 'Messages/MemoryNotice' };
 
 const CONTENT = `Use **yarn**, not npm, in this repository.
 

@@ -18,7 +18,7 @@ import type { WizardStep } from './wizard-state';
 import { Wizard } from './Wizard';
 import { WizardModal } from './WizardModal';
 
-export default { title: 'primitives/Wizard' };
+export default { title: 'Primitives/Wizard' };
 
 type ServerValues = {
   name: string;

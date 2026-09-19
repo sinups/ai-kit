@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { EditTool } from './EditTool';
 import { demoHighlighter, editPart, NEW_CODE } from './_story-helpers';
 
-export default { title: 'tools/EditTool' };
+export default { title: 'Tools/EditTool' };
 
 export function Usage() {
   return (

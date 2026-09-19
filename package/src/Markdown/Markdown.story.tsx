@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { expect, fn, userEvent, within } from '@storybook/test';
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test';
 import { Button, Group, Stack, Text } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { storyHighlighter } from '../_stories/shiki-highlighter';
 import { Markdown } from './Markdown';
 
-export default { title: 'Markdown' };
+export default { title: 'Messages/Markdown' };
 
 const SAMPLE = `# Heading 1
 
@@ -199,13 +199,27 @@ function StreamDemo({ width }: { width: number }) {
   );
 }
 
+// The stream grows by random steps; the snapshot waits for the whole answer.
+async function playUntilDone({ canvasElement }: { canvasElement: HTMLElement }) {
+  const canvas = within(canvasElement);
+  await expect(
+    await canvas.findByText(`Done ${STREAM.length}/${STREAM.length}`, undefined, {
+      timeout: 20000,
+    })
+  ).toBeInTheDocument();
+}
+
 export function Streaming() {
   return <StreamDemo width={640} />;
 }
 
+Streaming.play = playUntilDone;
+
 export function StreamingNarrow() {
   return <StreamDemo width={NARROW_WIDTH} />;
 }
+
+StreamingNarrow.play = playUntilDone;
 
 export function CodeCopyFlow() {
   return (
@@ -289,4 +303,7 @@ export function StreamingCaret() {
 
 StreamingCaret.play = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
   await expect(canvasElement.querySelector('[data-caret]')).not.toBeNull();
+  await waitFor(() => expect(canvasElement.querySelector('[data-caret]')).toBeNull(), {
+    timeout: 5000,
+  });
 };

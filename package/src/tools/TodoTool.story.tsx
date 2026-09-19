@@ -3,7 +3,7 @@ import { expect, userEvent, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { TodoTool, type TodoItem } from './TodoTool';
 
-export default { title: 'tools/TodoTool' };
+export default { title: 'Tools/TodoTool' };
 
 const todos: TodoItem[] = [
   { content: 'Read the brief and foundation files', status: 'completed' },

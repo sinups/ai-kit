@@ -12,7 +12,7 @@ import {
 } from './fixtures';
 import { MessageList } from './MessageList';
 
-export default { title: 'MessageList' };
+export default { title: 'Chat/MessageList' };
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (

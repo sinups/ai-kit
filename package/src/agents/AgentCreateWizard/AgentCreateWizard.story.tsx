@@ -5,7 +5,7 @@ import { AGENT_MODELS, AGENT_SKILLS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDraft } from '../types';
 import { AgentCreateWizard, type AgentCreateWizardProps } from './AgentCreateWizard';
 
-export default { title: 'agents/AgentCreateWizard' };
+export default { title: 'Agents & skills/AgentCreateWizard' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

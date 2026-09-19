@@ -16,7 +16,7 @@ import { SettingsLayout, type SettingsLayoutProps } from './SettingsLayout';
 import { SettingsModal } from './SettingsModal';
 import { SettingsSection } from './SettingsSection';
 
-export default { title: 'primitives/SettingsLayout' };
+export default { title: 'Primitives/SettingsLayout' };
 
 const SECTIONS: SettingsNavItem[] = [
   { id: 'general', label: 'General', icon: <IconSettings size={16} /> },

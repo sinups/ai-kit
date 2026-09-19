@@ -3,7 +3,7 @@ import { Box, Stack, Text } from '@mantine/core';
 import { AgentWorkspace } from './AgentWorkspace';
 import classes from './AgentWorkspace.module.css';
 
-export default { title: 'demo/AgentWorkspace', parameters: { layout: 'fullscreen' } };
+export default { title: 'Demos/AgentWorkspace', parameters: { layout: 'fullscreen' } };
 
 export function Desktop() {
   return <AgentWorkspace />;

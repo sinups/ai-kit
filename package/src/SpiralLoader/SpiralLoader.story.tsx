@@ -1,7 +1,7 @@
 import React from 'react';
 import { SpiralLoader } from './SpiralLoader';
 
-export default { title: 'SpiralLoader' };
+export default { title: 'Status/SpiralLoader' };
 
 export function Usage() {
   return (

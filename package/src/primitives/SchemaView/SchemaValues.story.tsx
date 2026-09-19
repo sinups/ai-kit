@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import type { JsonSchema } from './schema';
 import { SchemaValues } from './SchemaValues';
 
-export default { title: 'primitives/SchemaValues' };
+export default { title: 'Primitives/SchemaValues' };
 
 const CREATE_ISSUE: JsonSchema = {
   type: 'object',

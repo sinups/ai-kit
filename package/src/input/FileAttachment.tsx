@@ -218,6 +218,7 @@ export function FileAttachment({
             (percent === undefined ? (
               <Loader
                 size="xs"
+                color="var(--ae-fg-muted)"
                 className={classes.ring}
                 role="progressbar"
                 aria-label={labels.uploading}
@@ -226,7 +227,8 @@ export function FileAttachment({
               <RingProgress
                 size={32}
                 thickness={3}
-                sections={[{ value: percent, color: 'var(--ae-primary)' }]}
+                sections={[{ value: percent, color: 'var(--ae-fg-muted)' }]}
+                rootColor="var(--file-attachment-ring-track)"
                 className={classes.ring}
                 role="progressbar"
                 aria-label={labels.uploading}
@@ -257,18 +259,23 @@ export function FileAttachment({
               {filename}
             </span>
             {uploading ? (
-              <Progress.Root size="xs" className={classes.progress}>
-                <Progress.Section
-                  value={percent ?? 100}
-                  animated={percent === undefined}
-                  withAria={percent !== undefined}
-                  role="progressbar"
-                  aria-label={labels.uploading}
-                  aria-valuetext={progressText}
-                />
-              </Progress.Root>
+              <div className={classes.line}>
+                <Progress.Root size="xs" className={classes.progress}>
+                  <Progress.Section
+                    value={percent ?? 100}
+                    color="var(--ae-fg-muted)"
+                    animated={percent === undefined}
+                    withAria={percent !== undefined}
+                    role="progressbar"
+                    aria-label={labels.uploading}
+                    aria-valuetext={progressText}
+                  />
+                </Progress.Root>
+              </div>
             ) : failed ? (
-              <span className={classes.size}>{error ?? labels.uploadFailed}</span>
+              <span className={classes.size} title={error ?? labels.uploadFailed}>
+                {error ?? labels.uploadFailed}
+              </span>
             ) : (
               size !== undefined && <span className={classes.size}>{labels.size(size)}</span>
             )}

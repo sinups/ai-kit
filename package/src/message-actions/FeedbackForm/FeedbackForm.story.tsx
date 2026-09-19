@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { wait } from '../_story-helpers';
 import { FeedbackForm } from './FeedbackForm';
 
-export default { title: 'message-actions/FeedbackForm' };
+export default { title: 'Messages/FeedbackForm' };
 
 function Demo({ fail = false }: { fail?: boolean }) {
   return (

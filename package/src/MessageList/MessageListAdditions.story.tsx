@@ -6,7 +6,7 @@ import { MessageActionButton } from '../message-actions/MessageActionButton/Mess
 import type { ChatMessage, PartRendererProps, PartRenderers } from '../types';
 import { MessageList } from './MessageList';
 
-export default { title: 'MessageList/Additions' };
+export default { title: 'Chat/MessageList/Additions' };
 
 type Canvas = { canvasElement: HTMLElement };
 

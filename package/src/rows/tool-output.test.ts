@@ -3,6 +3,8 @@ import {
   DEFAULT_TOOL_OUTPUT_LABELS,
   formatOutputValue,
   getToolOutputValue,
+  readOutputValue,
+  readPartOutput,
   readCallToolResult,
   readStructuredResult,
   resolveByPartType,
@@ -73,8 +75,18 @@ describe('rows/tool-output', () => {
     expect(
       summarizeToolOutput({ content: [{ type: 'text', text: 'Quota exceeded' }], isError: true })
     ).toBe('Quota exceeded');
-    expect(unwrapToolOutput(blocks)).toBe(page);
-    expect(getToolOutputValue({ type: 'tool-mcp__tracker__x', output: blocks })).toBe(page);
+    expect(readOutputValue(blocks)).toBe(page);
+    expect(readPartOutput({ type: 'tool-mcp__tracker__x', output: blocks })).toBe(page);
+  });
+
+  it('keeps the 0.3 value of unwrapToolOutput and getToolOutputValue for existing formatters', () => {
+    const page = { content: [{ key: 'TRK-1' }], hasMore: false };
+    const blocks = [{ type: 'text', text: JSON.stringify(page) }];
+    expect(unwrapToolOutput(blocks)).toEqual(page);
+    expect(unwrapToolOutput({ content: blocks, structuredContent: { other: 1 } })).toEqual(page);
+    expect(unwrapToolOutput('{"a":1}')).toEqual({ a: 1 });
+    expect(unwrapToolOutput({ type: 'text', text: 'plain' })).toBe('plain');
+    expect(getToolOutputValue({ type: 'tool-mcp__tracker__x', output: blocks })).toEqual(page);
   });
 
   it('parses text only as the serialized structured content its schema describes', () => {

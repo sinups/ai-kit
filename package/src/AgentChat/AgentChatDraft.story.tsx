@@ -4,7 +4,7 @@ import { Button, Code, Group, Paper, Stack, Text } from '@mantine/core';
 import type { ChatMessage } from '../types';
 import { AgentChat } from './AgentChat';
 
-export default { title: 'AgentChat/Draft' };
+export default { title: 'Chat/AgentChat/Draft' };
 
 const SNIPPET = 'const token = await refresh(session.refreshToken);';
 

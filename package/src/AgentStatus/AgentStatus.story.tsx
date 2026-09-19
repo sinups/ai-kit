@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { AgentStatus } from './AgentStatus';
 
-export default { title: 'AgentStatus' };
+export default { title: 'Status/AgentStatus' };
 
 function Demo() {
   const [startedAt] = useState(() => Date.now());
@@ -37,21 +37,31 @@ function Demo() {
   );
 }
 
-export function Narrow() {
-  return (
+// The demo counts tokens for five seconds; the snapshot waits for the final count to stay stable.
+async function playUntilCounted({ canvasElement }: { canvasElement: HTMLElement }) {
+  const canvas = within(canvasElement);
+  await expect(
+    await canvas.findByText('↓ 1.6k tokens', undefined, { timeout: 8000 })
+  ).toBeInTheDocument();
+}
+
+export const Narrow = {
+  render: () => (
     <WidthFrame width={NARROW_WIDTH}>
       <Demo />
     </WidthFrame>
-  );
-}
+  ),
+  play: playUntilCounted,
+};
 
-export function Wide() {
-  return (
+export const Wide = {
+  render: () => (
     <WidthFrame width={WIDE_WIDTH}>
       <Demo />
     </WidthFrame>
-  );
-}
+  ),
+  play: playUntilCounted,
+};
 
 export function Stalled() {
   const [startedAt] = useState(() => Date.now() - 12_000);

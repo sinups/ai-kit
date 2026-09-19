@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack } from '@mantine/core';
 import { SearchTool, type SearchResult } from './SearchTool';
 
-export default { title: 'tools/SearchTool' };
+export default { title: 'Tools/SearchTool' };
 
 const results: SearchResult[] = [
   { source: 'web', title: 'mantinedev/mantine — Collapse component', date: '2 days ago' },

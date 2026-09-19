@@ -7,7 +7,7 @@ import { ChatDropZone } from './ChatDropZone';
 import { useFileIntake, type FileRejection } from './file-intake';
 import { InputBar } from './InputBar';
 
-export default { title: 'input/ChatDropZone' };
+export default { title: 'Input/ChatDropZone' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -44,36 +44,31 @@ function IntakeComposer() {
 
   return (
     <ChatDropZone onFiles={intake.onDrop}>
-      {({ isDragOver }) => (
-        <Stack gap="xs" p="md" mih={240} justify="flex-end" data-testid="drop-target">
-          {rejected.length > 0 && (
-            <Text size="xs" c="dimmed" data-testid="rejected">
-              {rejected.map((item) => `${item.file.name}: ${item.reason}`).join(', ')}
-            </Text>
-          )}
-          <InputBar
-            status="ready"
-            onSend={() => {}}
-            onStop={() => {}}
-            onAttach={intake.open}
-            onPaste={intake.onPaste}
-            leftActions={intake.input}
-            isDragOver={isDragOver}
-            attachedFiles={files}
-            attachedImages={images}
-            onRemoveFile={(id) => setFiles((current) => current.filter((file) => file.id !== id))}
-            onRemoveImage={(id) =>
-              setImages((current) => current.filter((image) => image.id !== id))
-            }
-            contentWidth="100%"
-          />
-        </Stack>
-      )}
+      <Stack gap="xs" p="md" mih={240} justify="flex-end" data-testid="drop-target">
+        {rejected.length > 0 && (
+          <Text size="xs" c="dimmed" data-testid="rejected">
+            {rejected.map((item) => `${item.file.name}: ${item.reason}`).join(', ')}
+          </Text>
+        )}
+        <InputBar
+          status="ready"
+          onSend={() => {}}
+          onStop={() => {}}
+          onAttach={intake.open}
+          onPaste={intake.onPaste}
+          leftActions={intake.input}
+          attachedFiles={files}
+          attachedImages={images}
+          onRemoveFile={(id) => setFiles((current) => current.filter((file) => file.id !== id))}
+          onRemoveImage={(id) => setImages((current) => current.filter((image) => image.id !== id))}
+          contentWidth="100%"
+        />
+      </Stack>
     </ChatDropZone>
   );
 }
 
-export const FileIntake = {
+export const FileIntakeFlow = {
   render: () => (
     <WidthFrame width={WIDE_WIDTH}>
       <IntakeComposer />
@@ -96,7 +91,7 @@ export const FileIntake = {
   },
 };
 
-export const DropOnChat = {
+export const DropOnChatFlow = {
   render: () => (
     <WidthFrame width={WIDE_WIDTH}>
       <IntakeComposer />

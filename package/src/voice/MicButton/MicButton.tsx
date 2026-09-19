@@ -88,7 +88,7 @@ export const MicButton = memo(function MicButton({
   if (state === 'processing') {
     icon = <SpiralLoader size={16} />;
   } else if (state === 'listening') {
-    icon = <IconPlayerStopFilled size={14} />;
+    icon = <IconPlayerStopFilled size={16} />;
   } else if (state === 'unsupported' || state === 'error') {
     icon = <IconMicrophoneOff size={16} stroke={2} />;
   } else {
@@ -98,8 +98,8 @@ export const MicButton = memo(function MicButton({
   return (
     <Tooltip label={tooltip} disabled={disabled} withArrow openDelay={300}>
       <ActionIcon
-        variant={state === 'listening' ? 'filled' : 'subtle'}
-        color={state === 'error' ? 'red' : state === 'listening' ? undefined : 'gray'}
+        variant="subtle"
+        color="gray"
         size="md"
         radius="xl"
         className={cx(classes.root, className)}

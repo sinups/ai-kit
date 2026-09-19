@@ -33,6 +33,7 @@ import {
 import {
   DEFAULT_TOOL_OUTPUT_LABELS,
   getToolOutputValue,
+  readPartOutput,
   clipText,
   MAX_OUTPUT_CHARS,
   readCallToolResult,
@@ -172,7 +173,7 @@ export function ToolPartRow({
   const outputSchema = catalogEntry?.outputSchema;
   const output = part.state === 'output-error' ? part.errorText : (part.output ?? part.result);
   const callResult = readCallToolResult(output);
-  const rawOutput = isSettled && !editSummary ? getToolOutputValue(part) : undefined;
+  const rawOutput = isSettled && !editSummary ? readPartOutput(part) : undefined;
   const summary =
     isSettled && !editSummary
       ? summarizeToolOutput(output, { locale: outputLocale, labels, schema: outputSchema })
@@ -180,7 +181,7 @@ export function ToolPartRow({
   const formatted = isSettled
     ? resolveByPartType(outputFormatters, part.type)?.(part, {
         state,
-        output: rawOutput,
+        output: getToolOutputValue(part),
         result: callResult ?? undefined,
         schema: outputSchema,
         summary,

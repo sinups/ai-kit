@@ -3,7 +3,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { skills } from './fixtures';
 import { SkillDetail } from './SkillDetail';
 
-export default { title: 'skills/SkillDetail' };
+export default { title: 'Agents & skills/SkillDetail' };
 
 function Demo({ index = 0 }: { index?: number }) {
   const [skill, setSkill] = useState(skills[index]);

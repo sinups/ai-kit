@@ -3,7 +3,7 @@ import { AgentChat } from '../AgentChat/AgentChat';
 import type { ChatMessage, ToolPart } from '../types';
 import { quietPresentation } from './quiet-presentation';
 
-export default { title: 'AgentChat/Quiet tools' };
+export default { title: 'Chat/AgentChat/Quiet tools' };
 
 const catalog = {
   mcp__tracker__tracker_issue_search: {

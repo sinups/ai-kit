@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ErrorMessage } from './ErrorMessage';
 
-export default { title: 'ErrorMessage' };
+export default { title: 'Messages/ErrorMessage' };
 
 const LONG_TRACE = [
   'TypeError: Cannot read properties of undefined (reading "map")',

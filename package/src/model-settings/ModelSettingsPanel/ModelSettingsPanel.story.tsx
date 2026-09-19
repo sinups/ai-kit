@@ -6,7 +6,7 @@ import { DAILY_USAGE, LIMITS, MCP_SERVERS, MODEL_USAGE, MODELS, OUTPUT_STYLES } 
 import type { EffortLevelValue, UsagePeriod } from '../types';
 import { ModelSettingsPanel } from './ModelSettingsPanel';
 
-export default { title: 'model-settings/ModelSettingsPanel' };
+export default { title: 'Settings/ModelSettingsPanel' };
 
 function Demo() {
   const [model, setModel] = useState('qwen-2.5-coder-32b');

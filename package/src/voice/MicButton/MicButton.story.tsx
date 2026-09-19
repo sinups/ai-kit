@@ -6,7 +6,7 @@ import { InputBar } from '../../input/InputBar';
 import { useWobble } from '../fixtures';
 import { MicButton, type MicState } from './MicButton';
 
-export default { title: 'voice/MicButton' };
+export default { title: 'Voice/MicButton' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -19,7 +19,7 @@ const STATES: MicState[] = [
   'unsupported',
 ];
 
-export function States() {
+export function Usage() {
   const [level] = useWobble(true);
   return (
     <WidthFrame width={WIDE_WIDTH}>
@@ -71,7 +71,7 @@ export function InComposer() {
   );
 }
 
-export const Dictation = {
+export const DictationFlow = {
   args: { onToggle: fn() },
   render: ({ onToggle }: { onToggle: (state: MicState) => void }) => (
     <WidthFrame width={NARROW_WIDTH}>

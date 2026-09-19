@@ -1,6 +1,6 @@
 .root {
   --voice-level-height: rem(16px);
-  --voice-level-color: var(--ae-primary);
+  --voice-level-color: var(--ae-fg);
 
   display: inline-flex;
   align-items: center;

@@ -3,7 +3,7 @@ import { expect, userEvent, within } from '@storybook/test';
 import { Badge, Stack } from '@mantine/core';
 import { ArtifactCard } from './ArtifactCard';
 
-export default { title: 'artifacts/ArtifactCard' };
+export default { title: 'Messages/ArtifactCard' };
 
 function CardsDemo() {
   const [opened, setOpened] = useState('none');

@@ -5,7 +5,7 @@ import { MessageList } from '../../MessageList/MessageList';
 import type { ChatMessage } from '../../types';
 import { createMediaPartRenderers } from './MediaPart';
 
-export default { title: 'media/MediaPart' };
+export default { title: 'Messages/MediaPart' };
 
 const CHART = `data:image/svg+xml;base64,${btoa(
   '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160"><rect width="320" height="160" fill="aliceblue"/><rect x="24" y="90" width="40" height="50" fill="steelblue"/><rect x="84" y="60" width="40" height="80" fill="steelblue"/><rect x="144" y="40" width="40" height="100" fill="steelblue"/><rect x="204" y="20" width="40" height="120" fill="steelblue"/></svg>'

@@ -52,7 +52,7 @@ export const SpeakingIndicator = memo(function SpeakingIndicator({
       data-speaking={speaking || undefined}
     >
       {speaking && (
-        <Group gap="xs" wrap="nowrap" className={classes.line}>
+        <Group gap="var(--ae-space-sm)" wrap="nowrap" className={classes.line}>
           <VoiceLevel levels={levels} source="assistant" size="xs" />
           <TextShimmer className={classes.caption} aria-hidden>
             {labels.speaking}

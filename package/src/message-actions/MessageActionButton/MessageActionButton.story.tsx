@@ -5,7 +5,7 @@ import { IconPin, IconPinFilled, IconShare } from '@tabler/icons-react';
 import { MessageActions } from '../MessageActions/MessageActions';
 import { MessageActionButton } from './MessageActionButton';
 
-export default { title: 'message-actions/MessageActionButton' };
+export default { title: 'Messages/MessageActionButton' };
 
 function HostActionsDemo() {
   const [pinned, setPinned] = useState(false);
@@ -33,7 +33,7 @@ function HostActionsDemo() {
   );
 }
 
-export const InToolbar = {
+export const Usage = {
   render: () => <HostActionsDemo />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);

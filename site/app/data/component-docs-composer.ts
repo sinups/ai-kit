@@ -13,16 +13,14 @@ export function Example({ upload }: { upload: (files: File[]) => void }) {
   const intake = useFileIntake({ accept: ["image/*", ".pdf"], maxFiles: 5, onFiles: upload });
   return (
     <ChatDropZone onFiles={intake.onDrop}>
-      {({ isDragOver }) => (
-        <AgentChat
-          messages={messages}
-          status={status}
-          onSend={send}
-          onStop={stop}
-          attachments={{ onAttach: intake.open, onPaste: intake.onPaste, isDragOver }}
-          inputBarProps={{ leftActions: intake.input }}
-        />
-      )}
+      <AgentChat
+        messages={messages}
+        status={status}
+        onSend={send}
+        onStop={stop}
+        attachments={{ onAttach: intake.open, onPaste: intake.onPaste }}
+        inputBarProps={{ leftActions: intake.input }}
+      />
     </ChatDropZone>
   );
 }`,
@@ -31,7 +29,7 @@ export function Example({ upload }: { upload: (files: File[]) => void }) {
         type: 'usage',
         title: 'Usage',
         content:
-          'Wrap the whole chat so files dropped anywhere on it are taken, not only on the composer. While files are dragged over it, an overlay says `labels.drop` (and `labels.hint` when set) and screen readers hear it once. Moving between child elements does not flicker the overlay, and dragging text or links is ignored. Pass `onFiles`, usually `onDrop` of `useFileIntake`, so the same `accept`, `maxFiles` and `maxFileSize` apply to picked, pasted and dropped files; or give the zone its own `policy` and `onReject`. The function form of `children` gets `isDragOver` for `attachments.isDragOver`. Dropping is never the only way in: keep the attach button. The kit does not upload; that stays with the host.',
+          'Wrap the whole chat so files dropped anywhere on it are taken, not only on the composer. While files are dragged over it, an overlay says `labels.drop` (and `labels.hint` when set) and screen readers hear it once. Moving between child elements does not flicker the overlay, and dragging text or links is ignored. Pass `onFiles`, usually `onDrop` of `useFileIntake`, so the same `accept`, `maxFiles` and `maxFileSize` apply to picked, pasted and dropped files; or give the zone its own `policy` and `onReject`. The overlay already marks the drop, so do not also pass `attachments.isDragOver` to the composer inside it; the function form of `children` gets `isDragOver` for layouts that draw their own highlight instead of the overlay. Dropping is never the only way in: keep the attach button. The kit does not upload; that stays with the host.',
       },
       {
         type: 'example',

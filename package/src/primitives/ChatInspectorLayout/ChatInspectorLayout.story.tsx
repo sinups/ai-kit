@@ -10,7 +10,7 @@ import { BackgroundTasksPanel } from '../../tasks/BackgroundTasksPanel/Backgroun
 import { createTaskFixtures } from '../../tasks/fixtures';
 import { ChatInspectorLayout } from './ChatInspectorLayout';
 
-export default { title: 'primitives/ChatInspectorLayout', parameters: { layout: 'fullscreen' } };
+export default { title: 'Primitives/ChatInspectorLayout', parameters: { layout: 'fullscreen' } };
 
 function Frame({ compact = false }: { compact?: boolean }) {
   const [opened, setOpened] = useState(!compact);

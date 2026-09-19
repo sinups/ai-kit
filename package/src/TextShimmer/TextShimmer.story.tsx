@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextShimmer } from './TextShimmer';
 
-export default { title: 'TextShimmer' };
+export default { title: 'Status/TextShimmer' };
 
 export function Usage() {
   return (

@@ -8,7 +8,7 @@ import { longConversation } from './feed-fixtures';
 import { compactedConversation, errorConversation, toolRunConversation } from './fixtures';
 import { MessageList } from './MessageList';
 
-export default { title: 'MessageList/Flows' };
+export default { title: 'Chat/MessageList/Flows' };
 
 type Canvas = { canvasElement: HTMLElement };
 

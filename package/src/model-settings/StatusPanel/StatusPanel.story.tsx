@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { MCP_SERVERS } from '../fixtures';
 import { StatusPanel } from './StatusPanel';
 
-export default { title: 'model-settings/StatusPanel' };
+export default { title: 'Settings/StatusPanel' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

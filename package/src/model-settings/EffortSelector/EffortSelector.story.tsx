@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import type { EffortLevelValue } from '../types';
 import { EffortSelector } from './EffortSelector';
 
-export default { title: 'model-settings/EffortSelector' };
+export default { title: 'Settings/EffortSelector' };
 
 function Demo() {
   const [value, setValue] = useState<EffortLevelValue>('high');

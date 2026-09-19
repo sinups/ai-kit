@@ -70,6 +70,17 @@ describe('AgentChat/StarterCategories', () => {
   });
 });
 
+describe('AgentChat/StarterCategories align', () => {
+  it('starts at the leading edge and centers on request', () => {
+    const { container, rerender } = render(
+      <StarterCategories categories={categories} onSelect={() => {}} />
+    );
+    expect(container.querySelector('[data-align]')).toHaveAttribute('data-align', 'start');
+    rerender(<StarterCategories categories={categories} onSelect={() => {}} align="center" />);
+    expect(container.querySelector('[data-align]')).toHaveAttribute('data-align', 'center');
+  });
+});
+
 describe('AgentChat/ChatWelcome content', () => {
   it('renders host content under the greeting', () => {
     render(<ChatWelcome title="Hello" content={<p>Pick a topic</p>} />);

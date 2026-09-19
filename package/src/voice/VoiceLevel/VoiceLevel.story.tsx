@@ -5,7 +5,7 @@ import { WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame';
 import { useWobble } from '../fixtures';
 import { VoiceLevel } from './VoiceLevel';
 
-export default { title: 'voice/VoiceLevel' };
+export default { title: 'Voice/VoiceLevel' };
 
 type Canvas = { canvasElement: HTMLElement };
 

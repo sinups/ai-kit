@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ExportDialog, type ExportDialogProps } from './ExportDialog';
 import { sessionConversation } from './fixtures';
 
-export default { title: 'sessions/ExportDialog' };
+export default { title: 'Sessions & tasks/ExportDialog' };
 
 function Demo({ width, ...props }: Partial<ExportDialogProps> & { width: number }) {
   const [opened, setOpened] = useState(true);

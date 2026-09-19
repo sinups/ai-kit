@@ -7,7 +7,7 @@ import { GIT_SERVER, MCP_SERVERS } from './fixtures';
 import { McpServerWizard, McpServerWizardModal } from './McpServerWizard';
 import type { McpServer, McpServerDraft, McpTransport } from './types';
 
-export default { title: 'mcp/McpServerWizard' };
+export default { title: 'MCP/McpServerWizard' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const NAMES = MCP_SERVERS.map((server) => server.name);

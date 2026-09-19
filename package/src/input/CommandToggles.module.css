@@ -4,7 +4,40 @@
   scrollbar-width: none;
 }
 
-.toggle {
+.root .toggle {
   flex-shrink: 0;
+  height: var(--ae-control-height-md);
+  padding: 0 rem(8px);
+  border-radius: var(--ae-row-radius);
+  background-color: transparent;
+  font-size: var(--ae-font-size-xs);
   font-weight: 500;
+  line-height: rem(16px);
+  color: var(--ae-fg-muted);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.06);
+  }
+
+  &[aria-pressed='true'] {
+    background-color: alpha(var(--ae-fg), 0.06);
+    color: var(--ae-fg);
+  }
+
+  &:disabled {
+    background-color: transparent;
+    opacity: 0.5;
+  }
+}
+
+.icon {
+  margin-inline-end: rem(6px);
+
+  & svg {
+    width: rem(14px);
+    height: rem(14px);
+  }
 }

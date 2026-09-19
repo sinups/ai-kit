@@ -2,7 +2,7 @@ import React from 'react';
 import { Stack } from '@mantine/core';
 import { PlanTool } from './PlanTool';
 
-export default { title: 'tools/PlanTool' };
+export default { title: 'Tools/PlanTool' };
 
 const summary = `## Goal
 

@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { CommandToggles, type CommandToggle } from './CommandToggles';
 import { InputBar } from './InputBar';
 
-export default { title: 'input/CommandToggles' };
+export default { title: 'Input/CommandToggles' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -51,7 +51,7 @@ export function Narrow() {
   );
 }
 
-export const PickCommand = {
+export const PickCommandFlow = {
   args: { onSend: fn() },
   render: ({ onSend }: { onSend: (message: { content: string }) => void }) => (
     <WidthFrame width={WIDE_WIDTH}>

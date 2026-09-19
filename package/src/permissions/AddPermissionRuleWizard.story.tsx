@@ -8,7 +8,7 @@ import {
 import { PERMISSION_TOOLS_FIXTURE } from './fixtures';
 import type { PermissionRule } from './types';
 
-export default { title: 'permissions/AddPermissionRuleWizard' };
+export default { title: 'Permissions & hooks/AddPermissionRuleWizard' };
 
 function Demo(props: Partial<AddPermissionRuleWizardProps>) {
   const [opened, setOpened] = useState(true);

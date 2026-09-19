@@ -8,7 +8,7 @@ import { SessionList } from './SessionList';
 import { SessionPreview } from './SessionPreview';
 import type { SessionSummary } from './types';
 
-export default { title: 'sessions/HistoryPage' };
+export default { title: 'Sessions & tasks/HistoryPage' };
 
 function History({ initialId }: { initialId: string | null }) {
   const [sessions, setSessions] = useState<SessionSummary[]>(() => createSessionFixtures());
@@ -64,7 +64,7 @@ function History({ initialId }: { initialId: string | null }) {
   );
 }
 
-export function HistoryPage() {
+export function Usage() {
   return (
     <WidthFrame width={WIDE_WIDTH + 200}>
       <Box h={640}>

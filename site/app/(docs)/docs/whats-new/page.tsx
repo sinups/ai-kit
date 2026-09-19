@@ -322,6 +322,15 @@ export default function WhatsNewPage() {
             open world.
           </li>
           <li>
+            What stays: custom <C>toolRenderers</C> and <C>toolOutputs</C> formatters get{' '}
+            <C>output</C> with the same value as in 0.3 — for an MCP tool the text of its content,
+            parsed when it holds JSON — and <C>unwrapToolOutput</C>, <C>unwrapMcpOutput</C> and{' '}
+            <C>getToolOutputValue</C> return what they returned. New next to it: <C>result</C>, the{' '}
+            <C>CallToolResult</C> of the call, and <C>structuredContent</C> on renderers. Prefer{' '}
+            <C>result</C>; <C>output</C> is kept for existing code. What changes is only what the kit
+            shows by itself, as described above.
+          </li>
+          <li>
             The dark theme follows the Mantine dark scale: the page is the host body color
             (<C>--mantine-color-body</C>) instead of near-black, the composer, tool cards and code
             blocks sit one step above it on <C>dark-6</C>, the header of a code block is only a shade

@@ -33,6 +33,8 @@ export interface StarterCategoriesProps {
   onChange?: (id: string | null) => void;
   /** Called with the starter the user clicked */
   onSelect: (item: SuggestionItem) => void;
+  /** Alignment of both rows, `start` by default as in `ChatWelcome` */
+  align?: 'start' | 'center';
   /** Overrides of the default English labels */
   labels?: Partial<StarterCategoriesLabels>;
   /** Class name added to the root element */
@@ -48,6 +50,7 @@ export const StarterCategories = memo(function StarterCategories({
   defaultValue,
   onChange,
   onSelect,
+  align = 'start',
   labels: labelsProp,
   className,
   style,
@@ -63,17 +66,23 @@ export const StarterCategories = memo(function StarterCategories({
   const current = categories.find((category) => category.id === active);
 
   return (
-    <Stack gap="sm" className={cx(classes.root, className)} style={style}>
-      <Group gap={6} justify="center" role="group" aria-label={labels.categories}>
+    <Stack gap="sm" className={cx(classes.root, className)} style={style} data-align={align}>
+      <Group
+        gap="var(--ae-space-2xs)"
+        justify={align === 'center' ? 'center' : 'flex-start'}
+        role="group"
+        aria-label={labels.categories}
+      >
         {categories.map((category) => {
           const picked = category.id === active;
           return (
             <Button
               key={category.id}
               size="compact-sm"
-              radius="xl"
-              variant={picked ? 'light' : 'default'}
+              variant="subtle"
+              color="gray"
               leftSection={category.icon}
+              classNames={{ root: classes.category, section: classes.icon }}
               aria-pressed={picked}
               aria-controls={listId}
               onClick={() => setActive(picked ? null : category.id)}

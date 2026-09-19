@@ -11,7 +11,8 @@
 .header {
   flex-shrink: 0;
   min-height: var(--ae-panel-header-height, rem(48px));
-  padding: var(--ae-space-xs) var(--ae-space-xs) var(--ae-space-xs) var(--ae-space-md);
+  padding-block: var(--ae-space-xs);
+  padding-inline: var(--ae-panel-inset, var(--ae-surface-pad));
   border-bottom: rem(1px) solid var(--ae-border);
 }
 
@@ -35,5 +36,5 @@
 }
 
 .content {
-  padding: var(--ae-space-md);
+  padding: var(--ae-space-md) var(--ae-panel-inset, var(--ae-surface-pad));
 }

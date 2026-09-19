@@ -6,7 +6,7 @@ import { DIFF_EXTRA_FIXTURES, DIFF_FIXTURES } from '../fixtures';
 import { demoHighlighter } from '../../tools/_story-helpers';
 import { DiffFileView, type DiffViewMode } from './DiffFileView';
 
-export default { title: 'diff/DiffFileView' };
+export default { title: 'Diff/DiffFileView' };
 
 const byPath = (suffix: string) => DIFF_FIXTURES.find((change) => change.path.endsWith(suffix))!;
 

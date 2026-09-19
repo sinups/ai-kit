@@ -144,6 +144,34 @@ describe('tools/ToolRenderer', () => {
     expect(screen.getByText('custom:mcp__git__search')).toBeInTheDocument();
   });
 
+  it('gives a 0.3 renderer the parsed output and the protocol result next to it', () => {
+    const seen: CustomToolRendererProps[] = [];
+    function Custom(props: CustomToolRendererProps) {
+      seen.push(props);
+      const output = props.output as { title?: string } | undefined;
+      return <div>{`title:${output?.title}`}</div>;
+    }
+    const result = {
+      content: [{ type: 'text', text: '{"title":"Release notes"}' }],
+      structuredContent: { title: 'Release notes' },
+    };
+    render(
+      <ToolRenderer
+        part={{
+          type: 'tool-mcp__docs__page_get',
+          toolCallId: 'd1',
+          state: 'output-available',
+          input: {},
+          output: result,
+        }}
+        toolRenderers={{ 'tool-mcp__docs__page_get': Custom }}
+      />
+    );
+    expect(screen.getByText('title:Release notes')).toBeInTheDocument();
+    expect(seen.at(-1)?.result).toBe(result);
+    expect(seen.at(-1)?.structuredContent).toEqual({ title: 'Release notes' });
+  });
+
   it('falls back to the tool name for unknown tools', () => {
     render(
       <ToolRenderer

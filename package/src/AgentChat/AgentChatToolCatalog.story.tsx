@@ -4,7 +4,7 @@ import type { ToolCatalog } from '../tools/tool-presentation';
 import type { ChatMessage } from '../types';
 import { AgentChat } from './AgentChat';
 
-export default { title: 'AgentChat/Tool catalog' };
+export default { title: 'Chat/AgentChat/Tool catalog' };
 
 const catalog: ToolCatalog = {
   mcp__tracker__tracker_issue_search: {

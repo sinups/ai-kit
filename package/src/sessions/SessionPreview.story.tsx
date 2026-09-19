@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { createSessionFixtures, sessionConversation } from './fixtures';
 import { SessionPreview, type SessionPreviewProps } from './SessionPreview';
 
-export default { title: 'sessions/SessionPreview' };
+export default { title: 'Sessions & tasks/SessionPreview' };
 
 const SESSION = createSessionFixtures()[0];
 

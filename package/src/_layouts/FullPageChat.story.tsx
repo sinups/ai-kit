@@ -2,7 +2,7 @@ import React from 'react';
 import { FullPageChat } from './FullPageChat';
 import { DesktopViewport, MobileViewport } from './shared';
 
-export default { title: 'layouts/FullPageChat', parameters: { layout: 'fullscreen' } };
+export default { title: 'Layouts/FullPageChat', parameters: { layout: 'fullscreen' } };
 
 export function Desktop() {
   return (

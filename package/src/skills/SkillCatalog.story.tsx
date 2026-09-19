@@ -5,7 +5,7 @@ import { skills as fixtureSkills } from './fixtures';
 import { SkillCatalog, type SkillCatalogProps } from './SkillCatalog';
 import type { Skill } from './types';
 
-export default { title: 'skills/SkillCatalog' };
+export default { title: 'Agents & skills/SkillCatalog' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

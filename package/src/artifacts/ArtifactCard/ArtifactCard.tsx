@@ -48,7 +48,7 @@ export const ArtifactCard = memo(function ArtifactCard({
   const meta = labels.meta(artifact);
 
   return (
-    <Paper withBorder className={cx(classes.root, className)} style={style}>
+    <Paper withBorder bg="var(--ae-tool-bg)" className={cx(classes.root, className)} style={style}>
       <UnstyledButton
         className={classes.button}
         aria-label={labels.open(title)}

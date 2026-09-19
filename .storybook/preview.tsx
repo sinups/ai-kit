@@ -16,17 +16,30 @@ import { AiKitProvider } from '../package/src/theme/AiKitProvider';
 
 // Components that exist on main are captured by the visual baselines without the kit theme; `aiKit: 'auto'` keeps them that way.
 const HOST_THEMED_TITLES = [
-  'AgentChat',
-  'ErrorMessage',
-  'ImageLightbox',
-  'InputBar',
-  'Markdown',
-  'MessageList',
-  'QuestionTool',
-  'SpiralLoader',
-  'TextShimmer',
-  'ToolRowBase',
-  'UserMessage',
+  'Chat/AgentChat',
+  'Chat/MessageList',
+  'Input/InputBar',
+  'Messages/ErrorMessage',
+  'Messages/ImageLightbox',
+  'Messages/Markdown',
+  'Messages/UserMessage',
+  'Status/SpiralLoader',
+  'Status/TextShimmer',
+  'Tools/ActionRow',
+  'Tools/BashTool',
+  'Tools/EditTool',
+  'Tools/McpTool',
+  'Tools/PlanTool',
+  'Tools/QuestionTool',
+  'Tools/SearchTool',
+  'Tools/ShellOutput',
+  'Tools/SubagentTool',
+  'Tools/ThinkingTool',
+  'Tools/TodoTool',
+  'Tools/ToolApprovalFooter',
+  'Tools/ToolGroup',
+  'Tools/ToolRenderer',
+  'Tools/ToolRowBase',
 ];
 
 function usesKitTheme(context: any): boolean {
@@ -38,7 +51,7 @@ function usesKitTheme(context: any): boolean {
     return context.parameters.aiKit;
   }
   const title: string = context.title ?? '';
-  return !title.startsWith('tools/') && !HOST_THEMED_TITLES.includes(title);
+  return !HOST_THEMED_TITLES.includes(title);
 }
 
 const fromToolbar = (value: string | undefined) =>
@@ -52,6 +65,86 @@ const mantineTheme = createTheme({
 const preview: Preview = {
   parameters: {
     actions: { argTypesRegex: '^on[A-Z].*' },
+    options: {
+      storySort: {
+        order: [
+          'Chat',
+          [
+            'AgentChat',
+            'ChatHeader',
+            'MessageList',
+            'TranscriptSearch',
+            'StarterCategories',
+            'Notices',
+          ],
+          'Messages',
+          [
+            'UserMessage',
+            'Markdown',
+            'CodeBlock',
+            'ImageLightbox',
+            'MediaPart',
+            'ArtifactPanel',
+            'ArtifactCard',
+            'ErrorMessage',
+            'MessageActions',
+            'MessageActionButton',
+            'EditMessageComposer',
+            'FeedbackForm',
+            'RewindDialog',
+            'PlanApproval',
+            'CommandChip',
+            'ToolResultNotice',
+            'MemoryNotice',
+          ],
+          'Status',
+          [
+            'AgentStatus',
+            'SpiralLoader',
+            'TextShimmer',
+            'TurnSummary',
+            'ContextUsage',
+            'ContextBreakdown',
+            'CompactBoundary',
+            'ContextEventRow',
+            'HookActivity',
+          ],
+          'Tools',
+          [
+            'ToolRenderer',
+            'BashTool',
+            'EditTool',
+            'SearchTool',
+            'TodoTool',
+            'PlanTool',
+            'ToolGroup',
+            'SubagentTool',
+            'QuestionTool',
+            'McpTool',
+            'ThinkingTool',
+            'ToolApprovalFooter',
+            'ElicitationForm',
+            'ShellOutput',
+            'ActionRow',
+            'ToolRowBase',
+          ],
+          'Input',
+          ['InputBar', 'ModeSelector', 'FileAttachment', 'ChatDropZone', 'CommandToggles'],
+          'Voice',
+          ['MicButton', 'VoiceLevel', 'SpeakingIndicator'],
+          'Primitives',
+          'Agents & skills',
+          'MCP',
+          'Permissions & hooks',
+          'Sessions & tasks',
+          'Diff',
+          'Settings',
+          'Layouts',
+          'Demos',
+          'Theme',
+        ],
+      },
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,

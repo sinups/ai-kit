@@ -7,7 +7,7 @@ import { rewindConversation } from '../fixtures';
 import type { RewindMode, RewindRequest, SummarizeRequest } from '../types';
 import { RewindDialog } from './RewindDialog';
 
-export default { title: 'message-actions/RewindDialog' };
+export default { title: 'Messages/RewindDialog' };
 
 function Demo({
   fail = false,

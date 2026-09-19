@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { useWobble } from '../fixtures';
 import { SpeakingIndicator } from './SpeakingIndicator';
 
-export default { title: 'voice/SpeakingIndicator' };
+export default { title: 'Voice/SpeakingIndicator' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -49,7 +49,7 @@ export function Narrow() {
   );
 }
 
-export const StopSpeaking = {
+export const StopSpeakingFlow = {
   args: { onStop: fn() },
   render: ({ onStop }: { onStop: () => void }) => (
     <WidthFrame width={WIDE_WIDTH}>

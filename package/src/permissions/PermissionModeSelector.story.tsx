@@ -4,7 +4,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { PermissionModeSelector, type PermissionModeSelectorProps } from './PermissionModeSelector';
 import type { PermissionMode } from './types';
 
-export default { title: 'permissions/PermissionModeSelector' };
+export default { title: 'Permissions & hooks/PermissionModeSelector' };
 
 function Selector({
   initial = 'default',

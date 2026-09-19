@@ -2,7 +2,7 @@ import React from 'react';
 import { EmbeddedWidget } from './EmbeddedWidget';
 import { DesktopViewport, MobileViewport } from './shared';
 
-export default { title: 'layouts/EmbeddedWidget', parameters: { layout: 'fullscreen' } };
+export default { title: 'Layouts/EmbeddedWidget', parameters: { layout: 'fullscreen' } };
 
 export function Desktop() {
   return (

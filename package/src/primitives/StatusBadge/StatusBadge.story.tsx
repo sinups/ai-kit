@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { AGENT_UI_STATUSES, getStatusMeta } from './status-meta';
 import { StatusBadge } from './StatusBadge';
 
-export default { title: 'primitives/StatusBadge' };
+export default { title: 'Primitives/StatusBadge' };
 
 export function Usage() {
   return (

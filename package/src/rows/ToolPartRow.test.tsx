@@ -265,6 +265,31 @@ describe('rows/ToolPartRow', () => {
     expect(screen.getByText(/id: TRK-482 · title: Разобрать просроченное/)).toBeInTheDocument();
   });
 
+  it('passes a formatter the 0.3 output value and the protocol result', () => {
+    const formatter = jest.fn(() => 'Found TRK-1');
+    const result = { content: [{ type: 'text', text: '{"items":[{"key":"TRK-1"}]}' }] };
+    render(
+      <ToolPartRow
+        part={
+          {
+            type: 'tool-mcp__tracker__task_list',
+            toolCallId: 'm4',
+            state: 'output-available',
+            input: {},
+            output: result,
+          } as ToolPart
+        }
+        chatStatus="ready"
+        toolOutputs={{ 'tool-mcp__tracker__*': formatter }}
+      />
+    );
+    expect(screen.getByText('Found TRK-1')).toBeInTheDocument();
+    expect(formatter).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ output: { items: [{ key: 'TRK-1' }] }, result })
+    );
+  });
+
   it('says a refused call once when the host settled its approval', () => {
     render(
       <ToolApprovalsProvider

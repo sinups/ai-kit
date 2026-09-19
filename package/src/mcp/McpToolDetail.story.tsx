@@ -4,7 +4,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { FILESYSTEM_SERVER, GIT_SERVER } from './fixtures';
 import { McpToolDetail } from './McpToolDetail';
 
-export default { title: 'mcp/McpToolDetail' };
+export default { title: 'MCP/McpToolDetail' };
 
 const SEARCH = GIT_SERVER.tools![0];
 const EDIT = FILESYSTEM_SERVER.tools![2];

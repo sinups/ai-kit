@@ -4,7 +4,7 @@ import { expect, within } from '@storybook/test';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame';
 import { ShortcutHint } from './ShortcutHint';
 
-export default { title: 'primitives/ShortcutHint' };
+export default { title: 'Primitives/ShortcutHint' };
 
 const SHORTCUTS = [
   { label: 'Command palette', keys: 'mod+K' },

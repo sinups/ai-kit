@@ -3,7 +3,7 @@ import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { CompactBoundary } from './CompactBoundary';
 
-export default { title: 'CompactBoundary' };
+export default { title: 'Status/CompactBoundary' };
 
 const summary =
   '- Migrated the upload client to the new API\n- Tests for backoff are green\n- Open question: keep the 5 attempt limit?';

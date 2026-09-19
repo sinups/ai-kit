@@ -12,6 +12,12 @@ const SNAPSHOTS_DIR = path.join(ROOT, 'package/__visual__');
 const DIFF_DIR = path.join(ROOT, 'storybook-visual-diff');
 const RECEIVED_DIR = path.join(DIFF_DIR, 'received');
 const THEMES = ['light', 'dark'] as const;
+const RENAMES_PATH = path.join(ROOT, '.storybook/story-renames.json');
+const RENAMES: Record<string, string> = fs.existsSync(RENAMES_PATH)
+  ? JSON.parse(fs.readFileSync(RENAMES_PATH, 'utf8'))
+  : {};
+// Stories that show elapsed time or dates read `Date.now()`; a fixed date keeps both sides of the comparison equal, timers still run.
+const FIXED_NOW = new Date('2026-01-15T10:00:00Z');
 
 const FREEZE_CSS = `*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}`;
 
@@ -42,6 +48,7 @@ const config: TestRunnerConfig = {
 
   async preVisit(page) {
     await page.setViewportSize({ width: 1280, height: 800 });
+    await page.clock.setFixedTime(FIXED_NOW);
   },
 
   async postVisit(page, context) {
@@ -54,7 +61,12 @@ const config: TestRunnerConfig = {
       return;
     }
 
-    const identifier = (theme: string) => `${context.id}--${theme}`;
+    const hasOwnBaseline = THEMES.every((theme) =>
+      fs.existsSync(path.join(SNAPSHOTS_DIR, `${context.id}--${theme}.png`))
+    );
+    const baselineId =
+      hasOwnBaseline || VISUAL_MODE === 'update' ? context.id : (RENAMES[context.id] ?? context.id);
+    const identifier = (theme: string) => `${baselineId}--${theme}`;
     const hasBaseline = THEMES.every((theme) =>
       fs.existsSync(path.join(SNAPSHOTS_DIR, `${identifier(theme)}.png`))
     );

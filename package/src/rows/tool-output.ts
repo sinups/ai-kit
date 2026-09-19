@@ -55,9 +55,12 @@ export const DEFAULT_TOOL_OUTPUT_LABELS: ToolOutputLabels = {
 export type ToolOutputContext = {
   /** Visible state of the call, see `deriveToolCallState` */
   state: ToolCallState;
-  /** Result as data: `structuredContent`, else the text of the content, `errorText` for a failure */
+  /**
+   * Legacy value kept from 0.3: the text of MCP content, parsed when it holds JSON, `errorText` for
+   * a failure; see `getToolOutputValue`. Prefer `result`.
+   */
   output: unknown;
-  /** The MCP `CallToolResult` of the call, when the output is one */
+  /** The MCP `CallToolResult` of the call, when the output is one; the recommended input */
   result?: CallToolResult;
   /** Output schema of the tool from the catalog */
   schema?: JsonSchema;
@@ -167,15 +170,55 @@ export function readStructuredResult(result: CallToolResult, schema?: JsonSchema
 }
 
 /**
- * Result of a call as data: `structuredContent` of an MCP result, else the text of its content;
- * any other output as it is. Text is never parsed as JSON here.
+ * Result of a call as the kit shows it: `structuredContent` of an MCP result, else the text of its
+ * content; any other output as it is. Text is never parsed as JSON here.
  */
-export function unwrapToolOutput(output: unknown): unknown {
+export function readOutputValue(output: unknown): unknown {
   const result = readCallToolResult(output);
   if (!result) {
     return output;
   }
   return result.structuredContent !== undefined ? result.structuredContent : readResultText(result);
+}
+
+function parseJsonContainer(text: string): unknown {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    return typeof parsed === 'object' && parsed !== null ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function readLegacyText(output: unknown): string | undefined {
+  const blocks = Array.isArray(output)
+    ? output
+    : isRecord(output) && Array.isArray(output.content)
+      ? output.content
+      : isRecord(output)
+        ? [output]
+        : undefined;
+  const texts = (blocks ?? [])
+    .filter((block) => isRecord(block) && block.type === 'text' && typeof block.text === 'string')
+    .map((block) => (block as { text: string }).text);
+  return texts.length > 0 ? texts.join('') : undefined;
+}
+
+/**
+ * Result of a call as 0.3 read it, kept for existing renderers and formatters: the text of MCP
+ * content blocks, parsed when it holds JSON. The kit itself reads results by the specification,
+ * see `readCallToolResult` and `readStructuredResult`.
+ */
+export function unwrapToolOutput(output: unknown): unknown {
+  const text = typeof output === 'string' ? output : readLegacyText(output);
+  if (text === undefined) {
+    return output;
+  }
+  return parseJsonContainer(text) ?? text;
 }
 
 /** One value in the language of the reader: numbers by locale, dates when the schema says so, rest clipped */
@@ -326,12 +369,20 @@ export function summarizeToolOutput(output: unknown, options: SummarizeOptions =
 }
 
 /**
- * Output of a call as data: `errorText` for a failure, `structuredContent` or the text of an MCP
- * result, any other output as it is.
+ * Output of a call as 0.3 read it, `errorText` for a failure, see `unwrapToolOutput`. Kept for
+ * existing formatters; prefer `readCallToolResult` on `part.output`.
  */
 export function getToolOutputValue(part: ToolPart): unknown {
   if (part.state === 'output-error' && typeof part.errorText === 'string') {
     return part.errorText;
   }
   return unwrapToolOutput(part.output ?? part.result);
+}
+
+/** Output of a call as the kit shows it, `errorText` for a failure, see `readOutputValue` */
+export function readPartOutput(part: ToolPart): unknown {
+  if (part.state === 'output-error' && typeof part.errorText === 'string') {
+    return part.errorText;
+  }
+  return readOutputValue(part.output ?? part.result);
 }

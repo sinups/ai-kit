@@ -3,7 +3,7 @@ import type { ChatMessage, ToolPart } from '../types';
 import { MessageList } from './MessageList';
 import { rowsPresentation } from '../rows/rows-presentation';
 
-export default { title: 'MessageList/rows' };
+export default { title: 'Chat/MessageList/Rows' };
 
 function Feed({ width = 520, children }: { width?: number; children: React.ReactNode }) {
   return <div style={{ height: '80vh', width, margin: '0 auto', display: 'flex' }}>{children}</div>;

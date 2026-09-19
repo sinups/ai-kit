@@ -5,7 +5,7 @@ import { HOOK_TOOLS, HOOKS_FIXTURE } from './fixtures';
 import { HookWizard, type HookWizardProps } from './HookWizard';
 import type { HookConfig } from './types';
 
-export default { title: 'hooks-config/HookWizard' };
+export default { title: 'Permissions & hooks/HookWizard' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

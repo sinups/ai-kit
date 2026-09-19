@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { storyHighlighter } from '../_stories/shiki-highlighter';
 import { CodeBlock } from './CodeBlock';
 
-export default { title: 'CodeBlock' };
+export default { title: 'Messages/CodeBlock' };
 
 const TS = `import { useEffect, useState } from 'react';
 

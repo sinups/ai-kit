@@ -8,7 +8,7 @@ import { TaskStatusPill } from '../TaskStatusPill/TaskStatusPill';
 import { BackgroundTasksDrawer } from './BackgroundTasksDrawer';
 import { BackgroundTasksPanel, type BackgroundTasksPanelProps } from './BackgroundTasksPanel';
 
-export default { title: 'tasks/BackgroundTasksPanel' };
+export default { title: 'Sessions & tasks/BackgroundTasksPanel' };
 
 function Demo(props: Partial<BackgroundTasksPanelProps>) {
   const { tasks, stop, retry, remove, steer } = useSimulatedTasks();

@@ -8,7 +8,7 @@ import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 import type { MarkdownTailGranularity } from './Markdown/Markdown';
 import type { ToolCallLookups, ToolCallState } from './tools/tool-call-state';
-import type { ToolOutputFormatters } from './rows/tool-output';
+import type { CallToolResult, ToolOutputFormatters } from './rows/tool-output';
 import type { TranscriptPresentation } from './MessageList/transcript-presentation';
 import type { ToolArgsFormatters } from './tools/tool-args';
 import type { ToolCatalog } from './tools/tool-presentation';
@@ -188,7 +188,15 @@ export type CustomToolRendererProps = {
   /** Tool name: `Name` for `tool-Name` parts, the MCP tool name for `mcp__user-tools__<name>` */
   name: string;
   input: Record<string, unknown>;
+  /**
+   * Legacy value kept from 0.3: for an MCP tool the text of its content, parsed when it holds JSON;
+   * the output as it is for other tools. Prefer `result`.
+   */
   output: unknown | undefined;
+  /** The MCP `CallToolResult` of the call, when the output is one; the recommended input */
+  result?: CallToolResult;
+  /** `structuredContent` of `result`, when the server sent one */
+  structuredContent?: unknown;
   status: 'pending' | 'streaming' | 'success' | 'error';
   /** State derived from the transcript: adds `queued`, `awaiting-permission` and `rejected` to `status` */
   callState?: ToolCallState;

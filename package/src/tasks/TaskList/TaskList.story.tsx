@@ -7,7 +7,7 @@ import { createTaskFixtures } from '../fixtures';
 import type { BackgroundTask } from '../types';
 import { TaskList, type TaskListProps } from './TaskList';
 
-export default { title: 'tasks/TaskList' };
+export default { title: 'Sessions & tasks/TaskList' };
 
 function Demo(props: Partial<TaskListProps>) {
   const { tasks, stop, retry, remove } = useSimulatedTasks();

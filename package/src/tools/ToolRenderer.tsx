@@ -10,6 +10,7 @@ import { BashTool } from './BashTool';
 import { EditTool } from './EditTool';
 import { GenericTool } from './GenericTool';
 import { McpTool, unwrapMcpOutput } from './McpTool';
+import { readCallToolResult } from '../rows/tool-output';
 import { PlanTool } from './PlanTool';
 import { SearchTool } from './SearchTool';
 import { ThinkingTool } from './ThinkingTool';
@@ -226,11 +227,14 @@ function renderToolCard({
   if (toolRenderers && customKey !== null) {
     const CustomRenderer = toolRenderers[customKey];
     const toolCallId = part.toolCallId;
+    const result = readCallToolResult(part.output) ?? undefined;
     return (
       <CustomRenderer
         name={customKey === partType ? toolName : customKey}
         input={getPartInput(part)}
         output={mcpInfo ? (part.output ? unwrapMcpOutput(part.output) : undefined) : part.output}
+        result={result}
+        structuredContent={result?.structuredContent}
         status={deriveToolStatus(part, chatStatus)}
         callState={callState}
         toolCallId={toolCallId}

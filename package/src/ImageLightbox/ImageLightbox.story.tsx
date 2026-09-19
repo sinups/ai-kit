@@ -3,7 +3,7 @@ import { Button, Group, Stack } from '@mantine/core';
 import { ImageLightbox, LightboxImage } from './ImageLightbox';
 import { AiKitHostScope } from '../theme/AiKitProvider';
 
-export default { title: 'ImageLightbox' };
+export default { title: 'Messages/ImageLightbox' };
 
 function svgImage(fill: string, label: string) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500"><rect width="800" height="500" fill="${fill}"/><text x="400" y="260" font-family="sans-serif" font-size="48" fill="white" text-anchor="middle">${label}</text></svg>`;

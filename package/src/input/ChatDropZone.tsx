@@ -28,7 +28,7 @@ export interface ChatDropZoneProps {
   onReject?: (rejections: FileRejection[]) => void;
   /** Ignores drags, for example while the chat cannot take files */
   disabled?: boolean;
-  /** The chat, or a function that gets `isDragOver` for `attachments.isDragOver` */
+  /** The chat, or a function that gets `isDragOver` for a layout that draws its own highlight instead of the overlay */
   children: React.ReactNode | ((state: { isDragOver: boolean }) => React.ReactNode);
   /** Overrides of the default English labels */
   labels?: Partial<ChatDropZoneLabels>;
@@ -76,15 +76,13 @@ export const ChatDropZone = memo(function ChatDropZone({
         <Overlay className={classes.overlay} aria-hidden blur={2} zIndex={2}>
           <Center h="100%">
             <Stack gap="xs" align="center">
-              <ThemeIcon size="xl" radius="xl" variant="light">
-                <IconUpload size={20} />
+              <ThemeIcon size={32} radius="xl" variant="transparent" className={classes.icon}>
+                <IconUpload size={16} />
               </ThemeIcon>
-              <Text fw={500}>{labels.drop}</Text>
-              {labels.hint && (
-                <Text size="sm" c="dimmed">
-                  {labels.hint}
-                </Text>
-              )}
+              <Text size="sm" fw={500}>
+                {labels.drop}
+              </Text>
+              {labels.hint && <Text className={classes.hint}>{labels.hint}</Text>}
             </Stack>
           </Center>
         </Overlay>

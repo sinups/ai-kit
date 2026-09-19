@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { stepMatchIndex } from './transcript-search';
 import { TranscriptSearch } from './TranscriptSearch';
 
-export default { title: 'MessageList/TranscriptSearch' };
+export default { title: 'Chat/TranscriptSearch' };
 
 function Demo() {
   const [value, setValue] = useState('token');

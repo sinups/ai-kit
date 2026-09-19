@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { AgentChat } from './AgentChat';
 import { StarterCategories, type StarterCategory } from './StarterCategories';
 
-export default { title: 'AgentChat/StarterCategories' };
+export default { title: 'Chat/StarterCategories' };
 
 type Canvas = { canvasElement: HTMLElement };
 
@@ -52,6 +52,7 @@ function CategorizedChat({ layout }: { layout: 'welcome' | 'center' }) {
           content: (
             <StarterCategories
               categories={CATEGORIES}
+              align={layout === 'center' ? 'center' : 'start'}
               onSelect={(item) => setDraft(item.value ?? item.label)}
             />
           ),
@@ -61,7 +62,7 @@ function CategorizedChat({ layout }: { layout: 'welcome' | 'center' }) {
   );
 }
 
-export function Categorized() {
+export function Usage() {
   return (
     <WidthFrame width={WIDE_WIDTH}>
       <CategorizedChat layout="center" />
@@ -69,7 +70,7 @@ export function Categorized() {
   );
 }
 
-export function CategorizedWelcome() {
+export function Welcome() {
   return (
     <WidthFrame width={NARROW_WIDTH}>
       <CategorizedChat layout="welcome" />
@@ -77,7 +78,7 @@ export function CategorizedWelcome() {
   );
 }
 
-export const PickStarter = {
+export const PickStarterFlow = {
   render: () => (
     <WidthFrame width={WIDE_WIDTH}>
       <CategorizedChat layout="center" />

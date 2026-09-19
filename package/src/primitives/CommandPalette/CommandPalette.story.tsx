@@ -15,7 +15,7 @@ import { ShortcutHint } from '../ShortcutHint/ShortcutHint';
 import type { PaletteCommand } from './command-palette';
 import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
 
-export default { title: 'primitives/CommandPalette' };
+export default { title: 'Primitives/CommandPalette' };
 
 const COMMANDS: PaletteCommand[] = [
   {

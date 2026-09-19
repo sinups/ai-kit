@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { wait } from '../_story-helpers';
 import { EditMessageComposer } from './EditMessageComposer';
 
-export default { title: 'message-actions/EditMessageComposer' };
+export default { title: 'Messages/EditMessageComposer' };
 
 function Demo({ fail = false }: { fail?: boolean }) {
   const [editing, setEditing] = useState(true);

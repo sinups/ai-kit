@@ -6,7 +6,7 @@ import { DIFF_FIXTURES } from '../fixtures';
 import type { FileChange } from '../types';
 import { DiffFileList, type DiffFileListProps } from './DiffFileList';
 
-export default { title: 'diff/DiffFileList' };
+export default { title: 'Diff/DiffFileList' };
 
 function Demo(props: Partial<DiffFileListProps>) {
   const [selectedPath, setSelectedPath] = useState<string | null>(DIFF_FIXTURES[0].path);

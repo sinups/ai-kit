@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { HookActivity } from './HookActivity';
 
-export default { title: 'HookActivity' };
+export default { title: 'Status/HookActivity' };
 
 function Demo() {
   return (

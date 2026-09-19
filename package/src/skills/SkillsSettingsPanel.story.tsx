@@ -6,7 +6,7 @@ import { AVAILABLE_TOOLS, skills as fixtureSkills } from './fixtures';
 import { SkillsSettingsPanel, type SkillsSettingsPanelProps } from './SkillsSettingsPanel';
 import type { Skill, SkillDraft } from './types';
 
-export default { title: 'skills/SkillsSettingsPanel' };
+export default { title: 'Agents & skills/SkillsSettingsPanel' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

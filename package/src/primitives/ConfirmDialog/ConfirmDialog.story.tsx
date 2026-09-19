@@ -3,7 +3,7 @@ import { Button, Code, Stack, Text } from '@mantine/core';
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test';
 import { ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
 
-export default { title: 'primitives/ConfirmDialog' };
+export default { title: 'Primitives/ConfirmDialog' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

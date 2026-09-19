@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { CONFIG_WARNINGS } from './discovery-fixtures';
 import { McpConfigWarnings } from './McpConfigWarnings';
 
-export default { title: 'mcp/McpConfigWarnings' };
+export default { title: 'MCP/McpConfigWarnings' };
 
 function Demo() {
   const [opened, setOpened] = useState('');

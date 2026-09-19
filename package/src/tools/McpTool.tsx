@@ -190,7 +190,7 @@ function formatMcpArgs(input: unknown): string {
   return parts.join('  ');
 }
 
-/** `structuredContent` of an MCP result, else the text of its content; see `unwrapToolOutput` */
+/** Output of an MCP call as 0.3 read it, kept for existing renderers; see `unwrapToolOutput` */
 export function unwrapMcpOutput(output: any): any {
   return output ? unwrapToolOutput(output) : output;
 }

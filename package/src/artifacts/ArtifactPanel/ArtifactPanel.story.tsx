@@ -10,7 +10,7 @@ import { createArtifactPartRenderer } from '../ArtifactCard/ArtifactCard';
 import { ArtifactPanel } from './ArtifactPanel';
 import { useArtifactPanel } from '../use-artifact-panel';
 
-export default { title: 'artifacts/ArtifactPanel', parameters: { layout: 'fullscreen' } };
+export default { title: 'Messages/ArtifactPanel', parameters: { layout: 'fullscreen' } };
 
 const DOCUMENTS: Record<string, string> = {
   'release-notes': `# Release notes 0.4

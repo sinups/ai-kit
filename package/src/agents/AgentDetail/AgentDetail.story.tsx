@@ -4,7 +4,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { AGENT_MODELS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import { AgentDetail, type AgentDetailProps } from './AgentDetail';
 
-export default { title: 'agents/AgentDetail' };
+export default { title: 'Agents & skills/AgentDetail' };
 
 function Demo(props: Partial<AgentDetailProps>) {
   return (

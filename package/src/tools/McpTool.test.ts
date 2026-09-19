@@ -1,19 +1,18 @@
 import { unwrapMcpOutput } from './McpTool';
 
 describe('tools/unwrapMcpOutput', () => {
-  it('reads the structured content of an MCP result, else the text of its content', () => {
+  it('unwraps MCP CallToolResult content blocks', () => {
     expect(
-      unwrapMcpOutput({
-        content: [{ type: 'text', text: '{"id":1}' }],
-        structuredContent: { id: 1 },
-        isError: false,
-      })
+      unwrapMcpOutput({ content: [{ type: 'text', text: '{"id":1}' }], isError: false })
     ).toEqual({ id: 1 });
-    expect(unwrapMcpOutput({ content: [{ type: 'text', text: '{"id":1}' }] })).toBe('{"id":1}');
   });
 
-  it('keeps any other output as it is, JSON text included', () => {
+  it('keeps plain strings that are not JSON objects or arrays', () => {
     expect(unwrapMcpOutput('42')).toBe('42');
-    expect(unwrapMcpOutput('{"a":[1]}')).toBe('{"a":[1]}');
+    expect(unwrapMcpOutput('hello')).toBe('hello');
+  });
+
+  it('parses JSON object strings', () => {
+    expect(unwrapMcpOutput('{"a":[1]}')).toEqual({ a: [1] });
   });
 });

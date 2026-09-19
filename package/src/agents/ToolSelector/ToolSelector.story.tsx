@@ -7,7 +7,7 @@ import type { AgentToolSelection } from '../types';
 import { summarizeTools } from '../validate-agent';
 import { ToolSelector, type ToolSelectorProps } from './ToolSelector';
 
-export default { title: 'agents/ToolSelector' };
+export default { title: 'Agents & skills/ToolSelector' };
 
 function Demo({
   initial = ['Read', 'Grep', 'Glob', 'mcp__git__get_pull_request'],

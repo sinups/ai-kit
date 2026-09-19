@@ -7,7 +7,7 @@ import { createTaskFixtures } from '../fixtures';
 import { findTask } from '../task-utils';
 import { TaskDetail } from './TaskDetail';
 
-export default { title: 'tasks/TaskDetail' };
+export default { title: 'Sessions & tasks/TaskDetail' };
 
 function Demo({ id }: { id: string }) {
   const { tasks, stop, retry, steer } = useSimulatedTasks();

@@ -7,7 +7,7 @@ import { rewindConversation } from './fixtures';
 import { RewindDialog } from './RewindDialog/RewindDialog';
 import type { MessageFeedbackValue, MessageListActions, SlashCommandInfo } from './types';
 
-export default { title: 'message-actions/MessageList' };
+export default { title: 'Chat/MessageList/Message actions' };
 
 const COMMANDS: SlashCommandInfo[] = [{ name: 'review', description: 'Review changes in a path' }];
 

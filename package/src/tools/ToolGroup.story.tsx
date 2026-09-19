@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { ToolGroup } from './ToolGroup';
 import { NESTED_TOOLS } from './_story-helpers';
 
-export default { title: 'tools/ToolGroup' };
+export default { title: 'Tools/ToolGroup' };
 
 export function Usage() {
   return (
