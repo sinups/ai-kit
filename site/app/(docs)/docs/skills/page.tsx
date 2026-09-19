@@ -1,6 +1,8 @@
 import { DocCodeBlock } from "@/app/components/doc-code-block";
 import { DocNavButton } from "@/app/components/doc-nav-button";
 import { DocPageShell } from "@/app/components/doc-page-shell";
+import { SKILL_URL } from "@/app/lib/agent-setup";
+import { REPO_URL } from "@/app/lib/site";
 import { getDocNav } from "@/app/utils/doc-nav";
 
 const INSTALL_COMMAND = "npx skills add sinups/ai-kit";
@@ -82,20 +84,29 @@ export default function SkillsPage() {
             Manual install for Agent CLI
           </div>
           <p className="text-sm text-muted-foreground">
-            Want to try the skill right now? Copy the{" "}
+            Want to try the skill right now? Copy the published{" "}
             <a
-              href="https://github.com/sinups/ai-kit/blob/master/site/skills/ai-kit/SKILL.md"
+              href={SKILL_URL}
               className="text-an-primary-color hover:underline underline-offset-2"
               target="_blank"
               rel="noreferrer"
             >
               SKILL.md
             </a>{" "}
-            from the repo into your Agent CLI skills folder:
+            into your Agent CLI skills folder. Its source is{" "}
+            <a
+              href={`${REPO_URL}/blob/main/site/skills/ai-kit/SKILL.md`}
+              className="text-an-primary-color hover:underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              site/skills/ai-kit/SKILL.md
+            </a>{" "}
+            on GitHub:
           </p>
           <DocCodeBlock
             code={`mkdir -p ~/.agent/skills/ai-kit
-curl -L https://raw.githubusercontent.com/sinups/ai-kit/master/site/skills/ai-kit/SKILL.md \\
+curl -L ${SKILL_URL} \\
   -o ~/.agent/skills/ai-kit/SKILL.md`}
             language="bash"
           />

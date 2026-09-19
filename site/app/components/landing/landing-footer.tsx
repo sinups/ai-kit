@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { AppLogo } from "@/app/components/app-logo";
+import { LLMS_URL } from "@/app/lib/mcp-setup";
 import { PACKAGE_NAME, REPO_URL, SITE_NAME, UPSTREAM_NAME, UPSTREAM_URL } from "@/app/lib/site";
 
 const LINKS = [
   { label: "Docs", href: "/docs" },
   { label: "GitHub", href: REPO_URL },
   { label: "npm", href: `https://www.npmjs.com/package/${PACKAGE_NAME}` },
+  { label: "llms.txt", href: LLMS_URL },
   { label: "Mantine", href: "https://mantine.dev" },
 ];
 

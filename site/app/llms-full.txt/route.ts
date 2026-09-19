@@ -14,6 +14,7 @@ import {
 import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
 import { PACKAGE_NAME, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
 import { getUtilityGroups } from "@/app/lib/utility-exports";
+import { SKILL_URL } from "@/app/lib/agent-setup";
 
 export const dynamic = "force-static";
 
@@ -250,14 +251,33 @@ function renderMcp(): string {
 }
 
 function renderSkills(): string {
-  return page("/docs/skills", "Skills", [codeFence("npx skills add sinups/ai-kit", "bash")]);
+  return page("/docs/skills", "Skills", [
+    codeFence("npx skills add sinups/ai-kit", "bash"),
+    `The skill file is published at ${SKILL_URL}.`,
+  ]);
 }
+
+const RELATED_EXPORTS: Record<string, string[]> = {
+  ArtifactPanel: [
+    "`ArtifactCard`: a card in an answer that opens an artifact in `ArtifactPanel`; the whole card is one button.",
+  ],
+  MessageActions: [
+    "`MessageActionButton`: an icon button in the look of the message toolbar, for host actions in the `actions` slot of `MessageActions`.",
+  ],
+  Markdown: [
+    "`MarkdownLinksProvider`: hands `onLinkClick` and `linkSchemes` to every `Markdown` inside, such as the answers of `AgentChat`; a link with a host scheme never navigates and only reaches `onLinkClick`.",
+  ],
+};
 
 function renderComponent(name: string): string {
   const doc = COMPONENT_DOCS.find((item) => item.name === name);
   const parts: string[] = [`## ${name}`, "", `URL: ${SITE_URL}/docs/${componentIdFromName(name)}`, ""];
   for (const block of doc?.blocks ?? []) {
     parts.push(blockToMarkdown(block), "");
+  }
+  const related = RELATED_EXPORTS[name];
+  if (related) {
+    parts.push("### Related exports", "", ...related.map((line) => `- ${line}`), "");
   }
   const apiProps = getComponentProps(name);
   if (apiProps?.length) {

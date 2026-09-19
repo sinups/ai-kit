@@ -1,5 +1,6 @@
 import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 import { DOC_PAGE_DESCRIPTIONS, INTRODUCTION_DESCRIPTION, summarizeUsage } from "@/app/lib/doc-pages";
+import { AGENT_SETUP_STEPS, SKILL_URL } from "@/app/lib/agent-setup";
 import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
 import { PACKAGE_NAME, REPO_URL, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
 
@@ -12,11 +13,16 @@ export function GET() {
   lines.push("");
   lines.push(`> ${INTRODUCTION_DESCRIPTION}`);
   lines.push("");
+  lines.push("## Set up in a project (for coding agents)");
+  lines.push("");
+  AGENT_SETUP_STEPS.forEach((step, index) => lines.push(`${index + 1}. ${step}`));
+  lines.push("");
   lines.push(`- Package: \`${PACKAGE_NAME}\` ${PACKAGE_VERSION}`);
   lines.push(`- Install: \`${INSTALL_COMMAND}\``);
   lines.push(`- Peer dependencies: ${PEER_DEPENDENCIES.map((peer) => `\`${peer.name}\` ${peer.range}`).join(", ")}`);
   lines.push("- Styles: import `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css` once at the app root.");
   lines.push(`- Full docs in one file: ${SITE_URL}/llms-full.txt`);
+  lines.push(`- Skill for coding agents: ${SKILL_URL}`);
   lines.push("");
   lines.push("## Transcript options");
   lines.push("");
@@ -26,6 +32,9 @@ export function GET() {
   lines.push("- `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`: readable titles, arguments and results of MCP calls.");
   lines.push("- `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched`: on by default in `AgentChat`, off in `MessageList`; `evenSpacing` off in both.");
   lines.push("- `InputBar` `contextItems`, `onRemoveContext`, `onRestoreContext`; `ModeSelector` `labels.title`, mode `badge`, `shortcuts`.");
+  lines.push("- `ArtifactCard`: a card in an answer that opens an artifact in `ArtifactPanel`; the whole card is one button.");
+  lines.push("- `MessageActionButton`: an icon button in the look of the message toolbar, for host actions in the `actions` slot of `MessageActions`.");
+  lines.push("- `MarkdownLinksProvider`: `onLinkClick` and `linkSchemes` for every `Markdown` inside, such as the answers of `AgentChat`; links with a host scheme never navigate.");
   lines.push("");
 
   for (const section of SIDEBAR_SECTIONS) {

@@ -118,7 +118,7 @@ yarn site:build
 Stories double as tests. Two kinds run against a Storybook in Chromium through `@storybook/test-runner`:
 
 - **Interaction tests** — a story's `play` function drives it with `@storybook/test` (`userEvent`, `within`, `expect`, `fn`). Every story is also smoke-tested: it must render without errors. Play functions show up in the Interactions panel of Storybook.
-- **Visual tests** — each story is screenshotted in the light and dark theme at 1280×800 with animations off, fonts loaded and scroll containers at the top, and compared with the same story in the base branch (`jest-image-snapshot`, more than 20 differing pixels fails). Baselines are not stored in git: `package/__visual__/` is ignored and recorded from the base branch Storybook before each comparison. A story that does not exist in the base branch has no baseline and is skipped with a message. A renamed story is compared with its old id from `.storybook/story-renames.json` (`{ newId: oldId }`) when it has no baseline of its own.
+- **Visual tests** — each story is screenshotted in the light and dark theme at 1280×800 with animations off, fonts loaded and scroll containers at the top, and compared with the same story in the base branch (`jest-image-snapshot`, more than 20 differing pixels fails). Baselines are not stored in git: `package/__visual__/` is ignored and recorded from the base branch Storybook before each comparison. A story that does not exist in the base branch has no baseline and is skipped with a message.
 
 Against the dev server (`yarn storybook`, port 8271):
 
