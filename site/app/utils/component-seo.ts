@@ -4,12 +4,12 @@ export type ComponentSeo = {
 };
 
 const baseTail =
-  "Open-source React component from AI UI Kit - built for coding-agent-style agents and the Vercel AI SDK.";
+  "Open-source React component from AI UI Kit, the Mantine UI kit for agent products.";
 
 export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   AgentChat: {
     description:
-      "AgentChat is a drop-in React chat shell for LLM agents: streaming messages, tool cards, plans, approvals, and an input bar. Works with ChatMessage from the Vercel AI SDK.",
+      "AgentChat is a drop-in React chat shell for LLM agents: streaming messages, tool cards, plans, approvals, and an input bar. Messages are structurally compatible with UIMessage from the Vercel AI SDK, so useChat() output plugs in.",
     keywords: [
       "AgentChat component",
       "React agent chat component",
@@ -21,7 +21,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   MessageList: {
     description:
-      "MessageList renders the full agent transcript: user and assistant turns, tool calls, thinking, and markdown - with streaming updates and smooth auto-scroll.",
+      "MessageList renders the agent transcript: user and assistant turns, tool calls, thinking and streaming Markdown.",
     keywords: [
       "MessageList component",
       "chat transcript UI",
@@ -31,7 +31,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   InputBar: {
     description:
-      "InputBar is the agent composer: multiline input, file attachments, suggestions, send/stop controls, and slot overrides. Hook it up to the Vercel AI SDK in one line.",
+      "InputBar is the agent composer: multiline input, file attachments, suggestions, send/stop controls, and slots for pickers and actions.",
     keywords: [
       "InputBar component",
       "chat composer UI",
@@ -42,7 +42,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   Suggestions: {
     description:
-      "Suggestions renders quick-action chips above the InputBar so users can kick off common agent flows like Write, Plan, Code, or Learn with one tap.",
+      "Suggestions renders starter prompt chips next to the InputBar and passes the clicked one to onSelect.",
     keywords: [
       "Suggestions component",
       "prompt suggestions UI",
@@ -82,7 +82,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   Markdown: {
     description:
-      "Markdown is a streaming-aware renderer for assistant output: GFM tables, code highlighting via Shiki, callouts, and incremental updates during LLM streaming.",
+      "Markdown renders streaming assistant output: GFM tables, code blocks with a pluggable highlighter and incremental updates.",
     keywords: [
       "Markdown component",
       "streaming markdown React",
@@ -140,7 +140,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   BashTool: {
     description:
-      "BashTool renders shell commands the agent runs: live command line, streaming stdout/stderr, exit codes, and collapse/expand. Built for coding-agent-style terminals.",
+      "BashTool renders shell commands the agent runs: live command line, streaming stdout/stderr, exit codes, and collapse/expand.",
     keywords: [
       "BashTool component",
       "shell tool UI",
@@ -162,7 +162,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   SearchTool: {
     description:
-      "SearchTool renders grouped web search results - tabs per source, snippets, and dates - so agents can cite and the user can verify at a glance.",
+      "SearchTool renders search tool results with tabs per source, snippets and dates.",
     keywords: [
       "SearchTool component",
       "search results UI",
@@ -172,7 +172,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   TodoTool: {
     description:
-      "TodoTool displays the agent's running checklist with in-progress, completed, and pending states - perfect for long-running tasks and plans.",
+      "TodoTool displays the agent's running checklist with in-progress, completed and pending states.",
     keywords: [
       "TodoTool component",
       "agent todo list",
@@ -182,7 +182,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   PlanTool: {
     description:
-      "PlanTool renders an agent's plan with a summary, numbered steps, and an explicit approve/reject interaction - gate risky rollouts behind human review.",
+      "PlanTool renders an agent's plan with a summary, numbered steps and approve or reject actions.",
     keywords: [
       "PlanTool component",
       "agent plan UI",
@@ -193,7 +193,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   QuestionTool: {
     description:
-      "QuestionTool lets the agent ask a clarifying question with suggested answer chips - keeps flows unambiguous without breaking the chat surface.",
+      "QuestionTool lets the agent ask a clarifying question with suggested answers inside the chat.",
     keywords: [
       "QuestionTool component",
       "clarifying question UI",
@@ -203,7 +203,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   ToolGroup: {
     description:
-      "ToolGroup compacts a sequence of tool calls (reads, edits, bashes) into a single collapsible row so the chat stays scannable during long runs.",
+      "ToolGroup folds a sequence of tool calls (reads, edits, shell commands) into one collapsible row.",
     keywords: [
       "ToolGroup component",
       "grouped tool calls UI",
@@ -223,7 +223,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   McpTool: {
     description:
-      "McpTool is the generic MCP (Model Context Protocol) tool renderer - recognizes mcp__server__tool naming and shows structured input/output with a tool icon.",
+      "McpTool renders MCP (Model Context Protocol) tool calls named tool-mcp__server__tool, with their arguments and output.",
     keywords: [
       "McpTool component",
       "MCP tool UI",
@@ -233,7 +233,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   ThinkingTool: {
     description:
-      "ThinkingTool shows the agent's reasoning block with streaming text - collapsible so the reasoning stays accessible but out of the way.",
+      "ThinkingTool shows the agent's reasoning as a collapsible block with streaming text.",
     keywords: [
       "ThinkingTool component",
       "LLM reasoning UI",
@@ -258,7 +258,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   ToolApprovalFooter: {
     description:
-      "ToolApprovalFooter asks the user to confirm a tool call, with approval scopes (once, session, always), a reason line, and rejection with feedback for the agent.",
+      "ToolApprovalFooter asks the user to confirm a tool call, with approval scopes (once, session, always) and rejection with feedback.",
     keywords: ["tool approval UI", "agent permission prompt", "human in the loop", "tool call confirmation"],
   },
   ElicitationForm: {
@@ -283,7 +283,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   Wizard: {
     description:
-      "Wizard is a Mantine multi-step flow for agent settings: per-step sync or async validation, conditional steps, a review step, a modal variant and non-linear editing.",
+      "Wizard is a Mantine multi-step flow for agent settings with per-step validation, conditional steps, a review step and a modal variant.",
     keywords: ["React wizard component", "Mantine stepper form", "multi-step form", "useWizard hook"],
   },
   ConfirmDialog: {
@@ -293,12 +293,12 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   },
   SettingsLayout: {
     description:
-      "SettingsLayout, SettingsSection and SettingRow build responsive settings screens: grouped section navigation, searchable sections and label/control rows that stack in narrow widgets.",
+      "SettingsLayout builds responsive settings screens with SettingsSection and SettingRow: grouped navigation, search and rows that stack in narrow widgets.",
     keywords: ["settings page layout React", "Mantine settings screen", "settings navigation", "setting row component"],
   },
   MasterDetail: {
     description:
-      "MasterDetail shows a list and the selected item's details side by side when wide and as one pane with a back action in narrow widgets, with an optional resizable splitter.",
+      "MasterDetail shows a list and the selected item side by side when wide and as one pane with a back action when narrow.",
     keywords: ["master detail layout React", "list detail view", "responsive split view", "Mantine Splitter"],
   },
   EntityList: {
@@ -386,7 +386,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
       "HookWizard creates or edits an agent hook: event, tool matcher, shell command or prompt, timeout, scope and the payload the hook receives.",
     keywords: ["hook wizard", "agent hook form", "PostToolUse command hook"],
   },
-  AgentsSettingsPanel: { description: "AgentsSettingsPanel is a complete subagent settings screen: agent list, details, editor, creation wizard with AI generation and delete confirmation, for full pages and narrow widgets.", keywords: ["subagent settings UI", "AI agent manager React", "Agent CLI agents UI"] },
+  AgentsSettingsPanel: { description: "AgentsSettingsPanel is a complete subagent settings screen: agent list, details, editor and a creation wizard with AI generation.", keywords: ["subagent settings UI", "AI agent manager React", "Agent CLI agents UI"] },
   AgentList: { description: "AgentList lists agent definitions grouped by source with avatars, models, search, loading, error and empty states and edit, duplicate and delete actions.", keywords: ["agent list component", "subagents list", "AI agents catalog"] },
   AgentDetail: { description: "AgentDetail shows a subagent's purpose, model, tools, skills and Markdown system prompt with use in chat, edit, duplicate and delete actions.", keywords: ["agent detail view", "system prompt viewer", "subagent configuration"] },
   AgentEditor: { description: "AgentEditor edits a subagent: identity, system prompt, allowed and disallowed tools, model, skills and color, with validation and unsaved changes protection.", keywords: ["agent editor form", "system prompt editor", "subagent configuration form"] },
@@ -398,7 +398,7 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   SkillDetail: { description: "SkillDetail shows a skill's status, source, version, allowed tools and Markdown instructions with edit and enable actions.", keywords: ["skill detail", "SKILL.md viewer", "agent skill instructions"] },
   SkillEditor: { description: "SkillEditor creates or edits a skill: name, description, tags, allowed tools and Markdown instructions with preview and unsaved changes protection.", keywords: ["skill editor", "Markdown instructions editor", "agent skill form"] },
   SkillPicker: { description: "SkillPicker selects several skills with search by name and tag, pills and disabled skill markers.", keywords: ["skill picker", "multi select skills", "agent skills input"] },
-  SessionList: { description: "SessionList shows past agent conversations grouped by date with fuzzy search, pinned and archived filters, and rename, pin, archive, delete and export actions.", keywords: ["chat history sidebar", "session list React", "conversation history UI", "Mantine session list"] },
+  SessionList: { description: "SessionList shows past agent conversations grouped by date with fuzzy search, pinned and archived filters and per-session actions.", keywords: ["chat history sidebar", "session list React", "conversation history UI", "Mantine session list"] },
   SessionPreview: { description: "SessionPreview shows a past conversation with its model, branch, token count and cost, and offers to resume or export it.", keywords: ["conversation preview", "resume chat session", "agent session history"] },
   ExportDialog: { description: "ExportDialog exports a conversation as Markdown, JSON or text with options for tool calls, thinking and timestamps, a live preview, copy and download.", keywords: ["export chat transcript", "conversation to markdown", "chat export dialog"] },
   MessageActions: { description: "MessageActions adds copy, edit, retry, rewind, branch and feedback actions under chat messages, built into MessageList through messageActions.", keywords: ["chat message actions", "regenerate response UI", "thumbs up down feedback", "edit message React"] },
@@ -422,7 +422,55 @@ export const COMPONENT_SEO: Record<string, ComponentSeo> = {
   TaskStatusPill: { description: "TaskStatusPill is a compact background task indicator for a status bar, such as 2 running · 1 failed, that opens the task panel.", keywords: ["task status pill", "status bar indicator", "running tasks badge"] },
   DiffReview: { description: "DiffReview reviews agent file changes: file list and diff side by side, j/k navigation, viewed marks and accept or reject per file or all.", keywords: ["code review UI React", "diff review component", "accept reject changes", "agent file changes"] },
   DiffFileList: { description: "DiffFileList lists changed files as a list or folder tree with status, line counts, viewed marks, decisions, search and a status filter.", keywords: ["changed files list", "diff file tree", "git status UI"] },
-  DiffFileView: { description: "DiffFileView renders one file diff in unified or split layout with word highlights, collapsible unchanged lines and states for binary, deleted and renamed files.", keywords: ["diff viewer React", "split diff view", "word level diff", "unified diff component"] },
+  DiffFileView: { description: "DiffFileView renders one file diff in unified or split layout with word highlights and collapsible unchanged lines.", keywords: ["diff viewer React", "split diff view", "word level diff", "unified diff component"] },
+  SchemaValues: { description: "SchemaValues shows tool call arguments the way their JSON Schema describes them, with types, required badges and nesting.", keywords: ["tool arguments viewer", "JSON Schema values", "MCP tool input UI"] },
+  ChatInspectorLayout: { description: "ChatInspectorLayout puts a resizable inspector or tabbed panels beside the chat, as a drawer on narrow screens.", keywords: ["chat with side panel", "resizable inspector layout", "agent inspector panel"] },
+  ContextBreakdown: { description: "ContextBreakdown shows what fills the context window by group, with tokens, percent and suggestions to free space.", keywords: ["context window breakdown", "token usage by group", "LLM context usage"] },
+  ContextEventRow: { description: "ContextEventRow records what the agent pulled into its context: a file read, a directory, memory, an MCP resource or a skill.", keywords: ["agent context events", "file read row", "MCP resource row"] },
+  TurnSummary: { description: "TurnSummary closes a turn with one muted line: how long the agent worked, tokens used and background tasks still running.", keywords: ["turn summary", "agent tokens used", "elapsed time row"] },
+  HookActivity: { description: "HookActivity shows the hooks that ran for an event such as PreToolUse, with running, done, blocked and error states.", keywords: ["agent hooks activity", "PreToolUse hook row", "hook status UI"] },
+  TranscriptSearch: { description: "TranscriptSearch is a find bar for a conversation: query input, a 3/12 counter, previous and next buttons.", keywords: ["chat transcript search", "find in conversation", "search bar React"] },
+  PromptHistorySearch: { description: "PromptHistorySearch is a fuzzy search dialog over prompts the user already sent, newest first.", keywords: ["prompt history search", "previous prompts", "fuzzy search dialog"] },
+  PastedTextAttachment: { description: "PastedTextAttachment is a chip for a large paste collapsed out of the composer, with a line count and a preview.", keywords: ["pasted text chip", "large paste attachment", "composer paste"] },
+  IdleReturnPrompt: { description: "IdleReturnPrompt asks a user who returns to a long conversation whether to continue it or start a new chat.", keywords: ["idle return prompt", "continue or new chat", "long conversation notice"] },
+  SpendThresholdNotice: { description: "SpendThresholdNotice tells the user that spending in the session passed a threshold, with the amount and the limit.", keywords: ["spend limit notice", "LLM cost warning", "session spending"] },
+  ToolUnavailableNotice: { description: "ToolUnavailableNotice says in the transcript that a tool or its MCP server stopped answering, with retry and dismiss.", keywords: ["tool unavailable notice", "MCP server down", "connection lost notice"] },
+  ChatHeader: { description: "ChatHeader is the top bar above AgentChat: conversation title, subtitle, leading controls, badges and panel buttons.", keywords: ["chat header", "conversation title bar", "agent chat toolbar"] },
+  QuestionPrompt: { description: "QuestionPrompt is the form for a question the agent asks: single or multiple choice or free text, with previews and notes.", keywords: ["agent question form", "clarifying question UI", "multiple choice prompt"] },
+  InputPopover: { description: "InputPopover wraps Mantine Popover in the dropdown look of the composer pickers, for your own toolbar controls.", keywords: ["composer popover", "toolbar dropdown", "Mantine Popover"] },
+  ImageLightbox: { description: "ImageLightbox is a fullscreen image viewer with focus trap, keyboard navigation and a counter for several images.", keywords: ["image lightbox React", "fullscreen image viewer", "chat image preview"] },
+  CodeBlock: { description: "CodeBlock shows code with a header, a copy button, line numbers, collapsing and a syntax highlighter such as Shiki.", keywords: ["code block React", "copy code button", "Shiki code block"] },
+  FileExtIcon: { description: "FileExtIcon renders small language icons for TypeScript, JavaScript and JSON file names in tool rows and diffs.", keywords: ["file extension icon", "TypeScript file icon", "language icon"] },
+  ShellOutput: { description: "ShellOutput shows terminal output as a log with ANSI colors, links, a copy button and exit code, duration and size.", keywords: ["terminal output React", "ANSI log viewer", "shell output UI"] },
+  DiffView: { description: "DiffView renders a unified line diff of two strings with line numbers, change markers and optional word highlights.", keywords: ["unified diff React", "line diff viewer", "word diff"] },
+  ActionRow: { description: "ActionRow is a scripted timeline row with a shimmer label, for product tours, demos and onboarding replays.", keywords: ["timeline row", "demo replay row", "shimmer label"] },
+  ToolRowBase: { description: "ToolRowBase is the single-line row tool cards are built on: icon, shimmering label, detail and an expandable body.", keywords: ["tool row", "expandable row", "tool call row"] },
+  ToolRenderer: { description: "ToolRenderer renders one AI SDK tool part with the matching card: Bash, Edit, Search, Todo, Plan, MCP and more.", keywords: ["tool part renderer", "AI SDK tool parts", "tool call cards"] },
+  MediaPart: { description: "MediaPart renders file parts of an answer by media type: images in a lightbox, audio and video players, file chips.", keywords: ["chat media parts", "image audio video in chat", "file part renderer"] },
+  ArtifactPanel: { description: "ArtifactPanel opens a document, code file, table or image the answer produced next to the chat.", keywords: ["artifact panel", "side panel document", "AI artifacts UI"] },
+  SettingsModal: { description: "SettingsModal renders SettingsLayout in a fixed-height Mantine Modal that goes full screen on phones.", keywords: ["settings modal", "settings dialog React", "Mantine Modal settings"] },
+  ValidationErrorsList: { description: "ValidationErrorsList shows problems found in settings files, grouped by file, with paths, messages and suggestions.", keywords: ["settings validation errors", "config errors list", "validation UI"] },
+  InvalidSettingsNotice: { description: "InvalidSettingsNotice tells the user that a settings file failed validation and is ignored, with expandable details.", keywords: ["invalid settings notice", "config error banner", "settings validation"] },
+  McpImportDialog: { description: "McpImportDialog imports MCP servers from another client's configuration, renaming names that collide.", keywords: ["import MCP servers", "MCP config import", "MCP dialog"] },
+  McpDiscoveredServers: { description: "McpDiscoveredServers asks the user to approve MCP servers a project configuration adds, before any of them runs.", keywords: ["approve MCP servers", "project MCP servers", "MCP trust prompt"] },
+  McpConfigWarnings: { description: "McpConfigWarnings lists problems found in MCP configuration files, grouped by file with field paths and kinds.", keywords: ["MCP config warnings", "MCP configuration errors", "config problems list"] },
+  McpToolAnnotationBadges: { description: "McpToolAnnotationBadges shows the MCP tool hints: read-only, destructive, idempotent and open world.", keywords: ["MCP tool annotations", "readOnlyHint badge", "destructiveHint badge"] },
+  McpTransportIcon: { description: "McpTransportIcon shows the icon of an MCP transport: stdio, HTTP or SSE.", keywords: ["MCP transport icon", "stdio http sse", "MCP icon"] },
+  AgentIdentityFields: { description: "AgentIdentityFields are the controlled field groups AgentEditor is built from, exported for your own agent forms.", keywords: ["agent form fields", "agent identity form", "subagent form"] },
+  AgentMessage: { description: "AgentMessage shows a message one agent sent to another in a multi-agent run, with sender, recipient and time.", keywords: ["multi-agent message", "agent to agent message", "agent team feed"] },
+  TaskElapsed: { description: "TaskElapsed prints a task's running time and ticks every second while the task runs, for your own task rows.", keywords: ["task elapsed time", "running timer", "task metadata"] },
+  DiffStats: { description: "DiffStats prints +N \u2212M line counts in green and red, with file status badges and icons for diff summaries.", keywords: ["diff stats", "lines added removed", "file status badge"] },
+  MemoryPanel: { description: "MemoryPanel lets the user read and edit the instruction files the agent loads as memory, grouped by scope.", keywords: ["agent memory files", "AGENTS.md editor", "memory settings"] },
+  MemoryFileDetail: { description: "MemoryFileDetail shows one memory file with scope, path, update time and Markdown content, with optional editing.", keywords: ["memory file view", "instruction file editor", "agent memory"] },
+  AiKitProvider: { description: "AiKitProvider applies the kit theme to a subtree inside MantineProvider: accent, radius, density and color scheme.", keywords: ["AI UI Kit theme", "Mantine theme provider", "theming React"] },
+  AiKitThemeCustomizer: { description: "AiKitThemeCustomizer is a ready appearance settings panel: accent, radius, density, light or dark mode and reset.", keywords: ["theme customizer", "appearance settings", "dark mode toggle"] },
+  ChatLauncher: { description: "ChatLauncher is a floating chat button that opens a non-modal chat panel and keeps the conversation mounted.", keywords: ["chat widget React", "floating chat button", "embeddable chat launcher"] },
+  ChatDropZone: { description: "ChatDropZone takes files dropped anywhere on the chat and shows an overlay while they are dragged over it.", keywords: ["file drop zone", "drag and drop files chat", "chat attachments"] },
+  CommandToggles: { description: "CommandToggles are pinned commands for the composer toolbar with one active at a time, added to the message by the host.", keywords: ["composer command toggles", "slash command buttons", "chat tools toggles"] },
+  StarterCategories: { description: "StarterCategories shows starter questions grouped by category for an empty chat, as buttons and suggestion chips.", keywords: ["starter prompts", "prompt categories", "empty chat suggestions"] },
+  MicButton: { description: "MicButton is a round microphone button for the composer, driven by state and input level; recording stays with the app.", keywords: ["microphone button React", "voice input button", "dictation UI"] },
+  VoiceLevel: { description: "VoiceLevel draws bars that follow a sound level you pass in, for the microphone or for speech the app plays.", keywords: ["voice level bars", "audio level meter", "speech visualizer"] },
+  SpeakingIndicator: { description: "SpeakingIndicator shows that the assistant is speaking, with its level and a stop button.", keywords: ["speaking indicator", "text to speech UI", "voice assistant"] },
 };
 
 export function getComponentSeo(name: string): ComponentSeo {

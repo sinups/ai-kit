@@ -260,6 +260,7 @@ import { getPrimarySourcePath } from "@/app/lib/component-source";
 import { Markdown } from "@sinups/ai-kit";
 import { buildPageMetadata } from "@/app/utils/page-metadata";
 import { getComponentSeo } from "@/app/utils/component-seo";
+import { componentDefinition, componentJsonLd, componentMetaDescription } from "@/app/lib/seo";
 
 export const dynamicParams = false;
 
@@ -289,9 +290,10 @@ export async function generateMetadata({
   const seo = getComponentSeo(component.name);
   return buildPageMetadata({
     title: component.name,
-    description: seo.description,
+    description: componentMetaDescription(component.name),
     keywords: seo.keywords,
     path: `/docs/${componentIdFromName(component.name)}`,
+    markdown: true,
   });
 }
 
@@ -377,6 +379,10 @@ export default async function ComponentPage({
 
   return (
     <div className="mx-auto max-w-6xl px-0 sm:px-4 lg:px-8 py-8 sm:py-10 lg:py-12 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_220px] gap-y-8 xl:gap-y-10 gap-x-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(componentJsonLd(component.name)) }}
+      />
       <div className="order-2 xl:order-1 flex flex-col gap-10 min-w-0">
         <div id="overview" className="space-y-2 scroll-mt-8">
           <div className="flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -399,7 +405,7 @@ export default async function ComponentPage({
             />
           </div>
           <Markdown
-            content={description}
+            content={`${componentDefinition(component.name)} ${description}`}
             className="text-base text-muted-foreground [&_.an-md-p]:text-base [&_a]:text-an-primary-color [&_a]:underline-offset-2 [&_a:hover]:underline text-pretty"
           />
         </div>

@@ -5,10 +5,10 @@ import { BASE_PATH } from "@/app/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AI UI Kit - Agent chat UI for Mantine apps",
+    name: "AI UI Kit — React agent UI kit for Mantine",
     short_name: "AI UI Kit",
     description:
-      "Open-source React components for coding-agent-style agent UIs, built on Mantine. Chat, tool calls, plans, approvals, and clarifying questions - built for the Vercel AI SDK and MCP.",
+      "Open-source React UI kit for agent products, built on Mantine 9: agent chat, tool calls and approvals, MCP, settings, sessions and diff review.",
     start_url: `${BASE_PATH}/`,
     display: "standalone",
     background_color: "#ffffff",

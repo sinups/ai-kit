@@ -5,12 +5,12 @@ import { DocPageShell } from '@/app/components/doc-page-shell';
 import { SIDEBAR_SECTIONS } from '@/app/data/sidebar';
 import { getDocNav } from '@/app/utils/doc-nav';
 import { buildPageMetadata } from '@/app/utils/page-metadata';
-import { INTRODUCTION_DESCRIPTION } from '@/app/lib/doc-pages';
 import { UPSTREAM_URL } from '@/app/lib/site';
 
 export const metadata = buildPageMetadata({
   title: 'Introduction',
-  description: INTRODUCTION_DESCRIPTION,
+  description:
+    'AI UI Kit is an open-source React UI kit for agent products on Mantine 9: the chat, tool cards and composer, and the screens around them.',
   path: '/docs',
   keywords: [
     'AI UI Kit introduction',

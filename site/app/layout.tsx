@@ -7,7 +7,8 @@ import "@mantine/core/styles.css";
 import "@sinups/ai-kit/styles.css";
 import "./globals.css";
 import { MantineThemeProvider } from "@/app/components/mantine-provider";
-import { REPO_URL, UPSTREAM_URL } from "@/app/lib/site";
+import { REPO_URL, SITE_NAME, SITE_URL, ogImageUrl } from "@/app/lib/site";
+import { SITE_DESCRIPTION } from "@/app/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,37 +20,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import { SITE_URL } from "@/app/lib/site";
-const SITE_NAME = "AI UI Kit";
-const SITE_TITLE = "AI UI Kit - Agent chat UI for Mantine apps";
-const SITE_DESCRIPTION =
-  "Open-source React components for coding-agent-style agent UIs, built on Mantine. Chat, tool calls, diffs, plans, approvals, clarifying questions and streaming states - drop-in for the Vercel AI SDK, MCP and any LLM app.";
+const SITE_TITLE = "AI UI Kit — React agent UI kit for Mantine";
 
 const KEYWORDS = [
-  "agent UI",
-  "agent UI components",
-  "agent chat UI",
-  "AI agent components",
   "AI UI Kit",
   "@sinups/ai-kit",
-  "Mantine",
-  "Mantine extension",
+  "agent UI kit",
+  "React AI chat components",
+  "Mantine chat UI",
   "Mantine AI components",
-  "Mantine chat components",
-  "React agent UI",
-  "React AI components",
-  "Next.js agent UI",
-  "Vercel AI SDK",
-  "AI SDK UIMessage",
-  "Agent CLI UI",
-  "agent tool call UI",
+  "MCP tool call UI",
   "tool approval UI",
-  "clarifying question UI",
-  "agent plan UI",
-  "MCP tool UI",
-  "diff viewer React",
-  "streaming markdown React",
-  "Agent Elements port",
+  "streaming markdown chat",
+  "AI SDK useChat UI",
+  "Vercel AI SDK",
+  "agent chat UI",
+  "React agent UI",
 ];
 
 export const viewport: Viewport = {
@@ -66,7 +52,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
-    template: `%s · ${SITE_NAME}`,
+    template: `%s — ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
@@ -78,7 +64,7 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false, email: false, address: false },
   alternates: {
     canonical: "/",
-    languages: { "en-US": "/", "x-default": "/" },
+    types: { "text/plain": `${SITE_URL}/llms.txt` },
   },
   openGraph: {
     type: "website",
@@ -89,7 +75,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/opengraph-image",
+        url: ogImageUrl("home"),
         width: 1200,
         height: 630,
         alt: SITE_TITLE,
@@ -101,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/opengraph-image"],
+    images: [ogImageUrl("home")],
   },
   robots: {
     index: true,
@@ -117,50 +103,11 @@ export const metadata: Metadata = {
     },
   },
   category: "technology",
-  classification: "Developer Tools, React UI Library, AI Components",
+  classification: "Developer Tools, React UI Library",
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-title": SITE_NAME,
     "mobile-web-app-capable": "yes",
-  },
-};
-
-const SOFTWARE_APPLICATION_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: SITE_NAME,
-  alternateName: ["@sinups/ai-kit"],
-  applicationCategory: "DeveloperApplication",
-  applicationSubCategory: "React UI Component Library",
-  operatingSystem: "Any (Node.js, Browser)",
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-  offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
-  license: "MIT",
-  isBasedOn: UPSTREAM_URL,
-  programmingLanguage: ["TypeScript", "JavaScript", "React", "TSX"],
-  runtimePlatform: ["Node.js", "Next.js", "React 19", "Mantine"],
-  keywords: KEYWORDS.join(", "),
-  image: `${SITE_URL}/opengraph-image`,
-  author: { "@type": "Person", name: "Sinups", url: REPO_URL },
-  potentialAction: {
-    "@type": "ViewAction",
-    target: `${SITE_URL}/docs`,
-    name: "Read documentation",
-  },
-};
-
-const WEBSITE_LD = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: SITE_NAME,
-  url: SITE_URL,
-  description: SITE_DESCRIPTION,
-  inLanguage: "en-US",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${SITE_URL}/docs?q={search_term_string}`,
-    "query-input": "required name=search_term_string",
   },
 };
 
@@ -175,18 +122,6 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(SOFTWARE_APPLICATION_LD),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_LD) }}
-        />
-      </head>
       <body className="antialiased bg-doc-background">
         <ThemeProvider
           attribute="class"

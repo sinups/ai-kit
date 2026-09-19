@@ -78,7 +78,7 @@ export async function generateAgentElementsOg({
       : null,
   ].filter((font) => font !== null);
 
-  const sectionLabel = SECTION_LABELS[section] || "";
+  const sectionLabel = SECTION_LABELS[section] || section;
 
   const dashedLineSvg = `data:image/svg+xml,${encodeURIComponent(
     `<svg width="1200" height="1" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0.5" x2="1200" y2="0.5" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4 6" stroke-linecap="round"/></svg>`,

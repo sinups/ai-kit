@@ -2,7 +2,7 @@ import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 import { DOC_PAGE_DESCRIPTIONS, INTRODUCTION_DESCRIPTION, summarizeUsage } from "@/app/lib/doc-pages";
 import { AGENT_SETUP_STEPS, SKILL_URL } from "@/app/lib/agent-setup";
 import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
-import { PACKAGE_NAME, REPO_URL, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
+import { PACKAGE_NAME, REPO_URL, SITE_URL, UPSTREAM_NAME, markdownPageUrl } from "@/app/lib/site";
 
 export const dynamic = "force-static";
 
@@ -23,6 +23,7 @@ export function GET() {
   lines.push("- Styles: import `@mantine/core/styles.css` and `@sinups/ai-kit/styles.css` once at the app root.");
   lines.push(`- Full docs in one file: ${SITE_URL}/llms-full.txt`);
   lines.push(`- Skill for coding agents: ${SKILL_URL}`);
+  lines.push("- Every component page has a Markdown copy at `<page URL>/index.md`, linked after each component below.");
   lines.push("");
   lines.push("## Transcript options");
   lines.push("");
@@ -44,7 +45,8 @@ export function GET() {
       const description = section.components
         ? summarizeUsage(item.label)
         : (DOC_PAGE_DESCRIPTIONS[item.href] ?? "");
-      lines.push(`- [${item.label}](${SITE_URL}${item.href})${description ? `: ${description}` : ""}`);
+      const markdown = section.components ? ` ([Markdown](${markdownPageUrl(item.href)}))` : "";
+      lines.push(`- [${item.label}](${SITE_URL}${item.href})${markdown}${description ? `: ${description}` : ""}`);
     }
     lines.push("");
   }
