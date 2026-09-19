@@ -9,3 +9,8 @@ export const REPO_URL = "https://github.com/sinups/ai-kit";
 export const UPSTREAM_NAME = "Agent Elements";
 export const UPSTREAM_URL = "https://github.com/21st-dev/agent-elements";
 export const UPSTREAM_SITE_URL = "https://agent-elements.21st.dev";
+
+/** Social preview image of a page, rendered at build time by `app/og/[image]` */
+export const ogImageUrl = (id: string) => `${SITE_URL}/og/${id}.png`;
+/** Markdown copy of a component page for agents, rendered by `app/(docs)/docs/[id]/index.md` */
+export const markdownPageUrl = (path: string) => `${SITE_URL}${path}/index.md`;

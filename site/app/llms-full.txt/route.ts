@@ -1,5 +1,3 @@
-import { getComponentProps } from "@/app/components/[id]/api-reference";
-import { COMPONENT_DOCS, componentIdFromName, type ComponentBlock } from "@/app/data/component-docs";
 import { RECIPES } from "@/app/data/recipes";
 import { SIDEBAR_SECTIONS } from "@/app/data/sidebar";
 import { DOC_PAGE_DESCRIPTIONS, INTRODUCTION_DESCRIPTION } from "@/app/lib/doc-pages";
@@ -14,13 +12,11 @@ import {
 import { INSTALL_COMMAND, PACKAGE_VERSION, PEER_DEPENDENCIES } from "@/app/lib/package-info";
 import { PACKAGE_NAME, SITE_URL, UPSTREAM_NAME } from "@/app/lib/site";
 import { getUtilityGroups } from "@/app/lib/utility-exports";
+import { codeFence, renderComponent } from "@/app/lib/component-markdown";
 import { SKILL_URL } from "@/app/lib/agent-setup";
 
 export const dynamic = "force-static";
 
-function codeFence(code: string, lang = "tsx") {
-  return ["```" + lang, code.trim(), "```"].join("\n");
-}
 
 function page(href: string, title: string, body: string[]): string {
   const description = DOC_PAGE_DESCRIPTIONS[href];
@@ -28,18 +24,6 @@ function page(href: string, title: string, body: string[]): string {
     "\n",
   );
 }
-
-function blockToMarkdown(block: ComponentBlock): string {
-  if (block.type === "example") {
-    return [`### Example: ${block.title}`, "", codeFence(block.code)].join("\n");
-  }
-  if (block.type === "code") {
-    return [`### ${block.title}`, "", codeFence(block.content)].join("\n");
-  }
-  return [`### ${block.title}`, "", block.content.trim()].join("\n");
-}
-
-const escapeCell = (value: string) => value.replace(/\|/g, "\\|").replace(/\n/g, " ");
 
 function renderIntroduction(): string {
   return page("/docs", "Introduction", [
@@ -255,41 +239,6 @@ function renderSkills(): string {
     codeFence("npx skills add sinups/ai-kit", "bash"),
     `The skill file is published at ${SKILL_URL}.`,
   ]);
-}
-
-const RELATED_EXPORTS: Record<string, string[]> = {
-  ArtifactPanel: [
-    "`ArtifactCard`: a card in an answer that opens an artifact in `ArtifactPanel`; the whole card is one button.",
-  ],
-  MessageActions: [
-    "`MessageActionButton`: an icon button in the look of the message toolbar, for host actions in the `actions` slot of `MessageActions`.",
-  ],
-  Markdown: [
-    "`MarkdownLinksProvider`: hands `onLinkClick` and `linkSchemes` to every `Markdown` inside, such as the answers of `AgentChat`; a link with a host scheme never navigates and only reaches `onLinkClick`.",
-  ],
-};
-
-function renderComponent(name: string): string {
-  const doc = COMPONENT_DOCS.find((item) => item.name === name);
-  const parts: string[] = [`## ${name}`, "", `URL: ${SITE_URL}/docs/${componentIdFromName(name)}`, ""];
-  for (const block of doc?.blocks ?? []) {
-    parts.push(blockToMarkdown(block), "");
-  }
-  const related = RELATED_EXPORTS[name];
-  if (related) {
-    parts.push("### Related exports", "", ...related.map((line) => `- ${line}`), "");
-  }
-  const apiProps = getComponentProps(name);
-  if (apiProps?.length) {
-    parts.push("### API reference", "", "| Prop | Type | Required | Description |", "| --- | --- | --- | --- |");
-    for (const prop of apiProps) {
-      parts.push(
-        `| ${prop.name} | \`${escapeCell(prop.type)}\` | ${prop.required ? "Yes" : "No"} | ${escapeCell(prop.description ?? "")} |`,
-      );
-    }
-    parts.push("");
-  }
-  return parts.join("\n");
 }
 
 const GUIDE_RENDERERS: Record<string, () => string> = {

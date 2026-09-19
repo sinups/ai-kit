@@ -1,11 +1,11 @@
 # AI UI Kit
 
-A UI kit for agent products, built on [Mantine](https://mantine.dev). It covers the chat and the
+AI UI Kit (`@sinups/ai-kit`) is a React UI kit for agent products, built on [Mantine](https://mantine.dev) 9. It covers the chat and the
 screens around it: settings, MCP servers, agents, skills, permissions, hooks, memory, sessions,
 background tasks and diff review. Every component works in a 360px widget and on a full page, in
 light and dark color schemes.
 
-Documentation: https://sinups.github.io/ai-kit
+Documentation: https://sinups.github.io/ai-kit. For coding agents: https://sinups.github.io/ai-kit/llms.txt
 
 ## Modules
 

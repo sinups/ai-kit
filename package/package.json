@@ -1,17 +1,24 @@
 {
   "name": "@sinups/ai-kit",
   "version": "0.4.0",
-  "description": "Mantine UI kit for agent products: chat, tool calls, diff review, sessions, MCP, agents, skills, permissions, wizards and settings",
+  "description": "React UI kit for agent products on Mantine 9: agent chat with streaming Markdown, MCP tool call cards and approvals, composer, sessions, tasks, diff review and settings",
   "homepage": "https://sinups.github.io/ai-kit",
   "license": "MIT",
   "author": "Sinups",
   "keywords": [
+    "react",
     "mantine",
     "ai",
-    "agent",
     "chat",
+    "agent",
+    "mcp",
     "tool-calls",
-    "streaming"
+    "streaming",
+    "ai-sdk",
+    "llm",
+    "chat-ui",
+    "ui-kit",
+    "components"
   ],
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.mjs",
