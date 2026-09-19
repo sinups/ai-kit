@@ -10,6 +10,7 @@ import type { StepState, ToolCallStep } from '../types/timeline';
 import { formatElapsedTime } from '../utils/format-elapsed';
 import { useFirstSeen } from './tool-presentation';
 import { ToolActivity } from './ToolActivity';
+import { getReportedRunDuration } from './use-elapsed';
 import { noopComplete, useToolStep } from './use-tool-step';
 import classes from './ThinkingTool.module.css';
 
@@ -92,7 +93,11 @@ export function ThinkingCollapsed({
 }
 
 export interface ThinkingToolProps {
-  /** Tool part in AI SDK v5 shape, `input.thought` or string output is the reasoning text */
+  /**
+   * Tool part in AI SDK v5 shape, `input.thought` or string output is the reasoning text. A thought
+   * restored from history is timed by the host: `callProviderMetadata.custom.startedAt` with
+   * `durationMs` or `endedAt`, see `getReportedDuration`
+   */
   part?: ToolPart;
   /** Timeline step, used together with `state` and `onComplete` instead of `part` */
   step?: ToolCallStep;
@@ -140,6 +145,13 @@ export const ThinkingTool = memo(function ThinkingTool({
   const callId = part?.toolCallId;
   const startedAt = firstSeen(callId);
   const finishedAt = isThinking || !fromPart ? undefined : firstSeen(callId, ':done');
+  // A thought seen while it ran was marked before it finished; one restored from history gets its
+  // mark only now, so the reports of the host stand in for the time it was never measured here.
+  const liveAt = firstSeen(callId, ':live');
+  const reported =
+    part && finishedAt !== undefined && liveAt >= finishedAt
+      ? getReportedRunDuration([part])
+      : undefined;
   const now = useAnimationTime({
     intervalMs: 1000,
     active: isThinking,
@@ -161,7 +173,7 @@ export const ThinkingTool = memo(function ThinkingTool({
       duration={
         external || finishedAt === undefined
           ? undefined
-          : formatElapsedTime(finishedAt - startedAt, units)
+          : formatElapsedTime(reported ?? finishedAt - startedAt, units)
       }
       defaultOpen={defaultOpen}
       expanded={expanded}

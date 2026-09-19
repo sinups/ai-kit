@@ -60,6 +60,62 @@ describe('tools/ThinkingTool labels', () => {
     expect(screen.getByText('Думал 4 с')).toBeInTheDocument();
   });
 
+  it('takes the time of a thought restored from history from the host', () => {
+    const restored: ToolPart = {
+      ...thinking('Сначала задачи', 'output-available'),
+      callProviderMetadata: { custom: { startedAt: 1_000 } },
+      output: { duration_ms: 6_000 },
+    };
+    render(
+      <ChatLabelsProvider labels={ru}>
+        <ThinkingTool part={restored} />
+      </ChatLabelsProvider>
+    );
+    expect(screen.getByText('Думал 6 с')).toBeInTheDocument();
+  });
+
+  it('reads the time of a thought whose text is its output from the metadata of the call', () => {
+    const timed = (custom: Record<string, number>): ToolPart => ({
+      type: 'tool-Thinking',
+      toolCallId: `th-${Object.keys(custom).join('-')}`,
+      state: 'output-available',
+      output: 'Сначала задачи',
+      callProviderMetadata: { custom },
+    });
+    const { unmount } = render(
+      <ChatLabelsProvider labels={ru}>
+        <ThinkingTool part={timed({ startedAt: 1_000, durationMs: 5_000 })} />
+      </ChatLabelsProvider>
+    );
+    expect(screen.getByText('Думал 5 с')).toBeInTheDocument();
+    unmount();
+
+    render(
+      <ChatLabelsProvider labels={ru}>
+        <ThinkingTool part={timed({ startedAt: 1_000, endedAt: 8_000 })} />
+      </ChatLabelsProvider>
+    );
+    expect(screen.getByText('Думал 7 с')).toBeInTheDocument();
+  });
+
+  it('keeps the measured time of a thought seen live over the report of the host', () => {
+    const report = { output: { totalDurationMs: 60_000 } };
+    const { rerender } = renderStable(
+      <ChatLabelsProvider labels={ru}>
+        <ThinkingTool part={{ ...thinking('Сначала', 'input-streaming'), ...report }} />
+      </ChatLabelsProvider>
+    );
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    rerender(
+      <ChatLabelsProvider labels={ru}>
+        <ThinkingTool part={{ ...thinking('Сначала', 'output-available'), ...report }} />
+      </ChatLabelsProvider>
+    );
+    expect(screen.getByText('Думал 3 с')).toBeInTheDocument();
+  });
+
   it('keeps the English defaults and names no duration it has not seen', () => {
     render(<ThinkingTool part={thinking('Done', 'output-available')} />);
     expect(screen.getByText('Thought')).toBeInTheDocument();

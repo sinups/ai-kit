@@ -7,7 +7,7 @@ import { useChatLabels } from '../labels/chat-labels';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { DEFAULT_MCP_TOOL_LABELS } from '../tools/McpTool';
 import { ToolActivity } from '../tools/ToolActivity';
-import { readToolArgs } from '../tools/tool-args';
+import { readToolArgs, summarizeToolArgs } from '../tools/tool-args';
 import { DEFAULT_TOOL_CALL_STATE_LABELS, type ToolCallLookups } from '../tools/tool-call-state';
 import {
   findToolCatalogEntry,
@@ -24,15 +24,17 @@ import type { SyntaxHighlighter } from '../utils/highlighter';
 import { cx } from '../utils/cx';
 import {
   clipText,
+  getToolOutputValue,
   MAX_OUTPUT_CHARS,
   readCallToolResult,
   readResultText,
   readStructuredResult,
+  resolveByPartType,
 } from '../rows/tool-output';
 import type { JsonSchema } from '../primitives/SchemaView/schema';
 import { ToolResultContent } from '../tools/ToolResultContent';
 import { getToolRowName } from '../rows/rows-format';
-import { summarizeQuietResult } from './quiet-summary';
+import { firstLine, summarizeQuietResult } from './quiet-summary';
 import classes from './Quiet.module.css';
 
 export interface QuietToolRowProps {
@@ -87,27 +89,81 @@ export function QuietToolRow({
   const [expanded, setExpanded] = useState(false);
   const [opened, setOpened] = useState(false);
 
-  const outputSchema = findToolCatalogEntry(presentation.catalog, part)?.outputSchema;
-  const { summary, hasDetails } = useMemo(() => {
+  const catalogEntry = findToolCatalogEntry(presentation.catalog, part);
+  const outputSchema = catalogEntry?.outputSchema;
+  const outputFormatter = resolveByPartType(presentation.outputs, part.type);
+  const argsFormatter = resolveByPartType(presentation.args, part.type);
+  const { summary, hasDetails, argsText, formattedNode } = useMemo(() => {
     const isSettled = state === 'done' || state === 'error';
     const output = part.output ?? part.result;
+    const args = readToolArgs(part.input);
+    const hasArgs = Object.keys(args).length > 0;
+    const quietSummary = summarizeQuietResult(
+      part,
+      state,
+      {
+        ...mcpLabels,
+        rejected: callLabels.rejected,
+        queued: callLabels.queued,
+        interrupted: callLabels.interrupted,
+      },
+      outputSchema
+    );
+    const formatted = isSettled
+      ? outputFormatter?.(part, {
+          state,
+          output: getToolOutputValue(part),
+          result:
+            readCallToolResult(part.state === 'output-error' ? part.errorText : output) ??
+            undefined,
+          schema: outputSchema,
+          summary: quietSummary,
+          locale: presentation.locale,
+          labels: mcpLabels,
+        })
+      : null;
+    const formattedLine = typeof formatted === 'string' ? firstLine(formatted) : '';
+    const hostArgs = hasArgs
+      ? argsFormatter?.(part, {
+          state,
+          args,
+          summary: summarizeToolArgs(args, {
+            schema: catalogEntry?.inputSchema,
+            locale: presentation.locale,
+          }),
+          schema: catalogEntry?.inputSchema,
+          locale: presentation.locale,
+        })
+      : null;
+    const formattedNode =
+      formatted !== null && formatted !== undefined && typeof formatted !== 'string'
+        ? formatted
+        : null;
     return {
-      summary: summarizeQuietResult(
-        part,
-        state,
-        {
-          ...mcpLabels,
-          rejected: callLabels.rejected,
-          queued: callLabels.queued,
-          interrupted: callLabels.interrupted,
-        },
-        outputSchema
-      ),
+      summary:
+        typeof formatted === 'string'
+          ? state === 'error'
+            ? [mcpLabels.failed, formattedLine].filter(Boolean).join(' · ')
+            : formattedLine
+          : quietSummary,
+      argsText: typeof hostArgs === 'string' ? hostArgs : null,
+      formattedNode,
       hasDetails:
-        Object.keys(readToolArgs(part.input)).length > 0 ||
+        hasArgs ||
+        formattedNode !== null ||
         (isSettled && output !== undefined && output !== null && output !== ''),
     };
-  }, [part, state, mcpContext, callContext, outputSchema]);
+  }, [
+    part,
+    state,
+    mcpContext,
+    callContext,
+    catalogEntry,
+    outputSchema,
+    outputFormatter,
+    argsFormatter,
+    presentation.locale,
+  ]);
 
   if (part.type === 'tool-Thinking') {
     return <ThinkingTool part={part} className={cx(classes.quiet, className)} style={style} />;
@@ -160,6 +216,8 @@ export function QuietToolRow({
           part={part}
           isSettled={state === 'done' || state === 'error'}
           outcome={outcome}
+          argsText={argsText}
+          formatted={formattedNode}
           schema={outputSchema}
           labels={mcpLabels}
           highlighter={highlighter}
@@ -176,6 +234,8 @@ function QuietToolDetails({
   part,
   isSettled,
   outcome,
+  argsText,
+  formatted,
   schema,
   labels,
   highlighter,
@@ -184,6 +244,10 @@ function QuietToolDetails({
   part: ToolPart;
   isSettled: boolean;
   outcome: React.ReactNode;
+  /** Arguments as the formatter of the host wrote them, shown instead of their JSON */
+  argsText: string | null;
+  /** Result the formatter of the host rendered as a node */
+  formatted: React.ReactNode;
   schema?: JsonSchema;
   labels: { arguments: string; result: string };
   highlighter?: SyntaxHighlighter;
@@ -227,15 +291,26 @@ function QuietToolDetails({
 
   return (
     <Stack gap="xs" className={classes.details}>
-      {argsJson && (
+      {argsText !== null ? (
         <CodeBlock
-          code={argsJson}
-          language="json"
+          code={argsText}
+          language="text"
           title={labels.arguments}
           highlighter={highlighter}
           wrapLines
         />
+      ) : (
+        argsJson && (
+          <CodeBlock
+            code={argsJson}
+            language="json"
+            title={labels.arguments}
+            highlighter={highlighter}
+            wrapLines
+          />
+        )
       )}
+      {formatted}
       {resultNode}
       {result && <ToolResultContent result={result} messageId={part.toolCallId ?? part.type} />}
       {outcome && (

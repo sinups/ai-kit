@@ -277,6 +277,7 @@ export default function WhatsNewPage() {
     <DocPageShell
       sections={[
         { id: 'unreleased', label: 'Unreleased' },
+        { id: 'v0-4-0', label: '0.4.0' },
         { id: 'next', label: '0.3.0' },
         { id: 'next-defaults', label: 'Changed defaults in 0.3.0' },
         { id: 'overview', label: 'Overview' },
@@ -308,6 +309,55 @@ export default function WhatsNewPage() {
       </GuideHeader>
 
       <GuideSection id="unreleased" title="Unreleased">
+        <Bullets>
+          <li>
+            <C>quietPresentation</C> reads the formatters of the host like the cards and rows do:
+            the line of a call takes its outcome from <C>toolOutputs</C>, a failure included, and
+            the opened details show the arguments as <C>toolArgs</C> wrote them; <C>null</C> keeps
+            the summary of the kit. A call that <C>toolCatalog</C> describes goes quiet too, so a
+            local tool of the host without a server reads like an MCP call; built-in tools without
+            an entry keep their cards.
+          </li>
+          <li>
+            The new messages button shows only while there is content below the viewport, in every{' '}
+            <C>sendScroll</C> mode, and never for a single frame during a send. A message whose id
+            the host replaced — an optimistic question or a placeholder reply saved under its real
+            id — is the same message, not a new one, and a replaced question id no longer counts as
+            a send.
+          </li>
+          <li>
+            <C>sendScroll=&quot;prompt-top-hold&quot;</C> puts a sent question at the top like{' '}
+            <C>prompt-top</C> and keeps the list still while the answer grows. The list follows the
+            answer again only after the user scrolls to the bottom with the wheel, touch, keyboard or
+            scrollbar, or presses the new messages button; scrolls of the list itself and growth of
+            the answer never attach it. The button shows once the answer reaches below the viewport
+            and counts the growing answer as one new message. <C>prompt-top</C> keeps its behavior.
+          </li>
+          <li>
+            <C>partRenderers.text</C> replaces the Markdown of an answer and{' '}
+            <C>partRenderers.reasoning</C> shows reasoning parts, which stay hidden without a
+            renderer. Planning, the working row and copying keep reading the <C>text</C> parts.
+          </li>
+          <li>
+            The folded line of the quiet presentation takes its time from the host for a turn
+            restored from history: from the first reported start to the last end of its calls
+            (<C>callProviderMetadata.custom.startedAt</C> or <C>startedAt</C>, plus{' '}
+            <C>totalDurationMs</C>, <C>duration</C> or <C>duration_ms</C> of the output, else{' '}
+            <C>callProviderMetadata.custom.durationMs</C> or <C>custom.endedAt</C> minus the start),
+            or the sum
+            of the reported durations. A run seen live keeps its measured time.
+          </li>
+          <li>
+            The <ComponentLink name="ThinkingTool" /> row of a thought restored from history reads{' '}
+            <C>Thought for 6s</C> by the same reports of the host instead of a bare{' '}
+            <C>Thought</C>; a thought seen live keeps its measured time. Since the text of a thought
+            is usually its output, give its time in <C>callProviderMetadata.custom</C>:{' '}
+            <C>startedAt</C> with <C>durationMs</C> or <C>endedAt</C>.
+          </li>
+        </Bullets>
+      </GuideSection>
+
+      <GuideSection id="v0-4-0" title="0.4.0">
         <Bullets>
           <li>
             MCP calls are read strictly by the MCP specification. A result is the{' '}

@@ -220,11 +220,20 @@ export type PartRendererProps<P = { type: string; [key: string]: unknown }> = {
   chatStatus?: 'streaming' | 'ready';
 };
 
-/** Renderers of part types the list does not know, keyed by `part.type` */
+/**
+ * Renderers of parts keyed by `part.type`: types the list does not know, plus `text`, which then
+ * replaces the Markdown of the answer, and `reasoning`, which the list hides without a renderer.
+ * Planning, the working row and copying keep reading the `text` parts either way.
+ */
 export type PartRenderers = Record<string, React.ComponentType<PartRendererProps<any>>>;
 
-/** Where the list scrolls when the user sends: to the bottom, or the question to the top */
-export type SendScroll = 'bottom' | 'prompt-top';
+/**
+ * Where the list scrolls when the user sends: to the bottom, or the question to the top.
+ * `prompt-top-hold` puts the question at the top and keeps the list still while the answer grows:
+ * it follows the answer again only after the user scrolls to the bottom or presses the new
+ * messages button.
+ */
+export type SendScroll = 'bottom' | 'prompt-top' | 'prompt-top-hold';
 
 export type ToolRendererSlotProps = {
   part: ToolPart;
@@ -320,13 +329,13 @@ export type AgentChatProps = {
   classNames?: Partial<ChatClassNames>;
   slots?: Partial<ChatSlots>;
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
-  /** Renderers of part types the list does not know, keyed by `part.type`; parts without one stay hidden */
+  /** Renderers of parts keyed by `part.type`, `text` and `reasoning` included; see `PartRenderers` */
   partRenderers?: PartRenderers;
   /** Controlled composer text; the chat keeps its own draft when omitted */
   draft?: string;
   /** Called on every composer change, including clearing after send */
   onDraftChange?: (draft: string) => void;
-  /** Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question at the top and grows the answer under it */
+  /** Where the list scrolls when the user sends, `bottom` by default; see `SendScroll` */
   sendScroll?: SendScroll;
   /** Shows a caret after the growing text while streaming, `false` by default */
   streamingCaret?: boolean;

@@ -342,7 +342,7 @@ describe('MessageList/MessageList', () => {
       act(() => observers.forEach((observer) => observer.callback([], observer as never)));
       expect(scroller.scrollTop).toBe(300);
 
-      await userEvent.click(screen.getByRole('button', { name: '2 new messages' }));
+      await userEvent.click(await screen.findByRole('button', { name: '2 new messages' }));
       expect(Element.prototype.scrollTo).toHaveBeenCalledWith({ top: 2000, behavior: 'smooth' });
       expect(screen.queryByRole('button', { name: /new messages/ })).not.toBeInTheDocument();
     });

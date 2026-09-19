@@ -104,6 +104,29 @@ describe('quiet presentation, folded turn', () => {
     ]);
   });
 
+  it('times a run restored from history by the reports of the host', () => {
+    const timed = (part: ToolPart, startedAt: number, duration: number): ToolPart => ({
+      ...part,
+      callProviderMetadata: { custom: { startedAt } },
+      output: { ...(part.output as object), duration_ms: duration },
+    });
+    const { unmount } = renderStable(
+      <Chat parts={[timed(toc, 10_000, 4_000), thought(), timed(ask, 20_000, 12_000)]} />
+    );
+    expect(screen.getByText('Думал · использовал 2 инструмента · 22 с')).toBeInTheDocument();
+    unmount();
+
+    renderStable(
+      <Chat
+        parts={[
+          { ...toc, output: { totalDurationMs: 3_000 } },
+          { ...ask, output: { duration: 5_000 } },
+        ]}
+      />
+    );
+    expect(screen.getByText('Использовал 2 инструмента · 8 с')).toBeInTheDocument();
+  });
+
   it('keeps the line alive with the running step and adds the time once the turn is done', () => {
     jest.useFakeTimers();
     const first = thought();

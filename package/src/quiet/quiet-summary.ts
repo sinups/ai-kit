@@ -39,7 +39,8 @@ function readErrorReason(value: unknown): string {
   return isRecord(error) && typeof error.message === 'string' ? error.message : '';
 }
 
-function firstLine(text: string): string {
+/** First meaningful line of a text, clipped, as a quiet row shows it */
+export function firstLine(text: string): string {
   const line = text
     .split('\n')
     .map((item) => item.replace(/^\s*(?:#+|>)\s*/, '').trim())
