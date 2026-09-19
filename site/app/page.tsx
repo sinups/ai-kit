@@ -1,3 +1,4 @@
+import { AgentSetupSection } from "@/app/components/landing/agent-setup-section";
 import { BentoSection } from "@/app/components/landing/bento-section";
 import { FactsSection } from "@/app/components/landing/facts-section";
 import { Hero } from "@/app/components/landing/hero";
@@ -12,6 +13,7 @@ export default function Home() {
         <Hero />
         <FactsSection />
         <BentoSection />
+        <AgentSetupSection />
       </main>
       <LandingFooter />
     </div>
