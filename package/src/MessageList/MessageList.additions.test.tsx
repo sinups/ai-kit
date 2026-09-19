@@ -132,6 +132,57 @@ describe('MessageList additions', () => {
     expect(list.scrollTop).toBe(5_000);
   });
 
+  it('lets partRenderers.text replace Markdown while the list still reads the text', async () => {
+    function Plain({ part }: PartRendererProps<{ type: 'text'; text: string }>) {
+      return <p data-testid="plain">{part.text}</p>;
+    }
+    const textRenderers: PartRenderers = { text: Plain };
+    const answer: ChatMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Hi' }] },
+      { id: 'a1', role: 'assistant', parts: [{ type: 'text', text: 'Hello **there**' }] },
+    ];
+    const { container, rerender } = render(
+      <MessageList messages={answer} status="streaming" partRenderers={textRenderers} workingRow />
+    );
+    expect(screen.getByTestId('plain')).toHaveTextContent('Hello **there**');
+    expect(container.querySelector('strong')).toBeNull();
+    expect(screen.queryByText('Processing...')).toBeNull();
+    expect(screen.queryByText('Working')).toBeNull();
+
+    const writeText = jest.fn(async () => {});
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    rerender(
+      <MessageList messages={answer} status="ready" partRenderers={textRenderers} workingRow />
+    );
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Copy message' }).at(-1)!);
+    });
+    expect(writeText).toHaveBeenCalledWith('Hello **there**');
+  });
+
+  it('keeps reasoning hidden unless a renderer is given for it', () => {
+    function Thought({ part }: PartRendererProps<{ type: 'reasoning'; text: string }>) {
+      return <aside>{part.text}</aside>;
+    }
+    const withReasoning: ChatMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Hi' }] },
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          { type: 'reasoning', text: 'Weighing it up' } as never,
+          { type: 'text', text: 'Hello' },
+        ],
+      },
+    ];
+    const { rerender } = render(<MessageList messages={withReasoning} status="ready" />);
+    expect(screen.queryByText('Weighing it up')).toBeNull();
+    rerender(
+      <MessageList messages={withReasoning} status="ready" partRenderers={{ reasoning: Thought }} />
+    );
+    expect(screen.getByText('Weighing it up')).toBeInTheDocument();
+  });
+
   it('stays quiet about renderers that keep their identity', () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const { rerender } = render(

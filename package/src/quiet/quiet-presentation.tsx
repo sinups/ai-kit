@@ -3,6 +3,7 @@ import { groupToolRuns } from '../MessageList/tool-runs';
 import type { TranscriptPresentation } from '../MessageList/transcript-presentation';
 import { resolveToolCallState, type ToolApprovals } from '../approvals/approval-context';
 import type { ToolCallLookups } from '../tools/tool-call-state';
+import { findToolCatalogEntry, type ToolCatalog } from '../tools/tool-presentation';
 import { parseMcpToolType } from '../tools/tool-registry';
 import type { ToolPart } from '../types';
 import { isTextPart, isV5ToolPart } from '../utils/parts';
@@ -17,35 +18,42 @@ import { QuietToolRun } from './QuietToolRun';
  */
 export interface QuietPresentation extends TranscriptPresentation {
   kind: 'quiet';
-  /** Which parts go quiet; the rest keep their cards */
-  isQuiet: (part: ToolPart) => boolean;
+  /** Which parts go quiet: MCP calls, thinking and calls the tool catalog describes; the rest keep their cards */
+  isQuiet: (part: ToolPart, catalog?: ToolCatalog) => boolean;
   /** Whether a quiet part may fold with its neighbours: thinking and calls that neither failed nor wait for a decision */
   isFoldable: (
     part: ToolPart,
     chatStatus?: string,
     lookups?: ToolCallLookups,
-    approvals?: ToolApprovals
+    approvals?: ToolApprovals,
+    catalog?: ToolCatalog
   ) => boolean;
 }
 
-function isMcpCall(part: ToolPart): boolean {
-  return part.type === 'dynamic-tool' || parseMcpToolType(part.type) !== null;
+/** An MCP call, or a call of the host that its tool catalog describes, such as a local tool */
+function isCatalogCall(part: ToolPart, catalog?: ToolCatalog): boolean {
+  return (
+    part.type === 'dynamic-tool' ||
+    parseMcpToolType(part.type) !== null ||
+    findToolCatalogEntry(catalog, part) !== undefined
+  );
 }
 
-function isQuiet(part: ToolPart): boolean {
-  return isMcpCall(part) || part.type === 'tool-Thinking';
+function isQuiet(part: ToolPart, catalog?: ToolCatalog): boolean {
+  return isCatalogCall(part, catalog) || part.type === 'tool-Thinking';
 }
 
 function isFoldable(
   part: ToolPart,
   chatStatus?: string,
   lookups?: ToolCallLookups,
-  approvals?: ToolApprovals
+  approvals?: ToolApprovals,
+  catalog?: ToolCatalog
 ): boolean {
   if (part.type === 'tool-Thinking') {
     return true;
   }
-  if (!isMcpCall(part)) {
+  if (!isCatalogCall(part, catalog)) {
     return false;
   }
   const state = resolveToolCallState(part, approvals?.[part.toolCallId ?? ''], {
@@ -59,9 +67,13 @@ export const quietPresentation: QuietPresentation = {
   kind: 'quiet',
   isQuiet,
   isFoldable,
-  showsActivity: (parts) => {
+  showsActivity: (parts, catalog) => {
     const last = [...parts].reverse().find((part) => !(isTextPart(part) && !part.text.trim()));
-    return Boolean(last && isV5ToolPart(last) && isFoldable(last as ToolPart, 'streaming'));
+    return Boolean(
+      last &&
+      isV5ToolPart(last) &&
+      isFoldable(last as ToolPart, 'streaming', undefined, undefined, catalog)
+    );
   },
   renderParts: (entries, renderDefault, context) => {
     const rowProps = {
@@ -75,7 +87,13 @@ export const quietPresentation: QuietPresentation = {
       entries,
       ({ part }) =>
         isV5ToolPart(part) &&
-        isFoldable(part as ToolPart, context.chatStatus, context.lookups, context.approvals),
+        isFoldable(
+          part as ToolPart,
+          context.chatStatus,
+          context.lookups,
+          context.approvals,
+          context.catalog
+        ),
       1
     );
     const firstRun = segments.findIndex((segment) => segment.kind === 'run');
@@ -94,7 +112,7 @@ export const quietPresentation: QuietPresentation = {
         );
       }
       const { part, index } = segment.item;
-      if (!isV5ToolPart(part) || !isQuiet(part as ToolPart)) {
+      if (!isV5ToolPart(part) || !isQuiet(part as ToolPart, context.catalog)) {
         return renderDefault(segment.item);
       }
       const toolPart = part as ToolPart;

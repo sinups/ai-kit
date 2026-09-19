@@ -57,6 +57,23 @@ export function followAfterScroll(
 }
 
 /**
+ * Following in `prompt-top-hold`: only a scroll by the user attaches the list, so growth of the
+ * answer, scroll anchoring and scrolls of the kit itself can detach it but never attach it.
+ */
+export function holdAfterScroll(
+  previous: FollowState,
+  next: FollowState,
+  byUser: boolean
+): FollowState {
+  return byUser || previous.following || !next.following ? next : { ...next, following: false };
+}
+
+/** Whether part of the content lies below the viewport */
+export function hasContentBelow(metrics: ScrollMetrics, threshold = STICK_THRESHOLD): boolean {
+  return !isNearBottom(metrics, threshold);
+}
+
+/**
  * Following after the content box resized. `pin` is only ever true for growth: a tool card that
  * collapses shortens the content, and scrolling to the new bottom there reads as a jump.
  */
@@ -90,6 +107,33 @@ export function findStickyPromptTurn(turns: TurnBounds[], offset = 0): string | 
     }
   }
   return null;
+}
+
+/**
+ * Seen ids after the list changed. A message that took the place of a seen one whose id is gone —
+ * an optimistic id replaced by the saved one, a placeholder reply by the stored answer — is the
+ * same message, so it stays seen instead of counting as new.
+ */
+export function carrySeenIds(
+  seen: ReadonlySet<string>,
+  previousIds: string[],
+  nextIds: string[]
+): Set<string> {
+  const carried = new Set(seen);
+  const present = new Set(nextIds);
+  nextIds.forEach((id, index) => {
+    const before = previousIds[index];
+    if (
+      !seen.has(id) &&
+      before !== undefined &&
+      before !== id &&
+      seen.has(before) &&
+      !present.has(before)
+    ) {
+      carried.add(id);
+    }
+  });
+  return carried;
 }
 
 /** Number of messages in `next` whose ids were not in `previous` */

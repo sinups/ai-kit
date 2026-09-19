@@ -2,6 +2,7 @@ import type React from 'react';
 import type { ToolApprovals } from '../approvals/approval-context';
 import type { ToolOutputFormatters } from '../rows/tool-output';
 import type { ToolCallLookups } from '../tools/tool-call-state';
+import type { ToolCatalog } from '../tools/tool-presentation';
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import type { ToolRunLabels } from './tool-runs';
 
@@ -23,6 +24,8 @@ export type PresentationContext = {
   highlighter?: SyntaxHighlighter;
   wrapLines?: boolean;
   toolOutputs?: ToolOutputFormatters;
+  /** Tool definitions of the host, see `toolCatalog` */
+  catalog?: ToolCatalog;
   /** Labels of folded runs of calls */
   runLabels?: Partial<ToolRunLabels>;
   /** Moment the latest turn began, set for the messages of that turn; its activity is timed from it */
@@ -41,5 +44,5 @@ export interface TranscriptPresentation {
     context: PresentationContext
   ) => React.ReactNode[];
   /** Whether the parts of the latest message already show that the agent works, so the working row stays hidden */
-  showsActivity?: (parts: unknown[]) => boolean;
+  showsActivity?: (parts: unknown[], catalog?: ToolCatalog) => boolean;
 }

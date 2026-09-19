@@ -36,7 +36,11 @@ import type { TranscriptPresentation } from './transcript-presentation';
 import { useToolApprovals } from '../approvals/approval-context';
 import type { ToolOutputFormatters } from '../rows/tool-output';
 import type { ToolArgsFormatters } from '../tools/tool-args';
-import { ToolPresentationProvider, type ToolCatalog } from '../tools/tool-presentation';
+import {
+  ToolPresentationProvider,
+  useToolPresentation,
+  type ToolCatalog,
+} from '../tools/tool-presentation';
 import { ToolRenderer as DefaultToolRenderer } from '../tools/ToolRenderer';
 import { CompactBoundary } from '../CompactBoundary/CompactBoundary';
 import {
@@ -54,11 +58,14 @@ import { ContextEventRow } from '../ContextEventRow/ContextEventRow';
 import { HookActivity } from '../HookActivity/HookActivity';
 import type { LongTextThreshold } from '../UserMessage/long-text';
 import {
+  carrySeenIds,
   countNewMessages,
   createFollowState,
   findStickyPromptTurn,
   followAfterResize,
   followAfterScroll,
+  hasContentBelow,
+  holdAfterScroll,
   readMetrics,
   type FollowState,
   type TurnBounds,
@@ -169,9 +176,17 @@ export type MessageListProps = {
     userMessage?: string;
   };
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
-  /** Renderers of part types the list does not know, keyed by `part.type`; parts without one stay hidden */
+  /**
+   * Renderers of part types the list does not know, keyed by `part.type`; parts without one stay
+   * hidden. `text` replaces the Markdown of an answer, and `reasoning`, hidden by default, shows
+   * through its renderer; planning, the working row and copying still read the `text` parts.
+   */
   partRenderers?: PartRenderers;
-  /** Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question at the top and grows the answer under it */
+  /**
+   * Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question
+   * at the top and grows the answer under it; `prompt-top-hold` also keeps the list still while the
+   * answer grows, until the user scrolls to the bottom or presses the new messages button
+   */
   sendScroll?: SendScroll;
   /** Shows a caret after the growing text while streaming, `false` by default */
   streamingCaret?: boolean;
@@ -267,6 +282,10 @@ export type MessageListProps = {
 function isModKey(event: React.KeyboardEvent) {
   return event.metaKey || event.ctrlKey;
 }
+// Wheel and keyboard scrolls go on for a while after the event, smooth scrolling included.
+const USER_SCROLL_WINDOW_MS = 600;
+const SCROLL_KEYS = new Set(['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'End', 'Home', ' ']);
+
 const timeFormatter = new Intl.DateTimeFormat('en-US', {
   hour: 'numeric',
   minute: '2-digit',
@@ -489,6 +508,11 @@ export const MessageList = memo(function MessageList({
   const followRef = useRef<FollowState>(
     createFollowState({ scrollTop: 0, scrollHeight: 0, clientHeight: 0 }, true)
   );
+  const promptTop = sendScroll === 'prompt-top' || sendScroll === 'prompt-top-hold';
+  const holdFollow = sendScroll === 'prompt-top-hold';
+  const userScrollUntilRef = useRef(0);
+  const pointerOnScrollbarRef = useRef(false);
+  const [contentBelow, setContentBelow] = useState(false);
   const messagesRef = useRef<ChatMessage[]>(messages);
   const lastMessageIdRef = useRef<string | null>(messages[messages.length - 1]?.id ?? null);
   const assistantSpaceActiveRef = useRef(false);
@@ -645,6 +669,36 @@ export const MessageList = memo(function MessageList({
     setUnseenCount(0);
   }, []);
 
+  const isStreamingRef = useRef(isStreaming);
+  isStreamingRef.current = isStreaming;
+
+  // The count only means something while there is content below the viewport to jump to.
+  const refreshUnseen = useCallback(() => {
+    const container = chatContainerRef.current;
+    const list = messagesRef.current;
+    const ids = list.map((message) => message.id);
+    const below = container ? hasContentBelow(readMetrics(container)) : false;
+    setContentBelow(below);
+    if (followRef.current.following) {
+      seenIdsRef.current = new Set(ids);
+      setUnseenCount(0);
+      return;
+    }
+    if (!below) {
+      // A streaming answer that fits now can still grow past the viewport, so it stays unseen.
+      const tail = list[list.length - 1];
+      const growing = isStreamingRef.current && tail !== undefined && tail.role !== 'user';
+      seenIdsRef.current = new Set(growing ? ids.slice(0, -1) : ids);
+      setUnseenCount(0);
+      return;
+    }
+    // After prompt-top the question stays in view at the top, so only the answer under it is new.
+    const counted = promptTop
+      ? list.filter((message) => message.role !== 'user').map((message) => message.id)
+      : ids;
+    setUnseenCount(countNewMessages(seenIdsRef.current, counted));
+  }, [promptTop]);
+
   const updateStickyPrompt = useCallback(() => {
     const container = chatContainerRef.current;
     if (!stickyPrompt || !container) {
@@ -678,19 +732,65 @@ export const MessageList = memo(function MessageList({
     if (topFade) {
       setIsScrolled(container.scrollTop > 0);
     }
-    followRef.current = followAfterScroll(followRef.current, readMetrics(container));
-    if (followRef.current.following) {
-      markAllSeen();
-    }
+    const metrics = readMetrics(container);
+    const next = followAfterScroll(followRef.current, metrics);
+    followRef.current = holdFollow
+      ? holdAfterScroll(
+          followRef.current,
+          next,
+          pointerOnScrollbarRef.current || performance.now() < userScrollUntilRef.current
+        )
+      : next;
+    refreshUnseen();
     updateStickyPrompt();
-  }, [markAllSeen, updateStickyPrompt, topFade]);
+  }, [refreshUnseen, updateStickyPrompt, topFade, holdFollow]);
+
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!holdFollow || !container) {
+      return;
+    }
+    const markUserScroll = () => {
+      userScrollUntilRef.current = performance.now() + USER_SCROLL_WINDOW_MS;
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(event.key)) {
+        markUserScroll();
+      }
+    };
+    // A press on the element itself, not on a child, lands on its scrollbar.
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target === container) {
+        pointerOnScrollbarRef.current = true;
+      }
+    };
+    const onPointerUp = () => {
+      if (pointerOnScrollbarRef.current) {
+        pointerOnScrollbarRef.current = false;
+        markUserScroll();
+      }
+    };
+    container.addEventListener('wheel', markUserScroll, { passive: true });
+    container.addEventListener('touchmove', markUserScroll, { passive: true });
+    container.addEventListener('keydown', onKeyDown);
+    container.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointerup', onPointerUp);
+    return () => {
+      container.removeEventListener('wheel', markUserScroll);
+      container.removeEventListener('touchmove', markUserScroll);
+      container.removeEventListener('keydown', onKeyDown);
+      container.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+  }, [holdFollow]);
 
   const pinIfGrown = useCallback(() => {
     const container = chatContainerRef.current;
     if (!container) {
       return;
     }
-    const { state, pin } = followAfterResize(followRef.current, readMetrics(container));
+    const metrics = readMetrics(container);
+    const { state, pin } = followAfterResize(followRef.current, metrics);
     if (!pin) {
       followRef.current = state;
       return;
@@ -725,6 +825,7 @@ export const MessageList = memo(function MessageList({
       lastContentHeight = newContentHeight;
       reportScrollbarWidth();
       pinIfGrown();
+      refreshUnseen();
     });
 
     resizeObserver.observe(contentWrapper);
@@ -739,16 +840,28 @@ export const MessageList = memo(function MessageList({
   }, [normalizedMessages, pinIfGrown]);
 
   useEffect(() => {
+    const previousIds = messagesRef.current.map((message) => message.id);
     messagesRef.current = normalizedMessages;
-    const ids = normalizedMessages.map((message) => message.id);
-    if (followRef.current.following) {
-      seenIdsRef.current = new Set(ids);
-      setUnseenCount(0);
-    } else {
-      setUnseenCount(countNewMessages(seenIdsRef.current, ids));
-    }
+    seenIdsRef.current = carrySeenIds(
+      seenIdsRef.current,
+      previousIds,
+      normalizedMessages.map((message) => message.id)
+    );
+    refreshUnseen();
     updateStickyPrompt();
-  }, [normalizedMessages, updateStickyPrompt]);
+  }, [normalizedMessages, refreshUnseen, updateStickyPrompt]);
+
+  // A button that would show for a single frame, while a send scrolls the list, reads as a flicker.
+  const wantsJump = unseenCount > 0 && contentBelow;
+  const [jumpSettled, setJumpSettled] = useState(false);
+  useEffect(() => {
+    if (!wantsJump) {
+      setJumpSettled(false);
+      return;
+    }
+    const frame = requestAnimationFrame(() => setJumpSettled(true));
+    return () => cancelAnimationFrame(frame);
+  }, [wantsJump]);
 
   const turnsRootRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -815,8 +928,26 @@ export const MessageList = memo(function MessageList({
 
   const lastUserMessageIdRef = useRef(lastUserMessageId);
   const pendingPlanningScrollUserIdRef = useRef<string | null>(null);
-  const promptTop = sendScroll === 'prompt-top';
+  const lastUserIndex = lastUserMessageId
+    ? normalizedMessages.findIndex((message) => message.id === lastUserMessageId)
+    : -1;
+  const lastUserText =
+    lastUserIndex >= 0 ? getTextFromParts(normalizedMessages[lastUserIndex].parts ?? [], '') : '';
+  const lastUserRef = useRef({ index: lastUserIndex, text: lastUserText });
   useLayoutEffect(() => {
+    const previousUserId = lastUserMessageIdRef.current;
+    const previousUser = lastUserRef.current;
+    lastUserRef.current = { index: lastUserIndex, text: lastUserText };
+    // The saved id of the question replacing its optimistic one is the same question, not a send.
+    const replaced =
+      previousUserId !== null &&
+      lastUserIndex === previousUser.index &&
+      lastUserText === previousUser.text &&
+      !normalizedMessages.some((message) => message.id === previousUserId);
+    if (replaced) {
+      lastUserMessageIdRef.current = lastUserMessageId;
+      return;
+    }
     if (lastUserMessageId && lastUserMessageId !== lastUserMessageIdRef.current) {
       lastUserMessageIdRef.current = lastUserMessageId;
       const container = chatContainerRef.current;
@@ -831,13 +962,22 @@ export const MessageList = memo(function MessageList({
         const covered = overlay ? Math.max(0, overlay.getBoundingClientRect().bottom - top) : 0;
         container.scrollTop += turn.getBoundingClientRect().top - top - covered;
         followRef.current = createFollowState(readMetrics(container), false);
+        userScrollUntilRef.current = 0;
+        setContentBelow(hasContentBelow(readMetrics(container)));
         return;
       }
       followRef.current = { ...followRef.current, following: true };
       pendingPlanningScrollUserIdRef.current = lastUserMessageId;
       return scrollToBottomSettled();
     }
-  }, [lastUserMessageId, normalizedMessages, promptTop, scrollToBottomSettled]);
+  }, [
+    lastUserMessageId,
+    lastUserIndex,
+    lastUserText,
+    normalizedMessages,
+    promptTop,
+    scrollToBottomSettled,
+  ]);
 
   const lastActivityRef = useRef({ messages: normalizedMessages, at: Date.now() });
   if (lastActivityRef.current.messages !== normalizedMessages) {
@@ -854,7 +994,7 @@ export const MessageList = memo(function MessageList({
     isStreaming &&
     !isTailGrowingText(normalizedMessages) &&
     !isWaitingForDecision &&
-    !custom?.showsActivity?.(lastMessage?.parts ?? []);
+    !custom?.showsActivity?.(lastMessage?.parts ?? [], toolCatalog);
   const isNewAssistantMessage =
     lastMessageRole === 'assistant' &&
     Boolean(lastMessageId) &&
@@ -1217,7 +1357,7 @@ export const MessageList = memo(function MessageList({
           {showAssistantBreathingSpace && (
             <div aria-hidden="true" className={classes.breathingSpace} />
           )}
-          {unseenCount > 0 && (
+          {wantsJump && jumpSettled && (
             <div className={classes.jumpToLatest} data-search-ignore>
               <Button
                 size="compact-sm"
@@ -1382,6 +1522,7 @@ const AssistantParts = memo(function AssistantParts({
   );
 
   const approvals = useToolApprovals();
+  const { catalog } = useToolPresentation();
   const liveLookups = useMemo(
     () => (hasUnresolvedToolCalls(parts) ? lookups : undefined),
     [parts, lookups]
@@ -1551,6 +1692,7 @@ const AssistantParts = memo(function AssistantParts({
           highlighter,
           wrapLines,
           toolOutputs,
+          catalog,
           runLabels,
           turnStartedAt,
         })
@@ -1610,6 +1752,7 @@ const AssistantParts = memo(function AssistantParts({
     runLabels,
     turnStartedAt,
     toolOutputs,
+    catalog,
     approvals,
     partRenderers,
     streamingCaret,

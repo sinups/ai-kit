@@ -4,6 +4,8 @@ import {
   findStickyPromptTurn,
   followAfterResize,
   followAfterScroll,
+  hasContentBelow,
+  holdAfterScroll,
   isNearBottom,
 } from './scroll-follow';
 
@@ -70,5 +72,25 @@ describe('MessageList/scroll-follow', () => {
 
   it('counts messages that were not seen before', () => {
     expect(countNewMessages(new Set(['u1', 'a1']), ['u1', 'a1', 'u2', 'a2'])).toBe(2);
+  });
+
+  it('attaches a held list only by a scroll of the user, and detaches it by anything', () => {
+    const detached = createFollowState(
+      { scrollTop: 800, scrollHeight: 1400, clientHeight: 600 },
+      false
+    );
+    const atBottom = createFollowState(
+      { scrollTop: 800, scrollHeight: 1400, clientHeight: 600 },
+      true
+    );
+    expect(holdAfterScroll(detached, atBottom, false).following).toBe(false);
+    expect(holdAfterScroll(detached, atBottom, true).following).toBe(true);
+    expect(holdAfterScroll(atBottom, { ...detached, scrollTop: 400 }, false).following).toBe(false);
+    expect(holdAfterScroll(atBottom, atBottom, false).following).toBe(true);
+  });
+
+  it('tells content below the viewport', () => {
+    expect(hasContentBelow({ scrollTop: 800, scrollHeight: 1400, clientHeight: 600 })).toBe(false);
+    expect(hasContentBelow({ scrollTop: 800, scrollHeight: 3000, clientHeight: 600 })).toBe(true);
   });
 });

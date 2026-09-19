@@ -7,6 +7,7 @@ import { SpiralLoader } from '../SpiralLoader/SpiralLoader';
 import { ToolRowBase } from '../ToolRowBase/ToolRowBase';
 import { DEFAULT_THINKING_TOOL_LABELS } from '../tools/ThinkingTool';
 import { ToolActivity } from '../tools/ToolActivity';
+import { getReportedRunDuration } from '../tools/use-elapsed';
 import {
   findToolCatalogEntry,
   getToolCatalogTitle,
@@ -69,8 +70,8 @@ export function QuietToolRun({
   );
   const isLive = running.length > 0 || (isTail && waiting.length === 0);
   for (const part of steps) {
-    if (isThinking(part) && part.state !== 'input-streaming') {
-      firstSeen(part.toolCallId, ':done');
+    if (isThinking(part)) {
+      firstSeen(part.toolCallId, part.state === 'input-streaming' ? ':live' : ':done');
     }
   }
   const firstStepAt =
@@ -84,8 +85,15 @@ export function QuietToolRun({
   } else if (finishedAt.current === undefined) {
     finishedAt.current = Date.now();
   }
+  const seenLive = useRef(false);
+  if (isLive) {
+    seenLive.current = true;
+  }
   const now = useAnimationTime({ intervalMs: 1000, active: isLive, respectReducedMotion: false });
-  const time = formatElapsedTime((isLive ? now : (finishedAt.current ?? now)) - startedAt, units);
+  // A run restored from history was never timed here, so the reports of the host stand in for it.
+  const reported = seenLive.current ? undefined : getReportedRunDuration(steps);
+  const measured = (isLive ? now : (finishedAt.current ?? now)) - startedAt;
+  const time = formatElapsedTime(reported ?? measured, units);
 
   if (steps.length === 0) {
     return (
