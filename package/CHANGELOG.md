@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/sinups/ai-kit/compare/v0.4.0...v0.5.0) (2026-09-19)
+
+
+### Features
+
+* steady prompt-top scroll and quiet tool formatters ([#21](https://github.com/sinups/ai-kit/issues/21)) ([8814dde](https://github.com/sinups/ai-kit/commit/8814dde86ab22febb299acef5cff2d84ac145200))
+
 ## [0.4.0](https://github.com/sinups/ai-kit/compare/v0.3.0...v0.4.0) (2026-09-19)
 
 
