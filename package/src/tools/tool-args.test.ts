@@ -1,8 +1,8 @@
-import { summarizeToolArgs, unfoldToolArgs } from './tool-args';
+import { readToolArgs, summarizeToolArgs, unfoldToolArgs } from './tool-args';
 import { findToolCatalogEntry, getToolCatalogTitle } from './tool-presentation';
 
 describe('tools/tool-args', () => {
-  it('unfolds a JSON string argument into its fields and keeps the rest as is', () => {
+  it('still unfolds JSON string arguments for hosts of 0.3, deprecated', () => {
     expect(
       unfoldToolArgs({
         payload: '{"assigneeIds":["alice"],"size":100}',
@@ -13,19 +13,26 @@ describe('tools/tool-args', () => {
     expect(unfoldToolArgs({ note: '{ not json' })).toEqual({ note: '{ not json' });
   });
 
-  it('keeps a few significant fields and reads them like a person would', () => {
-    const args = unfoldToolArgs({
-      payload: JSON.stringify({
-        assigneeIds: ['alice'],
-        overdue: true,
-        archived: false,
-        workspaceId: '0b8e2c1a-7f4d-4a55-9d2e-3c1b5a6f7e80',
-        size: 100,
-        sorting: [{ field: 'dueDate', direction: 'asc' }],
-      }),
+  it('reads the arguments as the tool received them: a string stays a string', () => {
+    const args = readToolArgs({
+      payload: '{"size":100}',
+      assigneeIds: ['alice'],
+      overdue: true,
+      archived: false,
+      size: 100,
     });
 
-    expect(summarizeToolArgs(args)).toBe('assigneeIds: alice · overdue · size: 100');
+    expect(summarizeToolArgs(args)).toBe('payload: {"size":100} · assigneeIds: alice · overdue');
+    expect(readToolArgs('{"query":"x"}')).toEqual({});
+  });
+
+  it('takes the titles of the arguments from the schema', () => {
+    expect(
+      summarizeToolArgs(
+        { q: 'overdue', size: 20 },
+        { schema: { type: 'object', properties: { q: { type: 'string', title: 'Query' } } } }
+      )
+    ).toBe('Query: overdue · size: 20');
   });
 
   it('follows the order of the schema, required fields first', () => {
@@ -43,10 +50,19 @@ describe('tools/tool-args', () => {
     ).toBe('title: Отчёт · project: Релиз · limit: 5');
   });
 
-  it('formats dates of the arguments by locale', () => {
+  it('formats a date argument only when the schema says it is a date', () => {
     expect(summarizeToolArgs({ dueDate: '2026-09-25' }, { locale: 'en-US' })).toBe(
-      'dueDate: Sep 25, 2026'
+      'dueDate: 2026-09-25'
     );
+    expect(
+      summarizeToolArgs(
+        { dueDate: '2026-09-25' },
+        {
+          locale: 'en-US',
+          schema: { type: 'object', properties: { dueDate: { type: 'string', format: 'date' } } },
+        }
+      )
+    ).toBe('dueDate: Sep 25, 2026');
   });
 });
 

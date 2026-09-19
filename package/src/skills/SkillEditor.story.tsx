@@ -6,7 +6,7 @@ import { AVAILABLE_TOOLS, skills } from './fixtures';
 import type { SkillDraft } from './types';
 import { SkillEditor, type SkillEditorProps } from './SkillEditor';
 
-export default { title: 'skills/SkillEditor' };
+export default { title: 'Agents & skills/SkillEditor' };
 
 const TAKEN = skills.map((skill) => skill.name);
 

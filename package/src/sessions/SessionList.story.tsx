@@ -9,7 +9,7 @@ import { createSessionFixtures, sessionConversation } from './fixtures';
 import { SessionList, type SessionListProps } from './SessionList';
 import type { SessionSummary } from './types';
 
-export default { title: 'sessions/SessionList' };
+export default { title: 'Sessions & tasks/SessionList' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

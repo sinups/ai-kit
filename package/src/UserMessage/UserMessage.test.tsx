@@ -25,6 +25,37 @@ describe('UserMessage/UserMessage', () => {
     expect(screen.getByText('report.pdf')).toBeInTheDocument();
   });
 
+  it('describes an attached image by its file name', () => {
+    render(
+      <UserMessage
+        message={{
+          id: 'u1',
+          role: 'user',
+          parts: [
+            { type: 'file', mediaType: 'image/png', url: 'https://a/b.png', filename: 'plan.png' },
+          ],
+        }}
+      />
+    );
+    expect(screen.getByRole('img', { name: 'plan.png' })).toBeInTheDocument();
+  });
+
+  it('names the image preview and the image from labels', () => {
+    const message: ChatMessage = {
+      id: 'u1',
+      role: 'user',
+      parts: [{ type: 'image', url: 'https://example.com/a.png' }],
+    };
+    render(
+      <UserMessage
+        message={message}
+        labels={{ openImage: 'Открыть картинку', imageAlt: () => 'вложение' }}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Открыть картинку' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'вложение' })).toBeInTheDocument();
+  });
+
   it('renders image experimental_attachments', () => {
     const message: ChatMessage = {
       id: 'u2',

@@ -6,7 +6,7 @@ import type { Plan } from '../../tools/PlanTool';
 import { wait } from '../_story-helpers';
 import { PlanApproval } from './PlanApproval';
 
-export default { title: 'message-actions/PlanApproval' };
+export default { title: 'Messages/PlanApproval' };
 
 const PLAN: Plan = {
   id: 'auth-refresh',

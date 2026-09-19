@@ -4,7 +4,7 @@ import { Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { TurnSummary } from './TurnSummary';
 
-export default { title: 'TurnSummary' };
+export default { title: 'Status/TurnSummary' };
 
 function Demo() {
   return (

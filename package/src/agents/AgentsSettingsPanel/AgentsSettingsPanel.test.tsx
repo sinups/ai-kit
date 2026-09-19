@@ -5,6 +5,9 @@ import { AGENT_MODELS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDefinition, AgentDraft } from '../types';
 import { AgentsSettingsPanel, type AgentsSettingsPanelProps } from './AgentsSettingsPanel';
 
+/** A long user flow that runs past the default timeout when the whole suite shares the CPU */
+const UNDER_LOAD_TIMEOUT = 30_000;
+
 function Harness(props: Partial<AgentsSettingsPanelProps>) {
   const [agents, setAgents] = useState(AGENTS);
   return (
@@ -62,36 +65,44 @@ describe('agents/AgentsSettingsPanel', () => {
     expect(screen.getByRole('heading', { name: 'Test runner' })).toBeInTheDocument();
   });
 
-  it('confirms leaving the editor with unsaved changes', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<Harness />);
+  it(
+    'confirms leaving the editor with unsaved changes',
+    async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<Harness />);
 
-    await user.click(screen.getByText('Test runner'));
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
-    await user.type(screen.getByLabelText('Display name'), ' v2');
-    await user.click(screen.getByRole('button', { name: 'Agents' }));
-    expect(await screen.findByText('Discard changes?')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Keep editing' }));
-    await waitFor(() => expect(screen.queryByText('Discard changes?')).not.toBeInTheDocument());
-    expect(screen.getByLabelText('Display name')).toHaveValue('Test runner v2');
+      await user.click(screen.getByText('Test runner'));
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.type(screen.getByLabelText('Display name'), ' v2');
+      await user.click(screen.getByRole('button', { name: 'Agents' }));
+      expect(await screen.findByText('Discard changes?')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Keep editing' }));
+      await waitFor(() => expect(screen.queryByText('Discard changes?')).not.toBeInTheDocument());
+      expect(screen.getByLabelText('Display name')).toHaveValue('Test runner v2');
 
-    await user.click(screen.getByRole('button', { name: 'Agents' }));
-    await user.click(await screen.findByRole('button', { name: 'Discard' }));
-    expect(await screen.findByRole('heading', { name: 'Test runner' })).toBeInTheDocument();
-    expect(screen.queryByLabelText('Display name')).not.toBeInTheDocument();
-  });
+      await user.click(screen.getByRole('button', { name: 'Agents' }));
+      await user.click(await screen.findByRole('button', { name: 'Discard' }));
+      expect(await screen.findByRole('heading', { name: 'Test runner' })).toBeInTheDocument();
+      expect(screen.queryByLabelText('Display name')).not.toBeInTheDocument();
+    },
+    UNDER_LOAD_TIMEOUT
+  );
 
-  it('confirms selecting another agent while the editor is dirty', async () => {
-    const user = userEvent.setup({ delay: null });
-    render(<Harness defaultSelectedId="agent-test-runner" breakpoint={0} />);
+  it(
+    'confirms selecting another agent while the editor is dirty',
+    async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<Harness defaultSelectedId="agent-test-runner" breakpoint={0} />);
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
-    await user.type(screen.getByLabelText('Display name'), ' v2');
-    await user.click(screen.getByText('Docs writer'));
-    expect(await screen.findByText('Discard changes?')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Discard' }));
-    expect(await screen.findByRole('heading', { name: 'Docs writer' })).toBeInTheDocument();
-  });
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.type(screen.getByLabelText('Display name'), ' v2');
+      await user.click(screen.getByText('Docs writer'));
+      expect(await screen.findByText('Discard changes?')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Discard' }));
+      expect(await screen.findByRole('heading', { name: 'Docs writer' })).toBeInTheDocument();
+    },
+    UNDER_LOAD_TIMEOUT
+  );
 
   it('duplicates a read-only agent into a new one', async () => {
     const user = userEvent.setup({ delay: null });

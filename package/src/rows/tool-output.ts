@@ -1,23 +1,48 @@
 import type React from 'react';
+import type { JsonSchema } from '../primitives/SchemaView/schema';
 import type { ToolPart } from '../types';
 import type { ToolCallState } from '../tools/tool-call-state';
 import { isRecord } from '../utils/parts';
 
 const MAX_VALUE_CHARS = 80;
-const SUMMARY_LINES = 3;
-const TITLE_KEYS = ['title', 'name', 'heading', 'label', 'summary', 'subject', 'text'];
-const ID_KEYS = ['key', 'code', 'number', 'identifier', 'displayId', 'taskKey', 'slug', 'id'];
-export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SUMMARY_FIELDS = 3;
+const SUMMARY_ITEMS = 2;
 /** Longest result the opened details of a row render */
 export const MAX_OUTPUT_CHARS = 3000;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}|$)/;
+
+/** Content block of an MCP tool result, see the `CallToolResult` of the MCP specification */
+export type McpContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; data: string; mimeType: string }
+  | { type: 'audio'; data: string; mimeType: string }
+  | {
+      type: 'resource_link';
+      uri: string;
+      name: string;
+      title?: string;
+      description?: string;
+      mimeType?: string;
+    }
+  | {
+      type: 'resource';
+      resource: { uri: string; mimeType?: string; text?: string; blob?: string };
+    };
+
+/** Result of an MCP tool call as the specification defines it */
+export type CallToolResult = {
+  content: McpContentBlock[];
+  /** Structured result, matching the `outputSchema` of the tool */
+  structuredContent?: unknown;
+  /** The tool reported an error, `false` by default */
+  isError?: boolean;
+};
 
 export interface ToolOutputLabels {
-  /** Header of a list result, `12 items` by default */
+  /** Header of a result the output schema declares as an array, `12 items` by default */
   items: (count: number) => string;
-  /** Result of a call that found nothing, `Nothing found` by default */
+  /** Result of an empty array, `Nothing found` by default */
   empty: string;
-  /** Tail of a list shown in part, `3 more` by default */
+  /** Tail of an array shown in part, `3 more` by default */
   more: (count: number) => string;
 }
 
@@ -30,8 +55,15 @@ export const DEFAULT_TOOL_OUTPUT_LABELS: ToolOutputLabels = {
 export type ToolOutputContext = {
   /** Visible state of the call, see `deriveToolCallState` */
   state: ToolCallState;
-  /** Raw output of the call, `errorText` for a failure */
+  /**
+   * Legacy value kept from 0.3: the text of MCP content, parsed when it holds JSON, `errorText` for
+   * a failure; see `getToolOutputValue`. Prefer `result`.
+   */
   output: unknown;
+  /** The MCP `CallToolResult` of the call, when the output is one; the recommended input */
+  result?: CallToolResult;
+  /** Output schema of the tool from the catalog */
+  schema?: JsonSchema;
   /** Text the kit shows without a formatter */
   summary: string;
   /** Locale of numbers and dates, the locale of the runtime by default */
@@ -82,89 +114,71 @@ export function clipText(text: string, max = MAX_VALUE_CHARS): string {
   return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 }
 
-/** One value of a result in the language of the reader: numbers and dates by locale, rest clipped */
-export function formatOutputValue(value: unknown, locale?: string): string {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return new Intl.NumberFormat(locale).format(value);
-  }
-  if (typeof value === 'boolean') {
-    return String(value);
-  }
-  if (typeof value === 'string') {
-    if (ISO_DATE.test(value)) {
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) {
-        return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
-      }
-    }
-    return clipText(value);
-  }
-  if (value === null || value === undefined) {
-    return '';
-  }
-  return clipText(JSON.stringify(value));
+const CONTENT_TYPES = new Set(['text', 'image', 'audio', 'resource_link', 'resource']);
+
+function isResultContent(value: unknown): value is McpContentBlock {
+  return isRecord(value) && typeof value.type === 'string' && CONTENT_TYPES.has(value.type);
 }
 
-function pickKey(
-  item: Record<string, unknown>,
-  keys: string[],
-  locale?: string
-): string | undefined {
-  for (const key of keys) {
-    const value = item[key];
-    if (typeof value === 'string' && value.trim() && !UUID.test(value)) {
-      return formatOutputValue(value, locale);
-    }
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return formatOutputValue(value, locale);
-    }
+/**
+ * The output as an MCP `CallToolResult`: the result object itself, or the bare array of content
+ * blocks some SDKs pass on; `null` for an output of another shape.
+ */
+export function readCallToolResult(output: unknown): CallToolResult | null {
+  if (Array.isArray(output)) {
+    return output.length > 0 && output.every(isResultContent) ? { content: output } : null;
   }
-  return undefined;
+  if (isRecord(output) && Array.isArray(output.content) && output.content.every(isResultContent)) {
+    return output as CallToolResult;
+  }
+  return null;
 }
 
-const LIST_KEYS = ['content', 'items', 'results', 'data', 'records', 'nodes', 'rows', 'entries'];
-const TOTAL_KEYS = ['total', 'totalCount', 'totalElements', 'count'];
-const RECORD_PAIRS = 3;
-
-export function describeItem(item: unknown, locale?: string): string {
-  if (isRecord(item)) {
-    const title = pickKey(item, TITLE_KEYS, locale);
-    const id = pickKey(item, ID_KEYS, locale);
-    if (title && id) {
-      return `${id} · ${title}`;
-    }
-    if (title || id) {
-      return (title ?? id)!;
-    }
-    return describePairs(item, locale);
-  }
-  return formatOutputValue(item, locale);
+/** Text of the `text` blocks of a result, one block per line */
+export function readResultText(result: CallToolResult): string {
+  return result.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('\n');
 }
 
-/** A record without a title as its first few facts: `name: value`, collections by their size */
-function describePairs(record: Record<string, unknown>, locale?: string): string {
-  const pairs: string[] = [];
-  for (const [key, value] of Object.entries(record)) {
-    if (pairs.length >= RECORD_PAIRS) {
-      break;
-    }
-    if (Array.isArray(value)) {
-      pairs.push(`${key}: ${formatOutputValue(value.length, locale)}`);
-    } else if (isRecord(value)) {
-      const title = pickKey(value, TITLE_KEYS, locale);
-      if (title) {
-        pairs.push(`${key}: ${title}`);
-      }
-    } else if (
-      value !== null &&
-      value !== undefined &&
-      value !== '' &&
-      !(typeof value === 'string' && UUID.test(value))
-    ) {
-      pairs.push(`${key}: ${formatOutputValue(value, locale)}`);
-    }
+function matchesSchema(value: unknown, schema: JsonSchema): boolean {
+  const types = Array.isArray(schema.type) ? schema.type : schema.type ? [schema.type] : [];
+  if (types.includes('array')) {
+    return Array.isArray(value);
   }
-  return pairs.join(' · ');
+  if (types.includes('object') || schema.properties) {
+    return isRecord(value) && (schema.required ?? []).every((key) => Object.hasOwn(value, key));
+  }
+  return false;
+}
+
+/**
+ * Structured result of a call: `structuredContent`, or, for a server that only serialized it into
+ * the text as the specification recommends, that text parsed and checked against `schema`.
+ */
+export function readStructuredResult(result: CallToolResult, schema?: JsonSchema): unknown {
+  if (result.structuredContent !== undefined) {
+    return result.structuredContent;
+  }
+  if (!schema) {
+    return undefined;
+  }
+  try {
+    const parsed: unknown = JSON.parse(readResultText(result));
+    return matchesSchema(parsed, schema) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Result of a call as the kit shows it: `structuredContent` of an MCP result, else the text of its
+ * content; any other output as it is. Text is never parsed as JSON here.
+ */
+export function readOutputValue(output: unknown): unknown {
+  const result = readCallToolResult(output);
+  if (!result) {
+    return output;
+  }
+  return result.structuredContent !== undefined ? result.structuredContent : readResultText(result);
 }
 
 function parseJsonContainer(text: string): unknown {
@@ -180,135 +194,195 @@ function parseJsonContainer(text: string): unknown {
   }
 }
 
-/** Text of MCP content blocks `[{ type: 'text', text }]`, `undefined` for any other array */
-function readContentBlocks(blocks: unknown[]): string | undefined {
-  const texts = blocks
+function readLegacyText(output: unknown): string | undefined {
+  const blocks = Array.isArray(output)
+    ? output
+    : isRecord(output) && Array.isArray(output.content)
+      ? output.content
+      : isRecord(output)
+        ? [output]
+        : undefined;
+  const texts = (blocks ?? [])
     .filter((block) => isRecord(block) && block.type === 'text' && typeof block.text === 'string')
     .map((block) => (block as { text: string }).text);
   return texts.length > 0 ? texts.join('') : undefined;
 }
 
-function readMcpText(output: unknown): string | undefined {
-  if (Array.isArray(output)) {
-    return readContentBlocks(output);
-  }
-  if (!isRecord(output)) {
-    return undefined;
-  }
-  if (Array.isArray(output.content)) {
-    return readContentBlocks(output.content);
-  }
-  return output.type === 'text' && typeof output.text === 'string' ? output.text : undefined;
-}
-
 /**
- * Result of a call as data: MCP content blocks — `{ content: [...] }`, a bare array of blocks or
- * one block — become their text, and text that holds JSON becomes the structure it describes.
+ * Result of a call as 0.3 read it, kept for existing renderers and formatters: the text of MCP
+ * content blocks, parsed when it holds JSON. The kit itself reads results by the specification,
+ * see `readCallToolResult` and `readStructuredResult`.
  */
 export function unwrapToolOutput(output: unknown): unknown {
-  const text = typeof output === 'string' ? output : readMcpText(output);
+  const text = typeof output === 'string' ? output : readLegacyText(output);
   if (text === undefined) {
     return output;
   }
   return parseJsonContainer(text) ?? text;
 }
 
-/** The collection a result is about: the array itself, or the one array inside a page or envelope */
-export function findList(output: unknown): unknown[] | undefined {
-  if (Array.isArray(output)) {
-    return output;
+/** One value in the language of the reader: numbers by locale, dates when the schema says so, rest clipped */
+export function formatOutputValue(value: unknown, locale?: string, schema?: JsonSchema): string {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Intl.NumberFormat(locale).format(value);
   }
-  if (!isRecord(output)) {
-    return undefined;
+  if (typeof value === 'boolean') {
+    return String(value);
   }
-  const arrays = Object.entries(output).filter((entry): entry is [string, unknown[]] =>
-    Array.isArray(entry[1])
-  );
-  if (arrays.length === 1) {
-    return arrays[0][1];
+  if (typeof value === 'string') {
+    if (schema?.format === 'date' || schema?.format === 'date-time') {
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) {
+        return new Intl.DateTimeFormat(locale, {
+          dateStyle: 'medium',
+          ...(schema.format === 'date-time' ? { timeStyle: 'short' } : {}),
+        }).format(date);
+      }
+    }
+    return clipText(value);
   }
-  const listed = arrays.filter(([key]) => LIST_KEYS.includes(key));
-  return listed.length === 1 ? listed[0][1] : undefined;
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return clipText(JSON.stringify(value));
 }
 
-export function readTotal(output: unknown): number | undefined {
-  if (!isRecord(output)) {
-    return undefined;
-  }
-  for (const key of TOTAL_KEYS) {
-    const value = output[key];
-    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
-      return value;
+function isArraySchema(schema: JsonSchema | undefined): boolean {
+  const type = schema?.type;
+  return type === 'array' || (Array.isArray(type) && type.includes('array'));
+}
+
+/** Properties of an object schema in reading order: required first, then as the schema lists them */
+function orderedProperties(schema: JsonSchema | undefined): Array<[string, JsonSchema]> {
+  const properties = Object.entries(schema?.properties ?? {});
+  const required = new Set(schema?.required ?? []);
+  return [
+    ...properties.filter(([key]) => required.has(key)),
+    ...properties.filter(([key]) => !required.has(key)),
+  ];
+}
+
+/** A record as its first facts, `title: value`, in the order and with the titles of its schema */
+function describeRecord(
+  record: Record<string, unknown>,
+  schema: JsonSchema | undefined,
+  options: Required<Pick<SummarizeOptions, 'labels'>> & SummarizeOptions,
+  withKeys = true
+): string {
+  const required = new Set(schema?.required ?? []);
+  const entries: Array<[string, unknown, JsonSchema | undefined]> = schema?.properties
+    ? orderedProperties(schema)
+        .filter(([key]) => withKeys || required.size === 0 || required.has(key))
+        .map(([key, property]) => [key, record[key], property])
+    : Object.entries(record).map(([key, value]) => [key, value, undefined]);
+  const facts: string[] = [];
+  for (const [key, value, property] of entries) {
+    if (facts.length >= SUMMARY_FIELDS) {
+      break;
+    }
+    if (value === undefined || value === null || value === '') {
+      continue;
+    }
+    const text =
+      Array.isArray(value) && isArraySchema(property)
+        ? options.labels.items(value.length)
+        : isRecord(value) || Array.isArray(value)
+          ? ''
+          : formatOutputValue(value, options.locale, property);
+    if (text) {
+      facts.push(withKeys ? `${property?.title ?? key}: ${text}` : text);
     }
   }
-  return undefined;
-}
-
-/** Whether the result is a collection the summary counts, alone or inside a page */
-export function isListOutput(output: unknown): boolean {
-  return findList(unwrapToolOutput(output)) !== undefined;
+  return facts.join(' · ');
 }
 
 export type SummarizeOptions = {
   locale?: string;
   labels?: ToolOutputLabels;
+  /** Output schema of the tool: array counts, property titles and date formats come from it */
+  schema?: JsonSchema;
 };
 
-/**
- * Result of a call as a few readable lines: a list — also inside a page such as
- * `{ content: [...], page, hasMore }` — becomes its size and first entries, a record becomes one
- * line of its facts, text stays text. Anything the rules do not cover falls back to pretty JSON.
- */
-export function summarizeToolOutput(output: unknown, options: SummarizeOptions = {}): string {
-  const labels = options.labels ?? DEFAULT_TOOL_OUTPUT_LABELS;
-  const { locale } = options;
-  const value = unwrapToolOutput(output);
-
-  if (value === undefined || value === null) {
-    return '';
+function summarizeStructured(
+  value: unknown,
+  options: Required<Pick<SummarizeOptions, 'labels'>> & SummarizeOptions
+): string {
+  const { schema, labels, locale } = options;
+  if (Array.isArray(value) && isArraySchema(schema)) {
+    if (value.length === 0) {
+      return labels.empty;
+    }
+    const shown = value
+      .slice(0, SUMMARY_ITEMS)
+      .map((item) =>
+        isRecord(item)
+          ? describeRecord(item, schema?.items, options, false)
+          : formatOutputValue(item, locale, schema?.items)
+      );
+    const rest = value.length - shown.length;
+    return [
+      labels.items(value.length),
+      ...shown.filter(Boolean),
+      ...(rest > 0 ? [labels.more(rest)] : []),
+    ].join('\n');
+  }
+  if (isRecord(value)) {
+    return describeRecord(value, schema, options) || clipText(JSON.stringify(value));
   }
   if (typeof value === 'string') {
     return value;
   }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return formatOutputValue(value, locale);
-  }
+  return formatOutputValue(value, locale, schema);
+}
 
-  const list = findList(value);
-  if (list) {
-    if (list.length === 0) {
-      return labels.empty;
-    }
-    const total = readTotal(value) ?? list.length;
-    const shown = list.slice(0, SUMMARY_LINES - 1);
-    const lines = shown.map((item) => describeItem(item, locale)).filter(Boolean);
-    const rest = total - shown.length;
-    return [labels.items(total), ...lines, ...(rest > 0 ? [labels.more(rest)] : [])].join('\n');
-  }
-
-  if (isRecord(value)) {
-    const { stdout, text, message } = value;
-    for (const candidate of [stdout, text, message]) {
-      if (typeof candidate === 'string' && candidate.trim()) {
-        return candidate;
+function describeResources(result: CallToolResult): string {
+  return result.content
+    .flatMap((block) => {
+      if (block.type === 'resource_link') {
+        return [block.title ?? block.name];
       }
-    }
-    const described = describeItem(value, locale);
-    if (described) {
-      return described;
-    }
-  }
-
-  return JSON.stringify(value, null, 2);
+      if (block.type === 'resource') {
+        return [block.resource.uri];
+      }
+      return block.type === 'image' || block.type === 'audio' ? [block.mimeType] : [];
+    })
+    .join(', ');
 }
 
 /**
- * Output of a call as data: `errorText` for a failure; JSON that an MCP server sent as text is
- * parsed, so the result can be read and opened as a structure.
+ * Result of a call as a few readable lines, only as far as the MCP result says it: `structuredContent`
+ * by its output schema (an array counts only when the schema declares one), the text of an error,
+ * the names of the resources and media it returned. A result of text alone has no summary; its text
+ * shows when the call is opened.
+ */
+export function summarizeToolOutput(output: unknown, options: SummarizeOptions = {}): string {
+  const resolved = { ...options, labels: options.labels ?? DEFAULT_TOOL_OUTPUT_LABELS };
+  const result = readCallToolResult(output);
+  if (!result) {
+    return output === undefined || output === null ? '' : summarizeStructured(output, resolved);
+  }
+  const structured = readStructuredResult(result, options.schema);
+  if (structured !== undefined) {
+    return summarizeStructured(structured, resolved);
+  }
+  return result.isError === true ? readResultText(result) : describeResources(result);
+}
+
+/**
+ * Output of a call as 0.3 read it, `errorText` for a failure, see `unwrapToolOutput`. Kept for
+ * existing formatters; prefer `readCallToolResult` on `part.output`.
  */
 export function getToolOutputValue(part: ToolPart): unknown {
   if (part.state === 'output-error' && typeof part.errorText === 'string') {
     return part.errorText;
   }
   return unwrapToolOutput(part.output ?? part.result);
+}
+
+/** Output of a call as the kit shows it, `errorText` for a failure, see `readOutputValue` */
+export function readPartOutput(part: ToolPart): unknown {
+  if (part.state === 'output-error' && typeof part.errorText === 'string') {
+    return part.errorText;
+  }
+  return readOutputValue(part.output ?? part.result);
 }

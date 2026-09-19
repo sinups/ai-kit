@@ -4,7 +4,7 @@ import { Code, Stack } from '@mantine/core';
 import type { ElicitationRequestedSchema } from './elicitation-schema';
 import { ElicitationForm } from './ElicitationForm';
 
-export default { title: 'ElicitationForm' };
+export default { title: 'Tools/ElicitationForm' };
 
 function Frame({ children, width = 420 }: { children: React.ReactNode; width?: number }) {
   return (
@@ -39,7 +39,7 @@ const DEPLOY_SCHEMA: ElicitationRequestedSchema = {
   required: ['environment', 'regions'],
 };
 
-export function Form() {
+export function Usage() {
   const [result, setResult] = useState<string>('');
   return (
     <Frame>

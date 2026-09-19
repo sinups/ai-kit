@@ -2,7 +2,7 @@ import React from 'react';
 import { IconEye } from '@tabler/icons-react';
 import { ToolRowBase } from './ToolRowBase';
 
-export default { title: 'ToolRowBase' };
+export default { title: 'Tools/ToolRowBase' };
 
 export function Usage() {
   return (

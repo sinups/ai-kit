@@ -1,0 +1,81 @@
+.root {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+
+  &[data-state] {
+    background-color: transparent;
+    color: var(--ae-icon-idle);
+    transition: background-color 150ms ease;
+
+    @mixin hover {
+      background-color: var(--ae-muted);
+    }
+  }
+
+  &[data-state='requesting'],
+  &[data-state='processing'] {
+    color: var(--ae-fg);
+  }
+
+  &[data-state='requesting'] > svg {
+    animation: mic-pulse 1.2s ease-in-out infinite;
+  }
+
+  &[data-state='listening'] {
+    background-color: var(--ae-fg);
+    color: var(--ae-bg);
+
+    @mixin hover {
+      background-color: var(--ae-fg);
+    }
+  }
+
+  &[data-state='error'] {
+    color: var(--ae-danger);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+
+    @mixin hover {
+      background-color: transparent;
+    }
+  }
+
+  &[data-state='unsupported'] {
+    opacity: 0.6;
+  }
+
+  &[data-state='processing'] {
+    cursor: progress;
+  }
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-color: alpha(var(--ae-fg), 0.12);
+  transform: scale(calc(1 + var(--mic-level, 0) * 0.45));
+  transition: transform 80ms linear;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes mic-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    transform: none;
+    transition: none;
+  }
+
+  .root[data-state='requesting'] > svg {
+    animation: none;
+  }
+}

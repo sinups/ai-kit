@@ -6,7 +6,7 @@ import { flattenTaskTree } from '../task-utils';
 import type { BackgroundTask } from '../types';
 import { TaskStatusPill } from './TaskStatusPill';
 
-export default { title: 'tasks/TaskStatusPill' };
+export default { title: 'Sessions & tasks/TaskStatusPill' };
 
 const ALL = flattenTaskTree(createTaskFixtures());
 const COMPLETED: BackgroundTask[] = ALL.map((task) => ({ ...task, status: 'completed' }));

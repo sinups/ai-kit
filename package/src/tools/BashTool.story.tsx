@@ -5,7 +5,7 @@ import { BashTool } from './BashTool';
 import type { ToolApprovalExplanation } from './ToolApprovalFooter';
 import { bashPart } from './_story-helpers';
 
-export default { title: 'tools/BashTool' };
+export default { title: 'Tools/BashTool' };
 
 export function Usage() {
   return (

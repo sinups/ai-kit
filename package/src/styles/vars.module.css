@@ -73,7 +73,7 @@
   --ae-warning: var(--mantine-color-orange-text);
   --ae-info: var(--mantine-color-blue-text);
 
-  /* Neutral palette mirrors the reference theme (agent-ui.css) so that both color modes match it exactly */
+  /* The light palette mirrors the reference theme (agent-ui.css); the dark one follows the Mantine dark scale, so the kit matches a dark host */
   @mixin light-root {
     --ae-bg: #fff;
     --ae-bg-secondary: #f0f0f0;
@@ -94,6 +94,8 @@
     --ae-tool-color: #1a1a1a;
     --ae-tool-color-muted: #737373;
     --ae-code-bg: #1e1e1e;
+    --ae-code-block-bg: transparent;
+    --ae-code-header-bg: var(--ae-tool-bg);
     --ae-code-color: var(--mantine-color-text);
     --ae-icon-idle: #a3a3a3;
     --ae-terminal-prompt: #d97706;
@@ -108,27 +110,33 @@
   }
 
   @mixin dark-root {
-    --ae-bg: #0a0a0a;
-    --ae-bg-secondary: #242424;
-    --ae-bg-tertiary: #141414;
-    --ae-muted: #262626;
-    --ae-fg: #fafafa;
-    --ae-fg-muted: #8c8c8c;
-    --ae-fg-subtle: #71717a;
-    --ae-border: #2a2a2a;
-    --ae-user-message-bg: #1a1a1a;
-    --ae-user-message-text: #fafafa;
-    --ae-input-bg: #0a0a0a;
-    --ae-input-border: #2a2a2a;
-    --ae-input-color: #fafafa;
-    --ae-input-placeholder: #71717a;
-    --ae-tool-bg: #141414;
-    --ae-tool-border: #2a2a2a;
-    --ae-tool-color: #fafafa;
-    --ae-tool-color-muted: #8c8c8c;
-    --ae-code-bg: #0a0a0a;
-    --ae-code-color: #d4d4d4;
-    --ae-icon-idle: #71717a;
+    --ae-bg: var(--mantine-color-body);
+    --ae-bg-secondary: var(--mantine-color-dark-5);
+    --ae-bg-tertiary: var(--mantine-color-dark-6);
+    --ae-muted: var(--mantine-color-dark-6);
+    --ae-fg: var(--mantine-color-text);
+    --ae-fg-muted: var(--mantine-color-dark-2);
+    --ae-fg-subtle: var(--mantine-color-dark-3);
+    --ae-border: var(--mantine-color-dark-5);
+    --ae-user-message-bg: var(--mantine-color-dark-6);
+    --ae-user-message-text: var(--mantine-color-text);
+    --ae-input-bg: var(--mantine-color-dark-6);
+    --ae-input-border: var(--mantine-color-dark-4);
+    --ae-input-color: var(--mantine-color-text);
+    --ae-input-placeholder: var(--mantine-color-dark-3);
+    --ae-tool-bg: var(--mantine-color-dark-6);
+    --ae-tool-border: var(--mantine-color-dark-5);
+    --ae-tool-color: var(--mantine-color-text);
+    --ae-tool-color-muted: var(--mantine-color-dark-2);
+    --ae-code-bg: var(--mantine-color-dark-6);
+    --ae-code-block-bg: var(--mantine-color-dark-6);
+    --ae-code-header-bg: color-mix(
+      in srgb,
+      var(--mantine-color-dark-6) 60%,
+      var(--mantine-color-dark-5)
+    );
+    --ae-code-color: var(--mantine-color-dark-0);
+    --ae-icon-idle: var(--mantine-color-dark-3);
     --ae-terminal-prompt: #fbbf24;
     --ae-diff-added-bg: rgb(34, 197, 94, 0.15);
     --ae-diff-added-border: rgb(34, 197, 94, 0.4);

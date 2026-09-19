@@ -7,7 +7,7 @@ import { ContextBreakdown } from './ContextBreakdown';
 import { ContextUsage } from './ContextUsage';
 import { CONTEXT_GROUPS, CONTEXT_SUGGESTIONS } from './fixtures';
 
-export default { title: 'ContextUsage/ContextBreakdown' };
+export default { title: 'Status/ContextBreakdown' };
 
 function Page() {
   return (

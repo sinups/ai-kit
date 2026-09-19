@@ -1,8 +1,9 @@
 import React from 'react';
+import { expect, waitFor, within } from '@storybook/test';
 import { Stack } from '@mantine/core';
 import { ThinkingTool } from './ThinkingTool';
 
-export default { title: 'tools/ThinkingTool' };
+export default { title: 'Tools/ThinkingTool' };
 
 const thought = `The user wants the tool cards ported one to one.
 First I should check which tokens exist in vars.module.css, then map every Tailwind
@@ -77,3 +78,15 @@ export function Streaming() {
     </Stack>
   );
 }
+
+// The thought streams for a few seconds; the snapshot waits for the finished card.
+Streaming.play = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+  const canvas = within(canvasElement);
+  await waitFor(
+    () => {
+      expect(canvas.getAllByText(/is banned\./).length).toBeGreaterThan(0);
+      expect(canvas.getByRole('button', { name: 'Replay' })).toBeEnabled();
+    },
+    { timeout: 10000 }
+  );
+};

@@ -19,13 +19,13 @@ export type McpServerAction = (server: McpServer) => void | Promise<void>;
 export interface McpToolAnnotations {
   /** Human-readable name of the tool, used when the tool itself has no `title` */
   title?: string;
-  /** The tool does not modify its environment */
+  /** The tool does not modify its environment, `false` by default */
   readOnlyHint?: boolean;
-  /** The tool may perform destructive updates */
+  /** A tool that is not read-only may perform destructive updates, `true` by default */
   destructiveHint?: boolean;
-  /** Repeated calls with the same arguments have no additional effect */
+  /** Repeated calls with the same arguments have no additional effect, `false` by default */
   idempotentHint?: boolean;
-  /** The tool interacts with an open world of external entities */
+  /** The tool interacts with an open world of external entities, `true` by default */
   openWorldHint?: boolean;
 }
 

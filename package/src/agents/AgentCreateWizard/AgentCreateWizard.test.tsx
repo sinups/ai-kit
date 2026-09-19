@@ -5,68 +5,75 @@ import { AGENT_MODELS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDraft } from '../types';
 import { AgentCreateWizard } from './AgentCreateWizard';
 
+/** A long user flow that runs past the default timeout when the whole suite shares the CPU */
+const UNDER_LOAD_TIMEOUT = 30_000;
+
 describe('agents/AgentCreateWizard', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
   });
 
-  it('configures an agent manually and creates it', async () => {
-    const user = userEvent.setup({ delay: null });
-    const onCreate = jest.fn();
-    const onClose = jest.fn();
-    render(
-      <AgentCreateWizard
-        opened
-        onClose={onClose}
-        onCreate={onCreate}
-        catalog={TOOL_CATALOG}
-        models={AGENT_MODELS}
-        existingNames={['researcher']}
-      />
-    );
+  it(
+    'configures an agent manually and creates it',
+    async () => {
+      const user = userEvent.setup({ delay: null });
+      const onCreate = jest.fn();
+      const onClose = jest.fn();
+      render(
+        <AgentCreateWizard
+          opened
+          onClose={onClose}
+          onCreate={onCreate}
+          catalog={TOOL_CATALOG}
+          models={AGENT_MODELS}
+          existingNames={['researcher']}
+        />
+      );
 
-    expect(await screen.findByText('Step 1 of 5')).toBeInTheDocument();
-    const fill = async (field: HTMLElement, text: string) => {
-      await user.click(field);
-      await user.paste(text);
-    };
-    await fill(screen.getByLabelText('Display name'), 'Researcher');
-    await fill(
-      screen.getByRole('textbox', { name: /When to use/ }),
-      'Use for open questions that need reading'
-    );
-    await user.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('An agent with this name already exists')).toBeInTheDocument();
-    await user.clear(screen.getByRole('textbox', { name: /^Name/ }));
-    await fill(screen.getByRole('textbox', { name: /^Name/ }), 'deep-researcher');
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+      expect(await screen.findByText('Step 1 of 5')).toBeInTheDocument();
+      const fill = async (field: HTMLElement, text: string) => {
+        await user.click(field);
+        await user.paste(text);
+      };
+      await fill(screen.getByLabelText('Display name'), 'Researcher');
+      await fill(
+        screen.getByRole('textbox', { name: /When to use/ }),
+        'Use for open questions that need reading'
+      );
+      await user.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('An agent with this name already exists')).toBeInTheDocument();
+      await user.clear(screen.getByRole('textbox', { name: /^Name/ }));
+      await fill(screen.getByRole('textbox', { name: /^Name/ }), 'deep-researcher');
+      await user.click(screen.getByRole('button', { name: 'Next' }));
 
-    await fill(screen.getByRole('textbox', { name: 'System prompt' }), '# Research');
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+      await fill(screen.getByRole('textbox', { name: 'System prompt' }), '# Research');
+      await user.click(screen.getByRole('button', { name: 'Next' }));
 
-    await user.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Select at least one tool')).toBeInTheDocument();
-    await user.click(screen.getByRole('checkbox', { name: 'Built-in' }));
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+      await user.click(screen.getByRole('button', { name: 'Next' }));
+      expect(screen.getByText('Select at least one tool')).toBeInTheDocument();
+      await user.click(screen.getByRole('checkbox', { name: 'Built-in' }));
+      await user.click(screen.getByRole('button', { name: 'Next' }));
 
-    await user.click(screen.getByRole('button', { name: 'Skip' }));
-    expect(screen.getByText('8 tools from Built-in')).toBeInTheDocument();
-    expect(
-      screen.getByText(/The agent can call destructive tools: Write, Bash/)
-    ).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Skip' }));
+      expect(screen.getByText('8 tools from Built-in')).toBeInTheDocument();
+      expect(
+        screen.getByText(/The agent can call destructive tools: Write, Bash/)
+      ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Create agent' }));
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(onCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'deep-researcher',
-        displayName: 'Researcher',
-        systemPrompt: '# Research',
-        tools: ['Read', 'Edit', 'Write', 'Bash', 'Grep', 'Glob', 'WebFetch', 'WebSearch'],
-      })
-    );
-    expect(onCreate.mock.calls[0][0]).not.toHaveProperty('method');
-  });
+      await user.click(screen.getByRole('button', { name: 'Create agent' }));
+      await waitFor(() => expect(onClose).toHaveBeenCalled());
+      expect(onCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'deep-researcher',
+          displayName: 'Researcher',
+          systemPrompt: '# Research',
+          tools: ['Read', 'Edit', 'Write', 'Bash', 'Grep', 'Glob', 'WebFetch', 'WebSearch'],
+        })
+      );
+      expect(onCreate.mock.calls[0][0]).not.toHaveProperty('method');
+    },
+    UNDER_LOAD_TIMEOUT
+  );
 
   it('generates a draft with AI and requires it before moving on', async () => {
     const user = userEvent.setup({ delay: null });

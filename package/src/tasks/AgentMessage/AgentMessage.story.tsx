@@ -5,7 +5,7 @@ import { createTaskFixtures } from '../fixtures';
 import type { AgentMessageData } from '../types';
 import { AgentMessage } from './AgentMessage';
 
-export default { title: 'tasks/AgentMessage' };
+export default { title: 'Sessions & tasks/AgentMessage' };
 
 const MESSAGES: AgentMessageData[] = [
   ...(createTaskFixtures()[0].messages ?? []),

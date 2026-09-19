@@ -7,7 +7,7 @@ import { MCP_SERVERS } from './fixtures';
 import { McpSettingsPanel } from './McpSettingsPanel';
 import type { McpServer, McpServerDraft, McpServerStatus } from './types';
 
-export default { title: 'mcp/McpSettingsPanel', parameters: { layout: 'fullscreen' } };
+export default { title: 'MCP/McpSettingsPanel', parameters: { layout: 'fullscreen' } };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

@@ -8,7 +8,7 @@ import { parseMcpToolType } from './tool-registry';
 /** What a server says about one of its tools: the readable name, the purpose and the arguments */
 export type ToolCatalogEntry = Pick<
   McpToolDefinition,
-  'title' | 'description' | 'annotations' | 'inputSchema'
+  'title' | 'description' | 'annotations' | 'inputSchema' | 'outputSchema'
 >;
 
 /**

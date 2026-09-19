@@ -11,7 +11,7 @@ import {
 import { PermissionRulesPanel, type PermissionRulesPanelProps } from './PermissionRulesPanel';
 import type { PermissionRule, WorkspaceDirectory } from './types';
 
-export default { title: 'permissions/PermissionRulesPanel' };
+export default { title: 'Permissions & hooks/PermissionRulesPanel' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

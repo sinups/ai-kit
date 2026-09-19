@@ -6,7 +6,6 @@ import {
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { McpServer, McpToolDefinition } from '@sinups/ai-kit';
 import { publicTarget, redact, type ServerConfig, servers } from './config';
-import { isReadOnlyName } from './tool-effect';
 
 const globalKey = Symbol.for('ai-kit-example.mcp-servers');
 const store = globalThis as unknown as Record<symbol, Promise<McpServer[]> | undefined>;
@@ -83,14 +82,10 @@ export async function toolDefinition(toolName: string): Promise<McpToolDefinitio
   return undefined;
 }
 
-/** Whether a tool only reads: the server annotations first, then the words of its name */
+/**
+ * Whether a tool only reads, by its MCP annotations alone: `readOnlyHint` defaults to `false`, so a
+ * tool the server did not mark as read-only is treated as one that changes data
+ */
 export async function isReadOnlyTool(toolName: string): Promise<boolean> {
-  const annotations = (await toolDefinition(toolName))?.annotations;
-  if (annotations?.destructiveHint || annotations?.readOnlyHint === false) {
-    return false;
-  }
-  if (annotations?.readOnlyHint) {
-    return true;
-  }
-  return isReadOnlyName(toolName);
+  return (await toolDefinition(toolName))?.annotations?.readOnlyHint === true;
 }

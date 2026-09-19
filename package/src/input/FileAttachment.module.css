@@ -30,6 +30,7 @@
 }
 
 .thumb {
+  position: relative;
   flex-shrink: 0;
   overflow: hidden;
   border-radius: var(--attachment-radius-inner);
@@ -91,10 +92,23 @@
   color: var(--ae-fg);
 }
 
-.size {
+.size,
+.line {
+  height: calc(var(--ae-font-size-2xs) * 1.5);
   font-size: var(--ae-font-size-2xs);
   line-height: 1.5;
   color: var(--ae-fg-muted);
+}
+
+.size {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line {
+  display: flex;
+  align-items: center;
 }
 
 .remove {
@@ -132,4 +146,47 @@
   &:active {
     transform: scale(0.97);
   }
+}
+
+.root[data-status='error'] {
+  box-shadow: inset 0 0 0 rem(1px) var(--ae-error-border);
+
+  .size {
+    color: var(--ae-danger);
+  }
+}
+
+.ring {
+  --file-attachment-ring-track: alpha(var(--ae-bg), 0.6);
+
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.meta .progress {
+  width: rem(96px);
+  background-color: alpha(var(--ae-fg), 0.1);
+}
+
+.retry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: rem(24px);
+  height: rem(24px);
+  color: var(--ae-fg-muted);
+  transition: color 150ms ease-out;
+
+  @mixin hover {
+    color: var(--ae-fg);
+  }
+}
+
+[data-image-only] > .retry {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  background-color: alpha(var(--ae-bg), 0.7);
 }

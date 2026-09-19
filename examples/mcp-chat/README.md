@@ -23,8 +23,13 @@ The example is not published or deployed. It runs locally against the kit in thi
 - **Transcript**:
   - `presentation={quietPresentation}`: MCP calls are quiet lines, and the work before an answer
     folds into one line.
-  - `toolCatalog` built from the handshake (`lib/tool-catalog.ts`), so calls read by readable
-    titles. The Russian dictionary also renames several tools of the default servers.
+  - `toolCatalog` built from the handshake (`lib/tool-catalog.ts`) with each tool's title,
+    description, `annotations`, `inputSchema` and `outputSchema` as the server sent them, so calls
+    read by readable titles. The Russian dictionary also renames several tools of the default
+    servers.
+  - Each result reaches the kit as an MCP `CallToolResult`: `content` blocks, `structuredContent`
+    when the server sent it, and `isError`. The Claude Agent SDK gives the model a string and keeps
+    the server's result in `tool_use_result`; `lib/agent.ts` rebuilds the protocol shape from it.
   - `evenSpacing`, and `locale` and `labels` from the active dictionary.
   - The model's thinking, requested with `thinking: { type: 'adaptive', display: 'summarized' }`,
     streams into `tool-Thinking` parts.
@@ -105,12 +110,21 @@ mode per chat, and `canUseTool` in `lib/agent.ts` applies it):
 | `read-only` | Tools that change data are refused without running |
 | `auto` | Every call runs at once |
 
-`isReadOnlyTool` in `lib/mcp-tools.ts` classifies a tool. It trusts the server's `readOnlyHint` and
-`destructiveHint` annotations first. Without them, `lib/tool-effect.ts` reads the tool name
-conservatively: a tool only reads when every word of its name is a reading verb (`get`, `list`,
-`read`, `search`…) or a neutral noun (`file`, `directory`, `docs`…) and at least one is a verb.
-Any other word, such as `resolve`, `execute` or `mark`, makes it a write, so an unknown tool asks
-instead of running.
+A tool is classified only by the
+[tool annotations](https://modelcontextprotocol.io/specification/2025-06-18/server/tools#tool-annotations)
+its server sends in the handshake, with the defaults of the protocol: `readOnlyHint` is `false` and
+`destructiveHint` is `true` unless the server says otherwise.
+
+| Annotations | Treated as | Risk shown |
+| --- | --- | --- |
+| `readOnlyHint: true` | Read-only | Low |
+| `destructiveHint: false` | Changes data, only adds | Medium |
+| `destructiveHint: true` | Changes or deletes data | High |
+| Neither | Changes or deletes data, and the approval says the server did not mark it read-only | High |
+
+`isReadOnlyTool` in `lib/mcp-tools.ts` decides whether a mode lets a call run without asking, and
+`lib/describe-call.ts` sends the effect to the page, which words it from its dictionary. Annotations
+are hints from the server, not guarantees; the approval step is the safeguard.
 
 Rules from the **Rules** tab are checked before the mode, in this order:
 
@@ -180,12 +194,11 @@ answer an approval. `lib/validate.ts` then checks every body and answers 400 to 
 | --- | --- |
 | `lib/config.ts` | Reads the environment and builds the server list, including the older single-server keys |
 | `lib/mcp-tools.ts` | MCP handshake with the official SDK, tool definitions, `isReadOnlyTool` |
-| `lib/tool-effect.ts` | Conservative read-or-write guess from a tool name, for tools without annotations |
 | `lib/tool-catalog.ts` | `toolCatalog` for `AgentChat`, keyed `mcp__<server>__<tool>` |
 | `lib/system-prompt.ts` | Core rules plus a generated section per server, then `AGENT_CONTEXT` |
 | `lib/agent.ts` | Runs `query()` with built-in tools off (`tools: []`, `strictMcpConfig`), applies the permission mode in `canUseTool`, streams NDJSON events |
 | `lib/approvals.ts` | Holds a pending `canUseTool` call until the browser answers, per chat, with a timeout |
-| `lib/describe-call.ts` | Risk and effect of a call (`read`, `write`, `destructive`); the page words them from its dictionary |
+| `lib/describe-call.ts` | Risk and effect of a call from its MCP annotations (`read`, `write`, `destructive`, `unmarked`); the page words them from its dictionary |
 | `lib/request-guard.ts` | Refuses cross-site requests and non-JSON bodies on every API route |
 | `lib/validate.ts` | Checks the bodies of the API requests |
 | `lib/permissions.ts` | Per-chat rules and permission mode, kept in server memory |

@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { headerKeyValidator, type KeyValuePair } from './key-value';
 import { KeyValueEditor, type KeyValueEditorProps } from './KeyValueEditor';
 
-export default { title: 'primitives/KeyValueEditor' };
+export default { title: 'Primitives/KeyValueEditor' };
 
 const ENV: KeyValuePair[] = [
   { id: 'env-1', key: 'DATABASE_URL', value: 'postgres://localhost:5432/app' },

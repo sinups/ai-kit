@@ -6,7 +6,7 @@ import { DAILY_USAGE, LIMITS, MODEL_USAGE } from '../fixtures';
 import type { UsagePeriod } from '../types';
 import { UsagePanel } from './UsagePanel';
 
-export default { title: 'model-settings/UsagePanel' };
+export default { title: 'Settings/UsagePanel' };
 
 function Demo() {
   const [period, setPeriod] = useState<UsagePeriod>('week');

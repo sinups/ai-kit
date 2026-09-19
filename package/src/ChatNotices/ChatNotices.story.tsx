@@ -7,7 +7,7 @@ import { IdleReturnPrompt } from './IdleReturnPrompt';
 import { SpendThresholdNotice } from './SpendThresholdNotice';
 import { ToolUnavailableNotice } from './ToolUnavailableNotice';
 
-export default { title: 'ChatNotices' };
+export default { title: 'Chat/Notices' };
 
 function Notices() {
   const [log, setLog] = useState('');

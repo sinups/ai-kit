@@ -8,7 +8,7 @@ import { MEMORY_FILES_FIXTURE, MEMORY_NOW } from './fixtures';
 import { MemoryPanel, type MemoryPanelProps } from './MemoryPanel';
 import type { MemoryFile } from './types';
 
-export default { title: 'memory/MemoryPanel' };
+export default { title: 'Settings/MemoryPanel' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

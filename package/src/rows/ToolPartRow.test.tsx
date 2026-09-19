@@ -155,31 +155,64 @@ describe('rows/ToolPartRow', () => {
     expect(screen.getByText('Updated app.ts with 2 additions and 1 removals')).toBeInTheDocument();
   });
 
-  it('sums an MCP result up instead of printing its JSON', () => {
+  it('sums an MCP result up by its output schema instead of printing its JSON', () => {
+    render(
+      <ToolPresentationProvider
+        catalog={{
+          mcp__tracker__task_list: {
+            outputSchema: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['id', 'title'],
+                properties: { id: { type: 'string' }, title: { type: 'string' } },
+              },
+            },
+          },
+        }}
+      >
+        <ToolPartRow
+          part={{
+            type: 'tool-mcp__tracker__task_list',
+            toolCallId: 'm1',
+            state: 'output-available',
+            input: { overdue: true },
+            output: {
+              content: [{ type: 'text', text: '4 overdue issues' }],
+              structuredContent: [
+                { id: 'TRK-400', title: 'Перенести сборку' },
+                { id: 'TRK-401', title: 'Обновить лицензии' },
+                { id: 'TRK-402', title: 'Почистить ветки' },
+                { id: 'TRK-403', title: 'Сверить бюджеты' },
+              ],
+            },
+          }}
+          chatStatus="ready"
+        />
+      </ToolPresentationProvider>
+    );
+
+    expect(screen.getByText(/4 items/)).toBeInTheDocument();
+    expect(screen.getByText(/TRK-400 · Перенести сборку/)).toBeInTheDocument();
+    expect(screen.queryByText(/"title"/)).toBeNull();
+  });
+
+  it('keeps the text of an MCP result without a schema behind the toggle', async () => {
     render(
       <ToolPartRow
         part={{
           type: 'tool-mcp__tracker__task_list',
           toolCallId: 'm1',
           state: 'output-available',
-          input: { overdue: true },
-          output: {
-            total: 4,
-            tasks: [
-              { id: 'TRK-400', title: 'Перенести сборку' },
-              { id: 'TRK-401', title: 'Обновить лицензии' },
-              { id: 'TRK-402', title: 'Почистить ветки' },
-              { id: 'TRK-403', title: 'Сверить бюджеты' },
-            ],
-          },
+          input: {},
+          output: [{ type: 'text', text: '4 overdue issues' }],
         }}
         chatStatus="ready"
       />
     );
-
-    expect(screen.getByText(/4 items/)).toBeInTheDocument();
-    expect(screen.getByText(/TRK-400 · Перенести сборку/)).toBeInTheDocument();
-    expect(screen.queryByText(/"total"/)).toBeNull();
+    expect(screen.queryByText('4 overdue issues')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'show result' }));
+    expect(screen.getByText('4 overdue issues')).toBeInTheDocument();
   });
 
   it('opens the whole result on a click and folds it back', async () => {
@@ -229,7 +262,32 @@ describe('rows/ToolPartRow', () => {
         toolOutputs={{ 'tool-mcp__tracker__*': () => null }}
       />
     );
-    expect(screen.getByText(/TRK-482 · Разобрать просроченное/)).toBeInTheDocument();
+    expect(screen.getByText(/id: TRK-482 · title: Разобрать просроченное/)).toBeInTheDocument();
+  });
+
+  it('passes a formatter the 0.3 output value and the protocol result', () => {
+    const formatter = jest.fn(() => 'Found TRK-1');
+    const result = { content: [{ type: 'text', text: '{"items":[{"key":"TRK-1"}]}' }] };
+    render(
+      <ToolPartRow
+        part={
+          {
+            type: 'tool-mcp__tracker__task_list',
+            toolCallId: 'm4',
+            state: 'output-available',
+            input: {},
+            output: result,
+          } as ToolPart
+        }
+        chatStatus="ready"
+        toolOutputs={{ 'tool-mcp__tracker__*': formatter }}
+      />
+    );
+    expect(screen.getByText('Found TRK-1')).toBeInTheDocument();
+    expect(formatter).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ output: { items: [{ key: 'TRK-1' }] }, result })
+    );
   });
 
   it('says a refused call once when the host settled its approval', () => {
@@ -252,7 +310,7 @@ describe('rows/ToolPartRow', () => {
     expect(screen.getAllByText('Skipped')).toHaveLength(1);
   });
 
-  it('reads a call by its catalog title and unfolded arguments', () => {
+  it('reads a call by its catalog title and its arguments as they are', () => {
     render(
       <ToolPresentationProvider
         catalog={{ mcp__tracker__tracker_task_search: { title: 'Найти задачи по условиям' } }}
@@ -262,7 +320,7 @@ describe('rows/ToolPartRow', () => {
             type: 'tool-mcp__tracker__tracker_task_search',
             toolCallId: 'c1',
             state: 'input-available',
-            input: { payload: JSON.stringify({ size: 100, overdue: true }) },
+            input: { size: 100, overdue: true },
           }}
           chatStatus="streaming"
         />

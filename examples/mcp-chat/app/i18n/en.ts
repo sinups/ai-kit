@@ -90,7 +90,9 @@ export const en = {
     effect: {
       read: () => 'Only reads, changes nothing.',
       write: (server: string) => `Writes changes to ${server}.`,
-      destructive: (server: string) => `May change or delete data in ${server}.`,
+      destructive: () => 'May change or delete data.',
+      unmarked: () =>
+        'The server did not mark this tool as read-only, so it is treated as one that can change data.',
     } satisfies Record<ApprovalEffect, (server: string) => string>,
     askedForEveryCall: 'You asked to confirm every call.',
     needsPermission: 'The call will not run without your permission.',

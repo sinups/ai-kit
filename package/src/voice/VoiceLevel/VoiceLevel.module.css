@@ -1,0 +1,36 @@
+.root {
+  --voice-level-height: rem(16px);
+  --voice-level-color: var(--ae-fg);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ae-space-3xs);
+  height: var(--voice-level-height);
+
+  &[data-size='xs'] {
+    --voice-level-height: rem(12px);
+  }
+
+  &[data-source='assistant'] {
+    --voice-level-color: var(--ae-fg-muted);
+  }
+}
+
+.bar {
+  width: rem(3px);
+  height: 100%;
+  border-radius: rem(2px);
+  background-color: var(--voice-level-color);
+  transform: scaleY(calc(0.2 + var(--bar-level, 0) * 0.8));
+  transition: transform 90ms linear;
+
+  .root:not([data-active]) & {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}

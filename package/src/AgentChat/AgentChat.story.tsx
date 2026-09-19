@@ -11,7 +11,7 @@ import type { ChatMessage, ChatStatus } from '../types';
 import { conversation, toolRunConversation } from '../MessageList/fixtures';
 import { AgentChat } from './AgentChat';
 
-export default { title: 'AgentChat' };
+export default { title: 'Chat/AgentChat' };
 
 const REPLY = `Here is what I found:
 

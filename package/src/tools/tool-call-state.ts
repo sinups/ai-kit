@@ -1,4 +1,5 @@
 import type { ChatMessage, MessagePart, ToolPart } from '../types';
+import { readCallToolResult } from '../rows/tool-output';
 import { isRecord, isV5ToolPart } from '../utils/parts';
 
 /** Visible state of a tool call, derived from the transcript instead of a mutable field */
@@ -82,7 +83,8 @@ function isErrorPart(part: ToolPart): boolean {
     return true;
   }
   const output = part.output ?? part.result;
-  return isRecord(output) && output.success === false;
+  const result = readCallToolResult(output);
+  return result ? result.isError === true : isRecord(output) && output.success === false;
 }
 
 /** Reads the permission request a host attached to a tool call, `input.approval` by convention */

@@ -8,26 +8,34 @@ import { parseMcpToolType } from './tool-registry';
 
 const type = 'tool-mcp__tracker__tracker_task_list_smart';
 const info = parseMcpToolType(type)!;
-const catalog = { mcp__tracker__tracker_task_list_smart: { title: 'Найти задачи по условиям' } };
+const catalog = {
+  mcp__tracker__tracker_task_list_smart: {
+    title: 'Найти задачи по условиям',
+    outputSchema: {
+      type: 'object' as const,
+      required: ['items'],
+      properties: {
+        items: { type: 'array' as const, title: 'Задачи' },
+        total: { type: 'number' as const, title: 'Всего' },
+      },
+    },
+  },
+};
 
 const done: ToolPart = {
   type,
   toolCallId: 'c1',
   state: 'output-available',
-  input: { payload: JSON.stringify({ assigneeIds: ['alice'], size: 100 }) },
+  input: { assigneeIds: ['alice'], size: 100 },
   output: {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          total: 12,
-          items: [
-            { id: 'TRK-400', title: 'Перенести сборку' },
-            { id: 'TRK-401', title: 'Обновить лицензии' },
-          ],
-        }),
-      },
-    ],
+    content: [{ type: 'text', text: 'Found 12 issues' }],
+    structuredContent: {
+      total: 12,
+      items: [
+        { id: 'TRK-400', title: 'Перенести сборку' },
+        { id: 'TRK-401', title: 'Обновить лицензии' },
+      ],
+    },
   },
 };
 
@@ -36,7 +44,7 @@ describe('tools/McpTool with a catalog', () => {
     render(<McpTool part={done} mcpInfo={info} chatStatus="ready" />);
 
     expect(screen.queryByText('Найти задачи по условиям')).toBeNull();
-    expect(screen.queryByText(/12 items/)).toBeNull();
+    expect(screen.queryByText(/Задачи: 2 items/)).toBeNull();
   });
 
   it('reads the call by its catalog title, a short argument line and the result', () => {
@@ -48,8 +56,7 @@ describe('tools/McpTool with a catalog', () => {
 
     expect(screen.getByText('Найти задачи по условиям')).toBeInTheDocument();
     expect(screen.getByText('assigneeIds: alice · size: 100')).toBeInTheDocument();
-    expect(screen.getByText('12 items')).toBeInTheDocument();
-    expect(screen.getByText('TRK-400 · Перенести сборку')).toBeInTheDocument();
+    expect(screen.getByText('Задачи: 2 items · Всего: 12')).toBeInTheDocument();
   });
 
   it('lets the formatters of the host replace the argument line and the result', () => {

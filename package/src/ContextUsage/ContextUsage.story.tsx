@@ -5,7 +5,7 @@ import { InputBar } from '../input/InputBar';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ContextUsage } from './ContextUsage';
 
-export default { title: 'ContextUsage' };
+export default { title: 'Status/ContextUsage' };
 
 const segments = [
   { label: 'System prompt', value: 4200 },

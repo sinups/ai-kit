@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ContextUsage } from '../ContextUsage/ContextUsage';
 import { ChatHeader } from './ChatHeader';
 
-export default { title: 'ChatHeader' };
+export default { title: 'Chat/ChatHeader' };
 
 function SidebarToggle() {
   return (

@@ -7,7 +7,7 @@ import type { FileChange, FileDecision } from '../types';
 import { DiffReview, type DiffReviewProps } from './DiffReview';
 import { DiffReviewModal } from './DiffReviewModal';
 
-export default { title: 'diff/DiffReview' };
+export default { title: 'Diff/DiffReview' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

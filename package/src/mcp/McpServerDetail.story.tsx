@@ -17,7 +17,7 @@ import {
   type McpServerDetailTab,
 } from './McpServerDetail';
 
-export default { title: 'mcp/McpServerDetail' };
+export default { title: 'MCP/McpServerDetail' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

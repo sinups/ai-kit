@@ -7,7 +7,17 @@ import type { ChatMessage, ChatStatus, ToolPart } from '../types';
 import { quietPresentation } from './quiet-presentation';
 
 const catalog = {
-  mcp__tracker__tracker_task_list_smart: { title: 'Найти задачи по условиям' },
+  mcp__tracker__tracker_task_list_smart: {
+    title: 'Найти задачи по условиям',
+    outputSchema: {
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        required: ['key', 'title'],
+        properties: { key: { type: 'string' as const }, title: { type: 'string' as const } },
+      },
+    },
+  },
   mcp__tracker__tracker_task_create: { title: 'Создать задачу' },
   mcp__deepwiki__read_wiki_structure: { title: 'Структура вики' },
 };
@@ -28,20 +38,11 @@ const labels: Partial<AgentChatLabels> = {
 
 function page(count: number) {
   return {
-    content: [
-      {
-        type: 'text',
-        text: JSON.stringify({
-          size: 100,
-          page: 0,
-          hasMore: false,
-          content: Array.from({ length: count }, (_, index) => ({
-            key: `TRK-${index + 1}`,
-            title: `Задача ${index + 1}`,
-          })),
-        }),
-      },
-    ],
+    content: [{ type: 'text', text: `${count} задач` }],
+    structuredContent: Array.from({ length: count }, (_, index) => ({
+      key: `TRK-${index + 1}`,
+      title: `Задача ${index + 1}`,
+    })),
   };
 }
 
@@ -49,7 +50,7 @@ const tasks: ToolPart = {
   type: 'tool-mcp__tracker__tracker_task_list_smart',
   toolCallId: 't1',
   state: 'output-available',
-  input: { payload: JSON.stringify({ assigneeIds: ['alice'], size: 100 }) },
+  input: { assigneeIds: ['alice'], size: 100 },
   output: page(5),
 };
 
@@ -91,7 +92,7 @@ describe('quiet presentation', () => {
 
     await userEvent.click(screen.getByText('Найти задачи по условиям').closest('button')!);
     expect(screen.getByText('Аргументы')).toBeInTheDocument();
-    expect(screen.getByText('TRK-1 · Задача 1')).toBeInTheDocument();
+    expect(screen.getByText(/"TRK-1"/)).toBeInTheDocument();
   });
 
   it('keeps a running call on the same line, shimmering, without a frame', () => {
@@ -178,35 +179,25 @@ describe('quiet presentation', () => {
     expect(screen.getAllByText('Найти задачи по условиям')).toHaveLength(3);
   });
 
-  it('counts the items of a markdown list and reads a plain text by its first line', async () => {
+  it('shows no summary for a result of text alone and keeps the text for the opened row', async () => {
     const wiki: ToolPart = {
       type: 'tool-mcp__deepwiki__read_wiki_structure',
       toolCallId: 'w1',
       state: 'output-available',
       input: { repoName: 'mantinedev/mantine' },
-      output: {
-        result: [
-          'Available pages for mantinedev/mantine:',
-          '',
-          ...Array.from({ length: 12 }, (_, index) => `- ${index + 1} Раздел ${index + 1}`),
-        ].join('\n'),
-      },
-    };
-    const note: ToolPart = {
-      ...wiki,
-      toolCallId: 'w2',
-      output: { result: '# Обзор\n\nMantine — библиотека компонентов для React.' },
+      output: [
+        {
+          type: 'text',
+          text: ['Available pages for mantinedev/mantine:', '', '- 1 Overview'].join('\n'),
+        },
+      ],
     };
 
-    const { unmount } = render(chat([wiki]));
+    render(chat([wiki]));
     await userEvent.click(screen.getByText('Использовал 1 инструмента').closest('button')!);
-    expect(screen.getByText('12 пунктов')).toBeInTheDocument();
     expect(screen.queryByText(/Available pages/)).toBeNull();
-    unmount();
-
-    render(chat([note]));
-    await userEvent.click(screen.getByText('Использовал 1 инструмента').closest('button')!);
-    expect(screen.getByText('Обзор')).toBeInTheDocument();
+    await userEvent.click(screen.getByText('Структура вики').closest('button')!);
+    expect(screen.getByText(/Available pages/)).toBeInTheDocument();
   });
 
   it('says a failed call failed and why, in one line', () => {
@@ -222,5 +213,21 @@ describe('quiet presentation', () => {
     );
 
     expect(screen.getByText('Ошибка · Проект доступен только для чтения')).toBeInTheDocument();
+  });
+
+  it('reads the reason of an MCP error from the first line of its text', () => {
+    render(
+      chat([
+        {
+          ...tasks,
+          output: {
+            content: [{ type: 'text', text: 'Rate limit reached\nretry in 30 seconds' }],
+            isError: true,
+          },
+        },
+      ])
+    );
+
+    expect(screen.getByText('Ошибка · Rate limit reached')).toBeInTheDocument();
   });
 });

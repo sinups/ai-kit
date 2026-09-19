@@ -4,7 +4,7 @@ import { IconBolt, IconListCheck, IconShieldCheck } from '@tabler/icons-react';
 import { expect, userEvent, within } from '@storybook/test';
 import { ModeSelector, type ModeOption } from './ModeSelector';
 
-export default { title: 'input/ModeSelector' };
+export default { title: 'Input/ModeSelector' };
 
 const MODES: ModeOption[] = [
   {
@@ -46,11 +46,11 @@ function Demo() {
   );
 }
 
-export function WithTitleBadgeAndShortcuts() {
+export function Usage() {
   return <Demo />;
 }
 
-export const PickByDigit = {
+export const PickByDigitFlow = {
   render: () => <Demo />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
     const canvas = within(canvasElement);

@@ -5,9 +5,9 @@
       "styles/base.css",
       "styles/AgentChat.css"
     ],
-    "jsGzip": 79146,
-    "cssGzip": 11120,
-    "totalGzip": 90266
+    "jsGzip": 81465,
+    "cssGzip": 11504,
+    "totalGzip": 92969
   },
   {
     "name": "MessageList",
@@ -15,9 +15,9 @@
       "styles/base.css",
       "styles/MessageList.css"
     ],
-    "jsGzip": 65346,
-    "cssGzip": 8966,
-    "totalGzip": 74312
+    "jsGzip": 67198,
+    "cssGzip": 9332,
+    "totalGzip": 76530
   },
   {
     "name": "InputBar",
@@ -25,9 +25,9 @@
       "styles/base.css",
       "styles/InputBar.css"
     ],
-    "jsGzip": 27361,
-    "cssGzip": 5865,
-    "totalGzip": 33226
+    "jsGzip": 28498,
+    "cssGzip": 6152,
+    "totalGzip": 34650
   },
   {
     "name": "Markdown",
@@ -35,9 +35,9 @@
       "styles/base.css",
       "styles/Markdown.css"
     ],
-    "jsGzip": 11944,
-    "cssGzip": 2607,
-    "totalGzip": 14551
+    "jsGzip": 12299,
+    "cssGzip": 2821,
+    "totalGzip": 15120
   },
   {
     "name": "BashTool",
@@ -46,8 +46,8 @@
       "styles/BashTool.css"
     ],
     "jsGzip": 11192,
-    "cssGzip": 2844,
-    "totalGzip": 14036
+    "cssGzip": 2895,
+    "totalGzip": 14087
   },
   {
     "name": "DiffReview",
@@ -55,9 +55,9 @@
       "styles/base.css",
       "styles/DiffReview.css"
     ],
-    "jsGzip": 19016,
-    "cssGzip": 2861,
-    "totalGzip": 21877
+    "jsGzip": 19015,
+    "cssGzip": 2912,
+    "totalGzip": 21927
   },
   {
     "name": "McpSettingsPanel",
@@ -65,9 +65,9 @@
       "styles/base.css",
       "styles/McpSettingsPanel.css"
     ],
-    "jsGzip": 22839,
-    "cssGzip": 2713,
-    "totalGzip": 25552
+    "jsGzip": 22853,
+    "cssGzip": 2764,
+    "totalGzip": 25617
   },
   {
     "name": "SettingsLayout",
@@ -76,8 +76,8 @@
       "styles/SettingsLayout.css"
     ],
     "jsGzip": 2554,
-    "cssGzip": 2052,
-    "totalGzip": 4606
+    "cssGzip": 2103,
+    "totalGzip": 4657
   },
   {
     "name": "CommandPalette",
@@ -86,8 +86,8 @@
       "styles/CommandPalette.css"
     ],
     "jsGzip": 4299,
-    "cssGzip": 1636,
-    "totalGzip": 5935
+    "cssGzip": 1687,
+    "totalGzip": 5986
   },
   {
     "name": "Wizard",
@@ -96,8 +96,8 @@
       "styles/Wizard.css"
     ],
     "jsGzip": 4019,
-    "cssGzip": 1734,
-    "totalGzip": 5753
+    "cssGzip": 1785,
+    "totalGzip": 5804
   },
   {
     "name": "ChatLauncher",
@@ -105,9 +105,9 @@
       "styles/base.css",
       "styles/ChatLauncher.css"
     ],
-    "jsGzip": 3503,
-    "cssGzip": 2279,
-    "totalGzip": 5782
+    "jsGzip": 3501,
+    "cssGzip": 2330,
+    "totalGzip": 5831
   },
   {
     "name": "AiKitProvider",
@@ -115,9 +115,9 @@
       "styles/base.css",
       "styles/AiKitProvider.css"
     ],
-    "jsGzip": 5890,
-    "cssGzip": 3113,
-    "totalGzip": 9003
+    "jsGzip": 5889,
+    "cssGzip": 3193,
+    "totalGzip": 9082
   },
   {
     "name": "mountChatLauncher",
@@ -127,12 +127,146 @@
     "totalGzip": 779
   },
   {
+    "name": "MessageActionButton",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/MessageActionButton.css"
+    ],
+    "jsGzip": 306,
+    "cssGzip": 1375,
+    "totalGzip": 1681
+  },
+  {
+    "name": "MarkdownLinksProvider",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/MarkdownLinksProvider.css"
+    ],
+    "jsGzip": 215,
+    "cssGzip": 1375,
+    "totalGzip": 1590
+  },
+  {
+    "name": "MediaPart",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/MediaPart.css"
+    ],
+    "jsGzip": 4844,
+    "cssGzip": 2927,
+    "totalGzip": 7771
+  },
+  {
+    "name": "ArtifactPanel",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/ArtifactPanel.css"
+    ],
+    "jsGzip": 1419,
+    "cssGzip": 1682,
+    "totalGzip": 3101
+  },
+  {
+    "name": "ArtifactCard",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/ArtifactCard.css"
+    ],
+    "jsGzip": 1729,
+    "cssGzip": 1981,
+    "totalGzip": 3710
+  },
+  {
+    "name": "FileAttachment",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/FileAttachment.css"
+    ],
+    "jsGzip": 3874,
+    "cssGzip": 2729,
+    "totalGzip": 6603
+  },
+  {
+    "name": "filterFiles",
+    "stylesheets": [],
+    "jsGzip": 381,
+    "cssGzip": 0,
+    "totalGzip": 381
+  },
+  {
+    "name": "useFileIntake",
+    "stylesheets": [],
+    "jsGzip": 700,
+    "cssGzip": 0,
+    "totalGzip": 700
+  },
+  {
+    "name": "ChatDropZone",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/ChatDropZone.css"
+    ],
+    "jsGzip": 2012,
+    "cssGzip": 1586,
+    "totalGzip": 3598
+  },
+  {
+    "name": "CommandToggles",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/CommandToggles.css"
+    ],
+    "jsGzip": 653,
+    "cssGzip": 1466,
+    "totalGzip": 2119
+  },
+  {
+    "name": "StarterCategories",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/StarterCategories.css"
+    ],
+    "jsGzip": 850,
+    "cssGzip": 1775,
+    "totalGzip": 2625
+  },
+  {
+    "name": "MicButton",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/MicButton.css"
+    ],
+    "jsGzip": 2397,
+    "cssGzip": 1967,
+    "totalGzip": 4364
+  },
+  {
+    "name": "VoiceLevel",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/VoiceLevel.css"
+    ],
+    "jsGzip": 499,
+    "cssGzip": 1707,
+    "totalGzip": 2206
+  },
+  {
+    "name": "SpeakingIndicator",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/SpeakingIndicator.css"
+    ],
+    "jsGzip": 1786,
+    "cssGzip": 1951,
+    "totalGzip": 3737
+  },
+  {
     "name": "import *",
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 203415,
-    "cssGzip": 19234,
-    "totalGzip": 222649
+    "jsGzip": 210791,
+    "cssGzip": 20321,
+    "totalGzip": 231112
   }
 ]

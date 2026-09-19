@@ -5,7 +5,7 @@ import { expect, fn, userEvent, waitFor, within } from '@storybook/test';
 import { conversation } from '../MessageList/fixtures';
 import { AgentChat } from './AgentChat';
 
-export default { title: 'AgentChat/Flows' };
+export default { title: 'Chat/AgentChat/Flows' };
 
 type Canvas = { canvasElement: HTMLElement };
 

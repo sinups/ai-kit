@@ -85,4 +85,6 @@ export type MessageListActions = {
   feedback?: Record<string, MessageFeedbackValue | undefined>;
   /** Reasons offered in the negative feedback form */
   feedbackReasons?: FeedbackReason[];
+  /** Host buttons after the built-in actions of a message, usually `MessageActionButton`s; receives the id the other actions get */
+  actions?: (messageId: string, role: 'user' | 'assistant') => React.ReactNode;
 };

@@ -9,10 +9,10 @@ export type McpToolAnnotationLabels = Record<
 >;
 
 export const DEFAULT_MCP_TOOL_ANNOTATION_LABELS: McpToolAnnotationLabels = {
-  'read-only': { label: 'read-only', description: 'Does not modify its environment' },
+  'read-only': { label: 'read-only', description: 'The server says it does not modify anything' },
   destructive: { label: 'destructive', description: 'May delete or overwrite data' },
   idempotent: { label: 'idempotent', description: 'Repeating a call has no extra effect' },
-  'open-world': { label: 'open world', description: 'Reaches external systems' },
+  'open-world': { label: 'open world', description: 'May reach external systems' },
 };
 
 const COLORS: Record<McpToolAnnotationKind, string> = {
@@ -23,7 +23,7 @@ const COLORS: Record<McpToolAnnotationKind, string> = {
 };
 
 export interface McpToolAnnotationBadgesProps {
-  /** Tool annotations from the MCP server, nothing is rendered when none apply */
+  /** Tool annotations from the MCP server; missing hints take the defaults of the MCP specification */
   annotations?: McpToolAnnotations;
   /** Badge labels and tooltip descriptions per annotation kind */
   labels?: McpToolAnnotationLabels;

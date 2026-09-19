@@ -6,7 +6,7 @@ import { AGENT_MODELS, AGENT_SKILLS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDefinition, AgentDraft } from '../types';
 import { AgentsSettingsPanel, type AgentsSettingsPanelProps } from './AgentsSettingsPanel';
 
-export default { title: 'agents/AgentsSettingsPanel' };
+export default { title: 'Agents & skills/AgentsSettingsPanel' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

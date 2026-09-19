@@ -319,7 +319,7 @@
 }
 
 :global(.ae-kit) .switchTrack {
-  --switch-bg: alpha(var(--ae-fg), 0.1);
+  --switch-bg: light-dark(alpha(var(--ae-fg), 0.1), alpha(var(--ae-fg), 0.08));
 }
 
 :global(.ae-kit) .switchThumb {
@@ -426,7 +426,7 @@
 }
 
 :global(.ae-kit) .progress {
-  background-color: alpha(var(--ae-fg), 0.1);
+  background-color: light-dark(alpha(var(--ae-fg), 0.1), alpha(var(--ae-fg), 0.08));
 }
 
 :global(.ae-kit) .kbd {

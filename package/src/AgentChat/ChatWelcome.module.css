@@ -43,6 +43,10 @@
   color: var(--ae-fg);
 }
 
+.hostContent {
+  margin-top: var(--ae-space-md);
+}
+
 .actions {
   margin-top: rem(12px);
   margin-inline: calc(var(--ae-welcome-action-padding) * -1);

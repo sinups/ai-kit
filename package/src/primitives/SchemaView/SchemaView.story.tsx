@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import type { JsonSchema } from './schema';
 import { SchemaView } from './SchemaView';
 
-export default { title: 'primitives/SchemaView' };
+export default { title: 'Primitives/SchemaView' };
 
 const CREATE_ISSUE: JsonSchema = {
   type: 'object',

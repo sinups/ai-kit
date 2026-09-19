@@ -27,8 +27,8 @@ import { createTasks } from "./tasks";
 type ToolCatalog = NonNullable<AgentChatProps["toolCatalog"]>;
 type ToolArgsFormatters = NonNullable<AgentChatProps["toolArgs"]>;
 
-function mcpText(value: unknown) {
-  return { content: [{ type: "text", text: JSON.stringify(value) }] };
+function mcpResult(structuredContent: Record<string, unknown>) {
+  return { content: [{ type: "text", text: JSON.stringify(structuredContent) }], structuredContent };
 }
 
 const CATALOG: ToolCatalog = {
@@ -43,8 +43,30 @@ const CATALOG: ToolCatalog = {
         state: { type: "string", enum: ["open", "closed"] },
       },
     },
+    outputSchema: {
+      type: "object",
+      required: ["issues"],
+      properties: {
+        issues: {
+          type: "array",
+          title: "Issues",
+          items: {
+            type: "object",
+            required: ["key", "title"],
+            properties: { key: { type: "string" }, title: { type: "string" } },
+          },
+        },
+      },
+    },
   },
-  mcp__git__log: { title: "Read the commit log", annotations: { readOnlyHint: true } },
+  mcp__git__log: {
+    title: "Read the commit log",
+    annotations: { readOnlyHint: true },
+    outputSchema: {
+      type: "object",
+      properties: { commits: { type: "array", title: "Commits" } },
+    },
+  },
   mcp__issues__create_issue: { title: "Create an issue", annotations: { destructiveHint: false } },
 };
 
@@ -53,9 +75,8 @@ const ISSUES_PART: ToolPart = {
   toolCallId: "issues",
   state: "output-available",
   input: { assignee: "__me__", state: "open" },
-  output: mcpText({
-    total: 4,
-    items: [
+  output: mcpResult({
+    issues: [
       { key: "PAY-12", title: "Retry refunds after a gateway timeout" },
       { key: "PAY-15", title: "Flaky upload test" },
       { key: "PAY-18", title: "Invoice totals round twice" },
@@ -82,10 +103,12 @@ const TRANSCRIPT: ChatMessage[] = [
         toolCallId: "log",
         state: "output-available",
         input: { branch: "main", since: "today" },
-        output: mcpText([
-          { sha: "4f2a91c", message: "fix(billing): round invoice totals once" },
-          { sha: "b81d0e7", message: "test(upload): retry the flaky upload once" },
-        ]),
+        output: mcpResult({
+          commits: [
+            { sha: "4f2a91c", message: "fix(billing): round invoice totals once" },
+            { sha: "b81d0e7", message: "test(upload): retry the flaky upload once" },
+          ],
+        }),
       },
       {
         type: "text",

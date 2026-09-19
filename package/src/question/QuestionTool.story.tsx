@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import type { QuestionAnswer, QuestionConfig } from './QuestionPrompt';
 import { QuestionTool, QuestionToolPart } from './QuestionTool';
 
-export default { title: 'QuestionTool' };
+export default { title: 'Tools/QuestionTool' };
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (

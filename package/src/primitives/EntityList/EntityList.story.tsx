@@ -6,7 +6,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { EntityList, type EntityListProps } from './EntityList';
 import { EntityListItem } from './EntityListItem';
 
-export default { title: 'primitives/EntityList' };
+export default { title: 'Primitives/EntityList' };
 
 interface Server {
   id: string;

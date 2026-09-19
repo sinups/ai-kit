@@ -107,22 +107,27 @@ export function matchesMcpServerQuery(server: McpServer, query: string): boolean
 
 export type McpToolAnnotationKind = 'read-only' | 'destructive' | 'idempotent' | 'open-world';
 
+/**
+ * Badges of a tool by its annotations and the defaults of the MCP specification: a tool is
+ * read-only only when it says so; otherwise it may be destructive unless `destructiveHint` is
+ * `false`, and idempotent only when `idempotentHint` is `true`. It reaches an open world unless
+ * `openWorldHint` is `false`. Annotations are hints from the server, not guarantees.
+ */
 export function getMcpToolAnnotationKinds(
   annotations: McpToolAnnotations | undefined
 ): McpToolAnnotationKind[] {
-  if (!annotations) {
-    return [];
-  }
   const kinds: McpToolAnnotationKind[] = [];
-  if (annotations.readOnlyHint) {
+  if (annotations?.readOnlyHint === true) {
     kinds.push('read-only');
-  } else if (annotations.destructiveHint) {
-    kinds.push('destructive');
+  } else {
+    if (annotations?.destructiveHint !== false) {
+      kinds.push('destructive');
+    }
+    if (annotations?.idempotentHint === true) {
+      kinds.push('idempotent');
+    }
   }
-  if (annotations.idempotentHint) {
-    kinds.push('idempotent');
-  }
-  if (annotations.openWorldHint) {
+  if (annotations?.openWorldHint !== false) {
     kinds.push('open-world');
   }
   return kinds;

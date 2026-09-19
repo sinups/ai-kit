@@ -5,7 +5,7 @@ import { IconServer } from '@tabler/icons-react';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame';
 import { MasterDetail, type MasterDetailProps } from './MasterDetail';
 
-export default { title: 'primitives/MasterDetail' };
+export default { title: 'Primitives/MasterDetail' };
 
 const SERVERS = Array.from({ length: 24 }, (_, index) => ({
   id: `server-${index + 1}`,

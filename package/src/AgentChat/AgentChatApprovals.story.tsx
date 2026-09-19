@@ -5,7 +5,7 @@ import type { ToolApprovals } from '../approvals/tool-approvals';
 import type { ChatMessage } from '../types';
 import { AgentChat } from './AgentChat';
 
-export default { title: 'AgentChat/Approvals' };
+export default { title: 'Chat/AgentChat/Approvals' };
 
 const CALL_ID = 'call-create-issue';
 

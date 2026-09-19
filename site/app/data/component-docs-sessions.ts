@@ -182,7 +182,7 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Add a toolbar under chat messages: copy for every message, edit and rewind for user messages, retry, branch and thumbs up or down for assistant messages. Pass `messageActions` to `MessageList` to get it on every message: edit swaps the message for `EditMessageComposer`, a thumbs down opens `FeedbackForm`, and actions are hidden while the turn is streaming. Async actions show a loader. With `visibility=\"hover\"` (default) the toolbar appears on hover and focus; touch devices always see it. Use `MessageActions` directly in a custom message renderer.",
+          "Add a toolbar under chat messages: copy for every message, edit and rewind for user messages, retry, branch and thumbs up or down for assistant messages. Pass `messageActions` to `MessageList` to get it on every message: edit swaps the message for `EditMessageComposer`, a thumbs down opens `FeedbackForm`, and actions are hidden while the turn is streaming. Async actions show a loader. With `visibility=\"hover\"` (default) the toolbar appears on hover and focus; touch devices always see it. Use `MessageActions` directly in a custom message renderer. `actions` adds your buttons after the built-in ones, and `MessageActionButton` (`label`, `icon`, `onClick`, `active`, `disabled`) gives them the same look, tooltip and `aria-pressed`; in `MessageList` pass them through `messageActions.actions(messageId, role)`.",
       },
       {
         type: "example",

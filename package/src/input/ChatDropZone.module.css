@@ -1,0 +1,25 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.overlay {
+  border: rem(1px) dashed alpha(var(--ae-fg), 0.25);
+  border-radius: var(--ae-input-radius);
+  background-color: alpha(var(--ae-bg), 0.85);
+  color: var(--ae-fg);
+  pointer-events: none;
+}
+
+.icon {
+  background-color: var(--ae-muted);
+  color: var(--ae-fg-muted);
+}
+
+.hint {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+  color: var(--ae-fg-muted);
+}

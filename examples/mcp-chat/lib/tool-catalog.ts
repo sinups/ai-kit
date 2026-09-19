@@ -2,7 +2,7 @@ import type { McpServer, McpToolDefinition } from '@sinups/ai-kit';
 
 export type ToolCatalogEntry = Pick<
   McpToolDefinition,
-  'title' | 'description' | 'annotations' | 'inputSchema'
+  'title' | 'description' | 'annotations' | 'inputSchema' | 'outputSchema'
 > & {
   /** Server the tool belongs to */
   server: string;
@@ -25,6 +25,7 @@ export function buildToolCatalog(
         description: tool.description,
         annotations: tool.annotations,
         inputSchema: tool.inputSchema,
+        outputSchema: tool.outputSchema,
       };
     }
   }

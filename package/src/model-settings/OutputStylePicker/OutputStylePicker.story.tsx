@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame'
 import { OUTPUT_STYLES } from '../fixtures';
 import { OutputStylePicker } from './OutputStylePicker';
 
-export default { title: 'model-settings/OutputStylePicker' };
+export default { title: 'Settings/OutputStylePicker' };
 
 function Demo() {
   const [value, setValue] = useState('default');

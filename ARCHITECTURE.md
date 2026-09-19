@@ -32,7 +32,7 @@ Folders that start with an underscore are not exported:
 
 - `_stories/`: Storybook helpers (`WidthFrame` for Narrow and Wide stories, `flow-helpers` for
   play functions, a shiki highlighter for stories).
-- `_layouts/`: page recipes shown in Storybook under `layouts/*` (full-page chat, chat with a
+- `_layouts/`: page recipes shown in Storybook under `Layouts/*` (full-page chat, chat with a
   sidebar, chat with an inspector, settings page, new chat, embedded widget).
 - `_demo/`: a complete workspace assembled from the kit, used as an integration story.
 - `primitives/_testing/`: test helpers for primitives.

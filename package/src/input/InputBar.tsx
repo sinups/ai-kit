@@ -75,6 +75,8 @@ export interface InputBarLabels {
   stop: string;
   /** Accessible label of the close button of the info bar, `Close` by default */
   closeInfoBar: string;
+  /** Accessible label of the send button while attachments upload, `Wait for uploads to finish` by default */
+  waitForUploads: string;
   /** Accessible label of the attach button */
   attach: Partial<AttachmentButtonLabels>;
   /** Labels of the staged file and image chips */
@@ -99,6 +101,7 @@ export const DEFAULT_INPUT_BAR_LABELS: InputBarLabels = {
   send: 'Send',
   stop: 'Stop',
   closeInfoBar: 'Close',
+  waitForUploads: 'Wait for uploads to finish',
   attach: {},
   attachment: {},
   question: {},
@@ -123,6 +126,12 @@ export interface InputBarProps {
   attachedFiles?: AttachedFile[];
   onRemoveImage?: (id: string) => void;
   onRemoveFile?: (id: string) => void;
+  /** Stops the upload of a staged image or file */
+  onCancelFile?: (id: string) => void;
+  /** Starts a failed upload of a staged image or file again */
+  onRetryFile?: (id: string) => void;
+  /** Keeps Send off while an attachment has `status: 'uploading'`, `true` by default */
+  blockSendWhileUploading?: boolean;
   onPaste?: (e: React.ClipboardEvent) => void;
   /** Context chips above the text, for example the open document; the host keeps `removed` */
   contextItems?: InputContextItem[];
@@ -232,6 +241,9 @@ export const InputBar = memo(function InputBar({
   attachedFiles = [],
   onRemoveImage,
   onRemoveFile,
+  onCancelFile,
+  onRetryFile,
+  blockSendWhileUploading = true,
   onPaste,
   contextItems = [],
   onRemoveContext,
@@ -295,6 +307,9 @@ export const InputBar = memo(function InputBar({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isStreaming = status === 'streaming' || status === 'submitted';
+  const waitingForUploads =
+    blockSendWhileUploading &&
+    [...attachedImages, ...attachedFiles].some((item) => item.status === 'uploading');
   const isTyping = typingAnimation?.isActive ?? false;
 
   const { displayedText, showImage } = useInputTyping(
@@ -331,7 +346,7 @@ export const InputBar = memo(function InputBar({
   }, []);
 
   const handleSubmit = useCallback(() => {
-    if (!input.trim() || disabled) {
+    if (!input.trim() || disabled || waitingForUploads) {
       return;
     }
     const content = expandPastedText(input, activePastes, labels.pastedText).trim();
@@ -352,6 +367,7 @@ export const InputBar = memo(function InputBar({
     labels.pastedText,
     isStreaming,
     disabled,
+    waitingForUploads,
     onSend,
     onQueue,
     setInput,
@@ -799,7 +815,7 @@ export const InputBar = memo(function InputBar({
   let sendState: 'idle' | 'typing' | 'streaming' = 'idle';
   if (isStreaming) {
     sendState = 'streaming';
-  } else if (hasInput && !disabled) {
+  } else if (hasInput && !disabled && !waitingForUploads) {
     sendState = 'typing';
   }
 
@@ -859,6 +875,11 @@ export const InputBar = memo(function InputBar({
                             display="image-only"
                             enableImagePreview={enableImagePreview}
                             labels={labels.attachment}
+                            status={img.status}
+                            progress={img.progress}
+                            error={img.error}
+                            onCancel={onCancelFile && (() => onCancelFile(img.id))}
+                            onRetry={onRetryFile && (() => onRetryFile(img.id))}
                             onRemove={onRemoveImage ? () => onRemoveImage(img.id) : undefined}
                           />
                         ))}
@@ -869,6 +890,11 @@ export const InputBar = memo(function InputBar({
                             filename={file.filename}
                             size={file.size}
                             labels={labels.attachment}
+                            status={file.status}
+                            progress={file.progress}
+                            error={file.error}
+                            onCancel={onCancelFile && (() => onCancelFile(file.id))}
+                            onRetry={onRetryFile && (() => onRetryFile(file.id))}
                             onRemove={onRemoveFile ? () => onRemoveFile(file.id) : undefined}
                           />
                         ))}
@@ -946,7 +972,13 @@ export const InputBar = memo(function InputBar({
                     {rightActions}
                     <UnstyledButton
                       className={classes.sendWrap}
-                      aria-label={isStreaming ? labels.stop : labels.send}
+                      aria-label={
+                        isStreaming
+                          ? labels.stop
+                          : waitingForUploads
+                            ? labels.waitForUploads
+                            : labels.send
+                      }
                       onClick={() => {
                         if (isStreaming) {
                           onStop();

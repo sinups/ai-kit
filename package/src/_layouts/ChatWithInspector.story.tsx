@@ -2,7 +2,7 @@ import React from 'react';
 import { ChatWithInspector } from './ChatWithInspector';
 import { DesktopViewport, MobileViewport } from './shared';
 
-export default { title: 'layouts/ChatWithInspector', parameters: { layout: 'fullscreen' } };
+export default { title: 'Layouts/ChatWithInspector', parameters: { layout: 'fullscreen' } };
 
 export function Desktop() {
   return (

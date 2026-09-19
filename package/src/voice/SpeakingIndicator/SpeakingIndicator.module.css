@@ -1,0 +1,13 @@
+.root {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.line {
+  min-width: 0;
+}
+
+.caption {
+  font-size: var(--ae-font-size-xs);
+  line-height: var(--ae-line-height-xs);
+}

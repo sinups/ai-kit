@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { PERMISSION_TOOLS_FIXTURE } from './fixtures';
 import { PermissionRuleInput, type PermissionRuleInputProps } from './PermissionRuleInput';
 
-export default { title: 'permissions/PermissionRuleInput' };
+export default { title: 'Permissions & hooks/PermissionRuleInput' };
 
 function Field(props: Partial<PermissionRuleInputProps>) {
   const [value, setValue] = useState(props.value ?? '');

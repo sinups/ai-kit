@@ -10,6 +10,7 @@ import {
   TASKS_COMPONENT_DOCS,
 } from '@/app/data/component-docs-workspace';
 import { CHAT_EXTRA_COMPONENT_DOCS } from '@/app/data/component-docs-chat';
+import { COMPOSER_COMPONENT_DOCS } from '@/app/data/component-docs-composer';
 import { CONFIG_EXTRA_COMPONENT_DOCS } from '@/app/data/component-docs-config';
 import { PRIMITIVE_COMPONENT_DOCS } from '@/app/data/component-docs-primitives';
 import {
@@ -64,6 +65,14 @@ export const COMPONENT_IMPORT_PATH: Record<string, string> = {
   SendButton: '@sinups/ai-kit',
   AttachmentButton: '@sinups/ai-kit',
   FileAttachment: '@sinups/ai-kit',
+  ChatDropZone: '@sinups/ai-kit',
+  CommandToggles: '@sinups/ai-kit',
+  StarterCategories: '@sinups/ai-kit',
+  MediaPart: '@sinups/ai-kit',
+  ArtifactPanel: '@sinups/ai-kit',
+  MicButton: '@sinups/ai-kit',
+  VoiceLevel: '@sinups/ai-kit',
+  SpeakingIndicator: '@sinups/ai-kit',
   TextShimmer: '@sinups/ai-kit',
   SpiralLoader: '@sinups/ai-kit',
   BashTool: '@sinups/ai-kit',
@@ -300,7 +309,7 @@ export function Example() {
         type: 'usage',
         title: 'Tool catalog and formatters',
         content:
-          "`toolCatalog` takes the tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`; the full part type and the bare tool name also match. Each entry is `title`, `description`, `annotations` and `inputSchema`: a call then reads by the tool title instead of its name, and its arguments by the schema. `toolArgs` and `toolOutputs` format the arguments line and the result of a call. They are keyed like `toolRenderers`, by the full part type or a server-wide `tool-mcp__<server>__*`, and return `null` to keep the summary the kit builds. A formatter receives the part and a context with `state`, `summary` and `locale`, plus `args` and `schema` for arguments, or `output` and `labels` for results. `locale` formats numbers and dates in arguments and results; the runtime locale is the default.",
+          "`toolCatalog` takes the tool definitions of the connected MCP servers keyed by `mcp__<server>__<tool>`; the full part type and the bare tool name also match. Each entry is the `Tool` of the MCP specification (https://modelcontextprotocol.io/specification): `title`, `description`, `annotations`, `inputSchema` and `outputSchema`. A call then reads by the tool title instead of its name, its arguments by the order, titles and formats of `inputSchema` (a string argument stays a string), and its result strictly by the `CallToolResult`: `structuredContent` by `outputSchema` (an array is counted only when the schema declares one, dates are dates only by `format`), else no inline summary: a result of text alone shows only when the call is opened, as it is, never parsed as JSON (give it a summary with `toolOutputs`); image and audio blocks show as a preview and a player, `resource_link` and `resource` as file chips, `isError` as a failure. The result may arrive as the `CallToolResult` object or as its bare array of content blocks. `toolArgs` and `toolOutputs` format the arguments line and the result of a call. They are keyed like `toolRenderers`, by the full part type or a server-wide `tool-mcp__<server>__*`, and return `null` to keep the summary the kit builds. A formatter receives the part and a context with `state`, `summary` and `locale`, plus `args` and `schema` for arguments, or `output`, `result`, `schema` and `labels` for results. `result` is the `CallToolResult` and the recommended input; `output` keeps the value 0.3 gave: the text of the content, parsed when it holds JSON. `locale` formats numbers and dates; the runtime locale is the default.",
       },
       {
         type: 'example',
@@ -431,6 +440,12 @@ export function Example() {
         title: 'Presentation and tool context',
         content:
           "`MessageList` takes the same transcript props as `AgentChat`: `presentation` (`'cards'`, `rowsPresentation` or `quietPresentation`), `toolCatalog`, `toolArgs`, `toolOutputs`, `locale`, `evenSpacing`, `workingRow`, `toolActivity`, `animateAppearance`, `frameBatched` and `withSearch`. The defaults differ: `AgentChat` turns on `frameBatched`, `animateAppearance`, `workingRow` and `toolActivity`, while a standalone `MessageList` keeps all four off until you pass `true`. Its own `labels` cover the list: `working`, `planning`, `search`, `toolRuns` and the message toolbar. The rows inside a standalone list read their labels from `ChatLabelsProvider` and their approvals from `ToolApprovalsProvider`; `AgentChat` sets up both from its `labels` and `approvals`.",
+      },
+      {
+        type: 'usage',
+        title: 'Custom parts, scrolling and screen readers',
+        content:
+          "`partRenderers` renders part types the list does not know, keyed by `part.type`; each renderer gets `part`, `messageId`, `index` and `chatStatus`, and a part without one stays hidden. Create the object once, outside the component or with `useMemo`: a new object on every render re-renders finished messages, and the list warns about it in development. `sendScroll=\"prompt-top\"` puts a sent question at the top and grows the answer under it, `streamingCaret` shows a caret after the growing text, and `lazyTurns` (a turn count, `true` means 50) skips layout and paint of finished turns out of view with `content-visibility`. All three are off by default in `MessageList` and `AgentChat`. The list is a `log` with `aria-busy` while an answer streams; `labels.answerReady`, `labels.answerFailed` or, after `stopped`, `labels.answerStopped` is announced once when it ends; `AgentChat` sets `stopped` from its stop button. `messageActions.actions` adds host buttons to the toolbar of each message, usually `MessageActionButton`.",
       },
       {
         type: 'example',
@@ -952,6 +967,12 @@ export function Example() {
           'Render streaming markdown with headings, lists, tables, blockquotes, and code fences. External links get safe target/rel handling.',
       },
       {
+        type: 'usage',
+        title: 'Links and caret',
+        content:
+          'Links render as links, except `javascript:`, `vbscript:`, `data:`, `blob:` and `file:` ones, which render as text. `onLinkClick(href, event)` sees every click, and `linkSchemes` names your own schemes such as `artifact:`: such a link never navigates and only reaches `onLinkClick`. Wrap a chat in `MarkdownLinksProvider` to set both for every answer. `streamingCaret` shows a caret after the growing text while `streaming`.',
+      },
+      {
         type: 'example',
         title: 'Release note snippet',
         previewId: 'Markdown/release',
@@ -1162,7 +1183,15 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Render a file/image chip. Use isImage + url for thumbnails, display="image-only" for previews, and onRemove to show the close control.',
+          'Render a file/image chip. Use isImage + url for thumbnails, display="image-only" for previews, and onRemove to show the close control. While you upload, pass `status="uploading"` with `progress` from 0 to 100 (a bar in the chip, a ring over a thumbnail; without `progress` the bar animates, the thumbnail shows a loader and neither reports a value) and `onCancel`, which the × button then calls instead of `onRemove`. After a failure pass `status="error"` with `error` and `onRetry`; screen readers hear the failure once. In `InputBar` the same fields go on `attachedFiles` and `attachedImages`, with `onCancelFile` and `onRetryFile`; Send stays off while anything uploads (`blockSendWhileUploading`) and says `labels.waitForUploads`. The kit never uploads: the network is yours.',
+      },
+      {
+        type: 'example',
+        title: 'Upload states',
+        previewId: 'FileAttachment/uploads',
+        code: `<FileAttachment id="1" filename="dataset.csv" status="uploading" progress={64} onCancel={cancel} />
+<FileAttachment id="2" filename="recording.m4a" status="uploading" onCancel={cancel} />
+<FileAttachment id="3" filename="archive.zip" status="error" error="The file is larger than 20 MB" onRetry={retry} onRemove={remove} />`,
       },
       {
         type: 'example',
@@ -2528,4 +2557,5 @@ export function Example() {
   ...HELP_COMPONENT_DOCS,
   ...CHAT_EXTRA_COMPONENT_DOCS,
   ...CONFIG_EXTRA_COMPONENT_DOCS,
+  ...COMPOSER_COMPONENT_DOCS,
 ];

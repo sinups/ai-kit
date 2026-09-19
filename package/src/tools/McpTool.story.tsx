@@ -4,7 +4,7 @@ import { McpTool } from './McpTool';
 import { ToolRenderer } from './ToolRenderer';
 import { parseMcpToolType } from './tool-registry';
 
-export default { title: 'tools/McpTool' };
+export default { title: 'Tools/McpTool' };
 
 const info = parseMcpToolType('tool-mcp__tracker__search_tasks')!;
 

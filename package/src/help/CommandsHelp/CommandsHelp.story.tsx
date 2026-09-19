@@ -8,7 +8,7 @@ import { HELP_COMMANDS, HELP_SHORTCUTS } from '../fixtures';
 import type { CommandHelpItem } from '../types';
 import { CommandsHelp } from './CommandsHelp';
 
-export default { title: 'help/CommandsHelp' };
+export default { title: 'Settings/CommandsHelp' };
 
 function Demo() {
   return <CommandsHelp commands={HELP_COMMANDS} shortcuts={HELP_SHORTCUTS} />;

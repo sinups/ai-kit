@@ -5,7 +5,7 @@ import { createToolCallLookups } from './tool-call-state';
 import { ToolRenderer } from './ToolRenderer';
 import { bashPart, editPart, NESTED_TOOLS } from './_story-helpers';
 
-export default { title: 'tools/ToolRenderer' };
+export default { title: 'Tools/ToolRenderer' };
 
 function WeatherCard({ name, input, output, status }: CustomToolRendererProps) {
   return (

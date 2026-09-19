@@ -6,7 +6,7 @@ import { wait } from '../_story-helpers';
 import type { MessageFeedbackValue } from '../types';
 import { MessageActions } from './MessageActions';
 
-export default { title: 'message-actions/MessageActions' };
+export default { title: 'Messages/MessageActions' };
 
 function Demo({ visibility = 'always' }: { visibility?: 'hover' | 'always' }) {
   const [log, setLog] = useState<string[]>([]);

@@ -2,7 +2,13 @@ import React, { memo, useState } from 'react';
 import { Box, UnstyledButton } from '@mantine/core';
 import type { ChatMessage } from '../types';
 import { cx } from '../utils/cx';
-import { isRecord, isTextPart } from '../utils/parts';
+import {
+  getFileFromPart,
+  getImageUrlFromPart,
+  getPartFilename,
+  imageAltFromName,
+} from '../utils/file-parts';
+import { isTextPart } from '../utils/parts';
 import { FileAttachment } from '../input/FileAttachment';
 import { ImageLightbox } from '../ImageLightbox/ImageLightbox';
 import { CommandChip } from '../message-actions/CommandChip/CommandChip';
@@ -32,6 +38,10 @@ export interface UserMessageLabels {
   showFull: (hidden: { lines: number; chars: number }) => string;
   /** Collapse button, `Show less` by default */
   showLess: string;
+  /** Accessible label of an attached image that opens the preview, `Open image preview` by default */
+  openImage: string;
+  /** Alternative text of an attached image, gets the file name or an empty string, `attachment` without a name */
+  imageAlt: (name: string) => string;
 }
 
 export const DEFAULT_USER_MESSAGE_LABELS: UserMessageLabels = {
@@ -40,75 +50,9 @@ export const DEFAULT_USER_MESSAGE_LABELS: UserMessageLabels = {
       ? `Show full message (${lines} more ${lines === 1 ? 'line' : 'lines'})`
       : `Show full message (${chars.toLocaleString('en-US')} more characters)`,
   showLess: 'Show less',
+  openImage: 'Open image preview',
+  imageAlt: imageAltFromName,
 };
-
-function getMimeType(part: Record<string, unknown>): string | undefined {
-  const mime = part.mediaType ?? part.mimeType;
-  return typeof mime === 'string' ? mime : undefined;
-}
-
-function getImageUrlFromPart(part: unknown): string | null {
-  if (!isRecord(part)) {
-    return null;
-  }
-  const type = part.type;
-  if (typeof type !== 'string') {
-    return null;
-  }
-
-  if (type === 'image') {
-    const imagePart = part as { url?: string; image?: string };
-    return imagePart.url ?? imagePart.image ?? null;
-  }
-
-  if (type === 'data-image') {
-    const dataPart = part as { data?: { url?: string } };
-    return dataPart.data?.url ?? null;
-  }
-
-  if (type === 'file') {
-    const mimeType = getMimeType(part);
-    const filePart = part as { url?: string; data?: string };
-    if (mimeType?.startsWith('image/')) {
-      if (filePart.url) {
-        return filePart.url;
-      }
-      if (filePart.data) {
-        return `data:${mimeType};base64,${filePart.data}`;
-      }
-    }
-  }
-
-  return null;
-}
-
-type FilePartLike = {
-  type: 'file';
-  filename?: string;
-  name?: string;
-  fileName?: string;
-  size?: number;
-  url?: string;
-};
-
-function getFileFromPart(part: unknown) {
-  if (!isRecord(part)) {
-    return null;
-  }
-  if (part.type !== 'file') {
-    return null;
-  }
-  const filePart = part as FilePartLike;
-  const filename = filePart.filename || filePart.name || filePart.fileName || 'Attachment';
-  const isImage = getMimeType(part)?.startsWith('image/') ?? false;
-  if (isImage) {
-    return null;
-  }
-  return {
-    filename,
-    size: filePart.size,
-  };
-}
 
 /** Right-aligned user bubble with optional image thumbnails and file attachments */
 export const UserMessage = memo(function UserMessage({
@@ -125,16 +69,16 @@ export const UserMessage = memo(function UserMessage({
   const textParts = message.parts?.filter(isTextPart) ?? [];
   const text = textParts.map((p) => p.text).join('');
 
-  const images: string[] = [];
+  const images: Array<{ url: string; name: string }> = [];
   const files: Array<{ filename: string; size?: number }> = [];
   for (const part of message.parts ?? []) {
     const imageUrl = getImageUrlFromPart(part);
     if (imageUrl) {
-      images.push(imageUrl);
+      images.push({ url: imageUrl, name: getPartFilename(part) });
     }
     const file = getFileFromPart(part);
-    if (file) {
-      files.push(file);
+    if (file && !file.mediaType?.startsWith('image/')) {
+      files.push({ filename: file.filename, size: file.size });
     }
   }
   if (Array.isArray(message.experimental_attachments)) {
@@ -143,7 +87,7 @@ export const UserMessage = memo(function UserMessage({
       url?: string;
     }>) {
       if (att.contentType?.startsWith('image/') && att.url) {
-        images.push(att.url);
+        images.push({ url: att.url, name: getPartFilename(att) });
       }
     }
   }
@@ -158,29 +102,29 @@ export const UserMessage = memo(function UserMessage({
     return null;
   }
 
-  const lightboxImages = images.map((url, i) => ({
+  const lightboxImages = images.map(({ url, name }, i) => ({
     id: `${message.id}-img-${i}`,
     url,
-    filename: `image-${i + 1}`,
+    filename: name || `image-${i + 1}`,
   }));
 
   return (
     <Box className={cx(classes.root, className)}>
       {images.length > 0 &&
-        images.map((url, i) =>
+        images.map(({ url, name }, i) =>
           enableImagePreview ? (
             <UnstyledButton
               key={i}
               className={classes.imageFrame}
               data-clickable
-              aria-label="Open image preview"
+              aria-label={labels.openImage}
               onClick={() => setLightboxIndex(i)}
             >
-              <img src={url} alt="attachment" className={classes.image} />
+              <img src={url} alt={labels.imageAlt(name)} className={classes.image} />
             </UnstyledButton>
           ) : (
             <div key={i} className={classes.imageFrame}>
-              <img src={url} alt="attachment" className={classes.image} />
+              <img src={url} alt={labels.imageAlt(name)} className={classes.image} />
             </div>
           )
         )}

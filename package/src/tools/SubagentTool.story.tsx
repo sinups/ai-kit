@@ -3,7 +3,7 @@ import { Stack } from '@mantine/core';
 import { SubagentTool } from './SubagentTool';
 import { NESTED_TOOLS } from './_story-helpers';
 
-export default { title: 'tools/SubagentTool' };
+export default { title: 'Tools/SubagentTool' };
 
 export function Usage() {
   return (

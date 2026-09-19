@@ -10,7 +10,7 @@ import type { AiKitThemeSettings } from './ai-kit-settings';
 import { AiKitProvider, useAiKitTheme } from './AiKitProvider';
 import { AiKitThemeCustomizer } from './AiKitThemeCustomizer';
 
-export default { title: 'theme/ThemeCustomizer' };
+export default { title: 'Settings/ThemeCustomizer' };
 
 const MESSAGE: ChatMessage = {
   id: 'theme-user',

@@ -10,7 +10,7 @@ import {
 } from './feed-fixtures';
 import { MessageList } from './MessageList';
 
-export default { title: 'MessageList/Feed' };
+export default { title: 'Chat/MessageList/Feed' };
 
 function Frame({
   width,

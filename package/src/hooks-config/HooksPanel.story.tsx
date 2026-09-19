@@ -6,7 +6,7 @@ import { HOOK_TOOLS, HOOKS_FIXTURE } from './fixtures';
 import { HooksPanel, type HooksPanelProps } from './HooksPanel';
 import type { HookConfig } from './types';
 
-export default { title: 'hooks-config/HooksPanel' };
+export default { title: 'Permissions & hooks/HooksPanel' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

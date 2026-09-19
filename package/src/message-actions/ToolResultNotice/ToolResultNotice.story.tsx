@@ -4,7 +4,7 @@ import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../../_stories/WidthFrame';
 import { ToolResultNotice } from './ToolResultNotice';
 
-export default { title: 'message-actions/ToolResultNotice' };
+export default { title: 'Messages/ToolResultNotice' };
 
 function Demo() {
   return (

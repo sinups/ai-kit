@@ -63,6 +63,11 @@ export default function Page() {
   );
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [contextRemoved, setContextRemoved] = useState(false);
+  const [classicStream, setClassicStream] = useState(false);
+
+  useEffect(() => {
+    setClassicStream(new URLSearchParams(window.location.search).has('classic'));
+  }, []);
 
   const loadServers = useCallback(async (refresh = false) => {
     setLoadingServers(true);
@@ -299,6 +304,9 @@ export default function Page() {
             locale={t.locale}
             evenSpacing
             presentation={quietPresentation}
+            sendScroll={classicStream ? 'bottom' : 'prompt-top'}
+            streamingCaret={!classicStream}
+            lazyTurns={!classicStream}
             labels={t.kit?.chat}
             suggestions={welcomeSuggestions(t, connected)}
             withSearch

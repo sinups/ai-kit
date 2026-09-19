@@ -4,7 +4,7 @@ import { Paper, Stack } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ShellOutput } from './ShellOutput';
 
-export default { title: 'tools/ShellOutput' };
+export default { title: 'Tools/ShellOutput' };
 
 const JEST = [
   '\x1b[1m\x1b[32m PASS \x1b[39m\x1b[22m src/billing/tax.test.ts (2.1 s)',

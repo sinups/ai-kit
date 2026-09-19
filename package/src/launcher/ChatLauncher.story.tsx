@@ -19,7 +19,7 @@ import type { ChatMessage } from '../types';
 import { ChatLauncher, type ChatLauncherProps } from './ChatLauncher';
 import { mountChatLauncher } from './mount-chat-launcher';
 
-export default { title: 'launcher/ChatLauncher', parameters: { layout: 'fullscreen' } };
+export default { title: 'Settings/ChatLauncher', parameters: { layout: 'fullscreen' } };
 
 const MOBILE_VIEWPORT = {
   viewport: {
@@ -97,7 +97,7 @@ function HostPage({ children }: { children?: React.ReactNode }) {
   );
 }
 
-export function Closed() {
+export function Usage() {
   return <Launcher />;
 }
 

@@ -3,7 +3,7 @@ import { expect, userEvent, waitFor, within } from '@storybook/test';
 import type { ChatMessage } from '../types';
 import { UserMessage } from './UserMessage';
 
-export default { title: 'UserMessage' };
+export default { title: 'Messages/UserMessage' };
 
 const IMAGE_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="320" height="200" fill="royalblue"/><circle cx="160" cy="100" r="60" fill="white"/></svg>'

@@ -553,24 +553,17 @@ describe('AgentChat/AgentChat', () => {
             type: 'tool-mcp__tracker__tracker_task_search',
             toolCallId: 'mine',
             state: 'output-available',
-            input: { payload: JSON.stringify({ assigneeIds: ['alice'], size: 100 }) },
+            input: { assigneeIds: ['alice'], size: 100 },
             output: {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify({
-                    total: 12,
-                    items: [{ id: 'TRK-400', title: 'Перенести сборку' }],
-                  }),
-                },
-              ],
+              content: [{ type: 'text', text: '1 issue' }],
+              structuredContent: [{ id: 'TRK-400', title: 'Перенести сборку' }],
             },
           },
           {
             type: 'tool-mcp__tracker__tracker_task_update',
             toolCallId: 'move',
             state: 'input-available',
-            input: { payload: JSON.stringify({ taskId: 'TRK-400' }) },
+            input: { taskId: 'TRK-400' },
           },
         ],
       },
@@ -585,7 +578,17 @@ describe('AgentChat/AgentChat', () => {
           onStop={() => {}}
           slots={{ InputBar: StubInputBar }}
           toolCatalog={{
-            mcp__tracker__tracker_task_search: { title: 'Найти задачи по условиям' },
+            mcp__tracker__tracker_task_search: {
+              title: 'Найти задачи по условиям',
+              outputSchema: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['id', 'title'],
+                  properties: { id: { type: 'string' }, title: { type: 'string' } },
+                },
+              },
+            },
             mcp__tracker__tracker_task_update: { title: 'Изменить задачу' },
           }}
           approvals={{ move: { onApprove: () => {} } }}
@@ -594,7 +597,7 @@ describe('AgentChat/AgentChat', () => {
 
       expect(screen.getByText('Найти задачи по условиям')).toBeInTheDocument();
       expect(screen.getByText('assigneeIds: alice · size: 100')).toBeInTheDocument();
-      expect(screen.getByText('12 items')).toBeInTheDocument();
+      expect(screen.getByText('1 item')).toBeInTheDocument();
       expect(screen.getByText('TRK-400 · Перенести сборку')).toBeInTheDocument();
       expect(screen.getByText('Изменить задачу')).toBeInTheDocument();
       expect(container.querySelector('[data-framed]')).toBeInTheDocument();

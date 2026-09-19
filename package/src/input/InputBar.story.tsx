@@ -17,7 +17,7 @@ import { ModelPicker } from './ModelPicker';
 import { ModeSelector, ModeOption } from './ModeSelector';
 import type { CompletionItem, CompletionSource } from './use-completion-items';
 
-export default { title: 'InputBar' };
+export default { title: 'Input/InputBar' };
 
 const IMAGE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="steelblue"/><circle cx="100" cy="100" r="60" fill="white"/></svg>';
@@ -74,7 +74,7 @@ function useLog() {
   return { lines, onLog };
 }
 
-export function Idle() {
+export function Usage() {
   const { lines, onLog } = useLog();
   return (
     <Frame>
@@ -571,7 +571,7 @@ function ContextDemo(args: FlowArgs) {
   );
 }
 
-export const Context = {
+export const ContextFlow = {
   args: { onSend: fn(), onStop: fn(), onRemoveContext: fn(), onRestoreContext: fn() },
   render: (args: FlowArgs) => <ContextDemo {...args} />,
   play: async ({ canvasElement, args }: FlowContext) => {

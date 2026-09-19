@@ -7,7 +7,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { MCP_SERVERS } from './fixtures';
 import { McpServerList, type McpServerListProps } from './McpServerList';
 
-export default { title: 'mcp/McpServerList' };
+export default { title: 'MCP/McpServerList' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

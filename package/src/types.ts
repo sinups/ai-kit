@@ -8,7 +8,7 @@ import type { SyntaxHighlighter } from './utils/highlighter';
 import type { LongTextThreshold } from './UserMessage/long-text';
 import type { MarkdownTailGranularity } from './Markdown/Markdown';
 import type { ToolCallLookups, ToolCallState } from './tools/tool-call-state';
-import type { ToolOutputFormatters } from './rows/tool-output';
+import type { CallToolResult, ToolOutputFormatters } from './rows/tool-output';
 import type { TranscriptPresentation } from './MessageList/transcript-presentation';
 import type { ToolArgsFormatters } from './tools/tool-args';
 import type { ToolCatalog } from './tools/tool-presentation';
@@ -139,6 +139,8 @@ export type FilePart = {
   filename?: string;
   name?: string;
   size?: number;
+  /** `http(s)` address of WebVTT captions for an audio or video file */
+  captions?: string;
 };
 
 /** Any message part. Unknown part types are ignored by the renderer. */
@@ -186,7 +188,15 @@ export type CustomToolRendererProps = {
   /** Tool name: `Name` for `tool-Name` parts, the MCP tool name for `mcp__user-tools__<name>` */
   name: string;
   input: Record<string, unknown>;
+  /**
+   * Legacy value kept from 0.3: for an MCP tool the text of its content, parsed when it holds JSON;
+   * the output as it is for other tools. Prefer `result`.
+   */
   output: unknown | undefined;
+  /** The MCP `CallToolResult` of the call, when the output is one; the recommended input */
+  result?: CallToolResult;
+  /** `structuredContent` of `result`, when the server sent one */
+  structuredContent?: unknown;
   status: 'pending' | 'streaming' | 'success' | 'error';
   /** State derived from the transcript: adds `queued`, `awaiting-permission` and `rejected` to `status` */
   callState?: ToolCallState;
@@ -197,6 +207,24 @@ export type CustomToolRendererProps = {
   /** Reports an action to `onToolAction` of `MessageList` or `AgentChat` with this call's id */
   onAction?: (action: string, payload?: unknown) => void;
 };
+
+/** Props a renderer of a custom part type receives from `partRenderers` */
+export type PartRendererProps<P = { type: string; [key: string]: unknown }> = {
+  /** The part itself */
+  part: P;
+  /** Id of the message the part belongs to */
+  messageId: string;
+  /** Position of the part in `parts` */
+  index: number;
+  /** `streaming` while the message grows, `ready` after it */
+  chatStatus?: 'streaming' | 'ready';
+};
+
+/** Renderers of part types the list does not know, keyed by `part.type` */
+export type PartRenderers = Record<string, React.ComponentType<PartRendererProps<any>>>;
+
+/** Where the list scrolls when the user sends: to the bottom, or the question to the top */
+export type SendScroll = 'bottom' | 'prompt-top';
 
 export type ToolRendererSlotProps = {
   part: ToolPart;
@@ -232,14 +260,24 @@ export type ModelOption = {
   version?: string;
 };
 
-export type AttachedImage = {
+/** Upload state of a staged attachment; the host uploads, the kit only shows it */
+export type AttachmentUpload = {
+  /** `uploading` shows progress and blocks sending, `error` offers a retry, `done` by default */
+  status?: 'uploading' | 'done' | 'error';
+  /** Upload progress from 0 to 100; an unknown amount animates while `uploading` */
+  progress?: number;
+  /** Why the upload failed, shown for `error` */
+  error?: string;
+};
+
+export type AttachedImage = AttachmentUpload & {
   id: string;
   filename: string;
   url: string;
   size?: number;
 };
 
-export type AttachedFile = {
+export type AttachedFile = AttachmentUpload & {
   id: string;
   filename: string;
   size?: number;
@@ -258,6 +296,8 @@ export type AgentChatEmptyState = {
   title?: React.ReactNode;
   /** Text under the greeting */
   description?: React.ReactNode;
+  /** Host content under the greeting, in both layouts, for example `StarterCategories` */
+  content?: React.ReactNode;
   /** Starter actions listed under the greeting, `welcome` layout only */
   actions?: ChatWelcomeAction[];
   /**
@@ -280,6 +320,18 @@ export type AgentChatProps = {
   classNames?: Partial<ChatClassNames>;
   slots?: Partial<ChatSlots>;
   toolRenderers?: Record<string, React.ComponentType<CustomToolRendererProps>>;
+  /** Renderers of part types the list does not know, keyed by `part.type`; parts without one stay hidden */
+  partRenderers?: PartRenderers;
+  /** Controlled composer text; the chat keeps its own draft when omitted */
+  draft?: string;
+  /** Called on every composer change, including clearing after send */
+  onDraftChange?: (draft: string) => void;
+  /** Where the list scrolls when the user sends, `bottom` by default; `prompt-top` puts the question at the top and grows the answer under it */
+  sendScroll?: SendScroll;
+  /** Shows a caret after the growing text while streaming, `false` by default */
+  streamingCaret?: boolean;
+  /** Skips layout and paint of finished turns outside the viewport, `false` by default; a number is the turn count it starts from, `true` means 50 */
+  lazyTurns?: boolean | number;
 
   /** Attachment configuration */
   attachments?: {
@@ -288,6 +340,12 @@ export type AgentChatProps = {
     files?: AttachedFile[];
     onRemoveImage?: (id: string) => void;
     onRemoveFile?: (id: string) => void;
+    /** Stops the upload of a staged image or file */
+    onCancelFile?: (id: string) => void;
+    /** Starts a failed upload of a staged image or file again */
+    onRetryFile?: (id: string) => void;
+    /** Keeps Send off while an attachment uploads, `true` by default */
+    blockSendWhileUploading?: boolean;
     onPaste?: (e: React.ClipboardEvent) => void;
     isDragOver?: boolean;
   };

@@ -5,7 +5,7 @@ import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { skills } from './fixtures';
 import { SkillPicker } from './SkillPicker';
 
-export default { title: 'skills/SkillPicker' };
+export default { title: 'Agents & skills/SkillPicker' };
 
 function Demo() {
   const [value, setValue] = useState<string[]>(['pdf', 'code-review']);

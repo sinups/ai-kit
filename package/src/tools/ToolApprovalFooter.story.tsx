@@ -4,7 +4,7 @@ import { Box, Paper, Stack, Text } from '@mantine/core';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { ToolApprovalFooter } from './ToolApprovalFooter';
 
-export default { title: 'tools/ToolApprovalFooter' };
+export default { title: 'Tools/ToolApprovalFooter' };
 
 function Frame({ children }: { children: React.ReactNode }) {
   return (

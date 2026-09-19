@@ -108,11 +108,20 @@ describe('mcp/mcp-server server filters', () => {
 });
 
 describe('mcp/getMcpToolAnnotationKinds', () => {
-  it('lists explicit hints, read-only wins over destructive', () => {
-    expect(getMcpToolAnnotationKinds(undefined)).toEqual([]);
-    expect(getMcpToolAnnotationKinds({ readOnlyHint: true, destructiveHint: true })).toEqual([
+  it('applies the defaults of the MCP specification to missing hints', () => {
+    expect(getMcpToolAnnotationKinds(undefined)).toEqual(['destructive', 'open-world']);
+    expect(getMcpToolAnnotationKinds({})).toEqual(['destructive', 'open-world']);
+    expect(getMcpToolAnnotationKinds({ destructiveHint: false, openWorldHint: false })).toEqual([]);
+    expect(getMcpToolAnnotationKinds({ readOnlyHint: true, idempotentHint: true })).toEqual([
       'read-only',
+      'open-world',
     ]);
+  });
+
+  it('lists explicit hints, read-only wins over destructive', () => {
+    expect(
+      getMcpToolAnnotationKinds({ readOnlyHint: true, destructiveHint: true, openWorldHint: false })
+    ).toEqual(['read-only']);
     expect(
       getMcpToolAnnotationKinds({
         destructiveHint: true,

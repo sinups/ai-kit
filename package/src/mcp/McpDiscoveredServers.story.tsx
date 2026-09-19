@@ -7,7 +7,7 @@ import { DISCOVERED_SERVERS } from './discovery-fixtures';
 import { McpDiscoveredServers } from './McpDiscoveredServers';
 import type { McpDiscoveredServer } from './types';
 
-export default { title: 'mcp/McpDiscoveredServers' };
+export default { title: 'MCP/McpDiscoveredServers' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

@@ -6,7 +6,7 @@ import { AGENT_MODELS, AGENT_SKILLS, AGENTS, TOOL_CATALOG } from '../fixtures';
 import type { AgentDraft } from '../types';
 import { AgentEditor, type AgentEditorProps } from './AgentEditor';
 
-export default { title: 'agents/AgentEditor' };
+export default { title: 'Agents & skills/AgentEditor' };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const NAMES = AGENTS.map((agent) => agent.name);

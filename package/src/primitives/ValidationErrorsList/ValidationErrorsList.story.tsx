@@ -6,7 +6,7 @@ import { InvalidSettingsNotice } from './InvalidSettingsNotice';
 import type { SettingsValidationError } from './validation-errors';
 import { ValidationErrorsList } from './ValidationErrorsList';
 
-export default { title: 'primitives/ValidationErrorsList' };
+export default { title: 'Primitives/ValidationErrorsList' };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

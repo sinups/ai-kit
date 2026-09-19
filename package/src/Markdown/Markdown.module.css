@@ -167,3 +167,19 @@
   border-radius: var(--mantine-radius-sm);
   padding: rem(1px) rem(4px);
 }
+
+.root[data-caret] > :last-child:is(p, h1, h2, h3, h4, h5, h6)::after,
+.root[data-caret] > :last-child:is(ul, ol) > li:last-child::after {
+  content: '';
+  display: inline-block;
+  width: rem(2px);
+  height: 1em;
+  margin-inline-start: rem(2px);
+  vertical-align: text-bottom;
+  background-color: var(--ae-fg);
+  animation: var(--ae-anim-blink) 1s step-end infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

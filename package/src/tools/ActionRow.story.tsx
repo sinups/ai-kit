@@ -5,7 +5,7 @@ import { ActionRow } from './ActionRow';
 import { GenericTool, GenericToolRow } from './GenericTool';
 import { IconEye } from '@tabler/icons-react';
 
-export default { title: 'tools/ActionRow' };
+export default { title: 'Tools/ActionRow' };
 
 const step: ToolCallStep = {
   id: 's1',

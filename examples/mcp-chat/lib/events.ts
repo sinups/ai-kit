@@ -18,8 +18,12 @@ export type PermissionState = {
   mode: PermissionMode;
 };
 
-/** What a call does to the data of its server */
-export type ApprovalEffect = 'read' | 'write' | 'destructive';
+/**
+ * What a call does to the data of its server, from its MCP annotations: `read` for `readOnlyHint`,
+ * `write` for `destructiveHint: false`, `destructive` for `destructiveHint: true`, and `unmarked`
+ * when the server said neither, which the protocol defaults treat as destructive
+ */
+export type ApprovalEffect = 'read' | 'write' | 'destructive' | 'unmarked';
 
 /** Facts the client turns into the words of the approval footer */
 export type ApprovalDetails = {

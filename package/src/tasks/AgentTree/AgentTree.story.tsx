@@ -7,7 +7,7 @@ import { createTaskFixtures } from '../fixtures';
 import type { BackgroundTask } from '../types';
 import { AgentTree } from './AgentTree';
 
-export default { title: 'tasks/AgentTree' };
+export default { title: 'Sessions & tasks/AgentTree' };
 
 function Demo() {
   const { tasks } = useSimulatedTasks();

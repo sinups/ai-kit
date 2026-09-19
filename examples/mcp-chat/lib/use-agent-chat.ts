@@ -103,8 +103,12 @@ function outputText(output: unknown): string {
   if (typeof output === 'string') {
     return output;
   }
-  if (Array.isArray(output)) {
-    const texts = output
+  const blocks =
+    output && typeof output === 'object' && !Array.isArray(output)
+      ? (output as { content?: unknown }).content
+      : output;
+  if (Array.isArray(blocks)) {
+    const texts = blocks
       .map((block) =>
         block && typeof block === 'object' && typeof (block as { text?: unknown }).text === 'string'
           ? (block as { text: string }).text
