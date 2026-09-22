@@ -19,7 +19,8 @@ const namedImportBudgets: Record<string, number> = {
   SettingsLayout: 5_000,
   CommandPalette: 6_500,
   Wizard: 6_300,
-  ChatLauncher: 6_300,
+  ChatLauncher: 8_400,
+  LauncherActions: 3_300,
   AiKitProvider: 9_600,
   mountChatLauncher: 900,
   MessageActionButton: 2_000,
@@ -97,6 +98,15 @@ function measureCss(stylesheets: string[]) {
 
 const kb = (bytes: number) => `${(bytes / 1000).toFixed(1)} KB`;
 
+const embedBundle = path.join(distDir, 'embed/widget.js');
+const EMBED_BUDGET = 11_000;
+
+function measureEmbed(): { gzip: number } | null {
+  return fs.existsSync(embedBundle)
+    ? { gzip: gzipSync(fs.readFileSync(embedBundle)).length }
+    : null;
+}
+
 async function main() {
   if (!fs.existsSync(entry)) {
     signale.error('package/dist not found. Run `yarn build` first.');
@@ -120,6 +130,24 @@ async function main() {
 
     const line = `${item.name}: JS ${kb(js.gzip)} + CSS ${kb(css.gzip)} = ${kb(total)} gzip (budget ${kb(item.gzipBudget)})`;
     if (total > item.gzipBudget) {
+      failed = true;
+      signale.error(line);
+    } else {
+      signale.success(line);
+    }
+  }
+
+  const embed = measureEmbed();
+  if (embed) {
+    const line = `embed widget.js: ${kb(embed.gzip)} gzip (budget ${kb(EMBED_BUDGET)})`;
+    report.push({
+      name: 'embed widget.js',
+      stylesheets: [],
+      jsGzip: embed.gzip,
+      cssGzip: 0,
+      totalGzip: embed.gzip,
+    });
+    if (embed.gzip > EMBED_BUDGET) {
       failed = true;
       signale.error(line);
     } else {

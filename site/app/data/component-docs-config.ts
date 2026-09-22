@@ -928,6 +928,30 @@ export function SupportWidget({ chat, unread, reset }: { chat: AgentChatProps; u
 </div>`,
       },
       {
+        type: 'usage',
+        title: 'Ways to get in touch',
+        content:
+          'Pass `actions` to turn the first click into a fan of round buttons that leave the launcher one after another: chat, a call back, a demo, an email. The kit ships no brand icons and no links of its own \u2014 every action carries its own `icon`, `label`, `color` and either `onClick` or `href`, so the row stays yours. An action with `opensChat` opens the panel, the others only call back and hand the focus back to the button. While the fan is open the button turns into a close button and the unread badge steps aside; a click outside, Escape or opening the chat closes the fan, and Escape moves the focus only when it was already inside the launcher. A `disabled` action stays a button, never a link. `actionsMotion` sends them out one after another (`sequence`) or almost at once (`together`); `actionSize`, `actionGap` and `buttonSize` set the diameters and the spacing. `pulse` draws slow rings around the closed button, and `altIcon` with `iconAnimation` lets the button alternate between the icon and an avatar: `swap` fades the icon out and the avatar in, `flip` turns the button over, `cover` grows the avatar over the icon. Everything stays still under `prefers-reduced-motion` and while the panel is open, wherever the panel was opened from.',
+      },
+      {
+        type: 'example',
+        title: 'Actions that fan out of the button',
+        previewId: 'ChatLauncher/actions',
+        code: `<ChatLauncher
+  withinPortal={false}
+  title="Assistant"
+  pulse
+  actions={[
+    { id: "chat", label: "Chat with the assistant", icon: <IconMessageCircle size={22} />, opensChat: true },
+    { id: "call", label: "Request a call back", icon: <IconPhone size={20} />, onClick: openCallForm },
+    { id: "demo", label: "Book a demo", icon: <IconCalendarEvent size={20} />, color: "grape", href: "/demo" },
+    { id: "mail", label: "Write to support", icon: <IconMail size={20} />, color: "teal", href: "mailto:support@example.com" },
+  ]}
+>
+  <AgentChat {...chat} contentWidth="100%" wrapLines />
+</ChatLauncher>`,
+      },
+      {
         type: 'example',
         title: 'Unread badge and keepMounted',
         previewId: 'ChatLauncher/unread',

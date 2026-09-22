@@ -151,10 +151,195 @@
   }
 }
 
+.button[data-pulse]::before,
+.button[data-pulse]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: launcher-pulse 5s ease-out infinite;
+  pointer-events: none;
+}
+
+.button[data-pulse]::after {
+  animation-delay: 600ms;
+}
+
+.faces {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.face,
+.altFace {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  backface-visibility: hidden;
+}
+
+.faces[data-animation='swap'] > .face {
+  animation: launcher-face-out 9s ease-in-out 2s infinite;
+}
+
+.faces[data-animation='swap'] > .altFace {
+  animation: launcher-face-in 9s ease-in-out 2s infinite;
+}
+
+.faces[data-animation='flip'] {
+  animation: launcher-flip 9s ease-in-out 2s infinite;
+}
+
+.faces[data-animation='flip'] > .altFace {
+  transform: rotateY(180deg);
+}
+
+.faces[data-animation='cover'] > .altFace {
+  animation: launcher-cover 20s ease-out infinite;
+}
+
+[data-actions-opened] .button {
+  animation: launcher-press 400ms ease-out;
+}
+
+[data-opened] .faces,
+[data-opened] .faces > *,
+[data-actions-opened] .faces,
+[data-actions-opened] .faces > * {
+  animation: none;
+}
+
+@keyframes launcher-pulse {
+  0% {
+    box-shadow: 0 0 0 0 alpha(var(--ae-primary), 0.3);
+  }
+
+  25% {
+    box-shadow: 0 0 0 rem(16px) alpha(var(--ae-primary), 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 rem(16px) alpha(var(--ae-primary), 0);
+  }
+}
+
+@keyframes launcher-face-out {
+  0%,
+  36% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  42%,
+  62% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+
+  68%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes launcher-face-in {
+  0%,
+  36% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  42%,
+  62% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  68%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+@keyframes launcher-cover {
+  0%,
+  48% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  52%,
+  94% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  98%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes launcher-press {
+  0% {
+    transform: scale(1);
+  }
+
+  35% {
+    transform: scale(0.88);
+  }
+
+  70% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes launcher-flip {
+  0%,
+  36% {
+    transform: rotateY(0deg);
+  }
+
+  44%,
+  62% {
+    transform: rotateY(180deg);
+  }
+
+  70%,
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .indicator,
   .button,
   [data-opened] > .indicator {
     transition: none;
+  }
+
+  .button[data-pulse]::before,
+  .button[data-pulse]::after,
+  [data-actions-opened] .button,
+  .faces[data-animation],
+  .faces[data-animation] > * {
+    animation: none;
   }
 }
