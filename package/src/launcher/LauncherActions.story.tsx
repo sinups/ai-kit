@@ -224,7 +224,7 @@ export const OpenedFlow = {
     </HostPage>
   ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const canvas = within(canvasElement);
+    const canvas = within(canvasElement.ownerDocument.body);
     await userEvent.click(await canvas.findByRole('button', { name: /Show ways/ }));
     await waitFor(() =>
       expect(canvas.getByRole('button', { name: 'Request a call back' })).toBeVisible()
