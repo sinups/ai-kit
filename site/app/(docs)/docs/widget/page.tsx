@@ -11,7 +11,42 @@ import {
 import { WidgetBuilder } from "@/app/components/widget-builder";
 import { getDocNav } from "@/app/utils/doc-nav";
 
-const TAG = `<script src="https://cdn.jsdelivr.net/npm/@sinups/ai-kit/dist/embed/widget.js" defer
+const TAG_INLINE = `<script src="https://cdn.jsdelivr.net/npm/@sinups/ai-kit/dist/embed/widget.js" defer
+  data-url="https://chat.example.com/widget"
+  data-title="Assistant"
+  data-color="#0a84ff"
+  data-size="medium"
+  data-position="bottom-right"
+  data-offset="30"
+  data-pulse="true"
+  data-open-after="15000"
+  data-devices="all"
+  data-actions='[
+    {"id":"chat","label":"Chat with us","opensChat":true},
+    {"id":"call","label":"Call me back","href":"tel:+10000000"},
+    {"id":"telegram","label":"Telegram","href":"https://t.me/example","color":"#2aabee"}
+  ]'></script>`;
+
+const TAG_CALL = `<script src="https://cdn.jsdelivr.net/npm/@sinups/ai-kit/dist/embed/widget.js" defer></script>
+<script>
+  window.addEventListener("load", () => {
+    window.chat = AiKitChat({
+      url: "https://chat.example.com/widget",
+      title: "Assistant",
+      color: "#0a84ff",
+      location: ["bottom", "right"],
+      pulse: true,
+      openAfter: 15000,
+      labels: { open: "Открыть чат", actions: "Как с нами связаться" },
+      actions: [
+        { id: "chat", label: "Чат с ассистентом", opensChat: true },
+        { id: "call", label: "Перезвоним за 10 секунд", href: "tel:+10000000" },
+      ],
+    });
+  });
+</script>`;
+
+const TAG_REMOTE = `<script src="https://cdn.jsdelivr.net/npm/@sinups/ai-kit/dist/embed/widget.js" defer
   data-url="https://chat.example.com/widget"
   data-config-url="https://cdn.example.com/widget.json"></script>`;
 
@@ -49,6 +84,51 @@ widget.notify({
 // the call returns the hide of that one bubble
 const { hide } = widget.notify({ text: "Stays until you say so", timeout: false });
 setTimeout(hide, 3000);`;
+
+const RECIPES = `const chat = window.aiKitChat;
+
+// a greeting after the visitor has read for a while
+setTimeout(() => chat.notify({ title: "Anna from support", text: "Anything I can help with?" }), 20000);
+
+// a hint when the visitor is about to leave
+document.addEventListener("mouseleave", (event) => {
+  if (event.clientY <= 0) {
+    chat.notify({ text: "Leaving? I can send the quote by email", id: "exit", timeout: false });
+  }
+}, { once: true });
+
+// after the visitor scrolled through the pricing
+const pricing = document.querySelector("#pricing");
+new IntersectionObserver(([entry], observer) => {
+  if (entry.isIntersecting) {
+    chat.notify({ text: "Compare the plans with me?", id: "pricing" });
+    observer.disconnect();
+  }
+}).observe(pricing);
+
+// own button on the page instead of the launcher
+document.querySelector("#ask").addEventListener("click", () => chat.open());
+
+// a question about the current page
+document.querySelector("#ask-about-order").addEventListener("click", () => {
+  chat.navigate("https://chat.example.com/widget?order=A-1024");
+});
+
+// count of unanswered replies, kept by the page
+chat.unread(3);
+chat.on("open", () => chat.unread(0));
+
+// what the visitor picked in the fan
+chat.on("action", (id) => analytics.track("widget_action", { id }));
+
+// quieter on a landing page, louder in the account
+chat.setOptions({ pulse: false, openAfter: 0 });
+chat.options.color = "#0a84ff";
+
+// take it off a page where it does not belong
+if (location.pathname.startsWith("/checkout")) {
+  chat.hide();
+}`;
 
 const MESSAGES = `// inside the chat page, in the iframe
 const host = "https://shop.example.com";  // the page the widget runs on
@@ -93,11 +173,23 @@ export default function WidgetPage() {
 
       <GuideSection id="install" title="Install">
         <P>
-          The script reads its options from the tag, so a page can be configured without a line of
-          JavaScript. <C>data-config-url</C> points at a JSON file with the same options, which is
-          how an admin panel hands the settings over; what the tag sets stays above it.
+          Everything can be written straight into the tag: a <C>data-*</C> attribute per option,
+          with <C>data-actions</C> and <C>data-labels</C> taking JSON. No JavaScript is needed.
         </P>
-        <DocCodeBlock code={TAG} language="html" />
+        <DocCodeBlock code={TAG_INLINE} language="html" />
+        <P>
+          The same thing as a call, when the page wants to keep the widget and drive it later.
+          <C>AiKitChat</C> returns the widget; the auto-started one also lands on{' '}
+          <C>window.aiKitChat</C>.
+        </P>
+        <DocCodeBlock code={TAG_CALL} language="html" />
+        <P>
+          A remote JSON is for those who want to change the settings without touching the page — an
+          admin panel, for example. It is optional: <C>data-config-url</C> (or <C>data-app-id</C>{' '}
+          with <C>data-config-endpoint</C>) is fetched and merged, and what the tag sets stays above
+          it.
+        </P>
+        <DocCodeBlock code={TAG_REMOTE} language="html" />
         <P>
           In a bundler the same widget comes from <C>@sinups/ai-kit/embed</C>, with the full control
           surface in return.
@@ -155,6 +247,8 @@ export default function WidgetPage() {
           dropped instead of showing a broken image.
         </P>
         <DocCodeBlock code={NOTIFY} language="ts" />
+        <P>Ways pages use it, all built from the same few calls:</P>
+        <DocCodeBlock code={RECIPES} language="ts" />
       </GuideSection>
 
       <GuideSection id="control" title="Control from the page">

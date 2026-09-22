@@ -265,13 +265,13 @@ describe('embed/widget', () => {
     const resolved = resolveOptions({
       actions: [
         { id: 'viber', label: 'Viber', href: 'viber://chat?number=1' },
-        { id: 'skype', label: 'Skype', href: 'skype:example?chat' },
+        { id: 'whatsapp', label: 'WhatsApp', href: 'whatsapp://send?phone=1' },
         { id: 'bad', label: 'Bad', href: `${'java'}${'script'}:alert(1)` },
       ],
     });
 
     expect(resolved.actions[0].href).toBe('viber://chat?number=1');
-    expect(resolved.actions[1].href).toBe('skype:example?chat');
+    expect(resolved.actions[1].href).toBe('whatsapp://send?phone=1');
     expect(resolved.actions[2].href).toBeUndefined();
   });
 

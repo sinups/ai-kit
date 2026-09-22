@@ -1,14 +1,4 @@
-const SAFE_SCHEMES = [
-  'http:',
-  'https:',
-  'mailto:',
-  'tel:',
-  'sms:',
-  'viber:',
-  'skype:',
-  'tg:',
-  'whatsapp:',
-];
+const SAFE_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:', 'sms:', 'viber:', 'tg:', 'whatsapp:'];
 
 const SAFE_TAGS = new Set([
   'svg',
