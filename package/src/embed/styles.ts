@@ -108,16 +108,18 @@ svg:not([stroke]) { fill: currentColor; }
 }
 .multi_button_img img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 
+.animation_coin { animation: button-coin 9s ease-in 2s infinite; }
 .animation_coin .multi_button_icon { animation: icon-animation-coin 9s ease-in 2s infinite; }
 .animation_coin .multi_button_img { animation: img-animation-coin 9s ease-in 2s infinite; }
-.animation_coin:not(:has(.multi_button_img)) .multi_button_icon { animation: icon-alone-coin 9s ease-in 2s infinite; }
+
+.animation_flip { animation: button-flip 7s ease-in-out 2s infinite; }
+.animation_flip .multi_button_icon,
+.animation_flip .multi_button_img { backface-visibility: hidden; }
+.animation_flip .multi_button_img { transform: rotateY(180deg); opacity: 1; }
+
 .animation_circle .multi_button_icon { animation: circle-animation 9s ease-in 2s infinite; }
 .animation_circle .multi_button_icon svg { animation: icon-animation 9s ease-in 2s infinite; }
 .animation_circle .multi_button_img { animation: image-animation 9s ease-in 2s infinite; }
-.animation_circle:not(:has(.multi_button_img)) .multi_button_icon svg { animation: icon-alone-circle 9s ease-in 2s infinite; }
-.animation_flip .multi_button_icon { animation: flip-icon 7s ease-in-out 2s infinite; }
-.animation_flip .multi_button_img { animation: flip-img 7s ease-in-out 2s infinite; }
-.animation_flip:not(:has(.multi_button_img)) .multi_button_icon { animation: icon-alone-flip 7s ease-in-out 2s infinite; }
 
 [data-actions-opened] .multi_button_icon,
 [data-actions-opened] .multi_button_img,
@@ -462,20 +464,19 @@ svg:not([stroke]) { fill: currentColor; }
 }
 [data-mode='full'][data-opened] .backdrop { opacity: 1; visibility: visible; transition-delay: 0s; }
 
-@keyframes icon-alone-coin {
-  0%, 2.667% { transform: rotateY(0deg); }
-  6.667%, 32% { transform: rotateY(180deg); }
-  36%, 100% { transform: rotateY(0deg); }
+@keyframes button-coin {
+  2.667% { transform: rotateY(0deg); }
+  6.667% { transform: rotateY(180deg); }
+  9.333% { transform: rotateY(360deg); }
+  32% { transform: rotateY(360deg); }
+  34.667% { transform: rotateY(540deg); }
+  37.333% { transform: rotateY(720deg); }
+  40%, 66.667%, 100% { transform: rotateY(720deg); }
 }
-@keyframes icon-alone-circle {
-  0% { transform: scale(1); }
-  4%, 32% { transform: scale(1.25); }
-  36%, 100% { transform: scale(1); }
-}
-@keyframes icon-alone-flip {
-  0%, 42.86% { transform: rotateX(0deg); }
-  50%, 92.86% { transform: rotateX(180deg); }
-  100% { transform: rotateX(0deg); }
+@keyframes button-flip {
+  0%, 42.86% { transform: rotateY(0deg); }
+  50%, 92.86% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
 }
 @keyframes shadow {
   0% { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
@@ -517,16 +518,6 @@ svg:not([stroke]) { fill: currentColor; }
   0%, 6% { transform: scale(0.5); opacity: 0; }
   8%, 32% { transform: scale(1); opacity: 1; }
   34%, 100% { transform: scale(0.5); opacity: 0; }
-}
-@keyframes flip-icon {
-  0%, 42.86% { transform: rotateY(0deg); opacity: 1; }
-  50%, 92.86% { transform: rotateY(180deg); opacity: 0; }
-  100% { transform: rotateY(0deg); opacity: 1; }
-}
-@keyframes flip-img {
-  0%, 42.86% { transform: rotateY(180deg); opacity: 0; }
-  50%, 92.86% { transform: rotateY(0deg); opacity: 1; }
-  100% { transform: rotateY(180deg); opacity: 0; }
 }
 
 @media (pointer: coarse) { .multi_notification { display: none; } }

@@ -253,6 +253,21 @@ export function createChatWidget(
     root.querySelector('.frameSlot')?.append(frame);
   };
 
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const applyIdleAnimation = (button: HTMLElement) => {
+    const name = current.iconAnimation;
+    if (name === 'none') {
+      return;
+    }
+    clearTimeout(idleTimer);
+    if (opened || actionsOpened) {
+      idleTimer = later(() => button.classList.remove(`animation_${name}`), 200);
+    } else {
+      button.classList.add(`animation_${name}`);
+    }
+  };
+
   const applyState = () => {
     const button = root.querySelector<HTMLButtonElement>('.multi_button');
     const badge = root.querySelector<HTMLElement>('.multi_button > .multi_button_noty');
@@ -275,6 +290,9 @@ export function createChatWidget(
           : label
       );
       button.setAttribute('aria-expanded', String(hasActions ? actionsOpened : opened));
+    }
+    if (button) {
+      applyIdleAnimation(button);
     }
     if (badge) {
       badge.hidden = unreadCount === 0 || !current.indicator;
