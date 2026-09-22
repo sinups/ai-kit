@@ -124,9 +124,10 @@ export const OpenedFlow = {
     </HostPage>
   ),
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-    const shadow = canvasElement.ownerDocument.querySelector('ai-kit-widget')?.shadowRoot;
-    await waitFor(() => expect(shadow?.querySelector('.multi_button')).toBeTruthy());
-    await userEvent.click(shadow?.querySelector('.multi_button') as HTMLElement);
-    await waitFor(() => expect(shadow?.querySelector('[data-action="call"]')).toBeVisible());
+    const page = canvasElement.ownerDocument;
+    const shadow = () => page.querySelector('ai-kit-widget')?.shadowRoot ?? null;
+    await waitFor(() => expect(shadow()?.querySelector('.multi_button')).toBeTruthy());
+    await userEvent.click(shadow()?.querySelector('.multi_button') as HTMLElement);
+    await waitFor(() => expect(shadow()?.querySelector('[data-action="call"]')).toBeVisible());
   },
 };
