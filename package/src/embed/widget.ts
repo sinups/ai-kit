@@ -158,11 +158,11 @@ export function createChatWidget(
       '--w-size': `${current.size}px`,
       '--w-color': current.color,
       '--w-on-color': current.iconColor || contrastColor(current.color),
-      '--w-ring': `color-mix(in srgb, ${current.color} 35%, transparent)`,
+      '--w-ring': `color-mix(in srgb, ${current.ringColor || current.color} 30%, transparent)`,
       '--w-action-size': `${current.actionSize}px`,
       '--w-step': `${current.actionSize + current.actionGap}px`,
       '--w-inset': `${Math.round(current.size * 0.1)}px`,
-      '--w-ring-soft': `color-mix(in srgb, ${current.color} 12%, transparent)`,
+      '--w-ring-soft': `color-mix(in srgb, ${current.ringColor || current.color} 10%, transparent)`,
       '--w-panel-width': `${Math.max(
         240,
         Math.min(current.panelWidth, window.innerWidth - 2 * current.offset.x)
@@ -220,7 +220,7 @@ export function createChatWidget(
         <div class="frameSlot"></div>
       </div>
       <div class="multi_button_wrap">
-        <button type="button" class="multi_button${current.avatar && current.iconAnimation !== 'none' ? ` animation_${current.iconAnimation}` : ''}" aria-label="${escapeAttribute(hasActions ? labels.actions : labels.open)}" aria-expanded="false"${current.pulse ? ' data-pulse' : ''}>
+        <button type="button" class="multi_button${current.iconAnimation !== 'none' ? ` animation_${current.iconAnimation}` : ''}" aria-label="${escapeAttribute(hasActions ? labels.actions : labels.open)}" aria-expanded="false"${current.pulse ? ' data-pulse' : ''}>
           <span class="multi_button_close"></span>
           <span class="multi_button_noty" hidden></span>
           <span class="multi_button_icon">${renderIcon(current.icon)}</span>

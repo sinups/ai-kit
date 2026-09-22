@@ -110,11 +110,14 @@ svg:not([stroke]) { fill: currentColor; }
 
 .animation_coin .multi_button_icon { animation: icon-animation-coin 9s ease-in 2s infinite; }
 .animation_coin .multi_button_img { animation: img-animation-coin 9s ease-in 2s infinite; }
+.animation_coin:not(:has(.multi_button_img)) .multi_button_icon { animation: icon-alone-coin 9s ease-in 2s infinite; }
 .animation_circle .multi_button_icon { animation: circle-animation 9s ease-in 2s infinite; }
 .animation_circle .multi_button_icon svg { animation: icon-animation 9s ease-in 2s infinite; }
 .animation_circle .multi_button_img { animation: image-animation 9s ease-in 2s infinite; }
+.animation_circle:not(:has(.multi_button_img)) .multi_button_icon svg { animation: icon-alone-circle 9s ease-in 2s infinite; }
 .animation_flip .multi_button_icon { animation: flip-icon 7s ease-in-out 2s infinite; }
 .animation_flip .multi_button_img { animation: flip-img 7s ease-in-out 2s infinite; }
+.animation_flip:not(:has(.multi_button_img)) .multi_button_icon { animation: icon-alone-flip 7s ease-in-out 2s infinite; }
 
 [data-actions-opened] .multi_button_icon,
 [data-actions-opened] .multi_button_img,
@@ -459,6 +462,21 @@ svg:not([stroke]) { fill: currentColor; }
 }
 [data-mode='full'][data-opened] .backdrop { opacity: 1; visibility: visible; transition-delay: 0s; }
 
+@keyframes icon-alone-coin {
+  0%, 2.667% { transform: rotateY(0deg); }
+  6.667%, 32% { transform: rotateY(180deg); }
+  36%, 100% { transform: rotateY(0deg); }
+}
+@keyframes icon-alone-circle {
+  0% { transform: scale(1); }
+  4%, 32% { transform: scale(1.25); }
+  36%, 100% { transform: scale(1); }
+}
+@keyframes icon-alone-flip {
+  0%, 42.86% { transform: rotateX(0deg); }
+  50%, 92.86% { transform: rotateX(180deg); }
+  100% { transform: rotateX(0deg); }
+}
 @keyframes shadow {
   0% { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
   10% { box-shadow: 0 0 0 0 var(--w-ring), 0 0 0 0 transparent; }

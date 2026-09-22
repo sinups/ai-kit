@@ -181,6 +181,8 @@ export interface ChatWidgetOptions {
   icon?: string;
   /** Color of the icon on the button, picked from the background by default */
   iconColor?: string;
+  /** Color of the rings around the button, the widget color by default */
+  ringColor?: string;
   /** Image URL for the second face of the button */
   avatar?: string;
   /** How the button alternates between the icon and the avatar while it is closed */
@@ -277,6 +279,7 @@ const DEFAULTS = {
   size: 60,
   icon: 'chat',
   iconColor: '',
+  ringColor: '',
   avatar: '',
   iconAnimation: 'none',
   pulse: false,
@@ -349,6 +352,7 @@ export function resolveOptions(
     ownActionGap,
     icon: resolveIcon(merged.icon),
     iconColor: safeColor(merged.iconColor) ?? '',
+    ringColor: safeColor(merged.ringColor) ?? '',
     avatar: safeHref(merged.avatar) ?? '',
     color: safeColor(merged.color) ?? '#2f6fed',
     mobileHeight: clamp(merged.mobileHeight, 40, 100),

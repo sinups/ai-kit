@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
+  Accordion,
   ActionIcon,
   Box,
   Button,
@@ -172,6 +173,7 @@ export function WidgetBuilder() {
   const [animation, setAnimation] = useState("coin");
   const [pulse, setPulse] = useState(true);
   const [theme, setTheme] = useState("auto");
+  const [ringColor, setRingColor] = useState("");
   const [actions, setActions] = useState<BuilderAction[]>([
     { key: "a1", presetId: "chat", tooltip: preset("chat").tooltip, href: "", unread: 0 },
     {
@@ -208,10 +210,15 @@ export function WidgetBuilder() {
     }
     if (avatar) {
       value.avatar = avatar;
+    }
+    if (animation !== "none") {
       value.iconAnimation = animation;
     }
     if (pulse) {
       value.pulse = true;
+    }
+    if (ringColor) {
+      value.ringColor = ringColor;
     }
     if (theme !== "auto") {
       value.theme = theme;
@@ -246,6 +253,7 @@ export function WidgetBuilder() {
     avatar,
     animation,
     pulse,
+    ringColor,
     theme,
     actions,
   ]);
@@ -354,20 +362,6 @@ export function WidgetBuilder() {
                   />
                 </Stack>
               </div>
-              <NumberInput
-                label="Side offset, px"
-                min={0}
-                max={120}
-                value={offsetX}
-                onChange={(value) => setOffsetX(Number(value) || 0)}
-              />
-              <NumberInput
-                label="Bottom offset, px"
-                min={0}
-                max={120}
-                value={offsetY}
-                onChange={(value) => setOffsetY(Number(value) || 0)}
-              />
             </Stack>
             <Stack gap="sm">
               <Text fw={500}>Opening</Text>
@@ -378,25 +372,6 @@ export function WidgetBuilder() {
                 max={300}
                 value={openAfter}
                 onChange={(value) => setOpenAfter(Number(value) || 0)}
-              />
-              <Switch
-                label="Open on phones too"
-                checked={openOnMobile}
-                onChange={(event) => setOpenOnMobile(event.currentTarget.checked)}
-                disabled={openAfter === 0}
-              />
-              <Switch
-                label="Skip the timer once the visitor closed it"
-                checked={remember}
-                onChange={(event) => setRemember(event.currentTarget.checked)}
-                disabled={openAfter === 0}
-              />
-              <NumberInput
-                label="Panel height on phones, %"
-                min={40}
-                max={100}
-                value={mobileHeight}
-                onChange={(value) => setMobileHeight(Number(value) || 100)}
               />
             </Stack>
             <Stack gap="sm">
@@ -410,10 +385,10 @@ export function WidgetBuilder() {
               />
               <Select
                 label="Animation type"
-                data={ANIMATIONS}
+                description="Plays on the closed button; with an avatar it alternates the two faces"
+                data={[{ value: "none", label: "None" }, ...ANIMATIONS]}
                 value={animation}
-                onChange={(value) => setAnimation(value ?? "coin")}
-                disabled={!avatar}
+                onChange={(value) => setAnimation(value ?? "none")}
                 allowDeselect={false}
               />
               <Switch
@@ -421,19 +396,68 @@ export function WidgetBuilder() {
                 checked={pulse}
                 onChange={(event) => setPulse(event.currentTarget.checked)}
               />
-              <Select
-                label="Color scheme"
-                data={[
-                  { value: "auto", label: "Follow the visitor" },
-                  { value: "light", label: "Light" },
-                  { value: "dark", label: "Dark" },
-                ]}
-                value={theme}
-                onChange={(value) => setTheme(value ?? "auto")}
-                allowDeselect={false}
-              />
             </Stack>
           </div>
+          <Accordion variant="contained" mt="md">
+            <Accordion.Item value="more">
+              <Accordion.Control>More settings</Accordion.Control>
+              <Accordion.Panel>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <NumberInput
+                    label="Side offset, px"
+                    min={0}
+                    max={120}
+                    value={offsetX}
+                    onChange={(value) => setOffsetX(Number(value) || 0)}
+                  />
+                  <NumberInput
+                    label="Bottom offset, px"
+                    min={0}
+                    max={120}
+                    value={offsetY}
+                    onChange={(value) => setOffsetY(Number(value) || 0)}
+                  />
+                  <NumberInput
+                    label="Panel height on phones, %"
+                    min={40}
+                    max={100}
+                    value={mobileHeight}
+                    onChange={(value) => setMobileHeight(Number(value) || 100)}
+                  />
+                  <ColorInput
+                    label="Ring color"
+                    placeholder="Widget color"
+                    value={ringColor}
+                    onChange={setRingColor}
+                    format="rgb"
+                  />
+                  <Select
+                    label="Color scheme"
+                    data={[
+                      { value: "auto", label: "Follow the visitor" },
+                      { value: "light", label: "Light" },
+                      { value: "dark", label: "Dark" },
+                    ]}
+                    value={theme}
+                    onChange={(value) => setTheme(value ?? "auto")}
+                    allowDeselect={false}
+                  />
+                  <Switch
+                    label="Open on phones too"
+                    checked={openOnMobile}
+                    onChange={(event) => setOpenOnMobile(event.currentTarget.checked)}
+                    disabled={openAfter === 0}
+                  />
+                  <Switch
+                    label="Skip the timer once the visitor closed it"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.currentTarget.checked)}
+                    disabled={openAfter === 0}
+                  />
+                </div>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         </Paper>
 
         <Paper withBorder radius="md" p="md">
