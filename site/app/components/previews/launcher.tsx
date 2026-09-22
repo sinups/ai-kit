@@ -2,8 +2,24 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActionIcon, Box, Group, SegmentedControl, Stack, Switch, Text } from "@mantine/core";
-import { IconChartBar, IconKey, IconRefresh, IconSparkles, IconUsersPlus } from "@tabler/icons-react";
-import { AgentChat, ChatLauncher, type ChatMessage, type ChatStatus } from "@sinups/ai-kit";
+import {
+  IconCalendarEvent,
+  IconChartBar,
+  IconKey,
+  IconMail,
+  IconMessageCircle,
+  IconPhone,
+  IconRefresh,
+  IconSparkles,
+  IconUsersPlus,
+} from "@tabler/icons-react";
+import {
+  AgentChat,
+  ChatLauncher,
+  type ChatMessage,
+  type ChatStatus,
+  type LauncherAction,
+} from "@sinups/ai-kit";
 
 const WELCOME = {
   avatar: <IconSparkles size={22} />,
@@ -190,6 +206,56 @@ function KeepMountedLauncher({ keepMounted }: { keepMounted: boolean }) {
   );
 }
 
+const CONTACT_ACTIONS: LauncherAction[] = [
+  {
+    id: "chat",
+    label: "Chat with the assistant",
+    icon: <IconMessageCircle size={22} stroke={1.75} />,
+    opensChat: true,
+  },
+  { id: "call", label: "Request a call back", icon: <IconPhone size={20} stroke={1.75} /> },
+  {
+    id: "demo",
+    label: "Book a demo",
+    icon: <IconCalendarEvent size={20} stroke={1.75} />,
+    color: "grape",
+  },
+  {
+    id: "mail",
+    label: "Write to support",
+    icon: <IconMail size={20} stroke={1.75} />,
+    href: "mailto:support@example.com",
+    color: "teal",
+  },
+];
+
+function ActionsPreview() {
+  const chat = useDemoChat();
+  return (
+    <HostPage width="100%">
+      <ChatLauncher
+        withinPortal={false}
+        title="Assistant"
+        offset={16}
+        panelHeight={500}
+        actions={CONTACT_ACTIONS}
+        pulse
+      >
+        <AgentChat
+          messages={chat.messages}
+          status={chat.status}
+          onSend={chat.onSend}
+          onStop={chat.onStop}
+          contentWidth="100%"
+          wrapLines
+          alignComposer
+          emptyState={WELCOME}
+        />
+      </ChatLauncher>
+    </HostPage>
+  );
+}
+
 export function renderLauncherPreview(previewId: string): React.ReactNode | undefined {
   switch (previewId) {
     case "ChatLauncher":
@@ -197,6 +263,8 @@ export function renderLauncherPreview(previewId: string): React.ReactNode | unde
       return <ChatLauncherPreview />;
     case "ChatLauncher/mobile":
       return <ChatLauncherPreview defaultFrame="mobile" />;
+    case "ChatLauncher/actions":
+      return <ActionsPreview />;
     case "ChatLauncher/unread":
       return <UnreadPreview />;
     default:

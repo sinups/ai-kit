@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rimraf package/dist",
-    "build": "rollup -c rollup.config.mjs && tsx scripts/generate-dts && tsx scripts/prepare-css",
+    "build": "rollup -c rollup.config.mjs && rollup -c rollup.embed.mjs && node scripts/copy-embed.mjs && tsx scripts/generate-dts && tsx scripts/prepare-css",
     "pack:preview": "yarn clean && yarn build && tsx scripts/pack-preview.ts",
     "size": "tsx scripts/check-size",
     "attw": "yarn dlx -q -p @arethetypeswrong/cli@0.18.5 attw --pack package --entrypoints .",

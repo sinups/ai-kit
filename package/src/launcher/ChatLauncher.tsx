@@ -16,9 +16,11 @@ import {
   getLauncherFocusTarget,
   getLauncherLayout,
   getLauncherVars,
+  LAUNCHER_BUTTON_SIZE,
   type ChatLauncherOffset,
   type ChatLauncherPosition,
 } from './launcher-layout';
+import { LauncherActions, type LauncherAction } from './LauncherActions';
 import { useFrozenPageScroll, useLauncherViewport } from './use-launcher-viewport';
 import classes from './ChatLauncher.module.css';
 
@@ -31,10 +33,14 @@ export interface ChatLauncherLabels {
   panel: string;
   /** Unread count added to the button's accessible name while the badge is shown */
   unread: (count: number) => string;
+  /** Accessible label of the button while it opens the actions */
+  actions: string;
+  /** Accessible label of the button while the actions are open */
+  closeActions: string;
 }
 
 export type ChatLauncherClassNames = Partial<
-  Record<'root' | 'button' | 'panel' | 'header' | 'title' | 'body', string>
+  Record<'root' | 'button' | 'panel' | 'header' | 'title' | 'body' | 'actions', string>
 >;
 
 export interface ChatLauncherProps {
@@ -60,6 +66,22 @@ export interface ChatLauncherProps {
   headerActions?: React.ReactNode;
   /** Button icon while the panel is closed */
   icon?: React.ReactNode;
+  /** Second face of the button, usually an avatar, shown by `iconAnimation` */
+  altIcon?: React.ReactNode;
+  /** How the button alternates between `icon` and `altIcon` while it is closed, `none` by default */
+  iconAnimation?: 'none' | 'swap' | 'flip' | 'cover';
+  /** Diameter of the launcher button in px, `56` by default */
+  buttonSize?: number;
+  /** Order the actions appear in: one after another, or all at once, `sequence` by default */
+  actionsMotion?: 'sequence' | 'together';
+  /** Draws slow rings around the closed button to invite the first click */
+  pulse?: boolean;
+  /** Actions that fan out of the button instead of opening the panel on the first click */
+  actions?: LauncherAction[];
+  /** Diameter of an action button in px, `48` by default */
+  actionSize?: number;
+  /** Space between the action buttons in px, `12` by default */
+  actionGap?: number;
   /** Unread messages shown as a badge on the closed button, hidden at `0` */
   unreadCount?: number;
   /** Keeps the panel content mounted while closed so the chat keeps its state, `true` by default */
@@ -89,6 +111,8 @@ export const DEFAULT_CHAT_LAUNCHER_LABELS: ChatLauncherLabels = {
   close: 'Close chat',
   panel: 'Chat',
   unread: (count) => `${count} unread`,
+  actions: 'Show ways to get in touch',
+  closeActions: 'Hide ways to get in touch',
 };
 
 function getActiveElement(node: Node | null): Element | null {
@@ -97,6 +121,8 @@ function getActiveElement(node: Node | null): Element | null {
     ? root.activeElement
     : document.activeElement;
 }
+
+const NO_ACTIONS: LauncherAction[] = [];
 
 const PANEL_TRANSITION: MantineTransition = {
   in: { opacity: 1, transform: 'scale(1)' },
@@ -118,6 +144,14 @@ export const ChatLauncher = memo(function ChatLauncher({
   title,
   headerActions,
   icon,
+  altIcon,
+  iconAnimation = 'none',
+  pulse = false,
+  actions = NO_ACTIONS,
+  actionSize = 48,
+  actionGap = 12,
+  actionsMotion = 'sequence',
+  buttonSize = LAUNCHER_BUTTON_SIZE,
   unreadCount = 0,
   keepMounted = true,
   closeOnEscape = true,
@@ -154,6 +188,10 @@ export const ChatLauncher = memo(function ChatLauncher({
   useFrozenPageScroll(probe, withinPortal && opened && fullScreen);
   const panelId = useId();
   const titleId = useId();
+  const actionsId = useId();
+  const [actionsOpened, setActionsOpened] = useState(false);
+  const hasActions = actions.length > 0;
+  const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -175,8 +213,59 @@ export const ChatLauncher = memo(function ChatLauncher({
 
   const open = () => {
     openedByUser.current = true;
+    setActionsOpened(false);
     setOpened(true);
   };
+  const openRef = useRef(open);
+  openRef.current = open;
+
+  const handleAction = useCallback((action: LauncherAction) => {
+    setActionsOpened(false);
+    action.onClick?.();
+    if (action.opensChat) {
+      openRef.current();
+    } else {
+      buttonRef.current?.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (opened || !hasActions) {
+      setActionsOpened(false);
+    }
+  }, [opened, hasActions]);
+
+  useEffect(() => {
+    if (!actionsOpened) {
+      return undefined;
+    }
+    const insideLauncher = (target: EventTarget | null, path: EventTarget[]) =>
+      path.length > 0
+        ? path.includes(rootRef.current as EventTarget)
+        : target instanceof Node && !!rootRef.current?.contains(target);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || !closeOnEscape) {
+        return;
+      }
+      const active = getActiveElement(rootRef.current);
+      setActionsOpened(false);
+      if (active instanceof Node && rootRef.current?.contains(active)) {
+        buttonRef.current?.focus();
+      }
+    };
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!insideLauncher(event.target, event.composedPath())) {
+        setActionsOpened(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [actionsOpened, closeOnEscape]);
 
   useEffect(() => {
     if (!opened || !closeOnEscape) {
@@ -215,16 +304,24 @@ export const ChatLauncher = memo(function ChatLauncher({
   const vars = {
     ...getLauncherVars(position, layout),
     '--launcher-z-index': String(zIndex),
+    '--launcher-button-size': `${buttonSize}px`,
   } as React.CSSProperties;
   const titleIsText = typeof title === 'string';
-  const showUnread = !opened && unreadCount > 0;
+  const showUnread = !opened && !actionsOpened && unreadCount > 0;
+  const buttonLabel = actionsOpened
+    ? labels.closeActions
+    : hasActions
+      ? labels.actions
+      : labels.open;
 
   const launcher = (
     <Box
+      ref={rootRef}
       className={cx(classes.root, classNames?.root, className)}
       style={{ ...vars, ...style }}
       data-position={position}
       data-opened={opened || undefined}
+      data-actions-opened={actionsOpened || undefined}
       data-mode={layout.mode}
     >
       <div ref={setProbe} className={classes.probe} aria-hidden />
@@ -288,15 +385,42 @@ export const ChatLauncher = memo(function ChatLauncher({
         <UnstyledButton
           ref={buttonRef}
           className={cx(classes.button, classNames?.button)}
-          aria-label={showUnread ? `${labels.open}, ${labels.unread(unreadCount)}` : labels.open}
-          aria-expanded={opened}
-          aria-controls={panelId}
+          aria-label={showUnread ? `${buttonLabel}, ${labels.unread(unreadCount)}` : buttonLabel}
+          aria-expanded={hasActions && !opened ? actionsOpened : opened}
+          aria-controls={hasActions && !opened ? actionsId : panelId}
           tabIndex={opened ? -1 : undefined}
-          onClick={open}
+          data-pulse={pulse && !opened && !actionsOpened ? '' : undefined}
+          onClick={() => (hasActions ? setActionsOpened((value) => !value) : open())}
         >
-          {icon ?? <IconMessageCircle size={24} stroke={1.75} />}
+          {actionsOpened ? (
+            <IconX size={24} stroke={1.75} />
+          ) : altIcon && iconAnimation !== 'none' ? (
+            <span className={classes.faces} data-animation={iconAnimation}>
+              <span className={classes.face}>
+                {icon ?? <IconMessageCircle size={24} stroke={1.75} />}
+              </span>
+              <span className={classes.altFace}>{altIcon}</span>
+            </span>
+          ) : (
+            (icon ?? <IconMessageCircle size={24} stroke={1.75} />)
+          )}
         </UnstyledButton>
       </Indicator>
+
+      {hasActions && (
+        <LauncherActions
+          id={actionsId}
+          label={labels.actions}
+          actions={actions}
+          opened={actionsOpened}
+          onAction={handleAction}
+          position={position}
+          size={actionSize}
+          gap={actionGap}
+          motion={actionsMotion}
+          className={classNames?.actions}
+        />
+      )}
     </Box>
   );
 

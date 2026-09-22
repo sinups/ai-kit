@@ -5,9 +5,9 @@
       "styles/base.css",
       "styles/AgentChat.css"
     ],
-    "jsGzip": 81465,
-    "cssGzip": 11504,
-    "totalGzip": 92969
+    "jsGzip": 82558,
+    "cssGzip": 11556,
+    "totalGzip": 94114
   },
   {
     "name": "MessageList",
@@ -15,9 +15,9 @@
       "styles/base.css",
       "styles/MessageList.css"
     ],
-    "jsGzip": 67198,
-    "cssGzip": 9332,
-    "totalGzip": 76530
+    "jsGzip": 68278,
+    "cssGzip": 9390,
+    "totalGzip": 77668
   },
   {
     "name": "InputBar",
@@ -25,9 +25,9 @@
       "styles/base.css",
       "styles/InputBar.css"
     ],
-    "jsGzip": 28498,
-    "cssGzip": 6152,
-    "totalGzip": 34650
+    "jsGzip": 28540,
+    "cssGzip": 6216,
+    "totalGzip": 34756
   },
   {
     "name": "Markdown",
@@ -105,9 +105,19 @@
       "styles/base.css",
       "styles/ChatLauncher.css"
     ],
-    "jsGzip": 3501,
-    "cssGzip": 2330,
-    "totalGzip": 5831
+    "jsGzip": 4620,
+    "cssGzip": 3101,
+    "totalGzip": 7721
+  },
+  {
+    "name": "LauncherActions",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/LauncherActions.css"
+    ],
+    "jsGzip": 924,
+    "cssGzip": 1951,
+    "totalGzip": 2875
   },
   {
     "name": "AiKitProvider",
@@ -115,9 +125,9 @@
       "styles/base.css",
       "styles/AiKitProvider.css"
     ],
-    "jsGzip": 5889,
+    "jsGzip": 5888,
     "cssGzip": 3193,
-    "totalGzip": 9082
+    "totalGzip": 9081
   },
   {
     "name": "mountChatLauncher",
@@ -152,9 +162,9 @@
       "styles/base.css",
       "styles/MediaPart.css"
     ],
-    "jsGzip": 4844,
-    "cssGzip": 2927,
-    "totalGzip": 7771
+    "jsGzip": 4869,
+    "cssGzip": 3010,
+    "totalGzip": 7879
   },
   {
     "name": "ArtifactPanel",
@@ -163,8 +173,8 @@
       "styles/ArtifactPanel.css"
     ],
     "jsGzip": 1419,
-    "cssGzip": 1682,
-    "totalGzip": 3101
+    "cssGzip": 1704,
+    "totalGzip": 3123
   },
   {
     "name": "ArtifactCard",
@@ -172,9 +182,9 @@
       "styles/base.css",
       "styles/ArtifactCard.css"
     ],
-    "jsGzip": 1729,
-    "cssGzip": 1981,
-    "totalGzip": 3710
+    "jsGzip": 1745,
+    "cssGzip": 2001,
+    "totalGzip": 3746
   },
   {
     "name": "FileAttachment",
@@ -182,9 +192,9 @@
       "styles/base.css",
       "styles/FileAttachment.css"
     ],
-    "jsGzip": 3874,
-    "cssGzip": 2729,
-    "totalGzip": 6603
+    "jsGzip": 3921,
+    "cssGzip": 2795,
+    "totalGzip": 6716
   },
   {
     "name": "filterFiles",
@@ -206,9 +216,9 @@
       "styles/base.css",
       "styles/ChatDropZone.css"
     ],
-    "jsGzip": 2012,
-    "cssGzip": 1586,
-    "totalGzip": 3598
+    "jsGzip": 2035,
+    "cssGzip": 1641,
+    "totalGzip": 3676
   },
   {
     "name": "CommandToggles",
@@ -216,9 +226,9 @@
       "styles/base.css",
       "styles/CommandToggles.css"
     ],
-    "jsGzip": 653,
-    "cssGzip": 1466,
-    "totalGzip": 2119
+    "jsGzip": 652,
+    "cssGzip": 1754,
+    "totalGzip": 2406
   },
   {
     "name": "StarterCategories",
@@ -226,9 +236,9 @@
       "styles/base.css",
       "styles/StarterCategories.css"
     ],
-    "jsGzip": 850,
-    "cssGzip": 1775,
-    "totalGzip": 2625
+    "jsGzip": 930,
+    "cssGzip": 1925,
+    "totalGzip": 2855
   },
   {
     "name": "MicButton",
@@ -236,9 +246,9 @@
       "styles/base.css",
       "styles/MicButton.css"
     ],
-    "jsGzip": 2397,
-    "cssGzip": 1967,
-    "totalGzip": 4364
+    "jsGzip": 2383,
+    "cssGzip": 2168,
+    "totalGzip": 4551
   },
   {
     "name": "VoiceLevel",
@@ -247,8 +257,8 @@
       "styles/VoiceLevel.css"
     ],
     "jsGzip": 499,
-    "cssGzip": 1707,
-    "totalGzip": 2206
+    "cssGzip": 1702,
+    "totalGzip": 2201
   },
   {
     "name": "SpeakingIndicator",
@@ -256,17 +266,24 @@
       "styles/base.css",
       "styles/SpeakingIndicator.css"
     ],
-    "jsGzip": 1786,
-    "cssGzip": 1951,
-    "totalGzip": 3737
+    "jsGzip": 1797,
+    "cssGzip": 1947,
+    "totalGzip": 3744
   },
   {
     "name": "import *",
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 210791,
-    "cssGzip": 20321,
-    "totalGzip": 231112
+    "jsGzip": 213473,
+    "cssGzip": 21528,
+    "totalGzip": 235001
+  },
+  {
+    "name": "embed widget.js",
+    "stylesheets": [],
+    "jsGzip": 9568,
+    "cssGzip": 0,
+    "totalGzip": 9568
   }
 ]

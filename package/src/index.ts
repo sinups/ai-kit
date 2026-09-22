@@ -1273,6 +1273,12 @@ export type {
   ChatLauncherOffset,
   ChatLauncherPosition,
 } from './launcher/launcher-layout';
+export { LauncherActions } from './launcher/LauncherActions';
+export type {
+  LauncherAction,
+  LauncherActionsClassNames,
+  LauncherActionsProps,
+} from './launcher/LauncherActions';
 export { mountChatLauncher } from './launcher/mount-chat-launcher';
 export type { MountChatLauncherOptions, MountedChatLauncher } from './launcher/mount-chat-launcher';
 
