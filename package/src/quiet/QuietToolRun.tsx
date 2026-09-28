@@ -29,7 +29,11 @@ export interface QuietToolRunProps extends Omit<QuietToolRowProps, 'part'> {
   isTail?: boolean;
   /** Moment the turn began; the line counts from it, as the working row before it did */
   turnStartedAt?: number;
+  /** Last step of the run before this one: a later line counts from the moment that run ended */
+  follows?: string;
 }
+
+const RUN_END = ':run-end';
 
 function isThinking(part: ToolPart): boolean {
   return part.type === 'tool-Thinking';
@@ -45,6 +49,7 @@ export function QuietToolRun({
   labels: labelsProp,
   isTail = false,
   turnStartedAt,
+  follows,
   ...rowProps
 }: QuietToolRunProps) {
   const { chatStatus, lookups, className, style } = rowProps;
@@ -76,7 +81,8 @@ export function QuietToolRun({
   }
   const firstStepAt =
     steps.length > 0 ? Math.min(...steps.map((part) => firstSeen(part.toolCallId))) : Date.now();
-  const startedAt = useRef(turnStartedAt ?? firstStepAt).current;
+  const previousRunEndedAt = follows ? firstSeen(follows, RUN_END) : undefined;
+  const startedAt = useRef(turnStartedAt ?? previousRunEndedAt ?? firstStepAt).current;
   const finishedAt = useRef<number | undefined>(undefined);
   const [expanded, setExpanded] = useState(false);
   const [opened, setOpened] = useState(false);
@@ -84,6 +90,9 @@ export function QuietToolRun({
     finishedAt.current = undefined;
   } else if (finishedAt.current === undefined) {
     finishedAt.current = Date.now();
+  }
+  if (!isLive) {
+    firstSeen(steps[steps.length - 1]?.toolCallId, RUN_END);
   }
   const seenLive = useRef(false);
   if (isLive) {

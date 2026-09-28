@@ -54,7 +54,13 @@ export type ToolPart = {
 };
 
 export type TextPart = { type: 'text'; text: string; state?: string };
-export type ErrorPart = { type: 'error'; title?: string; message: string };
+export type ErrorPart = {
+  type: 'error';
+  title?: string;
+  message: string;
+  /** Overrides who gets the retry button: by default only the error of the last answer has one */
+  retryable?: boolean;
+};
 /** Marks where earlier history was replaced with a summary */
 export type CompactionPart = {
   type: 'compaction';
@@ -339,6 +345,13 @@ export type AgentChatProps = {
   sendScroll?: SendScroll;
   /** Shows a caret after the growing text while streaming, `false` by default */
   streamingCaret?: boolean;
+  /**
+   * Keeps room under a growing answer so the list does not jitter in the first frames, `true` by
+   * default; the room is given while the answer is live and released when the turn is finished
+   */
+  assistantBreathingSpace?: boolean;
+  /** Keeps a short transcript at the composer instead of the top of the feed, `false` by default */
+  stackFromBottom?: boolean;
   /** Skips layout and paint of finished turns outside the viewport, `false` by default; a number is the turn count it starts from, `true` means 50 */
   lazyTurns?: boolean | number;
 

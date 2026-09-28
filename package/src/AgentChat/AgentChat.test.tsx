@@ -863,14 +863,17 @@ describe('AgentChat/AgentChat', () => {
 
   describe('streaming', () => {
     let setText: (next: string) => void = () => {};
+    let endStream: () => void = () => {};
 
     function LiveHarness({ frameBatched }: { frameBatched?: boolean }) {
       const [text, setTextState] = React.useState('Answer');
+      const [status, setStatus] = React.useState<'streaming' | 'ready'>('streaming');
       setText = setTextState;
+      endStream = () => setStatus('ready');
       return (
         <AgentChat
           messages={[{ id: 'live', role: 'assistant', parts: [{ type: 'text', text }] }]}
-          status="streaming"
+          status={status}
           frameBatched={frameBatched}
           onSend={() => {}}
           onStop={() => {}}
@@ -879,21 +882,25 @@ describe('AgentChat/AgentChat', () => {
       );
     }
 
-    it('holds the streamed answer until the next frame', () => {
+    it('types the streamed answer out and commits the rest when it ends', () => {
       withFakeFrames((flush) => {
         render(<LiveHarness />);
-        act(() => setText('Answer grows'));
+        act(() => setText('Answer grows word by word'));
         expect(screen.getByText('Answer')).toBeInTheDocument();
+
         flush();
-        expect(screen.getByText('Answer grows')).toBeInTheDocument();
+        expect(screen.queryByText('Answer grows word by word')).toBeNull();
+
+        act(() => endStream());
+        expect(screen.getByText('Answer grows word by word')).toBeInTheDocument();
       });
     });
 
     it('commits the streamed answer right away with frameBatched off', () => {
       withFakeFrames(() => {
-        render(<LiveHarness frameBatched={false} />);
+        const { container } = render(<LiveHarness frameBatched={false} />);
         act(() => setText('Answer grows'));
-        expect(screen.getByText('Answer grows')).toBeInTheDocument();
+        expect(container).toHaveTextContent('Answer grows');
       });
     });
   });

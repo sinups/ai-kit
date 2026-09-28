@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Box, Button } from '@mantine/core';
+import { IconAlertTriangle } from '@tabler/icons-react';
 import { useMinDisplayTime } from '../hooks/use-min-display-time';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
 import { cx } from '../utils/cx';
@@ -45,6 +46,8 @@ export interface AgentStatusProps {
   minStatusMs?: number;
   /** Renders the stop button when provided */
   onStop?: () => void;
+  /** Extra buttons of the stalled notice, for example "Ask again"; rendered next to Stop */
+  stalledActions?: React.ReactNode;
   /** Overrides of the default English labels */
   labels?: Partial<AgentStatusLabels>;
   /** Class name added to the root element */
@@ -63,6 +66,7 @@ export const AgentStatus = memo(function AgentStatus({
   paused,
   minStatusMs,
   onStop,
+  stalledActions,
   labels: labelsProp,
   className,
   style,
@@ -83,6 +87,9 @@ export const AgentStatus = memo(function AgentStatus({
       style={style}
       data-stalled={status.isStalled || undefined}
     >
+      {status.isStalled && (
+        <IconAlertTriangle size={14} className={classes.noticeIcon} aria-hidden="true" />
+      )}
       <span role="status" aria-live="polite">
         {status.isStalled ? (
           <span className={classes.label}>{status.text}</span>
@@ -101,6 +108,7 @@ export const AgentStatus = memo(function AgentStatus({
           )}
         </span>
       )}
+      {status.isStalled && stalledActions}
       {onStop && (
         <Button
           variant="subtle"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@mantine-tests/core';
+import { render } from '@mantine-tests/core';
 import { act, fireEvent } from '@testing-library/react';
 import type { ChatMessage, ToolRendererSlotProps } from '../types';
 import { MessageList } from './MessageList';
@@ -166,7 +166,7 @@ describe('MessageList/streaming', () => {
 
     const total = [...renders.values()].reduce((sum, count) => sum + count, 0);
     expect(total).toBe(afterMount);
-    expect(screen.getByText(/token/)).toBeInTheDocument();
+    expect(document.body).toHaveTextContent('token token');
   });
 });
 
@@ -232,7 +232,7 @@ describe('MessageList/render scope', () => {
     const { base, renders, setMessages } = setup(20);
     act(() => setMessages([...base, streamingMessage('token token token ')]));
 
-    expect(screen.getByText('token token token')).toBeInTheDocument();
+    expect(document.body).toHaveTextContent('token token token');
     expect([...renders.entries()].filter(([, count]) => count !== 1)).toEqual([]);
   });
 });

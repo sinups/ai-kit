@@ -97,9 +97,12 @@ export const quietPresentation: QuietPresentation = {
       1
     );
     const firstRun = segments.findIndex((segment) => segment.kind === 'run');
+    let previousRunEnd: string | undefined;
     return segments.map((segment, position) => {
       if (segment.kind === 'run') {
         const parts = segment.items.map((entry) => entry.part as ToolPart);
+        const follows = previousRunEnd;
+        previousRunEnd = parts[parts.length - 1].toolCallId;
         return (
           <QuietToolRun
             key={`quiet-${parts[0].toolCallId ?? `${context.messageId}-${segment.items[0].index}`}`}
@@ -107,6 +110,7 @@ export const quietPresentation: QuietPresentation = {
             labels={context.runLabels}
             isTail={context.chatStatus === 'streaming' && position === segments.length - 1}
             turnStartedAt={position === firstRun ? context.turnStartedAt : undefined}
+            follows={follows}
             {...rowProps}
           />
         );

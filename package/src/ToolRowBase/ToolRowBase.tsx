@@ -68,7 +68,7 @@ export function ToolRowBase({
   };
 
   const row = (
-    <div className={classes.row} data-toggle={expandable || undefined}>
+    <div className={classes.row} data-part="row" data-toggle={expandable || undefined}>
       <div className={classes.content} data-wrap={detailLines > 1 || undefined}>
         {icon && <span className={classes.icon}>{icon}</span>}
         <span className={classes.label}>

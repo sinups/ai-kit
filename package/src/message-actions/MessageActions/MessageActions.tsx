@@ -228,6 +228,7 @@ export const MessageActions = memo(function MessageActions({
       justify={align === 'end' ? 'flex-end' : 'flex-start'}
       className={cx(classes.root, className)}
       style={style}
+      data-part="message-actions"
       data-visibility={visibility}
       data-active={feedbackOpen || actionPending() || undefined}
     >
