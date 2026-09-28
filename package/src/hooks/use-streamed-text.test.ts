@@ -5,6 +5,12 @@ function setVisibility(state: 'visible' | 'hidden') {
   Object.defineProperty(document, 'visibilityState', { configurable: true, value: state });
 }
 
+function frames(count: number) {
+  act(() => {
+    jest.advanceTimersByTime(16 * count);
+  });
+}
+
 describe('hooks/useStreamedText', () => {
   beforeEach(() => jest.useFakeTimers());
 
@@ -13,66 +19,111 @@ describe('hooks/useStreamedText', () => {
     setVisibility('visible');
   });
 
-  it('commits several deltas as one frame', () => {
+  it('types a burst word by word instead of showing it at once', () => {
+    const answer = 'Пять мест в тарифе, продление раз в год.';
     const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
-      initialProps: { text: 'Hel' },
+      initialProps: { text: '' },
     });
-    expect(result.current).toBe('Hel');
 
-    rerender({ text: 'Hello' });
-    rerender({ text: 'Hello wor' });
-    rerender({ text: 'Hello world' });
-    expect(result.current).toBe('Hel');
+    rerender({ text: answer });
+    expect(result.current).toBe('');
 
-    act(() => {
-      jest.advanceTimersByTime(16);
-    });
-    expect(result.current).toBe('Hello world');
+    frames(3);
+    expect(result.current).toBe('Пять ');
+
+    frames(3);
+    expect(result.current).toBe('Пять мест в ');
+
+    frames(60);
+    expect(result.current).toBe(answer);
   });
 
-  it('commits again on the next frame', () => {
+  it('cuts only at word boundaries', () => {
     const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
-      initialProps: { text: 'a' },
+      initialProps: { text: '' },
     });
-    rerender({ text: 'ab' });
-    act(() => {
-      jest.advanceTimersByTime(16);
-    });
-    expect(result.current).toBe('ab');
-    rerender({ text: 'abc' });
-    expect(result.current).toBe('ab');
-    act(() => {
-      jest.advanceTimersByTime(16);
-    });
-    expect(result.current).toBe('abc');
+    rerender({ text: 'Пять мест в тарифе' });
+
+    for (let count = 0; count < 20; count += 1) {
+      frames(1);
+      expect(result.current === '' || result.current.endsWith(' ')).toBe(true);
+    }
   });
 
-  it('commits synchronously when the stream ends', () => {
+  it('speeds up so that a long answer never lags far behind the stream', () => {
+    const long = `${'слово '.repeat(400)}конец.`;
+    const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
+      initialProps: { text: '' },
+    });
+    rerender({ text: long });
+
+    frames(22);
+    expect(result.current.length).toBeGreaterThan(long.length / 2);
+
+    frames(120);
+    expect(result.current).toBe(long);
+  });
+
+  it('holds a word that has not arrived in full', () => {
+    const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
+      initialProps: { text: '' },
+    });
+    rerender({ text: 'Тариф Ко' });
+    frames(10);
+    expect(result.current).toBe('Тариф ');
+
+    rerender({ text: 'Тариф Команда стоит' });
+    frames(10);
+    expect(result.current).toBe('Тариф Команда ');
+  });
+
+  it('types through a token with no spaces in it', () => {
+    const address = `https://example.com/${'a'.repeat(300)}`;
+    const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
+      initialProps: { text: '' },
+    });
+    rerender({ text: address });
+
+    frames(40);
+    expect(result.current.length).toBeGreaterThan(0);
+    expect(address.startsWith(result.current)).toBe(true);
+  });
+
+  it('commits the rest when the stream ends', () => {
     const { result, rerender } = renderHook(
       ({ text, streaming }) => useStreamedText(text, { streaming }),
-      { initialProps: { text: 'a', streaming: true } }
+      { initialProps: { text: 'Пять', streaming: true } }
     );
-    rerender({ text: 'answer', streaming: true });
-    expect(result.current).toBe('a');
-    rerender({ text: 'answer', streaming: false });
-    expect(result.current).toBe('answer');
+    rerender({ text: 'Пять мест в тарифе', streaming: true });
+    expect(result.current).toBe('Пять');
+
+    rerender({ text: 'Пять мест в тарифе', streaming: false });
+    expect(result.current).toBe('Пять мест в тарифе');
+  });
+
+  it('starts over when the text is replaced rather than continued', () => {
+    const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
+      initialProps: { text: 'Первый ответ' },
+    });
+    rerender({ text: 'Другой ответ целиком' });
+    expect(result.current).toBe('Другой ответ целиком');
   });
 
   it('commits synchronously while the document is hidden', () => {
     const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
       initialProps: { text: 'a' },
     });
-    rerender({ text: 'ab' });
+    rerender({ text: 'a b' });
     expect(result.current).toBe('a');
 
     act(() => {
       setVisibility('hidden');
       document.dispatchEvent(new Event('visibilitychange'));
     });
-    expect(result.current).toBe('ab');
+    expect(result.current).toBe('a b');
 
-    rerender({ text: 'abc' });
-    expect(result.current).toBe('abc');
+    rerender({ text: 'a b c' });
+    expect(result.current).toBe('a b c');
   });
 
   it('commits synchronously under reduced motion', () => {
@@ -84,18 +135,32 @@ describe('hooks/useStreamedText', () => {
     const { result, rerender } = renderHook(({ text }) => useStreamedText(text), {
       initialProps: { text: 'a' },
     });
-    rerender({ text: 'ab' });
-    expect(result.current).toBe('ab');
+    rerender({ text: 'a b' });
+    expect(result.current).toBe('a b');
     window.matchMedia = matchMedia;
   });
 
-  it('returns the text unchanged while batching is off', () => {
+  it('returns the text unchanged while typing is off', () => {
     const { result, rerender } = renderHook(
       ({ text }) => useStreamedText(text, { enabled: false }),
       { initialProps: { text: 'a' } }
     );
-    rerender({ text: 'ab' });
-    expect(result.current).toBe('ab');
+    rerender({ text: 'a b' });
+    expect(result.current).toBe('a b');
+  });
+
+  it('follows the pace the host asks for', () => {
+    const answer = 'Пять мест в тарифе, продление раз в год. ';
+    const fast = renderHook(({ text }) => useStreamedText(text, { charsPerSecond: 1000 }), {
+      initialProps: { text: '' },
+    });
+    const usual = renderHook(({ text }) => useStreamedText(text), { initialProps: { text: '' } });
+    fast.rerender({ text: answer });
+    usual.rerender({ text: answer });
+
+    frames(3);
+    expect(fast.result.current).toBe(answer);
+    expect(usual.result.current.length).toBeLessThan(answer.length);
   });
 
   it('drops the pending frame on unmount', () => {
@@ -103,12 +168,10 @@ describe('hooks/useStreamedText', () => {
     const { rerender, unmount } = renderHook(({ text }) => useStreamedText(text), {
       initialProps: { text: 'a' },
     });
-    rerender({ text: 'ab' });
+    rerender({ text: 'a b' });
     unmount();
     expect(cancel).toHaveBeenCalled();
-    act(() => {
-      jest.advanceTimersByTime(16);
-    });
+    frames(1);
     cancel.mockRestore();
   });
 });

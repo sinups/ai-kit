@@ -12,6 +12,7 @@
   --ae-control-height-sm: rem(24px);
   --ae-control-height-md: rem(28px);
   --ae-row-height: rem(28px);
+  --ae-status-row-height: var(--ae-row-height);
   --ae-rows-marker-width: rem(16px);
   --ae-rows-gutter-width: rem(28px);
   --ae-rows-block-gap: var(--ae-line-height-sm);
@@ -56,6 +57,8 @@
   --ae-anim-loading-dots: ae-loading-dots;
   --ae-anim-spin: ae-spin;
   --ae-anim-appear: ae-appear;
+  --ae-anim-fade-in: ae-fade-in;
+  --ae-fade-in-duration: 100ms;
 
   --ae-hover: var(--mantine-color-default-hover);
   --ae-primary: var(--mantine-primary-color-filled);
@@ -183,6 +186,12 @@
 @keyframes :global(ae-spin) {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes :global(ae-fade-in) {
+  from {
+    opacity: 0;
   }
 }
 
