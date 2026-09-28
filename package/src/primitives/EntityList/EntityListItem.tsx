@@ -7,6 +7,8 @@ import classes from './EntityList.module.css';
 export interface EntityListItemAction {
   /** Menu item label */
   label: string;
+  /** Stable name of the action, published as `data-action` for tests and analytics */
+  id?: string;
   /** Icon rendered before the label */
   icon?: React.ReactNode;
   /** Called when the menu item is clicked */
@@ -24,6 +26,17 @@ export interface EntityListItemLabels {
 
 export const DEFAULT_ENTITY_LIST_ITEM_LABELS: EntityListItemLabels = {
   actions: 'Actions',
+};
+
+/** Handles a host adds to a row: `data-*` and `aria-*` attributes, an id, a class name of its own */
+export type EntityRowProps = {
+  [key: `data-${string}`]: string | number | boolean | undefined;
+} & {
+  [key: `aria-${string}`]: string | number | boolean | undefined;
+} & {
+  id?: string;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
 export interface EntityListItemProps {
@@ -53,6 +66,8 @@ export interface EntityListItemProps {
   onClick?: () => void;
   /** Overrides of the default English labels */
   labels?: Partial<EntityListItemLabels>;
+  /** Attributes added to the row element, for example `data-cy` of the host */
+  rowProps?: EntityRowProps;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -87,6 +102,7 @@ export const EntityListItem = memo(function EntityListItem({
   badges,
   actions,
   labels: labelsProp,
+  rowProps,
   selected = false,
   disabled = false,
   descriptionLines = 2,
@@ -115,6 +131,7 @@ export const EntityListItem = memo(function EntityListItem({
                 variant="subtle"
                 color="gray"
                 size="sm"
+                data-part="actions"
                 aria-label={labels.actions}
                 disabled={disabled}
                 onClick={stopPropagation}
@@ -125,7 +142,9 @@ export const EntityListItem = memo(function EntityListItem({
             <Menu.Dropdown onClick={stopPropagation} onKeyDown={stopPropagation}>
               {actions.map((action) => (
                 <Menu.Item
-                  key={action.label}
+                  key={action.id ?? action.label}
+                  data-part="action"
+                  data-action={action.id}
                   leftSection={action.icon}
                   color={action.color}
                   disabled={action.disabled}
@@ -142,7 +161,9 @@ export const EntityListItem = memo(function EntityListItem({
 
   return (
     <NavLink
+      {...rowProps}
       component="div"
+      data-part="row"
       active={selected}
       vars={softActiveVars}
       disabled={disabled}
@@ -165,8 +186,8 @@ export const EntityListItem = memo(function EntityListItem({
             }
           : undefined
       }
-      className={cx(classes.item, className)}
-      style={style}
+      className={cx(classes.item, className, rowProps?.className)}
+      style={style ?? rowProps?.style}
       classNames={{ body: classes.itemBody, label: classes.itemLabel }}
       label={
         <Group gap={6} wrap="nowrap" className={classes.labelRow}>

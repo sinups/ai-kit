@@ -1,5 +1,6 @@
 export const AE_TOKENS = [
   'anim-appear',
+  'anim-fade-in',
   'anim-blink',
   'anim-loading-dots',
   'anim-shimmer',
@@ -34,6 +35,7 @@ export const AE_TOKENS = [
   'diff-removed-text',
   'error-bg',
   'error-border',
+  'fade-in-duration',
   'fg',
   'fg-muted',
   'fg-subtle',
@@ -69,6 +71,7 @@ export const AE_TOKENS = [
   'radius',
   'row-gap',
   'row-height',
+  'status-row-height',
   'row-radius',
   'rows-block-gap',
   'rows-gutter-width',

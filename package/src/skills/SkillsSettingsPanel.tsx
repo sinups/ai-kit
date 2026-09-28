@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { ConfirmDialog } from '../primitives/ConfirmDialog/ConfirmDialog';
-import { MasterDetail } from '../primitives/MasterDetail/MasterDetail';
-import { SkillCatalog, type SkillCatalogLabels } from './SkillCatalog';
+import { MasterDetail, type MasterDetailLabels } from '../primitives/MasterDetail/MasterDetail';
+import { SkillCatalog, type SkillCatalogLabels, type SkillCatalogProps } from './SkillCatalog';
 import { SkillDetail, type SkillDetailLabels } from './SkillDetail';
 import { DEFAULT_SKILL_EDITOR_LABELS, SkillEditor, type SkillEditorLabels } from './SkillEditor';
 import { getDuplicateSkillName, skillToDraft } from './skill-utils';
@@ -39,6 +39,8 @@ export interface SkillsSettingsPanelProps {
   breakpoint?: number;
   /** Catalog pane width in px when wide, `340` by default */
   listWidth?: number;
+  /** Attributes added to every row or card of the catalog, for example `data-cy` handles */
+  getRowProps?: SkillCatalogProps['getRowProps'];
   /** Overrides of the default English labels of the panel and its parts */
   labels?: Partial<SkillsSettingsPanelLabels>;
   /** Class name added to the root element */
@@ -66,6 +68,8 @@ export const DEFAULT_SKILL_REMOVE_LABELS: SkillRemoveLabels = {
 export interface SkillsSettingsPanelLabels {
   /** Back button on narrow widths, `Skills` by default */
   back: string;
+  /** Labels of the two panes: the empty detail on wide widths and the back button */
+  masterDetail: Partial<MasterDetailLabels>;
   /** Labels of the catalog */
   catalog: Partial<SkillCatalogLabels>;
   /** Labels of the detail view */
@@ -78,6 +82,7 @@ export interface SkillsSettingsPanelLabels {
 
 export const DEFAULT_SKILLS_SETTINGS_PANEL_LABELS: SkillsSettingsPanelLabels = {
   back: 'Skills',
+  masterDetail: {},
   catalog: {},
   detail: {},
   editor: {},
@@ -107,6 +112,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
   catalogVariant = 'list',
   breakpoint,
   listWidth = 340,
+  getRowProps,
   labels: labelsProp,
   className,
   style,
@@ -219,7 +225,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
         breakpoint={breakpoint}
         listWidth={listWidth}
         detail={detail}
-        labels={{ back: labels.back }}
+        labels={{ back: labels.back, ...labels.masterDetail }}
         onBack={() =>
           leaveEditor(() => {
             closeEditor();
@@ -234,6 +240,7 @@ export const SkillsSettingsPanel = memo(function SkillsSettingsPanel({
             onRetry={onRetry}
             variant={catalogVariant}
             selectedId={selectedId}
+            getRowProps={getRowProps}
             labels={labels.catalog}
             className={classes.panelCatalog}
             isEditable={isEditable}

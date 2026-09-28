@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useRef } from 'react';
+import React, { memo, useEffect, useMemo, useRef } from 'react';
 import { compiler, MarkdownToJSX, RuleType } from 'markdown-to-jsx';
 import { Box, Table as MantineTable, Stack } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
@@ -14,6 +14,7 @@ import {
   hasOpenFence,
   type MarkdownStreamReader,
 } from './markdown-stream';
+import { splitByFadeMarks, trackFadeMarks, type FadeMark, type FadeSegment } from './markdown-fade';
 import { shouldStackTable } from './table-layout';
 import { MarkdownLinksProvider, useMarkdownLinks, type MarkdownLinks } from './markdown-links';
 import classes from './Markdown.module.css';
@@ -194,6 +195,19 @@ interface RenderOptions {
   highlighter?: SyntaxHighlighter;
   streaming: boolean;
   responsiveTables: boolean;
+  fade?: FadeTracker;
+}
+
+/** Counts the characters of the growing tail and marks the ones released a moment ago */
+type FadeTracker = {
+  marks: FadeMark[];
+  shown: number;
+  start: () => void;
+  take: (length: number) => number;
+};
+
+function fadeSegments(text: string, fade: FadeTracker): FadeSegment[] {
+  return splitByFadeMarks(text, fade.take(text.length), fade.marks);
 }
 
 function createOptions({
@@ -202,6 +216,7 @@ function createOptions({
   highlighter,
   streaming,
   responsiveTables,
+  fade,
 }: RenderOptions): MarkdownToJSX.Options {
   return {
     disableParsingRawHTML: true,
@@ -219,6 +234,25 @@ function createOptions({
             wrapLines={wrapLines}
             streaming={streaming}
           />
+        );
+      }
+      if (fade && node.type === RuleType.text) {
+        const segments = fadeSegments(node.text, fade);
+        if (segments.length === 1 && segments[0].from === undefined) {
+          return next();
+        }
+        return (
+          <React.Fragment key={state.key}>
+            {segments.map((segment) =>
+              segment.from === undefined ? (
+                segment.text
+              ) : (
+                <span key={segment.from} className={classes.fresh}>
+                  {segment.text}
+                </span>
+              )
+            )}
+          </React.Fragment>
         );
       }
       if (responsiveTables && node.type === RuleType.table) {
@@ -278,6 +312,23 @@ export const Markdown = memo(function Markdown({
       }),
     [showCopy, wrapLines, highlighter, responsiveTables]
   );
+  const fadeRef = useRef<FadeTracker | null>(null);
+  if (fadeRef.current === null) {
+    const tracker: FadeTracker = {
+      marks: [],
+      shown: 0,
+      start: () => {
+        tracker.shown = 0;
+      },
+      take: (length) => {
+        const from = tracker.shown;
+        tracker.shown += length;
+        return from;
+      },
+    };
+    fadeRef.current = tracker;
+  }
+  const fade = fadeRef.current;
   const tailOptions = useMemo(
     () =>
       createOptions({
@@ -286,8 +337,21 @@ export const Markdown = memo(function Markdown({
         highlighter,
         responsiveTables,
         streaming: true,
+        fade,
       }),
-    [showCopy, wrapLines, highlighter, responsiveTables]
+    [showCopy, wrapLines, highlighter, responsiveTables, fade]
+  );
+  const tailTextOptions = useMemo(
+    () =>
+      createOptions({
+        showCopy,
+        wrapLines,
+        highlighter,
+        responsiveTables,
+        streaming: false,
+        fade,
+      }),
+    [showCopy, wrapLines, highlighter, responsiveTables, fade]
   );
   const shownContent = useStreamedText(content, { streaming, enabled: frameBatched });
   // Re-parsing a finished stream as one document would remount every code block and table.
@@ -300,6 +364,15 @@ export const Markdown = memo(function Markdown({
     () => (streamed ? '' : normalizeMarkdown(shownContent)),
     [streamed, shownContent]
   );
+
+  const tailShownRef = useRef('');
+  useEffect(() => {
+    if (streaming) {
+      fade.marks = trackFadeMarks(fade.marks, fade.shown, Date.now());
+    } else if (fade.marks.length > 0) {
+      fade.marks = [];
+    }
+  });
 
   const withLinks = (node: React.ReactElement) =>
     onLinkClick || linkSchemes ? (
@@ -320,6 +393,10 @@ export const Markdown = memo(function Markdown({
 
   const { stable, tail } = readerRef.current(shownContent);
   const shownTail = streaming && tailGranularity === 'line' ? cutTailToLastLine(tail) : tail;
+  if (streaming && shownTail !== tailShownRef.current) {
+    tailShownRef.current = shownTail;
+    fade.start();
+  }
   return withLinks(
     <Box
       className={cx(classes.root, className)}
@@ -332,7 +409,7 @@ export const Markdown = memo(function Markdown({
       <MarkdownChunk
         key="tail"
         content={streaming ? closeUnfinishedMarkdown(shownTail) : shownTail}
-        options={streaming && hasOpenFence(shownTail) ? tailOptions : options}
+        options={streaming ? (hasOpenFence(shownTail) ? tailOptions : tailTextOptions) : options}
       />
     </Box>
   );

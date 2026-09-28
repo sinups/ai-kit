@@ -221,6 +221,66 @@ describe('MessageList/MessageList', () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps no room for the actions of a question that was never answered', () => {
+    const unanswered: ChatMessage[] = [
+      { id: 'u1', role: 'user', parts: [{ type: 'text', text: 'First question' }] },
+      { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'Second question' }] },
+      { id: 'a2', role: 'assistant', parts: [{ type: 'text', text: 'An answer at last' }] },
+    ];
+    const { container } = render(
+      <MessageList messages={unanswered} status="ready" messageActions={{ onEdit: jest.fn() }} />
+    );
+
+    const prompts = container.querySelectorAll('[data-turn-prompt]');
+    expect(prompts).toHaveLength(2);
+    expect(prompts[0]).toHaveAttribute('data-unanswered');
+    expect(prompts[1]).not.toHaveAttribute('data-unanswered');
+  });
+
+  it('offers retry only on the error of the last answer', async () => {
+    const onRetry = jest.fn();
+    const twoFailures: ChatMessage[] = [
+      messages[0],
+      { id: 'a-old', role: 'assistant', parts: [{ type: 'error', message: 'Overloaded' }] },
+      { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'Again please' }] },
+      { id: 'a-last', role: 'assistant', parts: [{ type: 'error', message: 'Overloaded again' }] },
+    ];
+    render(<MessageList messages={twoFailures} status="error" onRetry={onRetry} />);
+
+    const withButton = screen.getByRole('button', { name: 'Retry' }).closest('div[data-variant]');
+    expect(withButton).toHaveTextContent('Overloaded again');
+    expect(screen.getByText('Overloaded').closest('div[data-variant]')).not.toHaveTextContent(
+      'Retry'
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets an error part ask for the retry button or refuse it', () => {
+    const marked: ChatMessage[] = [
+      messages[0],
+      {
+        id: 'a-old',
+        role: 'assistant',
+        parts: [{ type: 'error', message: 'Overloaded', retryable: true }],
+      },
+      { id: 'u2', role: 'user', parts: [{ type: 'text', text: 'Again please' }] },
+      {
+        id: 'a-last',
+        role: 'assistant',
+        parts: [{ type: 'error', message: 'Out of quota', retryable: false }],
+      },
+    ];
+    render(<MessageList messages={marked} status="error" onRetry={() => {}} />);
+
+    const withButton = screen.getByRole('button', { name: 'Retry' }).closest('div[data-variant]');
+    expect(withButton).toHaveTextContent('Overloaded');
+    expect(screen.getByText('Out of quota').closest('div[data-variant]')).not.toHaveTextContent(
+      'Retry'
+    );
+  });
+
   it('renders turn summaries, context events and hook activity, including from system messages', () => {
     const feed: ChatMessage[] = [
       messages[0],

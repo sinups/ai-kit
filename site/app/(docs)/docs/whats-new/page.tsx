@@ -277,6 +277,7 @@ export default function WhatsNewPage() {
     <DocPageShell
       sections={[
         { id: 'unreleased', label: 'Unreleased' },
+        { id: 'v0-5-0', label: '0.5.0' },
         { id: 'v0-4-0', label: '0.4.0' },
         { id: 'next', label: '0.3.0' },
         { id: 'next-defaults', label: 'Changed defaults in 0.3.0' },
@@ -309,6 +310,30 @@ export default function WhatsNewPage() {
       </GuideHeader>
 
       <GuideSection id="unreleased" title="Unreleased">
+        <Bullets>
+          <li>
+            A new entry, <C>@sinups/ai-kit/embed</C>, puts the chat on a page that has no React: one
+            script tag, no dependencies, under 10 KB gzip and its own shadow root. It draws the round
+            button, the fan of actions and the notification bubbles, and opens the chat page in an
+            iframe. Options arrive in the call, in <C>data-*</C> of the tag or as JSON from{' '}
+            <C>configUrl</C>; the page drives it with <C>open</C>, <C>close</C>, <C>notify</C>,{' '}
+            <C>unread</C>, <C>navigate</C>, <C>send</C> and live <C>options</C>. See the{' '}
+            <Link href="/docs/widget" className={docLinkClass}>
+              widget builder
+            </Link>
+            .
+          </li>
+          <li>
+            <C>ChatLauncher</C> takes <C>actions</C>: the first click fans out round buttons that
+            leave the launcher one after another, for a call back, a demo or an email beside the
+            chat. Every action brings its own icon, label, color and link, so the kit ships no brand
+            marks. <C>pulse</C> rings and an <C>altIcon</C> that alternates with the icon (
+            <C>iconAnimation</C>) invite the first click; both stay still under reduced motion.
+          </li>
+        </Bullets>
+      </GuideSection>
+
+      <GuideSection id="v0-5-0" title="0.5.0">
         <Bullets>
           <li>
             <C>quietPresentation</C> reads the formatters of the host like the cards and rows do:

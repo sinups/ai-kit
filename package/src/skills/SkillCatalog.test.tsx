@@ -120,6 +120,24 @@ describe('skills/SkillCatalog', () => {
     expect(toggle).not.toBeDisabled();
   });
 
+  it('gives rows and cards stable handles for tests of the host', () => {
+    const handles = (skill: { id: string }) => ({ 'data-cy': `skill-${skill.id}` });
+    const { rerender } = render(
+      <SkillCatalog skills={skills} onToggle={jest.fn()} getRowProps={handles} />
+    );
+
+    const row = document.querySelector('[data-cy="skill-release-notes"]') as HTMLElement;
+    expect(row).toHaveAttribute('data-part', 'row');
+    expect(row.querySelector('[data-part="toggle"]')).toBeInTheDocument();
+
+    rerender(
+      <SkillCatalog skills={skills} variant="grid" onToggle={jest.fn()} getRowProps={handles} />
+    );
+    const card = document.querySelector('[data-cy="skill-release-notes"]') as HTMLElement;
+    expect(card).toHaveAttribute('data-part', 'row');
+    expect(card.querySelector('[data-part="toggle"]')).toBeInTheDocument();
+  });
+
   it('offers actions only for editable skills and creates from the toolbar', async () => {
     const onEdit = jest.fn();
     const onCreate = jest.fn();

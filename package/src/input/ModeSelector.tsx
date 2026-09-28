@@ -38,6 +38,14 @@ export interface ModeSelectorProps {
   shortcuts?: boolean;
   /** Overrides of the default English labels */
   labels?: Partial<ModeSelectorLabels>;
+  /**
+   * Shape of the button: `label` shows the icon and the name of the mode, `icon` only the icon of
+   * the mode, the size of the neighbouring icon buttons. `label` by default; a mode without an icon
+   * keeps its name either way.
+   */
+  trigger?: 'label' | 'icon';
+  /** Distance between the button and the panel in px, `8` by default */
+  sideOffset?: number;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -50,6 +58,8 @@ export const ModeSelector = memo(function ModeSelector({
   onChange,
   shortcuts = false,
   labels: labelsProp,
+  trigger: triggerVariant = 'label',
+  sideOffset,
   className,
   style,
 }: ModeSelectorProps) {
@@ -88,19 +98,30 @@ export const ModeSelector = memo(function ModeSelector({
   }
   const ActiveIcon = activeMode?.icon;
   const hasMultiple = modes.length > 1;
+  const compact = triggerVariant === 'icon' && Boolean(ActiveIcon);
+  const changed = compact && activeMode?.id !== modes[0]?.id;
 
   const trigger = (
     <UnstyledButton
       component={hasMultiple ? 'button' : 'span'}
       className={cx(classes.trigger, className)}
       style={style}
+      data-compact={compact || undefined}
       data-static={!hasMultiple || undefined}
-      aria-label={hasMultiple ? labels.trigger : undefined}
+      title={compact ? activeMode?.label : undefined}
+      aria-label={
+        hasMultiple
+          ? compact
+            ? `${labels.trigger}: ${activeMode?.label}`
+            : labels.trigger
+          : undefined
+      }
       onKeyDown={hasMultiple ? pickByDigit : undefined}
     >
       {ActiveIcon && <ActiveIcon className={classes.triggerIcon} />}
-      <span className={classes.label}>{activeMode?.label}</span>
-      {hasMultiple && <IconChevronDown size={12} className={classes.chevron} />}
+      {!compact && <span className={classes.label}>{activeMode?.label}</span>}
+      {!compact && hasMultiple && <IconChevronDown size={12} className={classes.chevron} />}
+      {changed && <span className={classes.mark} aria-hidden="true" />}
     </UnstyledButton>
   );
 
@@ -109,7 +130,14 @@ export const ModeSelector = memo(function ModeSelector({
   }
 
   return (
-    <InputPopover open={open} onOpenChange={setOpen} side="top" align="start" trigger={trigger}>
+    <InputPopover
+      open={open}
+      onOpenChange={setOpen}
+      side="top"
+      align="start"
+      sideOffset={sideOffset}
+      trigger={trigger}
+    >
       {labels.title && <div className={classes.title}>{labels.title}</div>}
       <div onKeyDown={pickByDigit} role="presentation">
         {modes.map((mode, index) => {

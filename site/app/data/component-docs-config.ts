@@ -803,7 +803,7 @@ export function App(chat: AgentChatProps) {
         type: 'usage',
         title: 'Usage',
         content:
-          'Apply the kit theme to a subtree. Render it inside your MantineProvider around the kit components; host components outside it keep the host theme. Settings: `accent` sets the primary color (gray, blue, indigo, violet, grape, pink), `radius` sets the default radius (sharp, default, round), `density` sets control heights and paddings (default, compact), `colorScheme` switches the color scheme of the whole app through Mantine. `theme` merges Mantine overrides on top of the kit theme, and `tokens` sets `--ae-*` variables for the subtree (keys without the `--ae-` prefix); tokens win over settings. The provider re-declares the CSS variables on its own element and on portals it opens, so menus and modals inside match. `persistKey` saves changes made through `useAiKitTheme().setSettings` to localStorage and restores them. `useAiKitTheme` returns the effective settings, the defaults from props, `setSettings`, `reset` and the resolved `aiKit` theme values; it throws outside a provider, and `useOptionalAiKitTheme` returns null instead. Wrap host UI placed inside a kit subtree in `AiKitHostScope` to give it the host theme back. See Theming (/docs/theming) for nesting and token details.',
+          'Apply the kit theme to a subtree. Render it inside your MantineProvider around the kit components; host components outside it keep the host theme. Kit components need a provider above them: the `--ae-*` variables live on its element, so a kit screen rendered outside one — most often inside a modal, drawer or popover that the host portals to `document.body` — comes out with the wrong colors and sizes. Render the provider inside that portal content as well, not only around the page. Settings: `accent` sets the primary color (gray, blue, indigo, violet, grape, pink), `radius` sets the default radius (sharp, default, round), `density` sets control heights and paddings (default, compact), `colorScheme` switches the color scheme of the whole app through Mantine. `theme` merges Mantine overrides on top of the kit theme, and `tokens` sets `--ae-*` variables for the subtree (keys without the `--ae-` prefix); tokens win over settings. The provider re-declares the CSS variables on its own element and on portals it opens, so menus and modals inside match. `persistKey` saves changes made through `useAiKitTheme().setSettings` to localStorage and restores them. `useAiKitTheme` returns the effective settings, the defaults from props, `setSettings`, `reset` and the resolved `aiKit` theme values; it throws outside a provider, and `useOptionalAiKitTheme` returns null instead. Wrap host UI placed inside a kit subtree in `AiKitHostScope` to give it the host theme back. See Theming (/docs/theming) for nesting and token details.',
       },
       {
         type: 'example',
@@ -926,6 +926,30 @@ export function SupportWidget({ chat, unread, reset }: { chat: AgentChatProps; u
     <AgentChat {...chat} contentWidth="100%" wrapLines />
   </ChatLauncher>
 </div>`,
+      },
+      {
+        type: 'usage',
+        title: 'Ways to get in touch',
+        content:
+          'Pass `actions` to turn the first click into a fan of round buttons that leave the launcher one after another: chat, a call back, a demo, an email. The kit ships no brand icons and no links of its own \u2014 every action carries its own `icon`, `label`, `color` and either `onClick` or `href`, so the row stays yours. An action with `opensChat` opens the panel, the others only call back and hand the focus back to the button. While the fan is open the button turns into a close button and the unread badge steps aside; a click outside, Escape or opening the chat closes the fan, and Escape moves the focus only when it was already inside the launcher. A `disabled` action stays a button, never a link. `actionsMotion` sends them out one after another (`sequence`) or almost at once (`together`); `actionSize`, `actionGap` and `buttonSize` set the diameters and the spacing. `pulse` draws slow rings around the closed button, and `altIcon` with `iconAnimation` lets the button alternate between the icon and an avatar: `swap` fades the icon out and the avatar in, `flip` turns the button over, `cover` grows the avatar over the icon. Everything stays still under `prefers-reduced-motion` and while the panel is open, wherever the panel was opened from.',
+      },
+      {
+        type: 'example',
+        title: 'Actions that fan out of the button',
+        previewId: 'ChatLauncher/actions',
+        code: `<ChatLauncher
+  withinPortal={false}
+  title="Assistant"
+  pulse
+  actions={[
+    { id: "chat", label: "Chat with the assistant", icon: <IconMessageCircle size={22} />, opensChat: true },
+    { id: "call", label: "Request a call back", icon: <IconPhone size={20} />, onClick: openCallForm },
+    { id: "demo", label: "Book a demo", icon: <IconCalendarEvent size={20} />, color: "grape", href: "/demo" },
+    { id: "mail", label: "Write to support", icon: <IconMail size={20} />, color: "teal", href: "mailto:support@example.com" },
+  ]}
+>
+  <AgentChat {...chat} contentWidth="100%" wrapLines />
+</ChatLauncher>`,
       },
       {
         type: 'example',

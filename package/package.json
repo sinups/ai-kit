@@ -27,6 +27,17 @@
         "default": "./dist/cjs/index.cjs"
       }
     },
+    "./embed": {
+      "import": {
+        "types": "./dist/types/embed/index.d.mts",
+        "default": "./dist/embed/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/embed/index.d.ts",
+        "default": "./dist/embed/index.cjs"
+      }
+    },
+    "./embed/widget.js": "./dist/embed/widget.js",
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
     "./styles/*": "./dist/styles/*",

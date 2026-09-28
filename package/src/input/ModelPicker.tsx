@@ -29,6 +29,8 @@ export interface ModelPickerProps {
   placeholder?: string;
   /** Overrides of the default English labels */
   labels?: Partial<ModelPickerLabels>;
+  /** Distance between the button and the list in px, `8` by default */
+  sideOffset?: number;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -41,6 +43,7 @@ export const ModelPicker = memo(function ModelPicker({
   onChange,
   placeholder,
   labels: labelsProp,
+  sideOffset,
   className,
   style,
 }: ModelPickerProps) {
@@ -68,6 +71,7 @@ export const ModelPicker = memo(function ModelPicker({
       onOpenChange={setOpen}
       side="top"
       align="start"
+      sideOffset={sideOffset}
       trigger={
         <UnstyledButton
           className={cx(classes.trigger, className)}

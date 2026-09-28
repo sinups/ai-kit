@@ -1,9 +1,14 @@
+/* The folded line stands where "Working…" and the stalled notice stand: one height for all three,
+   so the transcript does not jump when they replace each other. */
+.quiet [data-part='row'] {
+  min-height: var(--ae-status-row-height);
+}
+
 .quiet {
   --ae-tool-label-color: var(--ae-fg-muted);
 }
 
 .details {
-  padding-inline-start: var(--ae-space-lg);
   font-size: var(--ae-font-size-xs);
 }
 

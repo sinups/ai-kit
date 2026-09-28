@@ -183,3 +183,14 @@
     animation: none;
   }
 }
+
+/* New words arrive one batch a frame: a short fade keeps the line from snapping into place. */
+.fresh {
+  animation: var(--ae-anim-fade-in) var(--ae-fade-in-duration) ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fresh {
+    animation: none;
+  }
+}

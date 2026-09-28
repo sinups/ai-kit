@@ -3,6 +3,11 @@
   min-height: 0;
   overflow-y: auto;
 
+  &[data-stack-from-bottom] {
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Scroll anchoring fights the follow-the-bottom logic: the browser restores the old offset
      while a streaming answer grows, which reads as the list jumping back. */
   overflow-anchor: none;
@@ -12,6 +17,11 @@
   margin-inline: auto;
   padding: rem(24px) var(--ae-column-inset, rem(16px));
   max-width: var(--ae-max-width);
+  width: 100%;
+
+  [data-stack-from-bottom] > & {
+    margin-block-start: auto;
+  }
 }
 
 .turns {
@@ -48,6 +58,26 @@
     & .toolbar {
       opacity: 1;
       pointer-events: auto;
+    }
+  }
+}
+
+/* A question nobody answered keeps no room for its hidden actions: two questions in a row met a
+   double strip of empty space between the bubbles. */
+.group[data-unanswered] {
+  & .toolbar,
+  & [data-part='message-actions'] {
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &:hover,
+  &:focus-within {
+    & .toolbar,
+    & [data-part='message-actions'] {
+      height: auto;
+      overflow: visible;
     }
   }
 }
@@ -94,6 +124,10 @@
   .appear {
     animation: none;
   }
+}
+
+.workingRow [data-part='row'] {
+  min-height: var(--ae-status-row-height);
 }
 
 .workingRowInline {

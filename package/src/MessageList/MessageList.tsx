@@ -190,6 +190,13 @@ export type MessageListProps = {
   sendScroll?: SendScroll;
   /** Shows a caret after the growing text while streaming, `false` by default */
   streamingCaret?: boolean;
+  /**
+   * Keeps room under a growing answer so the list does not jitter in the first frames, `true` by
+   * default; the room is given while the answer is live and released when the turn is finished
+   */
+  assistantBreathingSpace?: boolean;
+  /** Keeps a short transcript at the composer instead of the top of the feed, `false` by default */
+  stackFromBottom?: boolean;
   /** Skips layout and paint of finished turns outside the viewport, `false` by default; a number is the turn count it starts from, `true` means 50 */
   lazyTurns?: boolean | number;
   /** The user stopped the latest answer, so its end is announced as `labels.answerStopped`; `AgentChat` sets it from its stop button */
@@ -467,6 +474,8 @@ export const MessageList = memo(function MessageList({
   partRenderers,
   sendScroll = 'bottom',
   streamingCaret = false,
+  assistantBreathingSpace = true,
+  stackFromBottom = false,
   lazyTurns = false,
   stopped = false,
   onToolAction,
@@ -1000,7 +1009,10 @@ export const MessageList = memo(function MessageList({
     Boolean(lastMessageId) &&
     lastMessageId !== lastMessageIdRef.current;
   const showAssistantBreathingSpace =
-    !promptTop && (showPlanning || assistantSpaceActiveRef.current || isNewAssistantMessage);
+    assistantBreathingSpace &&
+    !promptTop &&
+    isStreaming &&
+    (showPlanning || assistantSpaceActiveRef.current || isNewAssistantMessage);
 
   useEffect(() => {
     if (lastMessageRole === 'assistant') {
@@ -1020,7 +1032,7 @@ export const MessageList = memo(function MessageList({
       <WorkingLine
         label={labels.working}
         since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
-        className={isRows ? classes.workingRowInline : undefined}
+        className={cx(classes.workingRow, isRows && classes.workingRowInline)}
       />
     ) : (
       workingRow
@@ -1053,6 +1065,7 @@ export const MessageList = memo(function MessageList({
         tabIndex={withSearch ? -1 : undefined}
         data-top-fade={topFade && isScrolled ? true : undefined}
         className={cx(classes.root, className)}
+        data-stack-from-bottom={stackFromBottom || undefined}
         style={getContentWidthStyle(contentWidth, style)}
         role="log"
         aria-live="off"
@@ -1137,6 +1150,7 @@ export const MessageList = memo(function MessageList({
                   {turn.userMsg &&
                     (() => {
                       const userMsg = turn.userMsg;
+                      const unanswered = turn.assistantMsgs.length === 0 && !isLastTurn;
                       const text = getTextFromParts(userMsg.parts ?? [], '');
                       const hasParts = (userMsg.parts ?? []).length > 0;
                       if (!text && !hasParts) {
@@ -1173,6 +1187,7 @@ export const MessageList = memo(function MessageList({
                             data-message-actions-host
                             data-message-id={userMsg.id}
                             data-turn-prompt
+                            data-unanswered={unanswered || undefined}
                           >
                             <CustomUserMessage
                               message={userMsg}
@@ -1198,6 +1213,7 @@ export const MessageList = memo(function MessageList({
                         <div
                           className={cx(classes.group, appearClass(`user:${userMsg.id}`))}
                           data-turn-prompt
+                          data-unanswered={unanswered || undefined}
                         >
                           <CustomUserMessage
                             message={userMsg}
@@ -1308,7 +1324,8 @@ export const MessageList = memo(function MessageList({
                                   partRenderers={partRenderers}
                                   streamingCaret={streamingCaret}
                                   onToolAction={stableToolAction}
-                                  onRetry={stableRetry}
+                                  onRetry={isLastMsg ? stableRetry : undefined}
+                                  retryAnywhere={stableRetry}
                                   toolRunOptions={toolRunOptions}
                                   appearance={appearance}
                                   lookups={lookups}
@@ -1355,7 +1372,7 @@ export const MessageList = memo(function MessageList({
             {!promptTop && workingNode}
           </div>
           {showAssistantBreathingSpace && (
-            <div aria-hidden="true" className={classes.breathingSpace} />
+            <div aria-hidden="true" data-breathing-space className={classes.breathingSpace} />
           )}
           {wantsJump && jumpSettled && (
             <div className={classes.jumpToLatest} data-search-ignore>
@@ -1397,6 +1414,7 @@ type AssistantPartsProps = {
   streamingCaret: boolean;
   onToolAction?: ToolActionHandler;
   onRetry?: () => void;
+  retryAnywhere?: () => void;
   toolRunOptions?: ResolvedToolRunOptions | null;
   appearance: AppearanceTracker;
   lookups: ToolCallLookups;
@@ -1475,6 +1493,7 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.ToolRendererComponent === next.ToolRendererComponent &&
     previous.onToolAction === next.onToolAction &&
     previous.onRetry === next.onRetry &&
+    previous.retryAnywhere === next.retryAnywhere &&
     previous.toolRunOptions === next.toolRunOptions &&
     previous.appearance === next.appearance &&
     previous.toolActivity === next.toolActivity &&
@@ -1506,6 +1525,7 @@ const AssistantParts = memo(function AssistantParts({
   streamingCaret,
   onToolAction,
   onRetry,
+  retryAnywhere,
   toolRunOptions,
   appearance,
   lookups,
@@ -1591,12 +1611,14 @@ const AssistantParts = memo(function AssistantParts({
         );
       }
       if (isErrorPart(part)) {
+        const retry =
+          part.retryable === undefined ? onRetry : part.retryable ? retryAnywhere : undefined;
         return (
           <ErrorMessage
             key={`${msg.id}-error-${index}`}
             title={part.title}
             message={part.message}
-            onRetry={onRetry}
+            onRetry={retry}
           />
         );
       }

@@ -13,7 +13,11 @@ import {
 import { usePendingActions } from '../hooks/use-pending-actions';
 import { ConfirmDialog } from '../primitives/ConfirmDialog/ConfirmDialog';
 import { EntityList } from '../primitives/EntityList/EntityList';
-import { EntityListItem, type EntityListItemAction } from '../primitives/EntityList/EntityListItem';
+import {
+  EntityListItem,
+  type EntityListItemAction,
+  type EntityRowProps,
+} from '../primitives/EntityList/EntityListItem';
 import { StatusBadge } from '../primitives/StatusBadge/StatusBadge';
 import {
   getMcpAgentUiStatus,
@@ -124,6 +128,8 @@ export interface McpServerListProps {
   withSearch?: boolean;
   /** Shows the status and scope filter, `true` by default */
   withFilter?: boolean;
+  /** Attributes added to every row, for example the `data-cy` handles of the host */
+  getRowProps?: (server: McpServer) => EntityRowProps;
   /** Button and message overrides */
   labels?: Partial<McpServerListLabels>;
   /** Class name added to the root element */
@@ -162,6 +168,7 @@ export const McpServerList = memo(function McpServerList({
   groupByScope = true,
   withSearch = true,
   withFilter = true,
+  getRowProps,
   labels: labelsOverride,
   className,
   style,
@@ -188,6 +195,7 @@ export const McpServerList = memo(function McpServerList({
     ) => {
       if (callback) {
         items.push({
+          id: key,
           label,
           icon,
           color,
@@ -207,6 +215,7 @@ export const McpServerList = memo(function McpServerList({
     }
     if (onRemove) {
       items.push({
+        id: 'remove',
         label: labels.remove,
         icon: <IconTrash size={14} />,
         color: 'red',
@@ -314,6 +323,7 @@ export const McpServerList = memo(function McpServerList({
               }
               actions={getActions(server)}
               labels={{ actions: `${labels.actions}: ${server.name}` }}
+              rowProps={getRowProps?.(server)}
               selected={selected}
             />
           );

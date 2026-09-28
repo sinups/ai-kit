@@ -113,7 +113,26 @@ describe('Markdown/Markdown streaming', () => {
     expect(container).toHaveTextContent('half wo');
   });
 
-  it('commits a burst of deltas as one frame when frame batching is on', () => {
+  it('fades in the words that just arrived and leaves the settled text alone', () => {
+    const { container, rerender } = renderWithoutRemount(
+      <MantineProvider>
+        <Markdown streaming content="Five seats" />
+      </MantineProvider>
+    );
+    expect(container.querySelectorAll('span[class*="fresh"]')).toHaveLength(0);
+
+    rerender(
+      <MantineProvider>
+        <Markdown streaming content="Five seats in the plan" />
+      </MantineProvider>
+    );
+    const fresh = container.querySelectorAll('span[class*="fresh"]');
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0]).toHaveTextContent('in the plan');
+    expect(container).toHaveTextContent('Five seats in the plan');
+  });
+
+  it('types a burst of deltas out word by word when frame batching is on', () => {
     jest.useFakeTimers();
     const { container, rerender } = renderWithoutRemount(
       <MantineProvider>
@@ -134,6 +153,11 @@ describe('Markdown/Markdown streaming', () => {
 
     act(() => {
       jest.advanceTimersByTime(16);
+    });
+    expect(container).not.toHaveTextContent('grows');
+
+    act(() => {
+      jest.advanceTimersByTime(16 * 40);
     });
     expect(container).toHaveTextContent('Answer grows');
     jest.useRealTimers();

@@ -32,6 +32,8 @@ export function AgentChat({
   onDraftChange,
   sendScroll,
   streamingCaret,
+  assistantBreathingSpace,
+  stackFromBottom,
   lazyTurns,
   attachments,
   showCopyToolbar,
@@ -362,6 +364,8 @@ export function AgentChat({
               partRenderers={partRenderers}
               sendScroll={sendScroll}
               streamingCaret={streamingCaret}
+              assistantBreathingSpace={assistantBreathingSpace}
+              stackFromBottom={stackFromBottom}
               lazyTurns={lazyTurns}
               stopped={stopped}
               showCopyToolbar={showCopyToolbar}
