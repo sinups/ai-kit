@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/sinups/ai-kit/compare/v0.5.0...v0.6.0) (2026-09-28)
+
+
+### Features
+
+* embeddable chat widget, live typing and steadier transcript rows ([5791b87](https://github.com/sinups/ai-kit/commit/5791b87a0d1f270fe55353aa0ddb64c91a2fee38))
+
 ## [0.5.0](https://github.com/sinups/ai-kit/compare/v0.4.0...v0.5.0) (2026-09-19)
 
 
