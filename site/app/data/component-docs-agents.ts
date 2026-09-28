@@ -343,7 +343,7 @@ export function SkillsSettings({ skills }: { skills: Skill[] }) {
         type: "usage",
         title: "Usage",
         content:
-          "Manage agent skills in one screen built on `MasterDetail`: `SkillCatalog` beside `SkillDetail` from 720px of width, one pane with a back button below. New skill, Edit and Duplicate open `SkillEditor`; only user and project skills are editable by default (`isEditable`); removal is confirmed in a dialog. Selection can be controlled with `selectedId`. Give the panel a height.",
+          "Manage agent skills in one screen built on `MasterDetail`: `SkillCatalog` beside `SkillDetail` from 720px of width, one pane with a back button below. New skill, Edit and Duplicate open `SkillEditor`; only user and project skills are editable by default (`isEditable`); removal is confirmed in a dialog. Selection can be controlled with `selectedId`, `getRowProps` reaches the rows of the catalog and `labels.masterDetail` covers the back button and the empty detail. Give the panel a height.",
       },
       {
         type: "example",
@@ -388,7 +388,7 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "Browse skills with search and a source filter. The `list` variant shows rows grouped by source, `grid` shows cards whose column count follows the component width. Every skill has an enable switch that shows a loader until `onToggle` settles, and an actions menu with Edit, Duplicate and Remove when those callbacks are set (`isEditable` limits Edit and Remove). Handles loading, error and empty states.",
+          "Browse skills with search and a source filter. The `list` variant shows rows grouped by source, `grid` shows cards whose column count follows the component width. Every skill has an enable switch that shows a loader until `onToggle` settles, and an actions menu with Edit, Duplicate and Remove when those callbacks are set (`isEditable` limits Edit and Remove). `getRowProps` adds your own attributes to every row — a `data-cy` handle, an `aria-*` label — and the kit marks its own parts with stable names: `data-part='row'`, `'toggle'`, `'actions'` and `data-part='action' data-action='remove'` on the menu items. Handles loading, error and empty states.",
       },
       {
         type: "example",

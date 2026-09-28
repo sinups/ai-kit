@@ -374,7 +374,7 @@ export function Example() {
         type: 'usage',
         title: 'Working row and motion',
         content:
-          "`workingRow` shows a quiet line at the end of the transcript while the agent works between tool calls, `true` by default; pass a node, for example an `AgentStatus` with your own label and token count, to replace it. `toolActivity` shows how long a running call has been going and the progress its MCP server reports, `true` by default. `evenSpacing` puts one gap between every two blocks (prompt, answer text, tool call) instead of the tighter gaps around the prompt, `false` by default and always on with `rowsPresentation`. `animateAppearance` fades a newly arrived message or part in over 150ms, `true` by default; the transcript already on screen at mount never animates, and `prefers-reduced-motion` turns it off. `frameBatched` commits the streaming answer at most once per animation frame, `true` by default; a finished stream, a hidden tab and reduced motion commit right away. `tailGranularity` reveals the streaming tail by character (`'char'`, the default) or by finished line (`'line'`).",
+          "`workingRow` shows a quiet line at the end of the transcript while the agent works between tool calls, `true` by default; pass a node, for example an `AgentStatus` with your own label and token count, to replace it. `toolActivity` shows how long a running call has been going and the progress its MCP server reports, `true` by default. `evenSpacing` puts one gap between every two blocks (prompt, answer text, tool call) instead of the tighter gaps around the prompt, `false` by default and always on with `rowsPresentation`. `animateAppearance` fades a newly arrived message or part in over 150ms, `true` by default; the transcript already on screen at mount never animates, and `prefers-reduced-motion` turns it off. `frameBatched` types the streaming answer out evenly — whole words, once per animation frame, about 140 characters a second and faster while the buffer is full, so a provider that sends large bursts still reads as a steady stream — `true` by default; a finished stream, a hidden tab and reduced motion commit the rest right away. Words released in the last moments fade in over 100ms, which is why the growing tail is split into a few `<span>` elements while it streams; `prefers-reduced-motion` turns the fade off. `tailGranularity` reveals the streaming tail by character (`'char'`, the default) or by finished line (`'line'`).",
       },
       {
         type: 'example',
@@ -859,7 +859,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Standalone mode selector: agent mode, plan mode, or any custom set. Bring your own icons or omit them. With a single mode the selector renders a non-interactive label.',
+          'Standalone mode selector: agent mode, plan mode, or any custom set. Bring your own icons or omit them. `trigger="icon"` shrinks the button to the icon of the current mode, the size of the neighbouring toolbar icons, and leaves the names and descriptions to the menu — the accessible name and the tooltip still say which mode is on, and a dot marks a mode other than the first. A mode without an icon keeps its name on the button. With a single mode the selector renders a non-interactive label.',
       },
       {
         type: 'example',
@@ -2359,7 +2359,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Render a failed assistant turn. retry shows a live countdown to the next automatic attempt, onRetry adds a button to retry right away, and variant="warning" with resetsAt fits usage limits that lift at a known time.',
+          'Render a failed assistant turn. retry shows a live countdown to the next automatic attempt, onRetry adds a button to retry right away, and variant="warning" with resetsAt fits usage limits that lift at a known time. Inside a transcript the button follows the `onRetry` of `AgentChat` and `MessageList`, which replays the last turn, so only the error of the last answer gets one; an error part decides for itself with `retryable: true` or `false`.',
       },
       {
         type: 'example',
@@ -2418,7 +2418,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Show that the agent is working: a shimmering label, live elapsed time and received tokens. Update lastActivityAt on every streamed chunk; when nothing arrives for stallAfterMs (3 seconds by default) the line fades to the error color so the user knows the response is stuck. Set paused while tools run, since silence is expected then.',
+          'Show that the agent is working: a shimmering label, live elapsed time and received tokens. Update lastActivityAt on every streamed chunk; when nothing arrives for stallAfterMs (3 seconds by default) the line turns into a quiet notice — a warning-tinted plate with its own icon, not red error text, because waiting is a hint and not a failure. `labels.stalled` writes the sentence, `onStop` puts the Stop button inside the plate and `stalledActions` adds your own buttons next to it, for example "Ask again". The plate keeps the height of the working line (`--ae-status-row-height`), so the transcript does not jump when one replaces the other. Set paused while tools run, since silence is expected then.',
       },
       {
         type: 'example',
@@ -2474,7 +2474,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Show how full the context window is. The ring is split by segments below warnAt (80%), turns yellow at warnAt and red at dangerAt (95%). Hover or click opens the breakdown; with onCompact the details offer to compact the conversation once usage is high. Sized to sit in InputBar rightActions.',
+          'Show how full the context window is. The ring is split by segments below warnAt (80%), turns yellow at warnAt and red at dangerAt (95%). Hover or click opens the breakdown; with onCompact the details offer to compact the conversation once usage is high. `labels.breakdown.summary` writes the totals line — the one above the groups, and the only line shown when you pass no `breakdown` — so the wording and the language of "125k of 200k used" are yours. Sized to sit in InputBar rightActions.',
       },
       {
         type: 'example',

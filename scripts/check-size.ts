@@ -11,8 +11,8 @@ const reportPath = path.join(process.cwd(), 'site/app/data/bundle-size.json');
 const namedImportBudgets: Record<string, number> = {
   AgentChat: 96_000,
   MessageList: 79_500,
-  InputBar: 36_000,
-  Markdown: 16_000,
+  InputBar: 36_500,
+  Markdown: 17_000,
   BashTool: 14_600,
   DiffReview: 23_800,
   McpSettingsPanel: 27_500,
@@ -57,7 +57,7 @@ const entries: Entry[] = [
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
     stylesheets: ['styles.css'],
-    gzipBudget: 236_000,
+    gzipBudget: 238_000,
   },
 ];
 

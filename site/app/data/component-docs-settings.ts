@@ -33,7 +33,7 @@ export function McpSettings({ servers }: { servers: McpServer[] }) {
         type: "usage",
         title: "Usage",
         content:
-          "Drop in a complete MCP settings screen. It combines `McpServerList`, `McpServerDetail`, `McpToolDetail` and the add/edit `McpServerWizardModal` inside `MasterDetail`: list and detail side by side when wide, one pane with back navigation in a narrow widget. Everything is data and callbacks: pass `servers` from your MCP client, return promises from actions to show pending states and errors. Omit a callback to hide its action. Fills the parent height.",
+          "Drop in a complete MCP settings screen. It combines `McpServerList`, `McpServerDetail`, `McpToolDetail` and the add/edit `McpServerWizardModal` inside `MasterDetail`: list and detail side by side when wide, one pane with back navigation in a narrow widget. Everything is data and callbacks: pass `servers` from your MCP client, return promises from actions to show pending states and errors. Omit a callback to hide its action. `getRowProps` reaches the rows of the list and `labels.masterDetail` covers the back button and the empty detail. Fills the parent height.",
       },
       {
         type: "example",
@@ -88,7 +88,7 @@ export function Example() {
         type: "usage",
         title: "Usage",
         content:
-          "List configured MCP servers with their transport, status, command or URL, connection error and tool count. Search matches the name, command and URL; the filter narrows by connected, needs attention, disabled or scope, and `withSearch={false}` or `withFilter={false}` hides either control; servers are grouped by scope when there is more than one. The actions menu offers Authenticate, Reconnect, Enable or Disable depending on the status, and Remove asks for confirmation. Handles loading, error and empty states.",
+          "List configured MCP servers with their transport, status, command or URL, connection error and tool count. Search matches the name, command and URL; the filter narrows by connected, needs attention, disabled or scope, and `withSearch={false}` or `withFilter={false}` hides either control; servers are grouped by scope when there is more than one. The actions menu offers Authenticate, Reconnect, Enable or Disable depending on the status, and Remove asks for confirmation. `getRowProps` adds your own attributes to every row — a `data-cy` handle, an `aria-*` label — and the kit marks its own parts with stable names: `data-part='row'`, `'toggle'`, `'actions'` and `data-part='action' data-action='remove'` on the menu items. Handles loading, error and empty states.",
       },
       {
         type: "example",
