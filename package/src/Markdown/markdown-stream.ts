@@ -193,7 +193,80 @@ export function hasOpenFence(content: string): boolean {
   return getOpenFence(content.split('\n')) !== null;
 }
 
-/** Makes an unfinished tail render sensibly: closes an open code fence and drops a dangling empty list marker */
+const BLOCK_MARKER_ONLY_RE = /^\s*(?:#{1,6}|[-*+]|\d{1,9}[.)]|>)\s*$/;
+const TABLE_ROW_RE = /^\s*\|.*\|?\s*$/;
+const TABLE_DIVIDER_RE = /^\s*\|?[\s:-]*-[\s:|-]*\|?\s*$/;
+const DANGLING_MARKERS_RE = /(?:[*_`~[!\\]|~~)+$/;
+
+/** An unfinished link or image shows its text, never the address it is still receiving */
+function closeUnfinishedLinks(tail: string): string {
+  return tail
+    .replace(/!\[[^\]\n]*\]\([^)\n]*$/, '')
+    .replace(/\[([^\]\n]*)\]\([^)\n]*$/, '$1')
+    .replace(/!\[[^\]\n]*$/, '')
+    .replace(/\[([^\]\n]*)$/, '$1');
+}
+
+/** Rows of a table are hidden until it has its divider and at least one row of data */
+function holdUnfinishedTable(tail: string): string {
+  const lines = tail.split('\n');
+  const start = lines.findIndex((line) => TABLE_ROW_RE.test(line));
+  if (start === -1) {
+    return tail;
+  }
+  const rows = lines.slice(start).filter((line) => line.trim() !== '');
+  const hasDivider = rows.length > 1 && TABLE_DIVIDER_RE.test(rows[1]);
+  if (hasDivider && rows.length > 2) {
+    return tail;
+  }
+  return lines.slice(0, start).join('\n');
+}
+
+const INLINE_MARKERS = ['~~', '**', '__', '*', '_'] as const;
+
+const blanks = (value: string) => value.replace(/[^\n]/g, ' ');
+
+/** Text with fenced blocks and code spans blanked out, so their content never counts as markup */
+function withoutCode(text: string): string {
+  return text
+    .replace(/(^|\n) {0,3}(`{3,}|~{3,})[\s\S]*?\n {0,3}\2[^\n]*/g, blanks)
+    .replace(/`[^`\n]*`/g, blanks);
+}
+
+function isDelimiter(text: string, index: number, length: number): boolean {
+  const before = text[index - 1] ?? ' ';
+  const after = text[index + length] ?? ' ';
+  return before !== ' ' || after !== ' ';
+}
+
+/** Closes an emphasis or a code span the answer has opened but not finished yet */
+function closeInline(text: string): string {
+  const masked = withoutCode(text).split('');
+  let closing = '';
+
+  for (const marker of INLINE_MARKERS) {
+    let open = 0;
+    let index = masked.join('').indexOf(marker);
+    while (index !== -1) {
+      if (isDelimiter(text, index, marker.length)) {
+        open += 1;
+      }
+      for (let offset = 0; offset < marker.length; offset += 1) {
+        masked[index + offset] = ' ';
+      }
+      index = masked.join('').indexOf(marker, index + marker.length);
+    }
+    if (open % 2 === 1) {
+      closing = `${marker}${closing}`;
+    }
+  }
+
+  const codeSpans = (withoutCode(text).match(/`/g) ?? []).length;
+  return `${text}${codeSpans % 2 === 1 ? '`' : ''}${closing}`;
+}
+
+/** Makes an unfinished tail render sensibly: closes an open code fence, an open emphasis or code
+ * span, holds back a marker that has no text yet and a table without its first row */
 export function closeUnfinishedMarkdown(tail: string): string {
   const lines = tail.split('\n');
   const fence = getOpenFence(lines);
@@ -201,9 +274,16 @@ export function closeUnfinishedMarkdown(tail: string): string {
     const body = tail.endsWith('\n') ? tail : `${tail}\n`;
     return `${body}${fence.char.repeat(fence.length)}`;
   }
-  const last = lines[lines.length - 1];
-  if (/^\s*(?:[-*+]|\d+[.)])\s*$/.test(last)) {
-    return lines.slice(0, -1).join('\n');
+
+  let text = holdUnfinishedTable(tail);
+  const withoutMarkerLine = text.split('\n');
+  if (BLOCK_MARKER_ONLY_RE.test(withoutMarkerLine[withoutMarkerLine.length - 1])) {
+    text = withoutMarkerLine.slice(0, -1).join('\n');
   }
-  return tail;
+  text = closeUnfinishedLinks(text);
+  const textLines = text.split('\n');
+  if (!FENCE_RE.test(textLines[textLines.length - 1] ?? '')) {
+    text = text.replace(DANGLING_MARKERS_RE, '');
+  }
+  return closeInline(text);
 }

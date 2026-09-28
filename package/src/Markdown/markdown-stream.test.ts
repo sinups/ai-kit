@@ -96,7 +96,39 @@ describe('Markdown/closeUnfinishedMarkdown', () => {
 
   it('leaves closed fences and plain text alone', () => {
     expect(closeUnfinishedMarkdown('```\nx\n```')).toBe('```\nx\n```');
-    expect(closeUnfinishedMarkdown('Hello **wor')).toBe('Hello **wor');
+    expect(closeUnfinishedMarkdown('Hello world')).toBe('Hello world');
+    expect(closeUnfinishedMarkdown('2 * 3 * 4')).toBe('2 * 3 * 4');
+  });
+
+  it('closes an emphasis, a code span and a strikethrough the answer has opened', () => {
+    expect(closeUnfinishedMarkdown('Hello **wor')).toBe('Hello **wor**');
+    expect(closeUnfinishedMarkdown('a *b')).toBe('a *b*');
+    expect(closeUnfinishedMarkdown('run `yarn')).toBe('run `yarn`');
+    expect(closeUnfinishedMarkdown('~~gon')).toBe('~~gon~~');
+    expect(closeUnfinishedMarkdown('```ts\nconst a = 1')).toBe('```ts\nconst a = 1\n```');
+  });
+
+  it('holds back a marker that has no text after it yet', () => {
+    expect(closeUnfinishedMarkdown('Hello **')).toBe('Hello ');
+    expect(closeUnfinishedMarkdown('Text\n#')).toBe('Text');
+    expect(closeUnfinishedMarkdown('Text\n> ')).toBe('Text');
+  });
+
+  it('shows the text of a link while its address is still arriving', () => {
+    expect(closeUnfinishedMarkdown('See [the task](http://example')).toBe('See the task');
+    expect(closeUnfinishedMarkdown('See [the ta')).toBe('See the ta');
+    expect(closeUnfinishedMarkdown('Look ![chart](http://exa')).toBe('Look ');
+    expect(closeUnfinishedMarkdown('See [the task](http://example.com/1)')).toBe(
+      'See [the task](http://example.com/1)'
+    );
+  });
+
+  it('holds back a table until it has its divider and a row of data', () => {
+    expect(closeUnfinishedMarkdown('Intro\n\n| a | b |')).toBe('Intro\n');
+    expect(closeUnfinishedMarkdown('| a | b |\n| --- | --- |')).toBe('');
+    expect(closeUnfinishedMarkdown('| a | b |\n| --- | --- |\n| 1 | 2 |')).toBe(
+      '| a | b |\n| --- | --- |\n| 1 | 2 |'
+    );
   });
 
   it('drops a dangling empty list marker', () => {
