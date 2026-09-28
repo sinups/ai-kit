@@ -31,7 +31,11 @@ import {
 } from '@tabler/icons-react';
 import { usePendingActions } from '../hooks/use-pending-actions';
 import { EntityList } from '../primitives/EntityList/EntityList';
-import { EntityListItem, type EntityListItemAction } from '../primitives/EntityList/EntityListItem';
+import {
+  EntityListItem,
+  type EntityListItemAction,
+  type EntityRowProps,
+} from '../primitives/EntityList/EntityListItem';
 import { cx } from '../utils/cx';
 import {
   SKILL_SOURCE_LABELS,
@@ -101,6 +105,8 @@ export interface SkillCatalogProps {
   source?: SkillSourceFilter;
   /** Called when the source filter changes */
   onSourceChange?: (source: SkillSourceFilter) => void;
+  /** Attributes added to every row or card, for example the `data-cy` handles of the host */
+  getRowProps?: (skill: Skill) => EntityRowProps;
   /** Overrides of the default English labels */
   labels?: Partial<SkillCatalogLabels>;
   /** Class name added to the root element */
@@ -154,6 +160,7 @@ export const SkillCatalog = memo(function SkillCatalog({
   onQueryChange,
   source: sourceProp,
   onSourceChange,
+  getRowProps,
   labels,
   className,
   style,
@@ -183,6 +190,7 @@ export const SkillCatalog = memo(function SkillCatalog({
     const editable = isEditable?.(skill) ?? true;
     if (onEdit && editable) {
       actions.push({
+        id: 'edit',
         label: text.edit,
         icon: <IconPencil size={14} />,
         onClick: () => onEdit(skill),
@@ -190,6 +198,7 @@ export const SkillCatalog = memo(function SkillCatalog({
     }
     if (onDuplicate) {
       actions.push({
+        id: 'duplicate',
         label: text.duplicate,
         icon: <IconCopy size={14} />,
         onClick: () => onDuplicate(skill),
@@ -197,6 +206,7 @@ export const SkillCatalog = memo(function SkillCatalog({
     }
     if (onRemove && editable) {
       actions.push({
+        id: 'remove',
         label: text.remove,
         icon: <IconTrash size={14} />,
         color: 'red',
@@ -212,7 +222,13 @@ export const SkillCatalog = memo(function SkillCatalog({
     }
     const pending = toggles.isPending(skill.id);
     return (
-      <Box component="span" className={classes.switch} onClick={stop} onKeyDown={stop}>
+      <Box
+        component="span"
+        data-part="toggle"
+        className={classes.switch}
+        onClick={stop}
+        onKeyDown={stop}
+      >
         <Switch
           size="xs"
           checked={skill.enabled}
@@ -309,6 +325,7 @@ export const SkillCatalog = memo(function SkillCatalog({
             meta={renderSwitch(skill)}
             actions={actionsFor(skill)}
             labels={{ actions: `${text.actions}: ${skill.name}` }}
+            rowProps={getRowProps?.(skill)}
             selected={selected}
           />
         )}
@@ -357,14 +374,17 @@ export const SkillCatalog = memo(function SkillCatalog({
       <SimpleGrid type="container" cols={GRID_COLS} spacing="sm">
         {visible.map((skill) => {
           const actions = actionsFor(skill);
+          const rowProps = getRowProps?.(skill);
           return (
             <Paper
               key={skill.id}
+              {...rowProps}
               withBorder
               radius="md"
               p="sm"
+              data-part="row"
               data-selected={skill.id === selectedId || undefined}
-              className={classes.card}
+              className={cx(classes.card, rowProps?.className)}
             >
               <Stack gap="xs" h="100%">
                 <Group gap="xs" wrap="nowrap" justify="space-between">

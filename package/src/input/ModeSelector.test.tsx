@@ -17,6 +17,35 @@ describe('input/ModeSelector', () => {
     expect(screen.getByRole('button', { name: 'Modus' })).toBeInTheDocument();
   });
 
+  it('shrinks to an icon button that names the mode it stands for', async () => {
+    const Icon = ({ className }: { className?: string }) => (
+      <svg className={className} data-testid="mode-icon" />
+    );
+    const withIcons = [
+      { id: 'agent', label: 'Agent', icon: Icon },
+      { id: 'plan', label: 'Plan', icon: Icon, description: 'Propose a plan first' },
+    ];
+    render(<ModeSelector modes={withIcons} defaultValue="agent" trigger="icon" />);
+
+    const button = screen.getByRole('button', { name: 'Select mode: Agent' });
+    expect(button).toHaveAttribute('data-compact');
+    expect(button).toHaveTextContent('');
+    expect(button.querySelector('[data-testid="mode-icon"]')).toBeInTheDocument();
+
+    await userEvent.click(button);
+    expect(screen.getByText('Propose a plan first')).toBeInTheDocument();
+    await userEvent.click(screen.getByText('Plan'));
+    expect(screen.getByRole('button', { name: 'Select mode: Plan' })).toBeInTheDocument();
+  });
+
+  it('keeps the name on the button when the mode has no icon', () => {
+    render(<ModeSelector modes={modes} defaultValue="agent" trigger="icon" />);
+
+    const button = screen.getByRole('button', { name: 'Select mode' });
+    expect(button).not.toHaveAttribute('data-compact');
+    expect(button).toHaveTextContent('Agent');
+  });
+
   it('keeps the plain menu unless a title, badges or shortcuts are asked for', async () => {
     render(<ModeSelector modes={modes} defaultValue="agent" />);
     await userEvent.click(screen.getByRole('button', { name: 'Select mode' }));

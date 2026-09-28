@@ -22,6 +22,7 @@ export interface InputPopoverProps {
   /** Alignment along the chosen side, `'start'` by default */
   align?: PopoverAlign;
   /** Gap between trigger and dropdown in px, `6` by default */
+  /** Distance between the trigger and the panel in px, `8` by default */
   sideOffset?: number;
   /** Class name applied to the dropdown */
   className?: string;
@@ -46,7 +47,7 @@ export function InputPopover({
   onOpenChange,
   side = 'top',
   align = 'start',
-  sideOffset = 6,
+  sideOffset = 8,
   className,
   style,
 }: InputPopoverProps) {

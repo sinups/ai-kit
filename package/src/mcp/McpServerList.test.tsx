@@ -29,6 +29,32 @@ describe('mcp/McpServerList', () => {
     expect(screen.getByText('No servers match')).toBeInTheDocument();
   });
 
+  it('gives every row stable handles for tests of the host', async () => {
+    render(
+      <McpServerList
+        servers={MCP_SERVERS}
+        onRemove={jest.fn()}
+        onReconnect={jest.fn()}
+        onDisable={jest.fn()}
+        getRowProps={(server) => ({ 'data-cy': `server-${server.id}` })}
+      />
+    );
+
+    const row = document.querySelector('[data-cy="server-git"]') as HTMLElement;
+    expect(row).toHaveAttribute('data-part', 'row');
+
+    await userEvent.click(within(row).getByRole('button', { name: /Server actions: git/ }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).getByRole('menuitem', { name: 'Remove' })).toHaveAttribute(
+      'data-action',
+      'remove'
+    );
+    expect(within(row).getByRole('button', { name: /Server actions/ })).toHaveAttribute(
+      'data-part',
+      'actions'
+    );
+  });
+
   it('hides search and filter when turned off', () => {
     render(<McpServerList servers={MCP_SERVERS} withSearch={false} withFilter={false} />);
 

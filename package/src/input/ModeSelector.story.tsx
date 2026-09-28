@@ -50,6 +50,24 @@ export function Usage() {
   return <Demo />;
 }
 
+export function IconTrigger() {
+  const [mode, setMode] = useState('auto');
+  return (
+    <Stack p="xl" pt={220} gap="xs" align="flex-start">
+      <ModeSelector
+        modes={MODES}
+        value={mode}
+        onChange={setMode}
+        trigger="icon"
+        labels={{ title: 'Mode' }}
+      />
+      <Text size="xs" c="dimmed">
+        The name of the mode lives in the menu; the button keeps the width of a toolbar icon.
+      </Text>
+    </Stack>
+  );
+}
+
 export const PickByDigitFlow = {
   render: () => <Demo />,
   play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {

@@ -1,9 +1,9 @@
 import React, { memo, useState } from 'react';
 import { Box, EmptyState } from '@mantine/core';
 import { IconServer } from '@tabler/icons-react';
-import { MasterDetail } from '../primitives/MasterDetail/MasterDetail';
+import { MasterDetail, type MasterDetailLabels } from '../primitives/MasterDetail/MasterDetail';
 import { McpServerDetail, type McpServerDetailLabels } from './McpServerDetail';
-import { McpServerList, type McpServerListLabels } from './McpServerList';
+import { McpServerList, type McpServerListLabels, type McpServerListProps } from './McpServerList';
 import { McpServerWizardModal, type McpServerWizardLabels } from './McpServerWizard';
 import { McpToolDetail, type McpToolDetailLabels } from './McpToolDetail';
 import type { McpServer, McpServerAction, McpServerDraft, McpToolDefinition } from './types';
@@ -19,6 +19,8 @@ export type McpSettingsPanelLabels = {
   wizard: Partial<McpServerWizardLabels>;
   /** Back button above the server detail when narrow, `Servers` by default */
   back: string;
+  /** Labels of the two panes: the empty detail on wide widths and the back button */
+  masterDetail: Partial<MasterDetailLabels>;
   /** Detail placeholder title when wide and nothing is selected, `Select a server` by default */
   emptyTitle: string;
   /** Detail placeholder description, `Its tools, resources and configuration appear here` by default */
@@ -31,6 +33,7 @@ export const DEFAULT_MCP_SETTINGS_PANEL_LABELS: McpSettingsPanelLabels = {
   tool: {},
   wizard: {},
   back: 'Servers',
+  masterDetail: {},
   emptyTitle: 'Select a server',
   emptyDescription: 'Its tools, resources and configuration appear here',
 };
@@ -64,6 +67,8 @@ export interface McpSettingsPanelProps {
   onRemove?: McpServerAction;
   /** Renders a "Try tool" button in the tool detail */
   onTryTool?: (server: McpServer, tool: McpToolDefinition) => void;
+  /** Attributes added to every row of the server list, for example `data-cy` handles */
+  getRowProps?: McpServerListProps['getRowProps'];
   /** Overrides of the default English labels of the list, detail, tool detail and wizard */
   labels?: Partial<McpSettingsPanelLabels>;
   /** Width of the server list when wide, `380` by default */
@@ -92,6 +97,7 @@ export const McpSettingsPanel = memo(function McpSettingsPanel({
   onDisable,
   onRemove,
   onTryTool,
+  getRowProps,
   labels: labelsProp,
   listWidth = 380,
   className,
@@ -176,20 +182,21 @@ export const McpSettingsPanel = memo(function McpSettingsPanel({
               onEnable={onEnable}
               onDisable={onDisable}
               onRemove={handleRemove}
+              getRowProps={getRowProps}
               labels={labels.list}
             />
           </Box>
         }
         detail={detail}
         onBack={tool ? undefined : () => select(null)}
-        labels={{ back: labels.back }}
+        labels={{ back: labels.back, ...labels.masterDetail }}
         emptyDetail={
           <EmptyState
             h="100%"
             p="xl"
             icon={<IconServer />}
-            title={labels.emptyTitle}
-            description={labels.emptyDescription}
+            title={labels.masterDetail.emptyTitle ?? labels.emptyTitle}
+            description={labels.masterDetail.emptyDescription ?? labels.emptyDescription}
           />
         }
       />

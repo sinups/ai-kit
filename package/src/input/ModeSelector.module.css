@@ -18,6 +18,23 @@
   &[data-static] {
     pointer-events: none;
   }
+
+  &[data-compact] {
+    position: relative;
+    width: var(--ae-control-height-md);
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.mark {
+  position: absolute;
+  inset-block-start: rem(4px);
+  inset-inline-end: rem(4px);
+  width: rem(5px);
+  height: rem(5px);
+  border-radius: 50%;
+  background-color: var(--ae-primary);
 }
 
 .triggerIcon {
