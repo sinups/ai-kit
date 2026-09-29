@@ -74,6 +74,7 @@ export const COMPONENT_GROUPS: Array<{ title: string; components: string[] }> = 
       "ThinkingTool",
       "GenericTool",
       "ToolApprovalFooter",
+      "ToolApprovalCard",
       "ElicitationForm",
       "ShellOutput",
       "DiffView",

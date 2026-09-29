@@ -1089,6 +1089,15 @@ export type {
   ToolApprovalSlotProps,
   ToolApprovalsProviderProps,
 } from './approvals/tool-approvals';
+export { DEFAULT_TOOL_APPROVAL_CARD_LABELS, ToolApprovalCard } from './approvals/ToolApprovalCard';
+export type {
+  ToolApprovalCardDecision,
+  ToolApprovalCardLabels,
+  ToolApprovalCardProps,
+  ToolApprovalCardTarget,
+} from './approvals/ToolApprovalCard';
+export { humanizeParamName, readApprovalParams } from './approvals/approval-params';
+export type { ApprovalParam, ApprovalParamsOptions } from './approvals/approval-params';
 export { CodeBlock, DEFAULT_CODE_BLOCK_LABELS } from './CodeBlock/CodeBlock';
 export type { CodeBlockLabels, CodeBlockProps } from './CodeBlock/CodeBlock';
 export { countCodeLines, getCollapsedLineCount } from './CodeBlock/code-lines';

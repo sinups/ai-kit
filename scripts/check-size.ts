@@ -21,6 +21,7 @@ const namedImportBudgets: Record<string, number> = {
   Wizard: 6_300,
   ChatLauncher: 8_400,
   LauncherActions: 3_300,
+  ToolApprovalCard: 6_500,
   AiKitProvider: 9_600,
   mountChatLauncher: 900,
   MessageActionButton: 2_000,
@@ -57,7 +58,7 @@ const entries: Entry[] = [
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
     stylesheets: ['styles.css'],
-    gzipBudget: 238_000,
+    gzipBudget: 241_000,
   },
 ];
 

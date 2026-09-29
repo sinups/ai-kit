@@ -120,21 +120,31 @@
     "totalGzip": 2913
   },
   {
+    "name": "ToolApprovalCard",
+    "stylesheets": [
+      "styles/base.css",
+      "styles/ToolApprovalCard.css"
+    ],
+    "jsGzip": 3734,
+    "cssGzip": 2359,
+    "totalGzip": 6093
+  },
+  {
     "name": "AiKitProvider",
     "stylesheets": [
       "styles/base.css",
       "styles/AiKitProvider.css"
     ],
-    "jsGzip": 5888,
+    "jsGzip": 5889,
     "cssGzip": 3231,
-    "totalGzip": 9119
+    "totalGzip": 9120
   },
   {
     "name": "mountChatLauncher",
     "stylesheets": [],
-    "jsGzip": 779,
+    "jsGzip": 781,
     "cssGzip": 0,
-    "totalGzip": 779
+    "totalGzip": 781
   },
   {
     "name": "MessageActionButton",
@@ -206,9 +216,9 @@
   {
     "name": "useFileIntake",
     "stylesheets": [],
-    "jsGzip": 700,
+    "jsGzip": 701,
     "cssGzip": 0,
-    "totalGzip": 700
+    "totalGzip": 701
   },
   {
     "name": "ChatDropZone",
@@ -275,9 +285,9 @@
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 215596,
-    "cssGzip": 21836,
-    "totalGzip": 237432
+    "jsGzip": 217433,
+    "cssGzip": 22269,
+    "totalGzip": 239702
   },
   {
     "name": "embed widget.js",

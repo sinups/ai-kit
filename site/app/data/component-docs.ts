@@ -88,6 +88,7 @@ export const COMPONENT_IMPORT_PATH: Record<string, string> = {
   QuestionTool: '@sinups/ai-kit',
   ElicitationForm: '@sinups/ai-kit',
   ToolApprovalFooter: '@sinups/ai-kit',
+  ToolApprovalCard: '@sinups/ai-kit',
   AgentStatus: '@sinups/ai-kit',
   ContextUsage: '@sinups/ai-kit',
   CompactBoundary: '@sinups/ai-kit',
@@ -2332,6 +2333,58 @@ export function Example() {
         code: `<>
   <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={approve} />
   <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
+</>`,
+      },
+    ],
+  },
+  {
+    name: 'ToolApprovalCard',
+    blocks: [
+      {
+        type: 'code',
+        title: 'Code',
+        content: `import { ToolApprovalCard } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <ToolApprovalCard
+      tool={{ name: "Find jobs" }}
+      server={{ name: "Jobs board", icon: <BriefcaseIcon /> }}
+      params={call.input}
+      schema={tool.inputSchema}
+      onDecline={() => answer("declined")}
+      onAllowOnce={() => answer("once")}
+      onAlwaysAllow={() => answer("always")}
+    />
+  );
+}`,
+      },
+      {
+        type: 'usage',
+        title: 'Usage',
+        content:
+          'Ask before a call starts, in one card: the sentence names the tool and the server it comes from, the arguments sit under it, and the three answers carry their keyboard shortcuts — Esc declines, Mod+Enter allows once, Shift+Mod+Enter allows from now on (`shortcuts={false}` leaves the keyboard alone). `params` takes the raw input of the call: nested objects unfold into `Params limit`-style lines, `schema` gives them the order and the titles of the tool, and a string is quoted only when it would read as a number or a flag. Pass ready lines instead when the host formats them itself. The card folds to the sentence and the buttons with `defaultExpanded={false}`, `children` adds anything under the arguments (the rule that caused the prompt, a warning), and `decision` marks the answer when the host owns it. Every word is in `labels`, including the sentence itself. Use `ToolApprovalFooter` where the call already has a card of its own and only the answer is missing.',
+      },
+      {
+        type: 'example',
+        title: 'Request with arguments',
+        previewId: 'ToolApprovalCard/basic',
+        code: `<ToolApprovalCard
+  tool={{ name: "Find jobs" }}
+  server={{ name: "Jobs board", icon: <BriefcaseIcon /> }}
+  params={{ action: "smart_search", org_uid: "1106955086989844481", params: { limit: 10, mode: "best_match" } }}
+  onDecline={decline}
+  onAllowOnce={allowOnce}
+  onAlwaysAllow={alwaysAllow}
+/>`,
+      },
+      {
+        type: 'example',
+        title: 'Folded and answered',
+        previewId: 'ToolApprovalCard/folded',
+        code: `<>
+  <ToolApprovalCard tool={{ name: "Find jobs" }} server={{ name: "Jobs board" }} params={input} defaultExpanded={false} onDecline={decline} onAllowOnce={allowOnce} />
+  <ToolApprovalCard tool={{ name: "Find jobs" }} server={{ name: "Jobs board" }} params={input} decision="once" onDecline={decline} onAllowOnce={allowOnce} />
 </>`,
       },
     ],
