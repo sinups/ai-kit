@@ -8,7 +8,8 @@
   background-color: var(--ae-muted);
   cursor: default;
 
-  &[data-state='typing'] {
+  &[data-state='typing'],
+  &[data-solid] {
     background-color: var(--ae-send-button-bg);
     cursor: pointer;
   }
@@ -22,7 +23,8 @@
 .icon {
   color: var(--ae-icon-idle);
 
-  .root[data-state='typing'] & {
+  .root[data-state='typing'] &,
+  .root[data-solid] & {
     color: var(--ae-send-button-color);
   }
 

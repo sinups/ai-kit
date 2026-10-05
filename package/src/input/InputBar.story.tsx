@@ -209,6 +209,40 @@ export function WithPickers() {
   );
 }
 
+export function Collapsible() {
+  const [model, setModel] = useState('deepseek-v3');
+  const [mode, setMode] = useState('agent');
+  return (
+    <Frame>
+      <InputBar
+        collapsible
+        collapsedWidth={320}
+        status="ready"
+        placeholder="Ask anything"
+        onSend={() => {}}
+        onStop={() => {}}
+        onAttach={() => {}}
+        leftActions={
+          <>
+            <ModeSelector modes={MODES} value={mode} onChange={setMode} trigger="icon" />
+            <ModelPicker models={MODELS} value={model} onChange={setModel} />
+          </>
+        }
+      />
+    </Frame>
+  );
+}
+
+export const CollapsibleFlow = {
+  parameters: { visual: { skip: true } },
+  render: () => <Collapsible />,
+  play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('textbox'));
+    await expect(canvas.getByRole('textbox').closest('[data-collapsed]')).toBeNull();
+  },
+};
+
 export function WithSuggestions() {
   const { lines, onLog } = useLog();
   return (

@@ -9,9 +9,9 @@ const entry = path.join(distDir, 'esm/index.mjs');
 const reportPath = path.join(process.cwd(), 'site/app/data/bundle-size.json');
 
 const namedImportBudgets: Record<string, number> = {
-  AgentChat: 96_000,
+  AgentChat: 97_000,
   MessageList: 79_500,
-  InputBar: 36_500,
+  InputBar: 37_200,
   Markdown: 17_000,
   BashTool: 14_600,
   DiffReview: 23_800,

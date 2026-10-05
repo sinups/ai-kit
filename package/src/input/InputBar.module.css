@@ -1,4 +1,25 @@
 .root {
+  /* A spring: the line overshoots a little as it unfolds, which is what makes it feel physical.
+     Set --ae-ease-spring on your theme to use your own curve. */
+  --ae-unfold-ease: var(
+    --ae-ease-spring,
+    linear(
+      0,
+      0.34 6%,
+      0.83 13%,
+      1.08 19%,
+      1.12 22%,
+      1.1 28%,
+      1.03 34%,
+      0.99 44%,
+      0.985 47%,
+      0.99 56%,
+      1 63%,
+      1.002 70%,
+      1
+    )
+  );
+
   flex-shrink: 0;
   padding: 0 rem(12px) rem(12px);
 }
@@ -6,6 +27,11 @@
 .inner {
   max-width: var(--ae-max-width);
   margin: 0 auto;
+  transition: max-width var(--ae-duration-unfold) var(--ae-unfold-ease);
+
+  [data-collapsed] & {
+    max-width: var(--ae-input-collapsed-width, var(--ae-max-width));
+  }
 }
 
 .stack {
@@ -138,9 +164,66 @@
     0 0 0 rem(1px) alpha(var(--ae-fg), 0.1),
     0 rem(1px) 0 alpha(var(--mantine-color-black), 0.05);
   cursor: text;
+  overflow: hidden;
+  transition: height var(--ae-duration-unfold) var(--ae-unfold-ease);
 
   &[data-drag-over] {
     box-shadow: 0 0 0 rem(2px) var(--ae-primary);
+  }
+
+  /* One radius for both states: at the height of the folded line it already reads as a pill, so
+     nothing has to morph and the shape never goes soft mid-flight. */
+  &[data-collapsible] {
+    border-radius: var(--ae-input-radius-collapsed);
+  }
+}
+
+.toolbarGrid {
+  display: grid;
+  grid-template-rows: 1fr;
+
+  [data-collapsed] & {
+    grid-template-rows: 0fr;
+  }
+}
+
+.unfold {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbarClip {
+  overflow: hidden;
+  min-height: 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 200ms ease,
+    transform 280ms var(--ae-unfold-ease);
+
+  [data-collapsed] & {
+    opacity: 0;
+    transform: translateY(rem(6px));
+    pointer-events: none;
+  }
+}
+
+/* One button for both states: it keeps its corner while the card grows around it. */
+.collapsedAction {
+  position: absolute;
+  inset-block-end: rem(8px);
+  inset-inline-end: rem(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inner,
+  .field,
+  .unfold,
+  .inputWrap,
+  .toolbarGrid,
+  .toolbarClip,
+  .collapsedAction {
+    transition: none;
   }
 }
 
@@ -232,6 +315,18 @@
 .inputWrap {
   min-height: rem(44px);
   padding: rem(12px) rem(12px) 0 rem(14px);
+  transition: padding var(--ae-duration-unfold) var(--ae-unfold-ease);
+
+  [data-collapsible] & {
+    padding-inline-end: rem(48px);
+  }
+
+  /* The line is as tall as the button plus its two gaps, so the button sits in its middle. */
+  [data-collapsed] & {
+    min-height: 0;
+    padding-block: calc((var(--ae-control-height-md) + rem(16px) - var(--ae-line-height-sm)) / 2);
+    padding-inline-start: rem(18px);
+  }
 }
 
 .typingText {
