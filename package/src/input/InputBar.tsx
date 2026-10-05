@@ -220,6 +220,11 @@ export interface InputBarProps {
   collapsedAction?: React.ReactNode;
   /** Width of the collapsed line, for example `420` or `'60%'`; the full width by default */
   collapsedWidth?: number | string;
+  /**
+   * Colour drifting under the composer while the agent works, `false` by default; `'always'` keeps
+   * it burning. The colours are the `--ae-glow-*` tokens, so they can be the ones of the host.
+   */
+  glow?: boolean | 'always';
   /** Called when the collapsed composer unfolds */
   onExpand?: () => void;
   /** Content rendered on the left of the toolbar, next to the attachment button */
@@ -277,6 +282,7 @@ export const InputBar = memo(function InputBar({
   collapsible = false,
   collapsedAction,
   collapsedWidth,
+  glow = false,
   onExpand,
   leftActions,
   rightActions,
@@ -882,6 +888,17 @@ export const InputBar = memo(function InputBar({
       }}
     >
       <div className={classes.inner}>
+        {glow && (
+          <div
+            className={classes.glow}
+            data-lit={glow === 'always' || isStreaming || undefined}
+            aria-hidden="true"
+          >
+            <span className={classes.glowBand} />
+            <span className={classes.glowBand} />
+            <span className={classes.glowBand} />
+          </div>
+        )}
         <div className={classes.stack} data-info-bar={hasInfoBarBackground || undefined}>
           {infoBarPosition === 'top' && infoBarNode}
           {questionBarNode}
@@ -911,6 +928,7 @@ export const InputBar = memo(function InputBar({
                 data-drag-over={isDragOver || undefined}
                 data-collapsible={collapsible || undefined}
                 data-collapsed={collapsed || undefined}
+                data-glow={(glow && (glow === 'always' || isStreaming)) || undefined}
                 style={unfoldHeight === null ? undefined : { height: rem(unfoldHeight) }}
                 onClick={handleContainerClick}
                 onFocusCapture={collapsible ? handleFocusWithin : undefined}

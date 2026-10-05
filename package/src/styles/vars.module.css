@@ -59,6 +59,11 @@
   --ae-anim-spin: ae-spin;
   --ae-anim-appear: ae-appear;
   --ae-anim-fade-in: ae-fade-in;
+  --ae-anim-glow-drift: ae-glow-drift;
+  --ae-glow-1: var(--mantine-color-pink-5);
+  --ae-glow-2: var(--mantine-color-grape-5);
+  --ae-glow-3: var(--mantine-color-cyan-4);
+  --ae-glow-4: var(--mantine-color-blue-5);
   --ae-duration-unfold: 420ms;
   --ae-fade-in-duration: 100ms;
 
@@ -188,6 +193,17 @@
 @keyframes :global(ae-spin) {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes :global(ae-glow-drift) {
+  0%,
+  100% {
+    transform: translate3d(-6%, 0, 0) scaleX(1);
+  }
+
+  50% {
+    transform: translate3d(6%, 0, 0) scaleX(1.18);
   }
 }
 

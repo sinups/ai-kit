@@ -582,13 +582,25 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls. `collapsible` turns the composer into one line while it is empty and not focused, and unfolds it on a click or a focus — a place to start a conversation that costs a single row on a landing page or next to a page of its own; `collapsedAction` replaces the button at the end of that line, `collapsedWidth` narrows it, and `onExpand` tells the host it opened. The folded line is its own shape, not the usual composer: it takes `--ae-input-radius-collapsed` so it reads as a pill, keeps one filled button in the corner for both states, and springs open over `--ae-duration-unfold` with `--ae-ease-spring`. The folded line keeps the same field, so attachments, completions and history work the moment it unfolds.',
+          'Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls. `collapsible` turns the composer into one line while it is empty and not focused, and unfolds it on a click or a focus — a place to start a conversation that costs a single row on a landing page or next to a page of its own; `collapsedAction` replaces the button at the end of that line, `collapsedWidth` narrows it, and `onExpand` tells the host it opened. `glow` lights colour under the composer while the agent works — three soft bands that drift beneath the card, which turns translucent so they bleed through it; `glow="always"` keeps it burning, the colours are the `--ae-glow-1`…`--ae-glow-4` tokens, and `prefers-reduced-motion` stops the drift. The folded line is its own shape, not the usual composer: it takes `--ae-input-radius-collapsed` so it reads as a pill, keeps one filled button in the corner for both states, and springs open over `--ae-duration-unfold` with `--ae-ease-spring`. The folded line keeps the same field, so attachments, completions and history work the moment it unfolds.',
       },
       {
         type: 'example',
         title: 'Basic input',
         previewId: 'InputBar/basic',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n/>`,
+      },
+      {
+        type: 'example',
+        title: 'Folded to one line',
+        previewId: 'InputBar/collapsible',
+        code: `<InputBar\n  collapsible\n  collapsedWidth={320}\n  placeholder=\"Ask anything\"\n  status=\"ready\"\n  onSend={handleSend}\n  onStop={handleStop}\n  onAttach={onAttach}\n  leftActions={<ModelPicker models={models} value={model} onChange={setModel} />}\n/>`,
+      },
+      {
+        type: 'example',
+        title: 'Colour while the agent works',
+        previewId: 'InputBar/glow',
+        code: `<InputBar\n  glow\n  status={status}\n  onSend={handleSend}\n  onStop={handleStop}\n  onAttach={onAttach}\n/>`,
       },
       {
         type: 'example',
