@@ -10,6 +10,7 @@ import {
   ErrorMessage,
   InputBar,
   MessageList,
+  createMediaPartRenderers,
   ToolApprovalCard,
   ToolApprovalFooter,
   type ChatMessage,
@@ -469,6 +470,69 @@ function InputBarCompletionsPreview() {
   );
 }
 
+const SHOE_IMAGE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23e7f0ff'/%3E%3Cpath d='M28 128h210l44-26-40-16-34 12-52-44-24 26 18 16-32 10z' fill='%23fff' stroke='%231f2a37' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M28 128h254v14H28z' fill='%231f2a37'/%3E%3Ccircle cx='196' cy='84' r='12' fill='%23f59f0a'/%3E%3Cpath d='M108 108l44-22' stroke='%23e8407a' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E";
+
+const SCREENSHOT_IMAGE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23101418'/%3E%3Crect x='16' y='16' width='288' height='28' rx='6' fill='%231d242c'/%3E%3Crect x='16' y='56' width='150' height='108' rx='6' fill='%231d242c'/%3E%3Crect x='178' y='56' width='126' height='48' rx='6' fill='%232a3440'/%3E%3Crect x='178' y='116' width='126' height='48' rx='6' fill='%232a3440'/%3E%3Cpath d='M30 150l34-40 26 28 20-16 28 28' stroke='%234dabf7' stroke-width='4' fill='none'/%3E%3C/svg%3E";
+
+const sharedMediaMessages = [
+  {
+    id: "u1",
+    role: "user",
+    parts: [
+      { type: "text", text: "Here is the pair I meant" },
+      {
+        type: "file",
+        url: SHOE_IMAGE,
+        mediaType: "image/svg+xml",
+        filename: "sneaker.svg",
+      },
+    ],
+  },
+  {
+    id: "a1",
+    role: "assistant",
+    parts: [
+      { type: "text", text: "Got it. I pulled the sales of that model for the last quarter:" },
+      {
+        type: "file",
+        url: SCREENSHOT_IMAGE,
+        mediaType: "image/svg+xml",
+        filename: "quarter.svg",
+      },
+    ],
+  },
+  {
+    id: "a2",
+    role: "assistant",
+    parts: [
+      { type: "text", text: "Anna from support joined and attached the warranty terms." },
+      {
+        type: "file",
+        url: "https://example.com/warranty.pdf",
+        mediaType: "application/pdf",
+        filename: "warranty.pdf",
+        size: 182_400,
+      },
+    ],
+  },
+] as ChatMessage[];
+
+const mediaRenderers = createMediaPartRenderers();
+
+function SharedMediaPreview() {
+  return (
+    <MessageList
+      messages={sharedMediaMessages}
+      status="ready"
+      partRenderers={mediaRenderers}
+      contentWidth={720}
+      className="h-full"
+    />
+  );
+}
+
 function InputBarCollapsiblePreview() {
   const [opened, setOpened] = useState(false);
   return (
@@ -678,6 +742,9 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
           className="h-full"
         />
       );
+    case "MediaPart":
+    case "MediaPart/shared-images":
+      return <SharedMediaPreview />;
     case "MessageList/compaction":
       return (
         <MessageList

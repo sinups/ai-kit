@@ -1053,10 +1053,17 @@ export function Chat(props: ChatProps) {
 }`,
       },
       {
+        type: 'example',
+        title: 'A picture from either side',
+        previewId: 'MediaPart/shared-images',
+        code: `const media = createMediaPartRenderers();\n\n<MessageList\n  status=\"ready\"\n  partRenderers={media}\n  messages={[\n    {\n      id: \"u1\",\n      role: \"user\",\n      parts: [\n        { type: \"text\", text: \"Here is the pair I meant\" },\n        { type: \"file\", url: shoeUrl, mediaType: \"image/png\", filename: \"sneaker.png\" },\n      ],\n    },\n    {\n      id: \"a1\",\n      role: \"assistant\",\n      parts: [\n        { type: \"text\", text: \"Got it. Sales of that model last quarter:\" },\n        { type: \"file\", url: chartUrl, mediaType: \"image/png\", filename: \"quarter.png\" },\n      ],\n    },\n    {\n      id: \"a2\",\n      role: \"assistant\",\n      parts: [\n        { type: \"text\", text: \"Anna from support attached the warranty terms.\" },\n        { type: \"file\", url: pdfUrl, mediaType: \"application/pdf\", filename: \"warranty.pdf\", size: 182400 },\n      ],\n    },\n  ]}\n/>`,
+      },
+      {
         type: 'usage',
         title: 'Usage',
         content:
-          '`createMediaPartRenderers()` returns `partRenderers` for `file` parts of an answer; create it once and spread it next to your own renderers. The part is shown by its `mediaType`: an image opens a fullscreen `ImageLightbox`, audio and video play in the native `<audio>` and `<video>` without autoplay (a `captions` WebVTT address adds a track), and any other file is a `FileAttachment` chip that calls `onOpenFile` or downloads a safe `url`. Only `http(s)` addresses and `data:` images, audio and video reach the page; `javascript:`, `blob:` and `data:text/html` never do. `labels` covers `openImage`, `imageAlt`, `audio`, `video`, the names of the chip that opens or downloads (`openFile`, `download`) and `attachment` for the chip itself. `MediaPart` is the same component for a custom layout.',
+          'A picture reaches the transcript from both sides, and the two sides take different paths. From the person it needs nothing: `UserMessage` reads the `file` parts of the message itself and draws them as thumbnails in the bubble, with `enableImagePreview` opening the fullscreen view. From the answer it needs these renderers, because the list leaves `file` parts to the host. The same holds for a human who writes into the conversation beside the agent — an operator, a teammate: give their message the `assistant` role and the picture or the file they attached renders the same way, which is what makes a mixed conversation look like one conversation. '
+          + '`createMediaPartRenderers()` returns `partRenderers` for `file` parts of an answer; create it once and spread it next to your own renderers. The part is shown by its `mediaType`: an image opens a fullscreen `ImageLightbox`, audio and video play in the native `<audio>` and `<video>` without autoplay (a `captions` WebVTT address adds a track), and any other file is a `FileAttachment` chip that calls `onOpenFile` or downloads a safe `url`. Only `http(s)` addresses and `data:` images, audio and video reach the page; `javascript:`, `blob:` and `data:text/html` never do. `labels` covers `openImage`, `imageAlt`, `audio`, `video`, the names of the chip that opens or downloads (`openFile`, `download`) and `attachment` for the chip itself. `MediaPart` is the same component for a custom layout.',
       },
     ],
   },
