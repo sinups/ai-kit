@@ -592,6 +592,18 @@ export function Example() {
       },
       {
         type: 'example',
+        title: 'Folded to one line',
+        previewId: 'InputBar/collapsible',
+        code: `<InputBar\n  collapsible\n  collapsedWidth={320}\n  placeholder=\"Ask anything\"\n  status=\"ready\"\n  onSend={handleSend}\n  onStop={handleStop}\n  onAttach={onAttach}\n  leftActions={<ModelPicker models={models} value={model} onChange={setModel} />}\n/>`,
+      },
+      {
+        type: 'example',
+        title: 'Colour while the agent works',
+        previewId: 'InputBar/glow',
+        code: `<InputBar\n  glow\n  status={status}\n  onSend={handleSend}\n  onStop={handleStop}\n  onAttach={onAttach}\n/>`,
+      },
+      {
+        type: 'example',
         title: 'With attachments',
         previewId: 'InputBar/attachments',
         code: `<InputBar\n  onSend={handleSend}\n  status=\"ready\"\n  onStop={handleStop}\n  onAttach={onAttach}\n  attachedImages={images}\n  attachedFiles={files}\n  onRemoveImage={onRemoveImage}\n  onRemoveFile={onRemoveFile}\n/>`,

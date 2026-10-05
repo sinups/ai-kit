@@ -469,6 +469,53 @@ function InputBarCompletionsPreview() {
   );
 }
 
+function InputBarCollapsiblePreview() {
+  const [opened, setOpened] = useState(false);
+  return (
+    <div className="flex h-full w-full flex-col justify-center gap-3">
+      <InputBar
+        collapsible
+        collapsedWidth={320}
+        placeholder="Ask anything"
+        status="ready"
+        onSend={noop}
+        onStop={noop}
+        onAttach={noop}
+        onExpand={() => setOpened(true)}
+      />
+      <p className="text-xs text-muted-foreground">
+        {opened ? "Unfolded — the field, the toolbar and the shortcuts are the usual ones." : "Click the line to unfold it."}
+      </p>
+    </div>
+  );
+}
+
+function InputBarGlowPreview() {
+  const [status, setStatus] = useState<ChatStatus>("ready");
+  return (
+    <div className="flex h-full w-full flex-col justify-center gap-3">
+      <InputBar
+        glow
+        placeholder="Ask anything"
+        status={status}
+        onSend={() => {
+          setStatus("submitted");
+          setTimeout(() => setStatus("ready"), 4200);
+        }}
+        onStop={() => setStatus("ready")}
+        onAttach={noop}
+      />
+      <button
+        type="button"
+        className="self-start text-xs text-muted-foreground underline"
+        onClick={() => setStatus(status === "ready" ? "streaming" : "ready")}
+      >
+        {status === "ready" ? "Start a turn" : "Finish the turn"}
+      </button>
+    </div>
+  );
+}
+
 function InputBarQueuePreview() {
   const [status, setStatus] = useState<ChatStatus>("streaming");
   const [queue, setQueue] = useState<QueuedMessage[]>([
@@ -613,6 +660,10 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
       return <ErrorLimitPreview />;
     case "InputBar/completions":
       return <InputBarCompletionsPreview />;
+    case "InputBar/collapsible":
+      return <InputBarCollapsiblePreview />;
+    case "InputBar/glow":
+      return <InputBarGlowPreview />;
     case "InputBar/queue":
       return <InputBarQueuePreview />;
     case "InputBar/full-width":
