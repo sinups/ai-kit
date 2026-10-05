@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/sinups/ai-kit/compare/v0.6.0...v0.7.0) (2026-10-05)
+
+
+### Features
+
+* approval card and a composer that folds to one line ([#25](https://github.com/sinups/ai-kit/issues/25)) ([f4d3620](https://github.com/sinups/ai-kit/commit/f4d3620f9e6a80104649d193e3d27079b0156d78))
+
 ## [0.6.0](https://github.com/sinups/ai-kit/compare/v0.5.0...v0.6.0) (2026-09-28)
 
 
