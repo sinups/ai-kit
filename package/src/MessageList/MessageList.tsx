@@ -25,7 +25,7 @@ import { getContentWidthStyle, type ContentWidth } from '../utils/content-width'
 import type { SyntaxHighlighter } from '../utils/highlighter';
 import { cx } from '../utils/cx';
 import { normalizeAssistantToolParts } from '../utils/tool-part-normalizer';
-import { isErrorPart, isRecord, isTextPart, isV5ToolPart } from '../utils/parts';
+import { isErrorPart, isFilePart, isRecord, isTextPart, isV5ToolPart } from '../utils/parts';
 import { UserMessage } from '../UserMessage/UserMessage';
 import { Markdown, type MarkdownTailGranularity } from '../Markdown/Markdown';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage';
@@ -84,6 +84,7 @@ import { TranscriptSearch, type TranscriptSearchLabels } from './TranscriptSearc
 import { useTranscriptSearch } from './use-transcript-search';
 import { useAppearanceTracker, type AppearanceTracker } from './appearance';
 import { useUnstableRenderersWarning } from './use-unstable-renderers-warning';
+import { AnswerFile, type AnswerFileLabels } from './AnswerFile';
 import { VisuallyHiddenStatus } from '../primitives/VisuallyHiddenStatus/VisuallyHiddenStatus';
 import classes from './MessageList.module.css';
 
@@ -108,6 +109,8 @@ export type MessageListLabels = {
   answerFailed: string;
   /** Announced to screen readers once the user stops an answer, see `stopped`, `Answer stopped` by default */
   answerStopped: string;
+  /** Labels of a file that arrived with an answer: its image preview and alternative text */
+  answerFile?: Partial<AnswerFileLabels>;
   /** Labels of the search bar */
   search?: Partial<TranscriptSearchLabels>;
   /** Summary and progress labels of collapsed tool runs */
@@ -1326,6 +1329,8 @@ export const MessageList = memo(function MessageList({
                                   onToolAction={stableToolAction}
                                   onRetry={isLastMsg ? stableRetry : undefined}
                                   retryAnywhere={stableRetry}
+                                  enableImagePreview={enableImagePreview}
+                                  answerFileLabels={labels.answerFile}
                                   toolRunOptions={toolRunOptions}
                                   appearance={appearance}
                                   lookups={lookups}
@@ -1415,6 +1420,8 @@ type AssistantPartsProps = {
   onToolAction?: ToolActionHandler;
   onRetry?: () => void;
   retryAnywhere?: () => void;
+  enableImagePreview?: boolean;
+  answerFileLabels?: Partial<AnswerFileLabels>;
   toolRunOptions?: ResolvedToolRunOptions | null;
   appearance: AppearanceTracker;
   lookups: ToolCallLookups;
@@ -1494,6 +1501,8 @@ function areAssistantPartsEqual(previous: AssistantPartsProps, next: AssistantPa
     previous.onToolAction === next.onToolAction &&
     previous.onRetry === next.onRetry &&
     previous.retryAnywhere === next.retryAnywhere &&
+    previous.enableImagePreview === next.enableImagePreview &&
+    previous.answerFileLabels === next.answerFileLabels &&
     previous.toolRunOptions === next.toolRunOptions &&
     previous.appearance === next.appearance &&
     previous.toolActivity === next.toolActivity &&
@@ -1526,6 +1535,8 @@ const AssistantParts = memo(function AssistantParts({
   onToolAction,
   onRetry,
   retryAnywhere,
+  enableImagePreview,
+  answerFileLabels,
   toolRunOptions,
   appearance,
   lookups,
@@ -1560,7 +1571,12 @@ const AssistantParts = memo(function AssistantParts({
         }
         return;
       }
-      if (isErrorPart(part) || isFeedPart(part) || findPartRenderer(partRenderers, part)) {
+      if (
+        isErrorPart(part) ||
+        isFeedPart(part) ||
+        isFilePart(part) ||
+        findPartRenderer(partRenderers, part)
+      ) {
         visible.push({ part, index });
         return;
       }
@@ -1591,6 +1607,17 @@ const AssistantParts = memo(function AssistantParts({
             messageId={msg.id}
             index={index}
             chatStatus={chatStreamingStatus}
+          />
+        );
+      }
+      if (isFilePart(part)) {
+        return (
+          <AnswerFile
+            key={`${msg.id}-file-${index}`}
+            part={part}
+            messageId={msg.id}
+            enableImagePreview={enableImagePreview}
+            labels={answerFileLabels}
           />
         );
       }

@@ -5,9 +5,9 @@
       "styles/base.css",
       "styles/AgentChat.css"
     ],
-    "jsGzip": 84657,
-    "cssGzip": 12430,
-    "totalGzip": 97087
+    "jsGzip": 85062,
+    "cssGzip": 12498,
+    "totalGzip": 97560
   },
   {
     "name": "MessageList",
@@ -15,9 +15,9 @@
       "styles/base.css",
       "styles/MessageList.css"
     ],
-    "jsGzip": 69807,
-    "cssGzip": 9673,
-    "totalGzip": 79480
+    "jsGzip": 70186,
+    "cssGzip": 9742,
+    "totalGzip": 79928
   },
   {
     "name": "InputBar",
@@ -182,9 +182,9 @@
       "styles/base.css",
       "styles/ArtifactPanel.css"
     ],
-    "jsGzip": 1419,
+    "jsGzip": 1421,
     "cssGzip": 1843,
-    "totalGzip": 3262
+    "totalGzip": 3264
   },
   {
     "name": "ArtifactCard",
@@ -216,9 +216,9 @@
   {
     "name": "useFileIntake",
     "stylesheets": [],
-    "jsGzip": 701,
+    "jsGzip": 700,
     "cssGzip": 0,
-    "totalGzip": 701
+    "totalGzip": 700
   },
   {
     "name": "ChatDropZone",
@@ -285,9 +285,9 @@
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 218115,
-    "cssGzip": 23066,
-    "totalGzip": 241181
+    "jsGzip": 218497,
+    "cssGzip": 23145,
+    "totalGzip": 241642
   },
   {
     "name": "embed widget.js",

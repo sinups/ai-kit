@@ -310,3 +310,25 @@
   content-visibility: auto;
   contain-intrinsic-size: auto rem(240px);
 }
+
+/* A file that came with an answer: the picture of the agent, or of a person writing beside it. */
+.answerFile {
+  display: flex;
+  max-width: 100%;
+}
+
+.answerImageButton {
+  display: block;
+  width: fit-content;
+  max-width: min(100%, rem(360px));
+  overflow: hidden;
+  border: rem(1px) solid var(--ae-border);
+  border-radius: var(--ae-tool-radius);
+}
+
+.answerImage {
+  display: block;
+  max-width: 100%;
+  max-height: rem(320px);
+  object-fit: contain;
+}

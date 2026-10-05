@@ -82,6 +82,8 @@ export type {
   StarterCategory,
 } from './AgentChat/StarterCategories';
 export { MessageList, DEFAULT_MESSAGE_LIST_LABELS } from './MessageList/MessageList';
+export { AnswerFile, DEFAULT_ANSWER_FILE_LABELS } from './MessageList/AnswerFile';
+export type { AnswerFileLabels, AnswerFileProps } from './MessageList/AnswerFile';
 export type { MessageListProps, MessageListLabels } from './MessageList/MessageList';
 export type { ToolRunLabels } from './MessageList/tool-runs';
 export { UserMessage, DEFAULT_USER_MESSAGE_LABELS } from './UserMessage/UserMessage';
