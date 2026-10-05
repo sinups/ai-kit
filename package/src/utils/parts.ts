@@ -1,4 +1,4 @@
-import type { ErrorPart, TextPart, ToolPart } from '../types';
+import type { ErrorPart, FilePart, TextPart, ToolPart } from '../types';
 
 /** Non-null object check, narrows to a string-keyed record */
 export function isRecord(value: unknown): value is Record<string, any> {
@@ -6,6 +6,11 @@ export function isRecord(value: unknown): value is Record<string, any> {
 }
 
 /** `{ type: 'text', text: string }` */
+/** A `file` part of a message: an attachment that arrived with it */
+export function isFilePart(part: unknown): part is FilePart {
+  return isRecord(part) && part.type === 'file';
+}
+
 export function isTextPart(part: unknown): part is TextPart {
   return isRecord(part) && part.type === 'text' && typeof part.text === 'string';
 }
