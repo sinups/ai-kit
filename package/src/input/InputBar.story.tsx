@@ -243,6 +243,32 @@ export const CollapsibleFlow = {
   },
 };
 
+export function Glow() {
+  const [status, setStatus] = useState<ChatStatus>('ready');
+  return (
+    <Frame>
+      <InputBar
+        glow
+        status={status}
+        placeholder="Ask anything"
+        onSend={() => {
+          setStatus('submitted');
+          setTimeout(() => setStatus('ready'), 4200);
+        }}
+        onStop={() => setStatus('ready')}
+        onAttach={() => {}}
+      />
+      <Button
+        size="xs"
+        variant="light"
+        onClick={() => setStatus(status === 'ready' ? 'streaming' : 'ready')}
+      >
+        {status === 'ready' ? 'Start' : 'Stop'}
+      </Button>
+    </Frame>
+  );
+}
+
 export function WithSuggestions() {
   const { lines, onLog } = useLog();
   return (
