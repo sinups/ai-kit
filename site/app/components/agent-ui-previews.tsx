@@ -10,6 +10,7 @@ import {
   ErrorMessage,
   InputBar,
   MessageList,
+  ToolApprovalCard,
   ToolApprovalFooter,
   type ChatMessage,
   type ChatStatus,
@@ -290,7 +291,7 @@ function ContextUsageInputBarPreview() {
   );
 }
 
-function ToolApprovalCard({ children }: { children: React.ReactNode }) {
+function ShellToolCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full overflow-hidden rounded-[10px] border border-border">
       <div className="px-3 py-2 font-mono text-xs text-muted-foreground">
@@ -301,12 +302,78 @@ function ToolApprovalCard({ children }: { children: React.ReactNode }) {
   );
 }
 
+const JOB_CALL = {
+  action: "smart_search",
+  org_uid: "1106955086989844481",
+  params: { limit: 10, mode: "best_match" },
+};
+
+function JobsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function ToolApprovalRequestPreview() {
+  const [answer, setAnswer] = useState("");
+  return (
+    <div className="flex w-full flex-col gap-3">
+      <ToolApprovalCard
+        key={answer}
+        tool={{ name: "Find jobs" }}
+        server={{ name: "Jobs board", icon: <JobsIcon /> }}
+        params={JOB_CALL}
+        onDecline={() => setAnswer("declined")}
+        onAllowOnce={() => setAnswer("allowed once")}
+        onAlwaysAllow={() => setAnswer("allowed from now on")}
+      />
+      {answer && (
+        <button
+          type="button"
+          className="self-start text-xs text-muted-foreground underline"
+          onClick={() => setAnswer("")}
+        >
+          {answer} — ask again
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ToolApprovalFoldedPreview() {
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <ToolApprovalCard
+        tool={{ name: "Find jobs" }}
+        server={{ name: "Jobs board", icon: <JobsIcon /> }}
+        params={JOB_CALL}
+        defaultExpanded={false}
+        onDecline={noop}
+        onAllowOnce={noop}
+        onAlwaysAllow={noop}
+      />
+      <ToolApprovalCard
+        tool={{ name: "Find jobs" }}
+        server={{ name: "Jobs board", icon: <JobsIcon /> }}
+        params={JOB_CALL}
+        decision="once"
+        onDecline={noop}
+        onAllowOnce={noop}
+        onAlwaysAllow={noop}
+      />
+    </div>
+  );
+}
+
 function ToolApprovalScopesPreview() {
   const [result, setResult] = useState("");
   const [run, setRun] = useState(0);
   return (
     <div className="w-full">
-      <ToolApprovalCard>
+      <ShellToolCard>
         <ToolApprovalFooter
           key={run}
           labels={{ approve: "Allow", reject: "Deny" }}
@@ -324,7 +391,7 @@ function ToolApprovalScopesPreview() {
           onReject={() => setResult("rejected")}
           onRejectWithFeedback={(feedback) => setResult(`rejected with feedback: ${feedback}`)}
         />
-      </ToolApprovalCard>
+      </ShellToolCard>
       {result && (
         <button
           type="button"
@@ -344,12 +411,12 @@ function ToolApprovalScopesPreview() {
 function ToolApprovalBasicPreview() {
   return (
     <div className="flex w-full flex-col gap-3">
-      <ToolApprovalCard>
+      <ShellToolCard>
         <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={noop} />
-      </ToolApprovalCard>
-      <ToolApprovalCard>
+      </ShellToolCard>
+      <ShellToolCard>
         <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
-      </ToolApprovalCard>
+      </ShellToolCard>
     </div>
   );
 }
@@ -523,6 +590,11 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
     case "ToolApprovalFooter":
     case "ToolApprovalFooter/scopes":
       return <ToolApprovalScopesPreview />;
+    case "ToolApprovalCard":
+    case "ToolApprovalCard/basic":
+      return <ToolApprovalRequestPreview />;
+    case "ToolApprovalCard/folded":
+      return <ToolApprovalFoldedPreview />;
     case "ToolApprovalFooter/basic":
       return <ToolApprovalBasicPreview />;
     case "ErrorMessage":

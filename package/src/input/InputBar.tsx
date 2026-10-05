@@ -6,6 +6,7 @@ import {
   Group,
   Stack,
   Text,
+  rem,
   Textarea,
   UnstyledButton,
   useCombobox,
@@ -210,6 +211,17 @@ export interface InputBarProps {
   /** When set, submitting while the response is streaming queues the message instead of ignoring it */
   onQueue?: (message: { role: 'user'; content: string }) => void;
 
+  /**
+   * Shrinks the composer to one line while it is empty and not focused, and unfolds it on a click
+   * or a focus: a place to start a conversation that costs one row until it is needed.
+   */
+  collapsible?: boolean;
+  /** Button shown at the end of the collapsed line, the send button by default */
+  collapsedAction?: React.ReactNode;
+  /** Width of the collapsed line, for example `420` or `'60%'`; the full width by default */
+  collapsedWidth?: number | string;
+  /** Called when the collapsed composer unfolds */
+  onExpand?: () => void;
   /** Content rendered on the left of the toolbar, next to the attachment button */
   leftActions?: React.ReactNode;
   /** Content rendered on the right of the toolbar, before the send button */
@@ -262,6 +274,10 @@ export const InputBar = memo(function InputBar({
   queuedMessages = [],
   onRemoveQueued,
   onQueue,
+  collapsible = false,
+  collapsedAction,
+  collapsedWidth,
+  onExpand,
   leftActions,
   rightActions,
   pasteCollapseThreshold,
@@ -338,6 +354,9 @@ export const InputBar = memo(function InputBar({
     INITIAL_PROMPT_HISTORY_STATE
   );
   const [isHistorySearchOpen, setIsHistorySearchOpen] = useState(false);
+  const [focusWithin, setFocusWithin] = useState(false);
+  const unfoldRef = useRef<HTMLDivElement>(null);
+  const [unfoldHeight, setUnfoldHeight] = useState<number | null>(null);
 
   const resetComposerExtras = useCallback(() => {
     setPastes([]);
@@ -778,6 +797,38 @@ export const InputBar = memo(function InputBar({
     attachedFiles.length > 0 ||
     activePastes.length > 0;
 
+  const collapsed =
+    collapsible && !focusWithin && !hasInput && !hasContextItems && !isStreaming && !isTyping;
+
+  // The card animates to a real height, the way a spring needs: `fr` units swallow the overshoot.
+  useEffect(() => {
+    const content = unfoldRef.current;
+    if (!collapsible || !content || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    const measure = () => setUnfoldHeight(content.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [collapsible]);
+
+  const handleFocusWithin = () => {
+    if (!focusWithin) {
+      setFocusWithin(true);
+      if (collapsed) {
+        onExpand?.();
+      }
+    }
+  };
+
+  const handleBlurWithin = (event: React.FocusEvent<HTMLElement>) => {
+    const next = event.relatedTarget as Node | null;
+    if (!next || !event.currentTarget.contains(next)) {
+      setFocusWithin(false);
+    }
+  };
+
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
     if (!e.currentTarget.contains(e.target as Node)) {
       return;
@@ -820,7 +871,16 @@ export const InputBar = memo(function InputBar({
   }
 
   return (
-    <Box className={cx(classes.root, className)} style={getContentWidthStyle(contentWidth, style)}>
+    <Box
+      className={cx(classes.root, className)}
+      data-collapsed={collapsed || undefined}
+      style={{
+        ...getContentWidthStyle(contentWidth, style),
+        ...(collapsedWidth === undefined
+          ? undefined
+          : { '--ae-input-collapsed-width': rem(collapsedWidth) }),
+      }}
+    >
       <div className={classes.inner}>
         <div className={classes.stack} data-info-bar={hasInfoBarBackground || undefined}>
           {infoBarPosition === 'top' && infoBarNode}
@@ -849,146 +909,184 @@ export const InputBar = memo(function InputBar({
                 role="presentation"
                 className={classes.field}
                 data-drag-over={isDragOver || undefined}
+                data-collapsible={collapsible || undefined}
+                data-collapsed={collapsed || undefined}
+                style={unfoldHeight === null ? undefined : { height: rem(unfoldHeight) }}
                 onClick={handleContainerClick}
+                onFocusCapture={collapsible ? handleFocusWithin : undefined}
+                onBlurCapture={collapsible ? handleBlurWithin : undefined}
               >
-                <div className={classes.contextGrid} data-open={hasContextItems || undefined}>
-                  <div className={classes.contextClip}>
-                    {hasContextItems && (
-                      <div className={classes.contextItems}>
-                        {visibleContext.length > 0 && (
-                          <InputContext
-                            items={visibleContext}
-                            onRemove={onRemoveContext}
-                            onRestore={onRestoreContext}
-                            field={textareaRef}
-                            labels={labels}
-                          />
-                        )}
-                        {attachedImages.map((img) => (
-                          <FileAttachment
-                            key={img.id}
-                            id={img.id}
-                            filename={img.filename}
-                            size={img.size}
-                            isImage
-                            url={img.url}
-                            display="image-only"
-                            enableImagePreview={enableImagePreview}
-                            labels={labels.attachment}
-                            status={img.status}
-                            progress={img.progress}
-                            error={img.error}
-                            onCancel={onCancelFile && (() => onCancelFile(img.id))}
-                            onRetry={onRetryFile && (() => onRetryFile(img.id))}
-                            onRemove={onRemoveImage ? () => onRemoveImage(img.id) : undefined}
-                          />
-                        ))}
-                        {attachedFiles.map((file) => (
-                          <FileAttachment
-                            key={file.id}
-                            id={file.id}
-                            filename={file.filename}
-                            size={file.size}
-                            labels={labels.attachment}
-                            status={file.status}
-                            progress={file.progress}
-                            error={file.error}
-                            onCancel={onCancelFile && (() => onCancelFile(file.id))}
-                            onRetry={onRetryFile && (() => onRetryFile(file.id))}
-                            onRemove={onRemoveFile ? () => onRemoveFile(file.id) : undefined}
-                          />
-                        ))}
-                        {activePastes.map((paste) => (
-                          <PastedTextAttachment
-                            key={paste.id}
-                            paste={paste}
-                            labels={{
-                              name: labels.pastedText,
-                              lines: labels.pastedTextLines,
-                              remove: labels.removePastedText,
-                            }}
-                            onRemove={disabled ? undefined : () => removePaste(paste.id)}
-                          />
-                        ))}
+                <div ref={collapsible ? unfoldRef : undefined} className={classes.unfold}>
+                  <div className={classes.contextGrid} data-open={hasContextItems || undefined}>
+                    <div className={classes.contextClip}>
+                      {hasContextItems && (
+                        <div className={classes.contextItems}>
+                          {visibleContext.length > 0 && (
+                            <InputContext
+                              items={visibleContext}
+                              onRemove={onRemoveContext}
+                              onRestore={onRestoreContext}
+                              field={textareaRef}
+                              labels={labels}
+                            />
+                          )}
+                          {attachedImages.map((img) => (
+                            <FileAttachment
+                              key={img.id}
+                              id={img.id}
+                              filename={img.filename}
+                              size={img.size}
+                              isImage
+                              url={img.url}
+                              display="image-only"
+                              enableImagePreview={enableImagePreview}
+                              labels={labels.attachment}
+                              status={img.status}
+                              progress={img.progress}
+                              error={img.error}
+                              onCancel={onCancelFile && (() => onCancelFile(img.id))}
+                              onRetry={onRetryFile && (() => onRetryFile(img.id))}
+                              onRemove={onRemoveImage ? () => onRemoveImage(img.id) : undefined}
+                            />
+                          ))}
+                          {attachedFiles.map((file) => (
+                            <FileAttachment
+                              key={file.id}
+                              id={file.id}
+                              filename={file.filename}
+                              size={file.size}
+                              labels={labels.attachment}
+                              status={file.status}
+                              progress={file.progress}
+                              error={file.error}
+                              onCancel={onCancelFile && (() => onCancelFile(file.id))}
+                              onRetry={onRetryFile && (() => onRetryFile(file.id))}
+                              onRemove={onRemoveFile ? () => onRemoveFile(file.id) : undefined}
+                            />
+                          ))}
+                          {activePastes.map((paste) => (
+                            <PastedTextAttachment
+                              key={paste.id}
+                              paste={paste}
+                              labels={{
+                                name: labels.pastedText,
+                                lines: labels.pastedTextLines,
+                                remove: labels.removePastedText,
+                              }}
+                              onRemove={disabled ? undefined : () => removePaste(paste.id)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isTyping && typingAnimation?.image && showImage && (
+                    <div className={classes.typingImages}>
+                      <div className={classes.typingImage}>
+                        <img src={typingAnimation.image} alt="" className={classes.typingImg} />
                       </div>
+                    </div>
+                  )}
+
+                  <div className={classes.inputWrap}>
+                    {isTyping ? (
+                      <div className={classes.typingText}>
+                        <span>{displayedText}</span>
+                        <span className={classes.caret} />
+                      </div>
+                    ) : (
+                      <>
+                        <Textarea
+                          ref={textareaRef}
+                          variant="unstyled"
+                          autosize
+                          minRows={1}
+                          maxRows={5}
+                          value={input}
+                          onChange={(e) => {
+                            setInput(e.currentTarget.value);
+                            setCaret(e.currentTarget.selectionStart);
+                            if (historyState.index !== null) {
+                              setHistoryState(INITIAL_PROMPT_HISTORY_STATE);
+                            }
+                          }}
+                          onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
+                          onKeyDown={handleKeyDown}
+                          aria-expanded={
+                            completionTriggers.length > 0 ? isCompletionOpen : undefined
+                          }
+                          aria-haspopup={completionTriggers.length > 0 ? 'listbox' : undefined}
+                          onPaste={handlePaste}
+                          placeholder={effectivePlaceholder}
+                          disabled={disabled}
+                          classNames={{
+                            root: classes.textareaRoot,
+                            wrapper: classes.textareaWrapper,
+                            input: classes.textarea,
+                          }}
+                        />
+                        <div className={classes.focusRing} />
+                      </>
                     )}
                   </div>
-                </div>
 
-                {isTyping && typingAnimation?.image && showImage && (
-                  <div className={classes.typingImages}>
-                    <div className={classes.typingImage}>
-                      <img src={typingAnimation.image} alt="" className={classes.typingImg} />
+                  {collapsible && (
+                    <div className={classes.collapsedAction}>
+                      {collapsedAction ?? (
+                        <UnstyledButton
+                          className={classes.sendWrap}
+                          aria-label={isStreaming ? labels.stop : labels.send}
+                          onClick={() => {
+                            if (isStreaming) {
+                              onStop();
+                            } else if (hasInput) {
+                              handleSubmit();
+                            } else {
+                              textareaRef.current?.focus();
+                            }
+                          }}
+                        >
+                          <SendButton state={sendState} solid />
+                        </UnstyledButton>
+                      )}
                     </div>
-                  </div>
-                )}
-
-                <div className={classes.inputWrap}>
-                  {isTyping ? (
-                    <div className={classes.typingText}>
-                      <span>{displayedText}</span>
-                      <span className={classes.caret} />
-                    </div>
-                  ) : (
-                    <>
-                      <Textarea
-                        ref={textareaRef}
-                        variant="unstyled"
-                        autosize
-                        minRows={1}
-                        maxRows={5}
-                        value={input}
-                        onChange={(e) => {
-                          setInput(e.currentTarget.value);
-                          setCaret(e.currentTarget.selectionStart);
-                          if (historyState.index !== null) {
-                            setHistoryState(INITIAL_PROMPT_HISTORY_STATE);
-                          }
-                        }}
-                        onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
-                        onKeyDown={handleKeyDown}
-                        aria-expanded={completionTriggers.length > 0 ? isCompletionOpen : undefined}
-                        aria-haspopup={completionTriggers.length > 0 ? 'listbox' : undefined}
-                        onPaste={handlePaste}
-                        placeholder={effectivePlaceholder}
-                        disabled={disabled}
-                        classNames={{
-                          root: classes.textareaRoot,
-                          wrapper: classes.textareaWrapper,
-                          input: classes.textarea,
-                        }}
-                      />
-                      <div className={classes.focusRing} />
-                    </>
                   )}
-                </div>
-
-                <div className={classes.toolbar}>
-                  <div className={cx(classes.toolbarGroup, classes.toolbarLeft)}>
-                    {onAttach && <AttachmentButton onClick={onAttach} labels={labels.attach} />}
-                    {leftActions}
-                  </div>
-                  <div className={classes.toolbarGroup}>
-                    {rightActions}
-                    <UnstyledButton
-                      className={classes.sendWrap}
-                      aria-label={
-                        isStreaming
-                          ? labels.stop
-                          : waitingForUploads
-                            ? labels.waitForUploads
-                            : labels.send
-                      }
-                      onClick={() => {
-                        if (isStreaming) {
-                          onStop();
-                        } else if (hasInput) {
-                          handleSubmit();
-                        }
-                      }}
-                    >
-                      <SendButton state={sendState} />
-                    </UnstyledButton>
+                  <div className={classes.toolbarGrid}>
+                    <div className={classes.toolbarClip} inert={collapsed || undefined}>
+                      <div className={classes.toolbar}>
+                        <div className={cx(classes.toolbarGroup, classes.toolbarLeft)}>
+                          {onAttach && (
+                            <AttachmentButton onClick={onAttach} labels={labels.attach} />
+                          )}
+                          {leftActions}
+                        </div>
+                        <div className={classes.toolbarGroup}>
+                          {rightActions}
+                          {!collapsible && (
+                            <UnstyledButton
+                              className={classes.sendWrap}
+                              aria-label={
+                                isStreaming
+                                  ? labels.stop
+                                  : waitingForUploads
+                                    ? labels.waitForUploads
+                                    : labels.send
+                              }
+                              onClick={() => {
+                                if (isStreaming) {
+                                  onStop();
+                                } else if (hasInput) {
+                                  handleSubmit();
+                                }
+                              }}
+                            >
+                              <SendButton state={sendState} />
+                            </UnstyledButton>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

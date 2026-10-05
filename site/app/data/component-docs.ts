@@ -88,6 +88,7 @@ export const COMPONENT_IMPORT_PATH: Record<string, string> = {
   QuestionTool: '@sinups/ai-kit',
   ElicitationForm: '@sinups/ai-kit',
   ToolApprovalFooter: '@sinups/ai-kit',
+  ToolApprovalCard: '@sinups/ai-kit',
   AgentStatus: '@sinups/ai-kit',
   ContextUsage: '@sinups/ai-kit',
   CompactBoundary: '@sinups/ai-kit',
@@ -581,7 +582,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls.',
+          'Collect prompts and attachments in the composer. Supports controlled mode (value/onChange), drag/paste handling, info bar, typing animation, multi-question navigation, and free-form toolbar slots (leftActions/rightActions) for composing model/mode pickers or any custom controls. `collapsible` turns the composer into one line while it is empty and not focused, and unfolds it on a click or a focus — a place to start a conversation that costs a single row on a landing page or next to a page of its own; `collapsedAction` replaces the button at the end of that line, `collapsedWidth` narrows it, and `onExpand` tells the host it opened. The folded line is its own shape, not the usual composer: it takes `--ae-input-radius-collapsed` so it reads as a pill, keeps one filled button in the corner for both states, and springs open over `--ae-duration-unfold` with `--ae-ease-spring`. The folded line keeps the same field, so attachments, completions and history work the moment it unfolds.',
       },
       {
         type: 'example',
@@ -2332,6 +2333,58 @@ export function Example() {
         code: `<>
   <ToolApprovalFooter labels={{ approve: "Run", reject: "Skip" }} onApprove={approve} />
   <ToolApprovalFooter isPending labels={{ approve: "Run", reject: "Cancel" }} />
+</>`,
+      },
+    ],
+  },
+  {
+    name: 'ToolApprovalCard',
+    blocks: [
+      {
+        type: 'code',
+        title: 'Code',
+        content: `import { ToolApprovalCard } from "@sinups/ai-kit";
+
+export function Example() {
+  return (
+    <ToolApprovalCard
+      tool={{ name: "Find jobs" }}
+      server={{ name: "Jobs board", icon: <BriefcaseIcon /> }}
+      params={call.input}
+      schema={tool.inputSchema}
+      onDecline={() => answer("declined")}
+      onAllowOnce={() => answer("once")}
+      onAlwaysAllow={() => answer("always")}
+    />
+  );
+}`,
+      },
+      {
+        type: 'usage',
+        title: 'Usage',
+        content:
+          'Ask before a call starts, in one card: the sentence names the tool and the server it comes from, the arguments sit under it, and the three answers carry their keyboard shortcuts — Esc declines, Mod+Enter allows once, Shift+Mod+Enter allows from now on (`shortcuts={false}` leaves the keyboard alone). `params` takes the raw input of the call: nested objects unfold into `Params limit`-style lines, `schema` gives them the order and the titles of the tool, and a string is quoted only when it would read as a number or a flag. Pass ready lines instead when the host formats them itself. The card folds to the sentence and the buttons with `defaultExpanded={false}`, `children` adds anything under the arguments (the rule that caused the prompt, a warning), and `decision` marks the answer when the host owns it. Every word is in `labels`, including the sentence itself. Use `ToolApprovalFooter` where the call already has a card of its own and only the answer is missing.',
+      },
+      {
+        type: 'example',
+        title: 'Request with arguments',
+        previewId: 'ToolApprovalCard/basic',
+        code: `<ToolApprovalCard
+  tool={{ name: "Find jobs" }}
+  server={{ name: "Jobs board", icon: <BriefcaseIcon /> }}
+  params={{ action: "smart_search", org_uid: "1106955086989844481", params: { limit: 10, mode: "best_match" } }}
+  onDecline={decline}
+  onAllowOnce={allowOnce}
+  onAlwaysAllow={alwaysAllow}
+/>`,
+      },
+      {
+        type: 'example',
+        title: 'Folded and answered',
+        previewId: 'ToolApprovalCard/folded',
+        code: `<>
+  <ToolApprovalCard tool={{ name: "Find jobs" }} server={{ name: "Jobs board" }} params={input} defaultExpanded={false} onDecline={decline} onAllowOnce={allowOnce} />
+  <ToolApprovalCard tool={{ name: "Find jobs" }} server={{ name: "Jobs board" }} params={input} decision="once" onDecline={decline} onAllowOnce={allowOnce} />
 </>`,
       },
     ],

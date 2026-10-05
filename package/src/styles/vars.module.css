@@ -4,6 +4,7 @@
   --ae-message-radius-inner-offset: rem(4px);
   --ae-message-radius-inner: calc(var(--ae-message-radius) - var(--ae-message-radius-inner-offset));
   --ae-input-radius: var(--ae-radius);
+  --ae-input-radius-collapsed: rem(24px);
   --ae-tool-radius: rem(10px);
   --ae-notice-radius: rem(8px);
   --ae-row-radius: rem(6px);
@@ -58,6 +59,7 @@
   --ae-anim-spin: ae-spin;
   --ae-anim-appear: ae-appear;
   --ae-anim-fade-in: ae-fade-in;
+  --ae-duration-unfold: 420ms;
   --ae-fade-in-duration: 100ms;
 
   --ae-hover: var(--mantine-color-default-hover);
