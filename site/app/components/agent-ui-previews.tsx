@@ -21,6 +21,7 @@ import {
   type QueuedMessage,
 } from "@sinups/ai-kit";
 
+import { BASE_PATH } from "../lib/site";
 import { renderAgentsPreview } from "./previews/agents";
 import { renderChatActionsPreview } from "./previews/chat-actions";
 import { renderChatExtrasPreview } from "./previews/chat-extras";
@@ -533,6 +534,40 @@ function SharedMediaPreview() {
   );
 }
 
+const playerMessages = [
+  {
+    id: "a1",
+    role: "assistant",
+    parts: [
+      { type: "text", text: "Here is the call you asked about, and the clip from the dashboard:" },
+      {
+        type: "file",
+        url: `${BASE_PATH}/demo/beep.mp3`,
+        mediaType: "audio/mpeg",
+        filename: "call-excerpt.mp3",
+      },
+      {
+        type: "file",
+        url: `${BASE_PATH}/demo/clip.mp4`,
+        mediaType: "video/mp4",
+        filename: "dashboard.mp4",
+      },
+    ],
+  },
+] as ChatMessage[];
+
+function MediaPlayersPreview() {
+  return (
+    <MessageList
+      messages={playerMessages}
+      status="ready"
+      partRenderers={mediaRenderers}
+      contentWidth={720}
+      className="h-full"
+    />
+  );
+}
+
 function InputBarCollapsiblePreview() {
   const [opened, setOpened] = useState(false);
   return (
@@ -745,6 +780,8 @@ export function renderAgentUiPreview(previewId: string): React.ReactNode | undef
     case "MediaPart":
     case "MediaPart/shared-images":
       return <SharedMediaPreview />;
+    case "MediaPart/players":
+      return <MediaPlayersPreview />;
     case "MessageList/compaction":
       return (
         <MessageList

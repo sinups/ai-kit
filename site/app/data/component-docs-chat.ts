@@ -1059,6 +1059,12 @@ export function Chat(props: ChatProps) {
         code: `const media = createMediaPartRenderers();\n\n<MessageList\n  status=\"ready\"\n  partRenderers={media}\n  messages={[\n    {\n      id: \"u1\",\n      role: \"user\",\n      parts: [\n        { type: \"text\", text: \"Here is the pair I meant\" },\n        { type: \"file\", url: shoeUrl, mediaType: \"image/png\", filename: \"sneaker.png\" },\n      ],\n    },\n    {\n      id: \"a1\",\n      role: \"assistant\",\n      parts: [\n        { type: \"text\", text: \"Got it. Sales of that model last quarter:\" },\n        { type: \"file\", url: chartUrl, mediaType: \"image/png\", filename: \"quarter.png\" },\n      ],\n    },\n    {\n      id: \"a2\",\n      role: \"assistant\",\n      parts: [\n        { type: \"text\", text: \"Anna from support attached the warranty terms.\" },\n        { type: \"file\", url: pdfUrl, mediaType: \"application/pdf\", filename: \"warranty.pdf\", size: 182400 },\n      ],\n    },\n  ]}\n/>`,
       },
       {
+        type: 'example',
+        title: 'Audio and video',
+        previewId: 'MediaPart/players',
+        code: `const media = createMediaPartRenderers();\n\n<MessageList\n  status=\"ready\"\n  partRenderers={media}\n  messages={[\n    {\n      id: \"a1\",\n      role: \"assistant\",\n      parts: [\n        { type: \"text\", text: \"Here is the call you asked about:\" },\n        { type: \"file\", url: callUrl, mediaType: \"audio/mpeg\", filename: \"call-excerpt.mp3\" },\n        { type: \"file\", url: clipUrl, mediaType: \"video/mp4\", filename: \"dashboard.mp4\", captions: captionsUrl },\n      ],\n    },\n  ]}\n/>`,
+      },
+      {
         type: 'usage',
         title: 'Usage',
         content:
