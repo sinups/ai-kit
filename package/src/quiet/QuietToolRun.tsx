@@ -125,15 +125,18 @@ export function QuietToolRun({
   const summary = [thoughts > 0 && labels.thought, calls > 0 && labels.otherTools(calls), time]
     .filter((phrase): phrase is string => Boolean(phrase))
     .join(' · ');
+  const elapsedLabel = labels.elapsed?.(time, isLive);
 
   return (
     <>
       <ToolRowBase
         icon={isLive ? <SpiralLoader size={12} data-activity-loader /> : undefined}
-        completeLabel={capitalize(summary)}
-        shimmerLabel={currentLabel}
+        completeLabel={elapsedLabel ?? capitalize(summary)}
+        shimmerLabel={elapsedLabel ?? currentLabel}
         isAnimating={isLive}
-        trailingContent={isLive && time ? <ToolActivity elapsed={time} /> : undefined}
+        trailingContent={
+          isLive && time && !elapsedLabel ? <ToolActivity elapsed={time} /> : undefined
+        }
         expandable
         expanded={expanded}
         onToggleExpand={() => {

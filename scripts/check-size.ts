@@ -58,7 +58,7 @@ const entries: Entry[] = [
     name: 'import *',
     source: "import * as kit from '@sinups/ai-kit'; console.log(kit);",
     stylesheets: ['styles.css'],
-    gzipBudget: 242_000,
+    gzipBudget: 242_200,
   },
 ];
 

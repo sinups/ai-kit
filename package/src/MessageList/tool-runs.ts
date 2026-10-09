@@ -85,6 +85,8 @@ export interface ToolRunLabels {
   editing: string;
   searching: string;
   working: string;
+  /** Optional quiet-run duration sentence; replaces the count/time summary. */
+  elapsed?: (duration: string, running: boolean) => string;
 }
 
 export const DEFAULT_TOOL_RUN_LABELS: ToolRunLabels = {

@@ -4,6 +4,7 @@ import { act, render as rtlRender, screen } from '@testing-library/react';
 import { MessageList } from '../MessageList/MessageList';
 import type { ChatMessage, ChatStatus, ToolPart } from '../types';
 import { quietPresentation } from './quiet-presentation';
+import { QuietToolRun } from './QuietToolRun';
 
 const catalog = { mcp__x__one: { title: 'Первый' }, mcp__x__two: { title: 'Второй' } };
 
@@ -42,6 +43,41 @@ function list(parts: unknown[], status: ChatStatus) {
 const lines = () => screen.getAllByText(/tool/).map((node) => node.textContent);
 
 describe('QuietToolRun time', () => {
+  it('lets hosts present duration as a sentence without mixing it with call counts', () => {
+    jest.useFakeTimers();
+    const labels = {
+      elapsed: (duration: string, running: boolean) =>
+        `${running ? 'Working for' : 'Completed in'} ${duration}`,
+    };
+    const { container, rerender } = rtlRender(
+      <MantineProvider env="test">
+        <QuietToolRun
+          parts={[call('a', 'mcp__x__one', 'input-available')]}
+          chatStatus="streaming"
+          turnStartedAt={Date.now() - 96_000}
+          labels={labels}
+        />
+      </MantineProvider>
+    );
+    expect(container.querySelector('[data-tool-run] button')?.textContent).toContain(
+      'Working for 1m 36s'
+    );
+    rerender(
+      <MantineProvider env="test">
+        <QuietToolRun
+          parts={[call('a', 'mcp__x__one', 'output-available')]}
+          chatStatus="ready"
+          labels={labels}
+        />
+      </MantineProvider>
+    );
+    act(() => jest.advanceTimersByTime(1000));
+    expect(container.querySelector('[data-tool-run] button')?.textContent).toContain(
+      'Completed in 1m 36s'
+    );
+    expect(container.querySelector('[data-tool-run] button')?.textContent).not.toContain(' · ');
+    jest.useRealTimers();
+  });
   it('counts a later run from the end of the one before it', () => {
     jest.useFakeTimers();
     const start = Date.now();

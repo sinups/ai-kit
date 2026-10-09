@@ -9,13 +9,16 @@
 .disclosure {
   display: grid;
   grid-template-rows: 0fr;
+  opacity: 0;
   visibility: hidden;
   transition:
-    grid-template-rows 120ms ease-out,
-    visibility 0s linear 120ms;
+    grid-template-rows 180ms ease-out,
+    opacity 180ms ease-out,
+    visibility 0s linear 180ms;
 
   &[data-open] {
     grid-template-rows: 1fr;
+    opacity: 1;
     visibility: visible;
     transition-delay: 0s;
   }
@@ -114,7 +117,7 @@
   display: flex;
   flex-shrink: 0;
   color: var(--ae-fg-muted);
-  transition: transform 120ms ease-out;
+  transition: transform 180ms ease-out;
 
   &[data-open] {
     transform: rotate(90deg);
