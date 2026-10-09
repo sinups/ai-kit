@@ -120,6 +120,14 @@ export const quietPresentation: QuietPresentation = {
         return renderDefault(segment.item);
       }
       const toolPart = part as ToolPart;
+      if (
+        resolveToolCallState(toolPart, context.approvals?.[toolPart.toolCallId ?? ''], {
+          chatStatus: context.chatStatus,
+          lookups: context.lookups,
+        }) === 'awaiting-permission'
+      ) {
+        return renderDefault(segment.item);
+      }
       return (
         <QuietToolRow
           key={toolPart.toolCallId ?? `${context.messageId}-tool-${index}`}

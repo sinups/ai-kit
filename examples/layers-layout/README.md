@@ -73,3 +73,8 @@ and inert, and reduced-motion disables the disclosure/chevron/gap transitions.
 `package/src/ToolRowBase/ToolRowBase.test.tsx` reproduces the old first-open delay
 and checks rapid reversal and retained state. This does not constitute an FPS
 benchmark for large real tool results.
+
+Quiet presentation also keeps child rows aligned with the group, renders formatted
+text as prose, and treats a host-rendered result as the replacement for raw payloads.
+Permission previews use the normal host renderer and keep one approval footer.
+Regression tests are in `package/src/quiet/QuietToolRow.formatters.test.tsx`.
