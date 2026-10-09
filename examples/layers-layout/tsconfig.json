@@ -1,5 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "include": ["*.tsx", "*.ts", "../../@types"],
-  "compilerOptions": { "noEmit": true, "rootDir": "../.." }
-}

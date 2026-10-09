@@ -24,7 +24,6 @@
     "oxlint": "oxlint -c oxlint.config.mjs .",
     "stylelint": "stylelint '**/*.css' --cache",
     "jest": "jest",
-    "test:streaming": "jest --config jest.streaming.config.cjs --runInBand",
     "check:examples": "tsx --tsconfig site/tsconfig.json scripts/check-example-sources",
     "test": "npm run syncpack && npm run format:test && npm run typecheck && npm run lint && npm run site:lint && npm run check:examples && npm run jest",
     "dev": "yarn workspace ai-kit-site dev",
