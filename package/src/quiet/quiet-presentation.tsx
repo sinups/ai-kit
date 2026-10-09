@@ -5,6 +5,7 @@ import { resolveToolCallState, type ToolApprovals } from '../approvals/approval-
 import type { ToolCallLookups } from '../tools/tool-call-state';
 import { findToolCatalogEntry, type ToolCatalog } from '../tools/tool-presentation';
 import { parseMcpToolType } from '../tools/tool-registry';
+import { ToolRenderer } from '../tools/ToolRenderer';
 import type { ToolPart } from '../types';
 import { isTextPart, isV5ToolPart } from '../utils/parts';
 import { QuietToolRow } from './QuietToolRow';
@@ -126,7 +127,10 @@ export const quietPresentation: QuietPresentation = {
           lookups: context.lookups,
         }) === 'awaiting-permission'
       ) {
-        return renderDefault(segment.item);
+        const card = renderDefault(segment.item);
+        if (!React.isValidElement(card) || card.type !== ToolRenderer) {
+          return card;
+        }
       }
       return (
         <QuietToolRow
