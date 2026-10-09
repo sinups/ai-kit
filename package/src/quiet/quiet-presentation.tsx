@@ -128,7 +128,7 @@ export const quietPresentation: QuietPresentation = {
         }) === 'awaiting-permission'
       ) {
         const card = renderDefault(segment.item);
-        if (!React.isValidElement(card) || card.type !== ToolRenderer) {
+        if ((card as React.ReactElement | null)?.type !== ToolRenderer) {
           return card;
         }
       }
