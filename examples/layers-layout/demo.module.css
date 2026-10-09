@@ -1,0 +1,49 @@
+.root {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.controls {
+  flex-wrap: wrap;
+}
+.chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.chat > * {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 36em) {
+  .header {
+    padding: var(--mantine-spacing-xs);
+  }
+  .controls {
+    width: 100%;
+    gap: var(--mantine-spacing-xs);
+  }
+  .controls button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+:global(body) {
+  margin: 0;
+}
