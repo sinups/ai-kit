@@ -3,11 +3,6 @@
   flex-direction: column;
   gap: rem(4px);
   width: 100%;
-  transition: gap 120ms ease-out;
-
-  &[data-expandable][data-open] {
-    gap: rem(8px);
-  }
 }
 
 /* Intrinsic grid sizing follows nested disclosures without JS height measurements. */
@@ -127,7 +122,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .root,
   .disclosure,
   .chevron {
     transition: none;

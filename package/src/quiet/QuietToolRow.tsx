@@ -187,10 +187,7 @@ export function QuietToolRow({
     );
   }
 
-  const title = readTitle(
-    part,
-    getToolCatalogTitle(findToolCatalogEntry(presentation.catalog, part))
-  );
+  const title = readTitle(part, getToolCatalogTitle(catalogEntry));
   const outcome = hostApproval?.outcome ? getToolApprovalOutcomeText(hostApproval) : null;
 
   return (
