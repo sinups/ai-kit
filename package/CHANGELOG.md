@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/sinups/ai-kit/compare/v0.7.0...v0.8.0) (2026-10-09)
+
+
+### Features
+
+* a picture renders on both sides of the conversation ([#30](https://github.com/sinups/ai-kit/issues/30)) ([7b5d991](https://github.com/sinups/ai-kit/commit/7b5d991001497544b1ba2d44796c22c7570313eb))
+* colour under the composer while the agent works ([#27](https://github.com/sinups/ai-kit/issues/27)) ([c228d8e](https://github.com/sinups/ai-kit/commit/c228d8e832b6b11e080381eed744eda7eb255d29))
+
+
+### Bug Fixes
+
+* preserve paced text and stabilize tool activity ([#32](https://github.com/sinups/ai-kit/issues/32)) ([cd3d0ea](https://github.com/sinups/ai-kit/commit/cd3d0ead9ee69747625667ad303b87150a988512))
+
 ## [0.7.0](https://github.com/sinups/ai-kit/compare/v0.6.0...v0.7.0) (2026-10-05)
 
 
