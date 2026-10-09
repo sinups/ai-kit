@@ -23,6 +23,22 @@ describe('Markdown/Markdown', () => {
     expect(items[0]).toHaveTextContent('first');
   });
 
+  it('widens an ordered list once its numbers reach two digits', () => {
+    const twelve = Array.from({ length: 12 }, (_, i) => `${i + 1}. item ${i + 1}`).join('\n');
+    const { container } = render(<Markdown content={twelve} />);
+    expect(container.querySelector('ol')).toHaveAttribute('data-digits', '2');
+  });
+
+  it('keeps a short ordered list at the usual indent', () => {
+    const { container } = render(<Markdown content={'1. one\n2. two'} />);
+    expect(container.querySelector('ol')).not.toHaveAttribute('data-digits');
+  });
+
+  it('counts digits from the list start', () => {
+    const { container } = render(<Markdown content={'98. a\n99. b\n100. c'} />);
+    expect(container.querySelector('ol')).toHaveAttribute('data-digits', '3');
+  });
+
   it('renders external links with rel and target', () => {
     render(<Markdown content="See [docs](https://mantine.dev) and [local](/page)" />);
     const external = screen.getByRole('link', { name: 'docs' });
