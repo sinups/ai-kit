@@ -120,6 +120,21 @@ function Anchor({
   );
 }
 
+// Номер пункта стоит снаружи отступа списка, а корень разметки обрезает всё, что вышло за его
+// край. Отступ рассчитан на «9.»: у «10.» и дальше срезалась первая цифра, и пункты читались
+// как «.0. Звонки», «.1. Формы». Разрядность последнего номера расширяет отступ только тем
+// спискам, которым он нужен.
+function OrderedList({ children, start, ...props }: React.OlHTMLAttributes<HTMLOListElement>) {
+  const items = React.Children.toArray(children).filter(React.isValidElement).length;
+  const last = (Number(start) || 1) + Math.max(items, 1) - 1;
+  const digits = String(Math.max(last, 1)).length;
+  return (
+    <ol start={start} data-digits={digits > 1 ? Math.min(digits, 4) : undefined} {...props}>
+      {children}
+    </ol>
+  );
+}
+
 function Table({ children, className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
     <div className={classes.tableWrapper}>
@@ -177,7 +192,7 @@ const OVERRIDES: MarkdownToJSX.Overrides = {
   h4: { props: { className: classes.h4 } },
   p: { props: { className: classes.p } },
   ul: { props: { className: classes.ul } },
-  ol: { props: { className: classes.ol } },
+  ol: { component: OrderedList, props: { className: classes.ol } },
   li: { props: { className: classes.li } },
   strong: { props: { className: classes.strong } },
   a: Anchor,
