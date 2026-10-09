@@ -1,8 +1,35 @@
 import React from 'react';
-import { render } from '@mantine-tests/core';
+import { render, screen } from '@mantine-tests/core';
 import { act } from '@testing-library/react';
 import type { ChatMessage } from '../types';
 import { MessageList } from './MessageList';
+
+it('keeps an explicit activity node mounted while streamed text grows', () => {
+  let update!: (next: 'submitted' | 'streaming' | 'ready') => void;
+  function Harness() {
+    const [status, setStatus] = React.useState<'submitted' | 'streaming' | 'ready'>('submitted');
+    update = setStatus;
+    return (
+      <MessageList
+        messages={[
+          {
+            id: 'a1',
+            role: 'assistant',
+            parts: status === 'submitted' ? [] : [{ type: 'text', text: 'Answer' }],
+          },
+        ]}
+        status={status}
+        workingRow={<span data-testid="activity">Working</span>}
+      />
+    );
+  }
+  render(<Harness />);
+  const node = screen.getByTestId('activity');
+  act(() => update('streaming'));
+  expect(screen.getByTestId('activity')).toBe(node);
+  act(() => update('ready'));
+  expect(screen.queryByTestId('activity')).toBeNull();
+});
 
 it('keeps the reveal buffer active during submitted tool phases without a typing caret', () => {
   Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });

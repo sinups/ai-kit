@@ -3,6 +3,7 @@ import { render, screen, userEvent } from '@mantine-tests/core';
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import type { ChatMessage, ToolRendererSlotProps } from '../types';
 import { MessageList } from './MessageList';
+import { ToolApprovalsProvider } from '../approvals/approval-context';
 
 const messages: ChatMessage[] = [
   {
@@ -18,6 +19,32 @@ const messages: ChatMessage[] = [
 ];
 
 describe('MessageList/MessageList', () => {
+  it('never folds a pending approval into a collapsed tool run', () => {
+    const withTools: ChatMessage[] = [
+      {
+        id: 'a1',
+        role: 'assistant',
+        parts: [
+          { type: 'tool-Read', toolCallId: 'r1', state: 'output-available' },
+          { type: 'tool-Read', toolCallId: 'consent', state: 'input-available' },
+          { type: 'tool-Read', toolCallId: 'r2', state: 'output-available' },
+        ],
+      },
+    ];
+    const StubToolRenderer = ({ part }: ToolRendererSlotProps) => <div>tool:{part.toolCallId}</div>;
+    const view = render(
+      <ToolApprovalsProvider approvals={{ consent: { onApprove: jest.fn(), onReject: jest.fn() } }}>
+        <MessageList
+          messages={withTools}
+          status="submitted"
+          collapseToolRuns={{ minRun: 2 }}
+          slots={{ ToolRenderer: StubToolRenderer }}
+        />
+      </ToolApprovalsProvider>
+    );
+    expect(view.container.querySelector('[data-tool-run]')).toBeNull();
+    expect(screen.getByText('tool:consent')).toBeInTheDocument();
+  });
   it('renders user and assistant text', () => {
     render(<MessageList messages={messages} status="ready" />);
     expect(screen.getByText('Hello there')).toBeInTheDocument();
