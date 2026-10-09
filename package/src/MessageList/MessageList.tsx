@@ -1631,8 +1631,8 @@ const AssistantParts = memo(function AssistantParts({
               responsiveTables={responsiveTables}
               frameBatched={frameBatched}
               tailGranularity={tailGranularity}
-              streaming={isRowTextStreaming && index === lastTextIndex ? true : undefined}
-              streamingCaret={streamingCaret}
+              streaming={isRowStreaming && index === lastTextIndex ? true : undefined}
+              streamingCaret={streamingCaret && isRowTextStreaming}
             />
           </div>
         );
