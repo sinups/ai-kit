@@ -1004,7 +1004,7 @@ export const MessageList = memo(function MessageList({
   const showWorkingRow =
     hasWorkingRow &&
     isStreaming &&
-    !isTailGrowingText(normalizedMessages) &&
+    (workingRow !== true || !isTailGrowingText(normalizedMessages)) &&
     !isWaitingForDecision &&
     !custom?.showsActivity?.(lastMessage?.parts ?? [], toolCatalog);
   const isNewAssistantMessage =
@@ -1029,17 +1029,19 @@ export const MessageList = memo(function MessageList({
     lastMessageIdRef.current = lastMessageId;
   }, [lastMessageId, lastMessageRole]);
 
-  const workingNode =
-    showWorkingRow &&
-    (workingRow === true ? (
-      <WorkingLine
-        label={labels.working}
-        since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
-        className={cx(classes.workingRow, isRows && classes.workingRowInline)}
-      />
-    ) : (
-      workingRow
-    ));
+  const workingNode = showWorkingRow && (
+    <React.Fragment key="working-row">
+      {workingRow === true ? (
+        <WorkingLine
+          label={labels.working}
+          since={showPlanning ? turnStartRef.current.at : lastActivityRef.current.at}
+          className={cx(classes.workingRow, isRows && classes.workingRowInline)}
+        />
+      ) : (
+        workingRow
+      )}
+    </React.Fragment>
+  );
   const lazyFrom = lazyTurns === false ? null : lazyTurns === true ? 50 : lazyTurns;
 
   useLayoutEffect(() => {
@@ -1362,7 +1364,7 @@ export const MessageList = memo(function MessageList({
                       );
                     })()}
 
-                  {isLastTurn && promptTop && workingNode}
+                  {isLastTurn && promptTop && workingRow === true && workingNode}
                   {isLastTurn && showPlanning && !hasWorkingRow && (
                     <ToolRowBase
                       icon={<SpiralLoader size={12} />}
@@ -1374,7 +1376,7 @@ export const MessageList = memo(function MessageList({
                 </div>
               );
             })}
-            {!promptTop && workingNode}
+            {(!promptTop || workingRow !== true) && workingNode}
           </div>
           {showAssistantBreathingSpace && (
             <div aria-hidden="true" data-breathing-space className={classes.breathingSpace} />
@@ -1631,8 +1633,8 @@ const AssistantParts = memo(function AssistantParts({
               responsiveTables={responsiveTables}
               frameBatched={frameBatched}
               tailGranularity={tailGranularity}
-              streaming={isRowTextStreaming && index === lastTextIndex ? true : undefined}
-              streamingCaret={streamingCaret}
+              streaming={isRowStreaming && index === lastTextIndex ? true : undefined}
+              streamingCaret={streamingCaret && isRowTextStreaming}
             />
           </div>
         );
@@ -1754,7 +1756,16 @@ const AssistantParts = memo(function AssistantParts({
 
     return groupToolRuns(
       visible,
-      ({ part }) => isV5ToolPart(part) && toolRunOptions.types.has(part.type),
+      ({ part }) => {
+        if (!isV5ToolPart(part) || !toolRunOptions.types.has(part.type)) {
+          return false;
+        }
+        const request = approvals?.[part.toolCallId ?? ''];
+        if (request && (!request.outcome || request.isPending)) {
+          return false;
+        }
+        return part.state !== 'output-error' || part.recovered === true;
+      },
       toolRunOptions.minRun
     ).map((segment) => {
       if (segment.kind === 'single') {

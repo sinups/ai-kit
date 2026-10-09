@@ -135,17 +135,16 @@ export function QuietToolRow({
           locale: presentation.locale,
         })
       : null;
-    const formattedNode =
-      formatted !== null && formatted !== undefined && typeof formatted !== 'string'
-        ? formatted
-        : null;
+    const formattedNode = formatted ?? null;
     return {
       summary:
         typeof formatted === 'string'
           ? state === 'error'
             ? [mcpLabels.failed, formattedLine].filter(Boolean).join(' · ')
             : formattedLine
-          : quietSummary,
+          : formattedNode !== null
+            ? ''
+            : quietSummary,
       argsText: typeof hostArgs === 'string' ? hostArgs : null,
       formattedNode,
       hasDetails:
@@ -188,10 +187,7 @@ export function QuietToolRow({
     );
   }
 
-  const title = readTitle(
-    part,
-    getToolCatalogTitle(findToolCatalogEntry(presentation.catalog, part))
-  );
+  const title = readTitle(part, getToolCatalogTitle(catalogEntry));
   const outcome = hostApproval?.outcome ? getToolApprovalOutcomeText(hostApproval) : null;
 
   return (
@@ -291,28 +287,32 @@ function QuietToolDetails({
 
   return (
     <Stack gap="xs" className={classes.details}>
-      {argsText !== null ? (
-        <CodeBlock
-          code={argsText}
-          language="text"
-          title={labels.arguments}
-          highlighter={highlighter}
-          wrapLines
-        />
-      ) : (
-        argsJson && (
-          <CodeBlock
-            code={argsJson}
-            language="json"
-            title={labels.arguments}
-            highlighter={highlighter}
-            wrapLines
-          />
-        )
+      {argsText !== null
+        ? argsText && (
+            <Text size="xs" className={classes.prose}>
+              {argsText}
+            </Text>
+          )
+        : argsJson && (
+            <CodeBlock
+              code={argsJson}
+              language="json"
+              title={labels.arguments}
+              highlighter={highlighter}
+              wrapLines
+            />
+          )}
+      {typeof formatted === 'string'
+        ? formatted && (
+            <Text size="xs" className={classes.prose}>
+              {formatted}
+            </Text>
+          )
+        : formatted}
+      {formatted === null && resultNode}
+      {formatted === null && result && (
+        <ToolResultContent result={result} messageId={part.toolCallId ?? part.type} />
       )}
-      {formatted}
-      {resultNode}
-      {result && <ToolResultContent result={result} messageId={part.toolCallId ?? part.type} />}
       {outcome && (
         <Text size="xs" c="dimmed">
           {outcome}

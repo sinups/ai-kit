@@ -478,6 +478,24 @@
   min-width: 0;
 }
 
+@media (max-width: 36em), (pointer: coarse) {
+  .toolbar {
+    --ae-touch-target: rem(44px);
+    align-items: flex-end;
+    gap: rem(4px);
+  }
+
+  .toolbarLeft {
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .toolbar button {
+    min-width: var(--ae-touch-target);
+    min-height: var(--ae-touch-target);
+  }
+}
+
 .sendWrap {
   cursor: pointer;
 }
