@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, BoxProps, Collapse, ElementProps, UnstyledButton } from '@mantine/core';
+import React, { useId, useState } from 'react';
+import { Box, BoxProps, ElementProps, UnstyledButton } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
 import { useMinDisplayTime } from '../hooks/use-min-display-time';
 import { TextShimmer } from '../TextShimmer/TextShimmer';
@@ -55,6 +55,7 @@ export function ToolRowBase({
     { minMs: minStatusMs, key: `${isAnimating}\u0000${shimmerLabel ?? ''}\u0000${completeLabel}` }
   );
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const bodyId = useId();
   const isControlled = expanded !== undefined;
   const isOpen = isControlled ? expanded : internalOpen;
 
@@ -112,13 +113,29 @@ export function ToolRowBase({
   }
 
   return (
-    <Box className={cx(classes.root, className)} data-expandable {...others}>
-      <UnstyledButton className={classes.trigger} onClick={handleToggle} aria-expanded={isOpen}>
+    <Box
+      className={cx(classes.root, className)}
+      data-expandable
+      data-open={isOpen || undefined}
+      {...others}
+    >
+      <UnstyledButton
+        className={classes.trigger}
+        onClick={handleToggle}
+        aria-expanded={isOpen}
+        aria-controls={bodyId}
+      >
         {row}
       </UnstyledButton>
-      <Collapse expanded={isOpen} transitionDuration={150} transitionTimingFunction="ease-out">
-        {children}
-      </Collapse>
+      <div
+        id={bodyId}
+        className={classes.disclosure}
+        data-open={isOpen || undefined}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+      >
+        <div className={classes.disclosureContent}>{children}</div>
+      </div>
     </Box>
   );
 }

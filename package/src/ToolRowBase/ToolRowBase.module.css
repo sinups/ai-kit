@@ -3,10 +3,32 @@
   flex-direction: column;
   gap: rem(4px);
   width: 100%;
+  transition: gap 120ms ease-out;
 
-  &[data-expandable] {
+  &[data-expandable][data-open] {
     gap: rem(8px);
   }
+}
+
+/* Intrinsic grid sizing follows nested disclosures without JS height measurements. */
+.disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 120ms ease-out,
+    visibility 0s linear 120ms;
+
+  &[data-open] {
+    grid-template-rows: 1fr;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+}
+
+.disclosureContent {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .trigger {
@@ -97,9 +119,17 @@
   display: flex;
   flex-shrink: 0;
   color: var(--ae-fg-muted);
-  transition: transform 150ms ease-out;
+  transition: transform 120ms ease-out;
 
   &[data-open] {
     transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .disclosure,
+  .chevron {
+    transition: none;
   }
 }

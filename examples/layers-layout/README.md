@@ -60,3 +60,16 @@ truthfulness, stopping during consent, and the completed answer link. Screenshot
 in evidence/ are synthetic UI fixtures, not production acceptance evidence.
 
 Approve this composition before connecting it to the real Layers transport.
+
+## Nested Disclosure Fix
+
+ToolRowBase uses a 120 ms intrinsic CSS-grid transition for details. It no longer
+waits for Mantine Collapse's two animation frames and measured-height updates or
+React Activity visibility scheduling. Nested panels follow their content height
+without freezing an outer measured height. First-use lazy details remain supported;
+after opening, their state is retained. Closed content is immediately aria-hidden
+and inert, and reduced-motion disables the disclosure/chevron/gap transitions.
+
+`package/src/ToolRowBase/ToolRowBase.test.tsx` reproduces the old first-open delay
+and checks rapid reversal and retained state. This does not constitute an FPS
+benchmark for large real tool results.
