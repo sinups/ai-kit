@@ -65,4 +65,13 @@ describe('input/CommandToggles', () => {
     );
     expect(screen.getByRole('group', { name: 'Команды' })).toBeInTheDocument();
   });
+
+  it('shares the width of its parent between the toggles when grow is set', () => {
+    const { rerender } = render(<CommandToggles commands={commands} />);
+    const group = screen.getByRole('group', { name: 'Commands' });
+    expect(group).not.toHaveAttribute('data-grow');
+
+    rerender(<CommandToggles commands={commands} grow />);
+    expect(screen.getByRole('group', { name: 'Commands' })).toHaveAttribute('data-grow', 'true');
+  });
 });

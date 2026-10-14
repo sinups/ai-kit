@@ -33,6 +33,8 @@ export interface CommandTogglesProps {
   onChange?: (id: string | null) => void;
   /** Overrides of the default English labels */
   labels?: Partial<CommandTogglesLabels>;
+  /** Stretches the toggles to the full width of the parent, sharing it equally, `false` by default */
+  grow?: boolean;
   /** Class name added to the root element */
   className?: string;
   /** Inline styles added to the root element */
@@ -46,6 +48,7 @@ export const CommandToggles = memo(function CommandToggles({
   defaultValue,
   onChange,
   labels: labelsProp,
+  grow = false,
   className,
   style,
 }: CommandTogglesProps) {
@@ -61,6 +64,7 @@ export const CommandToggles = memo(function CommandToggles({
     <Group
       gap={4}
       wrap="nowrap"
+      grow={grow}
       role="group"
       aria-label={labels.group}
       className={cx(classes.root, className)}

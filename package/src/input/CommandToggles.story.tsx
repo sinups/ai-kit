@@ -51,6 +51,15 @@ export function Narrow() {
   );
 }
 
+export function Grow() {
+  const [command, setCommand] = useState<string | null>('search');
+  return (
+    <WidthFrame width={NARROW_WIDTH}>
+      <CommandToggles commands={COMMANDS} value={command} onChange={setCommand} grow />
+    </WidthFrame>
+  );
+}
+
 export const PickCommandFlow = {
   args: { onSend: fn() },
   render: ({ onSend }: { onSend: (message: { content: string }) => void }) => (
