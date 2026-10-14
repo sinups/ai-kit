@@ -320,6 +320,7 @@ export {
   getElicitationFields,
   validateElicitationField,
   buildElicitationContent,
+  DEFAULT_ELICITATION_VALIDATION_LABELS,
 } from './elicitation/elicitation-schema';
 export type {
   ElicitationRequestedSchema,
@@ -335,6 +336,7 @@ export type {
   ElicitationEnumOption,
   ElicitationOption,
   ElicitationDraft,
+  ElicitationValidationLabels,
 } from './elicitation/elicitation-schema';
 
 export { AgentStatus, DEFAULT_AGENT_STATUS_LABELS } from './AgentStatus/AgentStatus';

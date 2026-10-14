@@ -69,6 +69,23 @@ describe('elicitation/validateElicitationField', () => {
     expect(validateElicitationField(byName('plan'), 'enterprise')).toBe('Select an option');
   });
 
+  it('treats whitespace-only text as empty', () => {
+    expect(validateElicitationField(byName('name'), '  \n\t ')).toBe('Required');
+    expect(validateElicitationField(byName('email'), '   ')).toBeNull();
+  });
+
+  it('takes messages from labels and keeps English for the rest', () => {
+    const labels = {
+      required: 'Обязательное поле',
+      minLength: (count: number) => `Не короче ${count} символов`,
+      maximum: (value: number) => `Не больше ${value}`,
+    };
+    expect(validateElicitationField(byName('name'), '', labels)).toBe('Обязательное поле');
+    expect(validateElicitationField(byName('name'), 'a', labels)).toBe('Не короче 2 символов');
+    expect(validateElicitationField(byName('age'), 120, labels)).toBe('Не больше 99');
+    expect(validateElicitationField(byName('email'), 'nope', labels)).toBe('Enter a valid email');
+  });
+
   it('validates uri and date formats', () => {
     const [uri, date] = getElicitationFields({
       type: 'object',
@@ -85,6 +102,18 @@ describe('elicitation/validateElicitationField', () => {
 });
 
 describe('elicitation/buildElicitationContent', () => {
+  it('skips whitespace-only optional text and localizes errors', () => {
+    const fields = getElicitationFields(SCHEMA);
+    const draft = getElicitationDraft(fields);
+    const result = buildElicitationContent(
+      fields,
+      { ...draft, name: '   ', plan: 'pro', email: '  ' },
+      { required: 'Обязательное поле' }
+    );
+    expect(result.errors).toEqual({ name: 'Обязательное поле' });
+    expect(result.content).not.toHaveProperty('email');
+  });
+
   it('returns errors and skips empty optional fields', () => {
     const fields = getElicitationFields(SCHEMA);
     const draft = getElicitationDraft(fields);

@@ -94,6 +94,40 @@ export type ElicitationDraftValue = string | number | boolean | string[];
 
 export type ElicitationDraft = Record<string, ElicitationDraftValue>;
 
+export interface ElicitationValidationLabels {
+  required: string;
+  minLength: (count: number) => string;
+  maxLength: (count: number) => string;
+  email: string;
+  url: string;
+  date: string;
+  dateTime: string;
+  number: string;
+  integer: string;
+  minimum: (value: number) => string;
+  maximum: (value: number) => string;
+  selectOption: string;
+  minItems: (count: number) => string;
+  maxItems: (count: number) => string;
+}
+
+export const DEFAULT_ELICITATION_VALIDATION_LABELS: ElicitationValidationLabels = {
+  required: 'Required',
+  minLength: (count) => `Must be at least ${count} characters`,
+  maxLength: (count) => `Must be at most ${count} characters`,
+  email: 'Enter a valid email',
+  url: 'Enter a valid URL',
+  date: 'Enter a valid date',
+  dateTime: 'Enter a valid date and time',
+  number: 'Enter a number',
+  integer: 'Must be a whole number',
+  minimum: (value) => `Must be at least ${value}`,
+  maximum: (value) => `Must be at most ${value}`,
+  selectOption: 'Select an option',
+  minItems: (count) => `Select at least ${count}`,
+  maxItems: (count) => `Select at most ${count}`,
+};
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -192,8 +226,11 @@ export function getElicitationDraft(fields: ElicitationField[]): ElicitationDraf
 }
 
 function isEmpty(value: ElicitationDraftValue | undefined): boolean {
-  if (value === undefined || value === '') {
+  if (value === undefined) {
     return true;
+  }
+  if (typeof value === 'string') {
+    return value.trim() === '';
   }
   return Array.isArray(value) && value.length === 0;
 }
@@ -201,64 +238,66 @@ function isEmpty(value: ElicitationDraftValue | undefined): boolean {
 /** Returns an error message for the value, or `null` when it is valid */
 export function validateElicitationField(
   field: ElicitationField,
-  value: ElicitationDraftValue | undefined
+  value: ElicitationDraftValue | undefined,
+  labels: Partial<ElicitationValidationLabels> = {}
 ): string | null {
+  const text = { ...DEFAULT_ELICITATION_VALIDATION_LABELS, ...labels };
   if (field.kind === 'boolean') {
     return null;
   }
   if (isEmpty(value)) {
-    return field.required ? 'Required' : null;
+    return field.required ? text.required : null;
   }
 
   switch (field.kind) {
     case 'text': {
-      const text = String(value);
+      const input = String(value);
       const { minLength, maxLength } = field.schema;
-      if (minLength !== undefined && text.length < minLength) {
-        return `Must be at least ${minLength} characters`;
+      if (minLength !== undefined && input.length < minLength) {
+        return text.minLength(minLength);
       }
-      if (maxLength !== undefined && text.length > maxLength) {
-        return `Must be at most ${maxLength} characters`;
+      if (maxLength !== undefined && input.length > maxLength) {
+        return text.maxLength(maxLength);
       }
-      if (field.inputType === 'email' && !EMAIL_RE.test(text)) {
-        return 'Enter a valid email';
+      if (field.inputType === 'email' && !EMAIL_RE.test(input)) {
+        return text.email;
       }
-      if (field.inputType === 'url' && !isParsableUrl(text)) {
-        return 'Enter a valid URL';
+      if (field.inputType === 'url' && !isParsableUrl(input)) {
+        return text.url;
       }
-      if (field.inputType === 'date' && (!DATE_RE.test(text) || Number.isNaN(Date.parse(text)))) {
-        return 'Enter a valid date';
+      if (field.inputType === 'date' && (!DATE_RE.test(input) || Number.isNaN(Date.parse(input)))) {
+        return text.date;
       }
-      if (field.inputType === 'datetime-local' && Number.isNaN(Date.parse(text))) {
-        return 'Enter a valid date and time';
+      if (field.inputType === 'datetime-local' && Number.isNaN(Date.parse(input))) {
+        return text.dateTime;
       }
       return null;
     }
     case 'number': {
       const num = typeof value === 'number' ? value : Number(value);
       if (Number.isNaN(num)) {
-        return 'Enter a number';
+        return text.number;
       }
       if (field.schema.type === 'integer' && !Number.isInteger(num)) {
-        return 'Must be a whole number';
+        return text.integer;
       }
       if (field.schema.minimum !== undefined && num < field.schema.minimum) {
-        return `Must be at least ${field.schema.minimum}`;
+        return text.minimum(field.schema.minimum);
       }
       if (field.schema.maximum !== undefined && num > field.schema.maximum) {
-        return `Must be at most ${field.schema.maximum}`;
+        return text.maximum(field.schema.maximum);
       }
       return null;
     }
     case 'select':
-      return field.options.some((option) => option.value === value) ? null : 'Select an option';
+      return field.options.some((option) => option.value === value) ? null : text.selectOption;
     case 'multiselect': {
       const count = Array.isArray(value) ? value.length : 0;
       if (field.schema.minItems !== undefined && count < field.schema.minItems) {
-        return `Select at least ${field.schema.minItems}`;
+        return text.minItems(field.schema.minItems);
       }
       if (field.schema.maxItems !== undefined && count > field.schema.maxItems) {
-        return `Select at most ${field.schema.maxItems}`;
+        return text.maxItems(field.schema.maxItems);
       }
       return null;
     }
@@ -276,14 +315,15 @@ function isParsableUrl(text: string): boolean {
 /** Validates every field and builds the `accept` content, skipping empty optional fields */
 export function buildElicitationContent(
   fields: ElicitationField[],
-  draft: ElicitationDraft
+  draft: ElicitationDraft,
+  labels: Partial<ElicitationValidationLabels> = {}
 ): { content: ElicitationContent; errors: Record<string, string> } {
   const content: ElicitationContent = {};
   const errors: Record<string, string> = {};
 
   for (const field of fields) {
     const value = draft[field.name];
-    const error = validateElicitationField(field, value);
+    const error = validateElicitationField(field, value, labels);
     if (error) {
       errors[field.name] = error;
       continue;
