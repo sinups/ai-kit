@@ -65,4 +65,32 @@ describe('input/CommandToggles', () => {
     );
     expect(screen.getByRole('group', { name: 'Команды' })).toBeInTheDocument();
   });
+
+  it('shares the width of its parent between the toggles when grow is set', () => {
+    const { rerender } = render(<CommandToggles commands={commands} />);
+    const group = screen.getByRole('group', { name: 'Commands' });
+    expect(group).not.toHaveAttribute('data-grow');
+
+    rerender(<CommandToggles commands={commands} grow />);
+    expect(screen.getByRole('group', { name: 'Commands' })).toHaveAttribute('data-grow', 'true');
+  });
+
+  it('marks a toned toggle for the theme and leaves the others neutral', () => {
+    render(
+      <CommandToggles
+        commands={[
+          { id: 'a', label: 'Calm', tone: 'info' },
+          { id: 'b', label: 'Soon', tone: 'warning' },
+          { id: 'c', label: 'Now', tone: 'danger' },
+          { id: 'd', label: 'Plain' },
+        ]}
+        value="b"
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Calm' })).toHaveAttribute('data-tone', 'info');
+    expect(screen.getByRole('button', { name: 'Soon' })).toHaveAttribute('data-tone', 'warning');
+    expect(screen.getByRole('button', { name: 'Soon' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Now' })).toHaveAttribute('data-tone', 'danger');
+    expect(screen.getByRole('button', { name: 'Plain' })).not.toHaveAttribute('data-tone');
+  });
 });

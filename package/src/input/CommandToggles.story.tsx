@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { expect, fn, userEvent, within } from '@storybook/test';
-import { IconBrush, IconSearch, IconSparkles } from '@tabler/icons-react';
+import { IconBrush, IconLock, IconSearch, IconSparkles } from '@tabler/icons-react';
 import { NARROW_WIDTH, WIDE_WIDTH, WidthFrame } from '../_stories/WidthFrame';
 import { CommandToggles, type CommandToggle } from './CommandToggles';
 import { InputBar } from './InputBar';
@@ -47,6 +47,42 @@ export function Narrow() {
   return (
     <WidthFrame width={NARROW_WIDTH}>
       <Composer onSend={() => {}} />
+    </WidthFrame>
+  );
+}
+
+export function Grow() {
+  const [command, setCommand] = useState<string | null>('search');
+  return (
+    <WidthFrame width={NARROW_WIDTH}>
+      <CommandToggles commands={COMMANDS} value={command} onChange={setCommand} grow />
+    </WidthFrame>
+  );
+}
+
+const TONED: CommandToggle[] = [
+  { id: 'later', label: 'With release', tone: 'info', description: 'Fixed in the next release' },
+  {
+    id: 'soon',
+    label: 'Urgent',
+    tone: 'warning',
+    icon: <IconLock size={14} />,
+    description: 'Answer in 4 working hours',
+  },
+  {
+    id: 'now',
+    label: 'Critical',
+    tone: 'danger',
+    icon: <IconLock size={14} />,
+    description: 'Answer in 1 hour',
+  },
+];
+
+export function Tones() {
+  const [urgency, setUrgency] = useState<string | null>('later');
+  return (
+    <WidthFrame width={NARROW_WIDTH}>
+      <CommandToggles commands={TONED} value={urgency} onChange={setUrgency} grow />
     </WidthFrame>
   );
 }
