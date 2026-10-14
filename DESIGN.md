@@ -64,7 +64,7 @@ secondary text, `0.6` check icon (`input/ModelPicker.module.css`). `--ae-hover` 
 | `--ae-error-border` / `--ae-error-bg` | red 6 at 0.3 / 0.1 | Error cards |
 | `--ae-warning-border` / `--ae-warning-bg` | yellow 6 at 0.35 / 0.1 | Warning cards and notices |
 | `--ae-danger` / `--ae-danger-fill` | Mantine `red` text / `red-9` | Destructive text and filled destructive buttons (white text ≥ 4.5:1 in both schemes) |
-| `--ae-success` / `--ae-warning` / `--ae-info` | Mantine `green` / `orange` / `blue` text | Status icons and text |
+| `--ae-success` / `--ae-warning` / `--ae-info` | Mantine `green` / `orange` / `blue` text | Status icons and text, text and fill of a toned `CommandToggles` toggle (`tone: 'info' \| 'warning' \| 'danger'`) |
 | `--ae-terminal-prompt` | `#d97706` / `#fbbf24` | `$` in bash cards |
 | `--ae-diff-added-*` / `--ae-diff-removed-*` | green / red: bg 0.1 (dark 0.15), border 0.5 (dark 0.4), text `#15803d` / `#dc2626` (dark `#4ade80` / `#f87171`) | Diff lines and stats |
 | `--ae-diff-added-highlight` / `--ae-diff-removed-highlight` | green 0.3 / red 0.25 (dark 0.35 / 0.35) | Changed words inside a replaced line |

@@ -4,6 +4,8 @@ import { useUncontrolled } from '@mantine/hooks';
 import { cx } from '../utils/cx';
 import classes from './CommandToggles.module.css';
 
+export type CommandToggleTone = 'info' | 'warning' | 'danger';
+
 export type CommandToggle = {
   id: string;
   label: string;
@@ -11,6 +13,8 @@ export type CommandToggle = {
   icon?: React.ReactNode;
   /** What the command does, shown in a tooltip on hover and focus */
   description?: string;
+  /** Semantic color of the toggle: text and icon take `--ae-info`, `--ae-warning` or `--ae-danger`, a pressed toggle gets a fill of the same tone; neutral by default */
+  tone?: CommandToggleTone;
   disabled?: boolean;
 };
 
@@ -87,6 +91,7 @@ export const CommandToggles = memo(function CommandToggles({
               color="gray"
               leftSection={command.icon}
               aria-pressed={picked}
+              data-tone={command.tone}
               disabled={command.disabled}
               classNames={{ root: classes.toggle, section: classes.icon }}
               onClick={() => setActive(picked ? null : command.id)}

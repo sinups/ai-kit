@@ -5,6 +5,10 @@
 }
 
 .root .toggle {
+  --toggle-tone: var(--ae-fg-muted);
+  --toggle-fill: var(--ae-fg);
+  --toggle-pressed: var(--ae-fg);
+
   flex-shrink: 0;
   height: var(--ae-control-height-md);
   padding: 0 rem(8px);
@@ -13,18 +17,36 @@
   font-size: var(--ae-font-size-xs);
   font-weight: 500;
   line-height: rem(16px);
-  color: var(--ae-fg-muted);
+  color: var(--toggle-tone);
   transition:
     background-color 150ms ease,
     color 150ms ease;
 
+  &[data-tone='info'] {
+    --toggle-fill: var(--ae-info);
+    --toggle-tone: color-mix(in srgb, var(--ae-info) 60%, var(--ae-fg));
+    --toggle-pressed: var(--toggle-tone);
+  }
+
+  &[data-tone='warning'] {
+    --toggle-fill: var(--ae-warning);
+    --toggle-tone: color-mix(in srgb, var(--ae-warning) 60%, var(--ae-fg));
+    --toggle-pressed: var(--toggle-tone);
+  }
+
+  &[data-tone='danger'] {
+    --toggle-fill: var(--ae-danger);
+    --toggle-tone: color-mix(in srgb, var(--ae-danger) 60%, var(--ae-fg));
+    --toggle-pressed: var(--toggle-tone);
+  }
+
   @mixin hover {
-    background-color: alpha(var(--ae-fg), 0.06);
+    background-color: alpha(var(--toggle-fill), 0.06);
   }
 
   &[aria-pressed='true'] {
-    background-color: alpha(var(--ae-fg), 0.12);
-    color: var(--ae-fg);
+    background-color: alpha(var(--toggle-fill), 0.12);
+    color: var(--toggle-pressed);
   }
 
   &:disabled {

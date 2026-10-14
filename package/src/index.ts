@@ -141,6 +141,7 @@ export type { ChatDropZoneLabels, ChatDropZoneProps } from './input/ChatDropZone
 export { CommandToggles, DEFAULT_COMMAND_TOGGLES_LABELS } from './input/CommandToggles';
 export type {
   CommandToggle,
+  CommandToggleTone,
   CommandTogglesLabels,
   CommandTogglesProps,
 } from './input/CommandToggles';
