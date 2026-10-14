@@ -23,6 +23,40 @@ describe('elicitation/ElicitationForm', () => {
     expect(onAccept).not.toHaveBeenCalled();
   });
 
+  it('focuses the first invalid field after a rejected submit', async () => {
+    render(<ElicitationForm message="Who are you?" requestedSchema={SCHEMA} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(screen.getByLabelText(/Name/)).toHaveFocus();
+    expect(screen.getByLabelText(/Name/)).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('shows validation messages from labels', async () => {
+    render(
+      <ElicitationForm
+        message="Contact"
+        requestedSchema={SCHEMA}
+        labels={{ validation: { required: 'Обязательное поле', email: 'Неверный адрес' } }}
+      />
+    );
+
+    await userEvent.type(screen.getByLabelText('Email'), 'nope');
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(screen.getByText('Обязательное поле')).toBeInTheDocument();
+    expect(screen.getByText('Неверный адрес')).toBeInTheDocument();
+    expect(screen.queryByText('Required')).not.toBeInTheDocument();
+  });
+
+  it('treats a whitespace-only value as empty', async () => {
+    const onAccept = jest.fn();
+    render(<ElicitationForm message="Who are you?" requestedSchema={SCHEMA} onAccept={onAccept} />);
+
+    await userEvent.type(screen.getByLabelText(/Name/), '   ');
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(screen.getByText('Required')).toBeInTheDocument();
+    expect(onAccept).not.toHaveBeenCalled();
+  });
+
   it('validates a field on blur', async () => {
     render(<ElicitationForm message="Contact" requestedSchema={SCHEMA} />);
 

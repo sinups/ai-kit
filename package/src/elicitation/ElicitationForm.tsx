@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -19,6 +19,7 @@ import { IconExternalLink, IconForms } from '@tabler/icons-react';
 import { cx } from '../utils/cx';
 import {
   buildElicitationContent,
+  DEFAULT_ELICITATION_VALIDATION_LABELS,
   getElicitationDraft,
   getElicitationFields,
   getElicitationHost,
@@ -27,6 +28,7 @@ import {
   type ElicitationDraftValue,
   type ElicitationField,
   type ElicitationRequestedSchema,
+  type ElicitationValidationLabels,
 } from './elicitation-schema';
 import classes from './ElicitationForm.module.css';
 
@@ -47,6 +49,7 @@ export interface ElicitationFormLabels {
   declined: string;
   /** Status after the request was canceled, `Canceled` by default */
   canceled: string;
+  validation: Partial<ElicitationValidationLabels>;
 }
 
 export const DEFAULT_ELICITATION_FORM_LABELS: ElicitationFormLabels = {
@@ -57,6 +60,7 @@ export const DEFAULT_ELICITATION_FORM_LABELS: ElicitationFormLabels = {
   accepted: 'Accepted',
   declined: 'Declined',
   canceled: 'Canceled',
+  validation: DEFAULT_ELICITATION_VALIDATION_LABELS,
 };
 
 export interface ElicitationFormProps {
@@ -246,6 +250,7 @@ export const ElicitationForm = memo(function ElicitationForm({
   style,
 }: ElicitationFormProps) {
   const labels = { ...DEFAULT_ELICITATION_FORM_LABELS, ...labelsProp };
+  const validationLabels = { ...DEFAULT_ELICITATION_VALIDATION_LABELS, ...labelsProp?.validation };
   const decisionLabels: Record<ElicitationAction, string> = {
     accept: labels.accepted,
     decline: labels.declined,
@@ -255,12 +260,20 @@ export const ElicitationForm = memo(function ElicitationForm({
   const [draft, setDraft] = useState(() => getElicitationDraft(fields));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [decision, setDecision] = useState<ElicitationAction | null>(null);
+  const [invalidSubmits, setInvalidSubmits] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (invalidSubmits > 0) {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    }
+  }, [invalidSubmits]);
 
   const isLocked = disabled || decision !== null;
   const host = mode === 'url' ? getElicitationHost(url) : null;
 
   const setFieldError = (field: ElicitationField, value: ElicitationDraftValue | undefined) => {
-    const error = validateElicitationField(field, value);
+    const error = validateElicitationField(field, value, validationLabels);
     setErrors((prev) => {
       if ((prev[field.name] ?? null) === error) {
         return prev;
@@ -291,9 +304,10 @@ export const ElicitationForm = memo(function ElicitationForm({
     if (isLocked || mode === 'url') {
       return;
     }
-    const result = buildElicitationContent(fields, draft);
+    const result = buildElicitationContent(fields, draft, validationLabels);
     setErrors(result.errors);
     if (Object.keys(result.errors).length > 0) {
+      setInvalidSubmits((count) => count + 1);
       return;
     }
     setDecision('accept');
@@ -327,6 +341,7 @@ export const ElicitationForm = memo(function ElicitationForm({
   return (
     <Paper
       component="form"
+      ref={formRef}
       noValidate
       withBorder
       radius="var(--ae-tool-radius)"

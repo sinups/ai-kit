@@ -228,6 +228,11 @@
   --input-fz: var(--ae-font-size-sm);
 }
 
+:global(.ae-kit) .input[data-error],
+:global(.ae-kit) .input[data-error]:focus {
+  --input-bd: var(--ae-danger);
+}
+
 :global(.ae-kit) .inputLabel {
   font-size: var(--ae-font-size-xs);
   line-height: var(--ae-line-height-xs);
