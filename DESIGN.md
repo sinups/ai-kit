@@ -51,7 +51,7 @@ no Mantine palette colors (`color="red"`, `c="dimmed"`) for kit surfaces.
 | `--ae-input-*` | bg `#fff`, border `#e4e4e7`, color `#1a1a1a`, placeholder `#a3a3a3` | bg `#0a0a0a`, border `#2a2a2a`, color `#fafafa`, placeholder `#71717a` | Composer field |
 | `--ae-user-message-bg` / `-text` | `#f5f5f5` / `#1a1a1a` | `#1a1a1a` / `#fafafa` | User bubble |
 
-Opacity steps on `--ae-fg` are used for picker triggers and options: `0.06` hover fill, `0.2-0.4`
+Opacity steps on `--ae-fg` are used for picker triggers and options: `0.06` hover fill (`0.12` for a pressed toggle in `input/CommandToggles.module.css`, so it stays distinct from a hovered sibling), `0.2-0.4`
 secondary text, `0.6` check icon (`input/ModelPicker.module.css`). `--ae-hover` is
 `--mantine-color-default-hover`.
 

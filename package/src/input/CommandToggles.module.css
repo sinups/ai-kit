@@ -23,7 +23,7 @@
   }
 
   &[aria-pressed='true'] {
-    background-color: alpha(var(--ae-fg), 0.06);
+    background-color: alpha(var(--ae-fg), 0.12);
     color: var(--ae-fg);
   }
 
