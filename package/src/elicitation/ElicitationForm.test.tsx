@@ -122,3 +122,45 @@ describe('elicitation/ElicitationForm', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });
+
+describe('elicitation/a string over several lines', () => {
+  const multiline: ElicitationRequestedSchema = {
+    type: 'object',
+    properties: {
+      story: { type: 'string', title: 'What happened?', multiline: true, maxLength: 8000 },
+      short: { type: 'string', title: 'Order number' },
+    },
+    required: ['story'],
+  };
+
+  it('gives a multiline string a text area and keeps the plain one an input', () => {
+    render(<ElicitationForm message="Tell us" requestedSchema={multiline} />);
+
+    expect(screen.getByLabelText(/What happened\?/).tagName).toBe('TEXTAREA');
+    expect(screen.getByLabelText('Order number').tagName).toBe('INPUT');
+  });
+
+  it('keeps the line breaks the person typed', async () => {
+    const onAccept = jest.fn();
+    render(<ElicitationForm message="Tell us" requestedSchema={multiline} onAccept={onAccept} />);
+
+    const field = screen.getByLabelText(/What happened\?/);
+    await userEvent.type(field, 'First line{Enter}second line');
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(onAccept).toHaveBeenCalledWith(
+      expect.objectContaining({ story: 'First line\nsecond line' })
+    );
+  });
+
+  it('keeps the required mark and the limit of the schema', async () => {
+    const onAccept = jest.fn();
+    render(<ElicitationForm message="Tell us" requestedSchema={multiline} onAccept={onAccept} />);
+
+    expect(screen.getByLabelText(/What happened\?/)).toHaveAttribute('maxlength', '8000');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(screen.getByText('Required')).toBeInTheDocument();
+    expect(onAccept).not.toHaveBeenCalled();
+  });
+});
