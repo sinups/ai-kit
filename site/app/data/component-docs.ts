@@ -2251,7 +2251,7 @@ export function Example() {
         type: 'usage',
         title: 'Usage',
         content:
-          'Answer MCP elicitation requests. Pass the server\'s requestedSchema and the form builds Mantine fields for strings (email, uri, date, date-time), numbers, booleans, single and multi-select enums, validates required fields and bounds, and calls onAccept with only the filled values. Use mode="url" when the server asks the user to open a link. Short fields go into two columns once the form itself is wider than 520px, so the same component fits a narrow widget and a full-page chat.',
+          'Answer MCP elicitation requests. Pass the server\'s requestedSchema and the form builds Mantine fields for strings (email, uri, date, date-time), numbers, booleans, single and multi-select enums, validates required fields and bounds, and calls onAccept with only the filled values. A string that expects more than a line takes `multiline: true`, and then the field is a text area that grows from three lines to eight (`rows` sets where it starts); it never shares a row with another field, and its label, limit and required mark work as they do on a one-line field. Use mode="url" when the server asks the user to open a link. Short fields go into two columns once the form itself is wider than 520px, so the same component fits a narrow widget and a full-page chat.',
       },
       {
         type: 'example',

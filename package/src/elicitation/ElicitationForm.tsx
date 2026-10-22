@@ -13,6 +13,7 @@ import {
   Stack,
   Switch,
   Text,
+  Textarea,
   TextInput,
 } from '@mantine/core';
 import { IconExternalLink, IconForms } from '@tabler/icons-react';
@@ -101,10 +102,16 @@ function isCompactField(field: ElicitationField): boolean {
     return true;
   }
   if (field.kind === 'text') {
+    if (field.schema.multiline) {
+      return false;
+    }
     return field.inputType !== 'text' || (field.schema.maxLength ?? Infinity) <= 120;
   }
   return field.kind === 'select' && field.options.length > 3;
 }
+
+const MIN_TEXTAREA_ROWS = 3;
+const MAX_TEXTAREA_ROWS = 8;
 
 const EMPTY_SCHEMA: ElicitationRequestedSchema = { type: 'object', properties: {} };
 
@@ -128,6 +135,23 @@ function FieldControl({ field, value, error, disabled, onChange, onBlur }: Field
 
   switch (field.kind) {
     case 'text':
+      if (field.schema.multiline) {
+        return (
+          <Textarea
+            {...common}
+            autosize
+            minRows={Math.min(
+              Math.max(field.schema.rows ?? MIN_TEXTAREA_ROWS, 1),
+              MAX_TEXTAREA_ROWS
+            )}
+            maxRows={MAX_TEXTAREA_ROWS}
+            value={String(value ?? '')}
+            maxLength={field.schema.maxLength}
+            onChange={(event) => onChange(event.currentTarget.value)}
+            onBlur={onBlur}
+          />
+        );
+      }
       return (
         <TextInput
           {...common}

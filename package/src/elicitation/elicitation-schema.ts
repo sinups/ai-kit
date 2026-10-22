@@ -8,6 +8,10 @@ export type ElicitationStringSchema = {
   minLength?: number;
   maxLength?: number;
   format?: 'email' | 'uri' | 'date' | 'date-time';
+  /** The answer is expected to run over several lines, so the field is a text area */
+  multiline?: boolean;
+  /** Height of a multiline field in lines, `3` by default and never past eight */
+  rows?: number;
   enum?: string[];
   enumNames?: string[];
   oneOf?: ElicitationEnumOption[];

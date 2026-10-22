@@ -5,9 +5,9 @@
       "styles/base.css",
       "styles/AgentChat.css"
     ],
-    "jsGzip": 85062,
-    "cssGzip": 12498,
-    "totalGzip": 97560
+    "jsGzip": 85285,
+    "cssGzip": 12676,
+    "totalGzip": 97961
   },
   {
     "name": "MessageList",
@@ -15,9 +15,9 @@
       "styles/base.css",
       "styles/MessageList.css"
     ],
-    "jsGzip": 70186,
-    "cssGzip": 9742,
-    "totalGzip": 79928
+    "jsGzip": 70431,
+    "cssGzip": 9867,
+    "totalGzip": 80298
   },
   {
     "name": "InputBar",
@@ -25,9 +25,9 @@
       "styles/base.css",
       "styles/InputBar.css"
     ],
-    "jsGzip": 30396,
-    "cssGzip": 6985,
-    "totalGzip": 37381
+    "jsGzip": 30507,
+    "cssGzip": 7087,
+    "totalGzip": 37594
   },
   {
     "name": "Markdown",
@@ -285,9 +285,9 @@
     "stylesheets": [
       "styles.css"
     ],
-    "jsGzip": 218497,
-    "cssGzip": 23145,
-    "totalGzip": 241642
+    "jsGzip": 218879,
+    "cssGzip": 23369,
+    "totalGzip": 242248
   },
   {
     "name": "embed widget.js",

@@ -241,3 +241,14 @@
   border: 0;
   background-color: transparent;
 }
+
+/* The options as the boxes people know: the row keeps the padding of a lettered one. */
+.box {
+  padding: rem(6px) rem(8px);
+  border-radius: var(--ae-control-radius);
+  transition: background-color 150ms ease;
+
+  @mixin hover {
+    background-color: alpha(var(--ae-fg), 0.04);
+  }
+}
