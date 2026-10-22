@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Textarea, TextInput, UnstyledButton } from '@mantine/core';
+import { Box, Checkbox, Radio, Textarea, TextInput, UnstyledButton } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import { Markdown } from '../Markdown/Markdown';
 import { cx } from '../utils/cx';
@@ -34,6 +34,11 @@ export type QuestionConfig = {
   title: string;
   description?: string;
   options?: QuestionOption[];
+  /**
+   * Shape of the options: `button` keeps the lettered rows, `checkbox` draws the familiar boxes —
+   * squares for `multi`, circles for `single`. `button` by default.
+   */
+  control?: 'button' | 'checkbox';
   /** Adds a free-text option after the predefined ones */
   allowCustom?: boolean;
   customLabel?: string;
@@ -156,6 +161,7 @@ export function QuestionPrompt({
   const [activeOptionId, setActiveOptionId] = useState<string | null>(null);
   const { ref, width } = useElementSize();
   const customEnabled = activeQuestion?.allowCustom ?? false;
+  const asBoxes = activeQuestion?.control === 'checkbox';
   const showNav = resolvedTotal > 1 && (!!onPreviousQuestion || !!onNextQuestion);
   const canGoPrev = clampedIndex > 1;
   const canGoNext = clampedIndex < resolvedTotal;
@@ -247,21 +253,50 @@ export function QuestionPrompt({
           <div className={classes.options}>
             {options.map((option, idx) => {
               const checked = selectedIds.includes(option.id);
+              const pick = () => {
+                if (activeQuestion.kind === 'single') {
+                  handleSingleSelect(option.id);
+                  if (customEnabled) {
+                    setCustomText('');
+                  }
+                } else {
+                  toggleMulti(option.id);
+                }
+              };
+              const hover = option.preview ? () => setActiveOptionId(option.id) : undefined;
+              if (asBoxes) {
+                const Control = activeQuestion.kind === 'single' ? Radio : Checkbox;
+                return (
+                  <React.Fragment key={option.id}>
+                    <Control
+                      size="sm"
+                      checked={checked}
+                      onChange={pick}
+                      onMouseEnter={hover}
+                      onFocus={hover}
+                      className={classes.box}
+                      label={
+                        <span className={classes.optionLabel}>
+                          {option.label}
+                          {option.description && (
+                            <span className={classes.optionDescription}> {option.description}</span>
+                          )}
+                        </span>
+                      }
+                    />
+                    {!isWide &&
+                      previewOption?.id === option.id &&
+                      (checked || activeOptionId === option.id) &&
+                      renderPreview(classes.inlinePreview)}
+                  </React.Fragment>
+                );
+              }
               return (
                 <React.Fragment key={option.id}>
                   <UnstyledButton
-                    onMouseEnter={option.preview ? () => setActiveOptionId(option.id) : undefined}
-                    onFocus={option.preview ? () => setActiveOptionId(option.id) : undefined}
-                    onClick={() => {
-                      if (activeQuestion.kind === 'single') {
-                        handleSingleSelect(option.id);
-                        if (customEnabled) {
-                          setCustomText('');
-                        }
-                      } else {
-                        toggleMulti(option.id);
-                      }
-                    }}
+                    onMouseEnter={hover}
+                    onFocus={hover}
+                    onClick={pick}
                     className={classes.option}
                     data-checked={checked || undefined}
                     aria-pressed={checked}

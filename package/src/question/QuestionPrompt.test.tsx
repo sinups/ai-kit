@@ -187,3 +187,75 @@ describe('question/QuestionPrompt', () => {
     expect(screen.getByPlaceholderText('Notiz')).toBeInTheDocument();
   });
 });
+
+describe('question/options as boxes', () => {
+  it('draws squares for a multiple choice and keeps the answer the same', async () => {
+    const onSubmit = jest.fn();
+    render(
+      <QuestionPrompt
+        questions={[
+          {
+            kind: 'multi',
+            control: 'checkbox',
+            title: 'What should the agent touch?',
+            options: [
+              { id: 'tests', label: 'Tests' },
+              { id: 'docs', label: 'Docs' },
+            ],
+          },
+        ]}
+        onSubmit={onSubmit}
+      />
+    );
+
+    const boxes = screen.getAllByRole('checkbox');
+    expect(boxes).toHaveLength(2);
+
+    await userEvent.click(screen.getByRole('checkbox', { name: /Tests/ }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Docs/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'multi', selectedIds: ['tests', 'docs'] })
+    );
+  });
+
+  it('draws circles for a single choice', () => {
+    render(
+      <QuestionPrompt
+        questions={[
+          {
+            kind: 'single',
+            control: 'checkbox',
+            title: 'Which environment?',
+            options: [
+              { id: 'staging', label: 'Staging' },
+              { id: 'production', label: 'Production' },
+            ],
+          },
+        ]}
+        onSubmit={() => {}}
+      />
+    );
+
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+  });
+
+  it('keeps the lettered rows without the flag', () => {
+    render(
+      <QuestionPrompt
+        questions={[
+          {
+            kind: 'multi',
+            title: 'What should the agent touch?',
+            options: [{ id: 'tests', label: 'Tests' }],
+          },
+        ]}
+        onSubmit={() => {}}
+      />
+    );
+
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.getByRole('button', { name: /Tests/ })).toBeInTheDocument();
+  });
+});
