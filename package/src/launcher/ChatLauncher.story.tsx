@@ -163,7 +163,7 @@ function ShadowLauncher() {
   return (
     <HostPage>
       <style>{HOSTILE_CSS}</style>
-      <Box className="hostile-page" px={32}>
+      <Box className="hostile-page" px={32} data-shadow-ready={mounted || undefined}>
         <Group gap={12}>
           <button type="button">Host button</button>
           <textarea aria-label="Host field" defaultValue="Host textarea" />

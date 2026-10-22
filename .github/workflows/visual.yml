@@ -3,6 +3,15 @@ name: Visual regression
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+    # Comparing two Storybook builds costs ~25 minutes, so it runs only where pixels can move.
+    # A release pull request touches the version and the changelog, and used to hold the release
+    # for as long as this job took, once per merge into main.
+    paths:
+      - 'package/src/**'
+      - '.storybook/**'
+      - 'package/package.json'
+      - 'yarn.lock'
+      - '.github/workflows/visual.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }}

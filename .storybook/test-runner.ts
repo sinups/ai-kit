@@ -21,6 +21,24 @@ async function settle(page: Page) {
   await waitForPageReady(page);
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => window.scrollTo(0, 0));
+  // A style tag stops at the shadow boundary, so an animation inside a widget kept running and the
+  // two sides of the comparison caught it in different frames.
+  await page.evaluate((css) => {
+    const freeze = (root: Document | ShadowRoot) => {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      root.adoptedStyleSheets = [...root.adoptedStyleSheets, sheet];
+    };
+    const walk = (root: Document | ShadowRoot) => {
+      freeze(root);
+      root.querySelectorAll('*').forEach((element) => {
+        if (element.shadowRoot) {
+          walk(element.shadowRoot);
+        }
+      });
+    };
+    walk(document);
+  }, FREEZE_CSS);
   await page.waitForTimeout(300);
 }
 
@@ -45,6 +63,9 @@ const config: TestRunnerConfig = {
   async preVisit(page) {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.clock.setFixedTime(FIXED_NOW);
+    // Loaders, voice levels and pulse rings move from JavaScript, which no stylesheet can stop; the
+    // kit holds them still under reduced motion, so the screenshots ask for exactly that.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
   },
 
   async postVisit(page, context) {
@@ -69,6 +90,11 @@ const config: TestRunnerConfig = {
     }
 
     await page.addStyleTag({ content: FREEZE_CSS });
+    // A widget that mounts itself into a shadow root reports when it is there; without the wait the
+    // baseline and the comparison could be taken on either side of that moment.
+    if (await page.locator('[data-shadow-ready]').count()) {
+      await page.locator('[data-shadow-ready="true"]').first().waitFor({ state: 'attached' });
+    }
     for (const theme of THEMES) {
       await setTheme(page, theme);
       await settle(page);
