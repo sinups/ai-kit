@@ -65,6 +65,20 @@
   padding-inline-start: rem(20px);
 }
 
+/* Номера стоят снаружи отступа, а корень обрезает выходящее за край: «10.» не влезал в отступ
+   под «9.», и первая цифра срезалась. Отступ растёт с разрядностью последнего номера. */
+.ol[data-digits='2'] {
+  padding-inline-start: rem(28px);
+}
+
+.ol[data-digits='3'] {
+  padding-inline-start: rem(36px);
+}
+
+.ol[data-digits='4'] {
+  padding-inline-start: rem(44px);
+}
+
 .li {
   font-size: var(--ae-font-size-sm);
   line-height: var(--ae-line-height-sm);
